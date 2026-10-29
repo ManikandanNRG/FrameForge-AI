@@ -1,0 +1,371 @@
+// AI Filmmaking Studio — Phase 0+1 schema (SQLite).
+// SQLite does not support enums, so status fields are TEXT validated in domain code.
+// The schema is intentionally portable: switching datasource to PostgreSQL later is a
+// config change, not a redesign.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  displayName String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects    Project[]
+  auditEvents AuditEvent[]
+  mediaRoots  MediaRoot[]
+  providerConnections ProviderConnection[]
+}
+
+/// A film production and all its artifacts.
+model Project {
+  id           String   @id @default(cuid())
+  ownerId      String
+  owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?
+  status       String   @default("DRAFT") // DRAFT | ACTIVE | PAUSED | COMPLETED | ARCHIVED
+  currentStage String   @default("BRIEF") // BRIEF | STORY | BIBLE | STORYBOARD | GENERATION | EDITING | EXPORT | COMPLETE
+  sourceIdea   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Phase 1 fields
+  genre           String?
+  tone            String?
+  visualStyle     String  @default("PHOTOREALISTIC_CINEMATIC")
+  dialogueMode    String  @default("DIALOGUE")
+  targetRuntime   Int     @default(360)
+  aspectRatio     String  @default("LANDSCAPE_16_9")
+  audience        String?
+  storyLanguage   String  @default("en")
+
+  jobs             GenerationJob[]
+  storyArtifacts   StoryArtifact[]
+  productionAssets ProductionAsset[]
+  scenes           Scene[]
+  editSequences    EditSequence[]
+
+  @@index([ownerId])
+}
+
+/// Provider connection — stores encrypted API key server-side (spec §8.17).
+model ProviderConnection {
+  id             String   @id @default(cuid())
+  ownerId        String
+  owner          User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  providerId     String
+  displayName    String?
+  encryptedKey   String
+  keyVersion     String   @default("v1")
+  status         String   @default("NOT_TESTED")
+  lastVerifiedAt DateTime?
+  isEnabled      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  modelPreferences ModelPreference[]
+
+  @@index([ownerId, providerId])
+}
+
+/// Per-task model preference (spec §8.18).
+model ModelPreference {
+  id                   String             @id @default(cuid())
+  ownerId              String
+  taskType             String
+  providerConnectionId String
+  connection           ProviderConnection @relation(fields: [providerConnectionId], references: [id], onDelete: Cascade)
+  modelId              String
+  fallbackMode         String   @default("MANUAL_ONLY")
+  isEnabled            Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([ownerId, taskType])
+  @@index([ownerId])
+}
+
+/// A story artifact (spec §8.3).
+model StoryArtifact {
+  id               String   @id @default(cuid())
+  projectId        String
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  artifactType     String
+  currentVersionId String?
+  approvalStatus   String   @default("DRAFT")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  versions ArtifactVersion[]
+
+  @@unique([projectId, artifactType])
+  @@index([projectId])
+}
+
+/// Immutable artifact version (spec §8.4).
+model ArtifactVersion {
+  id               String        @id @default(cuid())
+  artifactId       String
+  artifact         StoryArtifact @relation(fields: [artifactId], references: [id], onDelete: Cascade)
+  versionNumber    Int
+  contentText      String
+  contentJson      String        @default("{}")
+  source           String        @default("AI")
+  providerId       String?
+  modelId          String?
+  generationJobId  String?
+  createdByUserId  String?
+  changeSummary    String?
+  approvedAt       DateTime?
+  approvedByUserId String?
+  createdAt        DateTime      @default(now())
+
+  @@unique([artifactId, versionNumber])
+  @@index([artifactId])
+}
+
+/// Durable background job record. DB is the source of truth; the in-process queue is transport.
+model GenerationJob {
+  id             String    @id @default(cuid())
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  // STORY | BIBLE_EXTRACTION | IMAGE_GENERATION | VIDEO_GENERATION | TRANSCRIPTION
+  // | THUMBNAIL | EXPORT | MEDIA_DERIVATIVE | ECHO (Phase 0 POC)
+  jobType        String
+  // QUEUED | SUBMITTING | SUBMITTED | RUNNING | WAITING_FOR_PROVIDER | RETRY_WAIT
+  // | SUCCEEDED | FAILED | CANCEL_REQUESTED | CANCELLED | NEEDS_USER_ACTION
+  status         String    @default("QUEUED")
+  idempotencyKey String    @unique
+  attemptCount   Int       @default(0)
+  maxAttempts    Int       @default(3)
+  progressPercent Int?
+  requestPayload String    @default("{}") // JSON string (SQLite has no JSON column type)
+  resultPayload  String?
+  errorCode      String?
+  errorMessage   String?
+  retryable      Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  nextRetryAt   DateTime?
+
+  @@index([status, nextRetryAt])
+  @@index([projectId, createdAt])
+}
+
+model AuditEvent {
+  id            String   @id @default(cuid())
+  projectId     String?
+  actorUserId   String?
+  actor         User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  eventType     String
+  entityType    String?
+  entityId      String?
+  details       String   @default("{}") // JSON string
+  correlationId String?
+  createdAt     DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+/// A user-approved local folder the app may read/write media in.
+/// Phase 0 localhost: roots are validated local paths; no companion pairing required.
+model MediaRoot {
+  id        String   @id @default(cuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  label     String
+  path      String // absolute allowed root path
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+// ─── Phase 2: Production Bible ──────────────────────────────────────────────
+
+/// Production asset: character, location, prop, costume, vehicle (spec §8.6).
+model ProductionAsset {
+  id             String   @id @default(cuid())
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assetType      String   // CHARACTER | LOCATION | PROP | COSTUME | VEHICLE | STYLE_REFERENCE
+  name           String
+  description    String
+  attributes     String   @default("{}") // JSON
+  continuityRules String  @default("[]") // JSON
+  approvalStatus String   @default("DRAFT")
+  canonicalMediaId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  mediaAssets    AssetMedia[]
+  shotRefs       ShotAssetReference[]
+
+  @@index([projectId, assetType])
+}
+
+/// Media file attached to a production asset (reference image, etc.).
+model AssetMedia {
+  id           String          @id @default(cuid())
+  assetId      String
+  asset        ProductionAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  filename     String
+  storagePath  String          // absolute local path within a registered root
+  mimeType     String
+  fileSize     Int
+  checksum     String
+  isCanonical  Boolean         @default(false)
+  source       String          @default("USER") // USER | AI_GENERATED
+  providerId   String?
+  modelId      String?
+  prompt       String?
+  createdAt    DateTime        @default(now())
+
+  @@index([assetId])
+}
+
+// ─── Phase 3: Scenes, Shots, Video ─────────────────────────────────────────
+
+model Scene {
+  id                      String   @id @default(cuid())
+  projectId               String
+  project                 Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sceneNumber             Int
+  heading                 String
+  location                String?
+  timeOfDay               String?
+  actionSummary           String
+  estimatedDurationSeconds Int     @default(30)
+  approvalStatus          String   @default("DRAFT")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  shots Shot[]
+
+  @@unique([projectId, sceneNumber])
+  @@index([projectId])
+}
+
+model Shot {
+  id                    String   @id @default(cuid())
+  sceneId               String
+  scene                 Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+  projectId             String
+  shotNumber            Int
+  actionDescription     String
+  shotSize              String?  // WIDE | MEDIUM | CLOSE_UP | EXTREME_CLOSE_UP
+  cameraAngle           String?
+  cameraMovement        String?
+  lighting              String?
+  mood                  String?
+  imagePrompt           String?
+  videoPrompt           String?
+  negativeConstraints   String   @default("[]")
+  targetDurationSeconds Float    @default(5)
+  aspectRatio           String   @default("16:9")
+  approvalStatus        String   @default("DRAFT")
+  selectedStillId       String?
+  selectedVideoId       String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  mediaVersions  ShotMedia[]
+  assetRefs      ShotAssetReference[]
+
+  @@unique([sceneId, shotNumber])
+  @@index([projectId])
+}
+
+model ShotAssetReference {
+  shotId   String
+  shot     Shot            @relation(fields: [shotId], references: [id], onDelete: Cascade)
+  assetId  String
+  asset    ProductionAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  role     String          @default("OTHER")
+
+  @@id([shotId, assetId])
+}
+
+/// A still or video clip attached to a shot (spec §8.11).
+model ShotMedia {
+  id           String   @id @default(cuid())
+  shotId       String
+  shot         Shot     @relation(fields: [shotId], references: [id], onDelete: Cascade)
+  kind         String   // STORYBOARD_STILL | VIDEO_CLIP | PROXY
+  versionNumber Int
+  filename     String
+  storagePath  String
+  mimeType     String
+  fileSize     Int
+  checksum     String
+  durationSeconds Float?
+  width        Int?
+  height       Int?
+  prompt       String?
+  providerId   String?
+  modelId      String?
+  providerJobId String?
+  provenance   String   @default("USER_UPLOAD") // USER_UPLOAD | AI_GENERATED | MANUAL_IMPORT
+  approvalStatus String @default("DRAFT")
+  approvedAt   DateTime?
+  createdAt    DateTime @default(now())
+
+  @@unique([shotId, kind, versionNumber])
+  @@index([shotId])
+}
+
+// ─── Phase 4: Editing & Export ──────────────────────────────────────────────
+
+/// Edit sequence (timeline) for a project (spec §8.14).
+model EditSequence {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name         String   @default("Main sequence")
+  versionNumber Int     @default(1)
+  status       String   @default("DRAFT") // DRAFT | APPROVED | RENDERING | RENDERED | FAILED
+  frameRate    Float    @default(24)
+  width        Int      @default(1920)
+  height       Int      @default(1080)
+  timelineJson String   @default("{}") // versioned JSON timeline
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  exports ExportJob[]
+
+  @@index([projectId])
+}
+
+/// Export job — FFmpeg render triggered from the local companion (spec §8.15).
+model ExportJob {
+  id               String        @id @default(cuid())
+  projectId        String
+  editSequenceId   String
+  sequence         EditSequence  @relation(fields: [editSequenceId], references: [id], onDelete: Cascade)
+  status           String        @default("QUEUED") // QUEUED | VALIDATING | RENDERING | SUCCEEDED | FAILED | CANCELLED
+  exportSettings   String        @default("{}") // JSON
+  outputPath       String?
+  outputFilename   String?
+  outputFileSize   Int?
+  outputChecksum   String?
+  durationSeconds  Float?
+  errorMessage     String?
+  generationJobId  String?
+  createdAt        DateTime      @default(now())
+  startedAt        DateTime?
+  finishedAt       DateTime?
+
+  @@index([projectId])
+}

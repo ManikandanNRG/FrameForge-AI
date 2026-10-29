@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+
+# next.js build output
+.next/
+out/
+next-env.d.ts
+
+# typescript build cache
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# env files (keep secrets out of git)
+.env
+.env.local
+.env*.local
+
+# prisma: track migrations, ignore sqlite database files
+prisma/*.db
+prisma/*.db-journal
+*.db
+*.db-journal
+
+# local media storage (root folder only)
+/media/
+
+# logs
+*.log
+
+# os files
+.DS_Store
+Thumbs.db
+
+# editor
+.vscode/
+.idea/
+
+# test coverage
+coverage/

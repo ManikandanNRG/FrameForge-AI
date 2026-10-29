@@ -1,0 +1,52 @@
+{
+  "name": "ai-filmmaking-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Single, easy tool to make AI videos: idea -> story -> storyboard -> generation -> edit -> export. Localhost-first Phase 0.",
+  "scripts": {
+    "dev": "concurrently -n web,worker -c blue,green \"next dev\" \"tsx src/lib/jobs/run-worker.ts\"",
+    "dev:web": "next dev",
+    "worker": "tsx src/lib/jobs/run-worker.ts",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "^4.0.101",
+    "@google/generative-ai": "^0.24.1",
+    "@prisma/client": "^6.19.3",
+    "ai": "^7.0.152",
+    "clsx": "^2.1.1",
+    "iron-session": "^9.0.1",
+    "lucide-react": "^1.61.0",
+    "nanoid": "^5.1.16",
+    "next": "^16.4.3",
+    "openai": "^7.43.0",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "autoprefixer": "^10.6.1",
+    "concurrently": "^10.0.6",
+    "dotenv": "^18.0.9",
+    "postcss": "^8.5.31",
+    "prisma": "^6.19.3",
+    "tailwindcss": "^3.4.19",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^3.2.7"
+  }
+}

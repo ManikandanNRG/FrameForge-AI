@@ -89,3 +89,4 @@ export async function downloadFluxImageToFile(url: string, localPath: string): P
   await writeFile(localPath, buf);
   return buf.length;
 }
+

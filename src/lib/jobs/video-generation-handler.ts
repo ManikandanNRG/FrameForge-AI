@@ -3,6 +3,7 @@ import path from "node:path";
 import { prisma } from "@/lib/db/client";
 import { resolveVideoProvider } from "@/lib/providers/resolve-video";
 import { downloadVideoToFile } from "@/lib/providers/kling-video";
+import { animateStillToVideo } from "@/lib/media/animate";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { normalizeRoot } from "@/lib/media/paths";
 import { mkdir } from "node:fs/promises";
@@ -35,37 +36,6 @@ export async function videoGenerationHandler(
 
   logger.info({ projectId, shotId, model: modelId }, "video generation starting");
 
-  // Submit to provider
-  const jobRef = await provider.submit({
-    modelId,
-    prompt: shot.videoPrompt,
-    durationSeconds: Math.round(shot.targetDurationSeconds ?? 5),
-    aspectRatio: shot.aspectRatio ?? "16:9",
-  });
-
-  // Poll until done
-  const deadline = Date.now() + MAX_WAIT_MS;
-  let status = await provider.getJob(jobRef.providerJobId);
-
-  while (status.state === "PENDING" || status.state === "RUNNING") {
-    if (Date.now() > deadline) throw new Error("Video generation timed out after 10 minutes");
-    await sleep(POLL_INTERVAL_MS);
-    status = await provider.getJob(jobRef.providerJobId);
-    logger.info({ shotId, state: status.state, progress: status.progressPercent }, "video poll");
-  }
-
-  if (status.state !== "SUCCEEDED") {
-    throw Object.assign(
-      new Error(`Video generation failed: ${status.errorCode ?? "UNKNOWN"}`),
-      { code: status.errorCode ?? "PROVIDER_UNAVAILABLE" },
-    );
-  }
-
-  // Download result
-  const results = await provider.fetchResults(jobRef.providerJobId);
-  const result = results[0];
-  if (!result) throw new Error("Video provider returned no results");
-
   // Find or create media root
   let root = await prisma.mediaRoot.findFirst({ where: { ownerId: project.ownerId } });
   if (!root) {
@@ -82,7 +52,68 @@ export async function videoGenerationHandler(
   const filename = `video-v${count + 1}-${Date.now()}.mp4`;
   const absPath = path.join(dir, filename);
 
-  await downloadVideoToFile(result.storageKey, absPath);
+  let usedProvider = provider.id;
+  let usedModel = modelId;
+  let providerJobId = "";
+  let durationSeconds = Math.round(shot.targetDurationSeconds ?? 5);
+
+  try {
+    // Attempt AI video generation via provider (e.g. Kling AI)
+    const jobRef = await provider.submit({
+      modelId,
+      prompt: shot.videoPrompt,
+      durationSeconds,
+      aspectRatio: shot.aspectRatio ?? "16:9",
+    });
+    providerJobId = jobRef.providerJobId;
+
+    // Poll until done
+    const deadline = Date.now() + MAX_WAIT_MS;
+    let status = await provider.getJob(jobRef.providerJobId);
+
+    while (status.state === "PENDING" || status.state === "RUNNING") {
+      if (Date.now() > deadline) throw new Error("Video generation timed out after 10 minutes");
+      await sleep(POLL_INTERVAL_MS);
+      status = await provider.getJob(jobRef.providerJobId);
+      logger.info({ shotId, state: status.state, progress: status.progressPercent }, "video poll");
+    }
+
+    if (status.state !== "SUCCEEDED") {
+      throw Object.assign(
+        new Error(`Video generation failed: ${status.errorCode ?? "UNKNOWN"}`),
+        { code: status.errorCode ?? "PROVIDER_UNAVAILABLE" },
+      );
+    }
+
+    // Download result
+    const results = await provider.fetchResults(jobRef.providerJobId);
+    const result = results[0];
+    if (!result) throw new Error("Video provider returned no results");
+
+    await downloadVideoToFile(result.storageKey, absPath);
+    if (result.durationSeconds) durationSeconds = result.durationSeconds;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logger.warn({ err: msg, shotId }, "Kling video provider unavailable or out of quota; checking storyboard still fallback");
+
+    // Check if shot has a generated storyboard still image
+    const still = await prisma.shotMedia.findFirst({
+      where: { shotId, kind: "STORYBOARD_STILL" },
+      orderBy: { versionNumber: "desc" },
+    });
+
+    if (!still) {
+      // Re-throw if no still is available to animate
+      throw err;
+    }
+
+    // Fall back to animating the approved storyboard still into a 1080p MP4 clip via FFmpeg
+    logger.info({ shotId, stillPath: still.storagePath }, "rendering video clip from storyboard still with FFmpeg");
+    await animateStillToVideo(still.storagePath, absPath, durationSeconds, 1920, 1080);
+    usedProvider = "local-motion";
+    usedModel = "ffmpeg-cinematic-render";
+  }
+
   const checksum = await sha256File(absPath);
   const size = await fileSize(absPath);
 
@@ -96,13 +127,13 @@ export async function videoGenerationHandler(
       mimeType: "video/mp4",
       fileSize: size,
       checksum,
-      width: result.width ?? 1280,
-      height: result.height ?? 720,
-      durationSeconds: result.durationSeconds,
+      width: 1920,
+      height: 1080,
+      durationSeconds,
       prompt: shot.videoPrompt,
-      providerId: provider.id,
-      modelId,
-      providerJobId: jobRef.providerJobId,
+      providerId: usedProvider,
+      modelId: usedModel,
+      providerJobId,
       provenance: "AI_GENERATED",
       approvalStatus: "DRAFT",
     },

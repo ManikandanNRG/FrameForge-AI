@@ -17,14 +17,14 @@ import { framesToSeconds } from "./timeline";
 export function findFfmpeg(): string | null {
   const candidates = [
     process.env.FFMPEG_PATH,
-    "ffmpeg",
+    "C:\\ffmpeg-9.0.2-essentials_build\\bin\\ffmpeg.exe",
     "C:\\ffmpeg\\bin\\ffmpeg.exe",
     "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe",
+    "ffmpeg",
   ];
   for (const c of candidates) {
     if (!c) continue;
-    if (c !== "ffmpeg" && !existsSync(c)) continue;
-    return c;
+    if (c !== "ffmpeg" && existsSync(c)) return c;
   }
   return null;
 }
@@ -32,14 +32,14 @@ export function findFfmpeg(): string | null {
 export function findFfprobe(): string | null {
   const candidates = [
     process.env.FFPROBE_PATH,
-    "ffprobe",
+    "C:\\ffmpeg-9.0.2-essentials_build\\bin\\ffprobe.exe",
     "C:\\ffmpeg\\bin\\ffprobe.exe",
     "C:\\Program Files\\ffmpeg\\bin\\ffprobe.exe",
+    "ffprobe",
   ];
   for (const c of candidates) {
     if (!c) continue;
-    if (c !== "ffprobe" && !existsSync(c)) continue;
-    return c;
+    if (c !== "ffprobe" && existsSync(c)) return c;
   }
   return null;
 }

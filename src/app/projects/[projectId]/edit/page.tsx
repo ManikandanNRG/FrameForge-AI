@@ -212,7 +212,23 @@ export default function EditPage({ params }: { params: Promise<{ projectId: stri
                         {ex.durationSeconds && <span className="text-zinc-500 text-xs">{ex.durationSeconds.toFixed(1)}s</span>}
                       </div>
                       {ex.outputPath && ex.status === "SUCCEEDED" && (
-                        <p className="mt-1 text-xs text-zinc-500 font-mono break-all">{ex.outputPath}</p>
+                        <div className="mt-3 space-y-3">
+                          <video
+                            controls
+                            src={`/api/media/file?path=${encodeURIComponent(ex.outputPath)}`}
+                            className="w-full max-w-2xl rounded-lg border border-zinc-700 bg-black aspect-video"
+                          />
+                          <div className="flex items-center gap-3">
+                            <a
+                              href={`/api/media/file?path=${encodeURIComponent(ex.outputPath)}`}
+                              download={ex.outputFilename ?? "final-film.mp4"}
+                              className="inline-flex items-center gap-2 rounded-md bg-amber-500 hover:bg-amber-400 px-4 py-2 text-xs font-semibold text-black transition"
+                            >
+                              <Download className="h-4 w-4" /> Download MP4 Film
+                            </a>
+                            <p className="text-xs text-zinc-500 font-mono break-all">{ex.outputPath}</p>
+                          </div>
+                        </div>
                       )}
                       {ex.errorMessage && <p className="mt-1 text-xs text-rose-400">{ex.errorMessage}</p>}
                     </div>

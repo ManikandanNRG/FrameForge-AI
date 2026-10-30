@@ -76,9 +76,23 @@ export async function downloadImageToFile(url: string, localPath: string): Promi
     await writeFile(localPath, buf);
     return buf.length;
   }
-  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
-  if (!res.ok) throw new Error(`Image download failed: ${res.status} ${res.statusText}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  await writeFile(localPath, buf);
-  return buf.length;
+
+  let lastError: Error | null = null;
+  for (let attempt = 1; attempt <= 4; attempt++) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+      if (!res.ok) {
+        throw new Error(`Image download failed: ${res.status} ${res.statusText}`);
+      }
+      const buf = Buffer.from(await res.arrayBuffer());
+      await writeFile(localPath, buf);
+      return buf.length;
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt < 4) {
+        await new Promise((r) => setTimeout(r, attempt * 1500));
+      }
+    }
+  }
+  throw lastError ?? new Error("Image download failed after retries");
 }

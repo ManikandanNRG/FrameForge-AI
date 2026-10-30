@@ -41,3 +41,16 @@ export const GET = apiHandler(async (req) => {
   });
   return { jobs };
 });
+
+export const DELETE = apiHandler(async (req) => {
+  await requireUserId();
+  const url = new URL(req.url);
+  const projectId = url.searchParams.get("projectId") ?? undefined;
+  await prisma.generationJob.deleteMany({
+    where: {
+      projectId: projectId ?? undefined,
+      status: "FAILED",
+    },
+  });
+  return { ok: true };
+});

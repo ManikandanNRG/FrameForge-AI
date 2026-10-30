@@ -16,7 +16,7 @@ export async function resolveVideoProvider(
   if (klingConn) {
     return {
       provider: new KlingVideoProvider(decryptSecret(klingConn.encryptedKey)),
-      modelId: "kling-v1-6",
+      modelId: "kling-v3",
     };
   }
   throw Object.assign(

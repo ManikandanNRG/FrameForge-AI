@@ -179,7 +179,20 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
         {/* Recent jobs */}
         {jobs.length > 0 && (
           <section className="mt-6">
-            <h3 className="text-sm font-semibold text-zinc-400 mb-3">Recent jobs</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-zinc-400">Recent jobs</h3>
+              {jobs.some(j => j.status === "FAILED") && (
+                <button
+                  onClick={async () => {
+                    await fetch(`/api/jobs?projectId=${projectId}`, { method: "DELETE" });
+                    load();
+                  }}
+                  className="text-xs text-zinc-500 hover:text-zinc-300 underline"
+                >
+                  Clear failed history
+                </button>
+              )}
+            </div>
             <div className="space-y-2">
               {jobs.slice(0, 5).map(j => (
                 <div key={j.id} className="flex items-center justify-between rounded-md border border-zinc-800 bg-zinc-900/60 px-4 py-2 text-sm">

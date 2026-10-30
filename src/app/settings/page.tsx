@@ -107,6 +107,8 @@ export default function SettingsPage() {
   }
 
   async function testConn(id: string) {
+    const connection = connections.find(c => c.id === id);
+    const pId = connection?.providerId ?? "";
     setTesting(id); setMsg(null);
     const r = await fetch("/api/settings/providers/test", {
       method: "POST",
@@ -115,8 +117,8 @@ export default function SettingsPage() {
     });
     const d = await r.json();
     setTesting(null);
-    if (d.data?.ok) setMsg({ providerId: "", ok: true, text: `Connected! Model: ${d.data.model}` });
-    else setMsg({ providerId: "", ok: false, text: d.data?.error ?? "Connection failed" });
+    if (d.data?.ok) setMsg({ providerId: pId, ok: true, text: `Connected! Model: ${d.data.model}` });
+    else setMsg({ providerId: pId, ok: false, text: d.data?.error ?? "Connection failed" });
     load();
   }
 
@@ -188,7 +190,7 @@ export default function SettingsPage() {
                   </Button>
                 </form>
 
-                {msg && (msg.providerId === p.id || msg.providerId === "") && (
+                {msg && msg.providerId === p.id && (
                   <div className={`mt-3 flex items-start gap-2 text-sm ${msg.ok ? "text-emerald-400" : "text-rose-400"}`}>
                     {msg.ok
                       ? <CheckCircle className="h-4 w-4 mt-0.5 shrink-0" />

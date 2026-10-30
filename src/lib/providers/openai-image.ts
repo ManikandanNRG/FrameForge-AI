@@ -47,12 +47,12 @@ export class OpenAIImageProvider implements ImageGenerationProvider {
       prompt: input.prompt.slice(0, 4000),
       n: 1,
       size: size as "1024x1024" | "512x512",
-      response_format: "url",
     });
-    const url = response.data?.[0]?.url;
-    if (!url) throw new Error("DALL-E returned no image URL");
-    // Encode the URL as the job ID so fetchResults can download it
-    return { providerJobId: Buffer.from(url).toString("base64") };
+    const item = response.data?.[0];
+    const target = item?.url || (item?.b64_json ? `data:image/png;base64,${item.b64_json}` : null);
+    if (!target) throw new Error("DALL-E returned no image URL or b64 data");
+    // Encode the URL or data as the job ID so fetchResults can download it
+    return { providerJobId: Buffer.from(target).toString("base64") };
   }
 
   async getJob(_jobId: string): Promise<ProviderJobStatus> {
@@ -67,9 +67,15 @@ export class OpenAIImageProvider implements ImageGenerationProvider {
   }
 }
 
-/** Download an image URL and save to localPath. Returns file size in bytes. */
+/** Download an image URL (or decode data URL) and save to localPath. Returns file size in bytes. */
 export async function downloadImageToFile(url: string, localPath: string): Promise<number> {
   await mkdir(path.dirname(localPath), { recursive: true });
+  if (url.startsWith("data:")) {
+    const base64Data = url.replace(/^data:image\/\w+;base64,/, "");
+    const buf = Buffer.from(base64Data, "base64");
+    await writeFile(localPath, buf);
+    return buf.length;
+  }
   const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
   if (!res.ok) throw new Error(`Image download failed: ${res.status} ${res.statusText}`);
   const buf = Buffer.from(await res.arrayBuffer());

@@ -8,9 +8,9 @@ import type {
 const KLING_BASE = "https://api.klingai.com";
 
 export const KLING_VIDEO_MODELS: ModelDescriptor[] = [
-  { id: "kling-v1",       displayName: "Kling v1 (standard)" },
-  { id: "kling-v1-5",     displayName: "Kling v1.5 (higher quality)" },
-  { id: "kling-v1-pro",   displayName: "Kling v1 Pro" },
+  { id: "kling-v1-6",     displayName: "Kling v1.6 (standard)" },
+  { id: "kling-v1-5",     displayName: "Kling v1.5 (fast)" },
+  { id: "kling-v2",       displayName: "Kling v2 (high quality)" },
 ];
 
 function makeJwt(accessKey: string, secretKey: string): string {
@@ -151,7 +151,7 @@ export async function testKlingKey(credentials: string): Promise<{ ok: boolean; 
     if (!trimmed || trimmed.length < 10) {
       return { ok: false, model: "", error: "API key looks too short" };
     }
-    return { ok: true, model: "kling-v1" };
+    return { ok: true, model: "kling-v1-6" };
   } catch (e: unknown) {
     return { ok: false, model: "", error: e instanceof Error ? e.message : String(e) };
   }

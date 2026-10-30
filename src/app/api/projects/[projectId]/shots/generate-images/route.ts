@@ -17,12 +17,6 @@ export const POST = apiHandler(async (_req, ctx) => {
   if (!project) throw notFound("Project not found");
   if (project.ownerId !== ownerId) throw forbidden();
 
-  // Check provider is configured
-  const conn = await prisma.providerConnection.findFirst({
-    where: { ownerId, providerId: "openai", isEnabled: true },
-  });
-  if (!conn) throw badRequest("OpenAI API key required for image generation. Add it in Settings → Providers.");
-
   // Get all shots that don't yet have a storyboard still
   const shots = await prisma.shot.findMany({
     where: { projectId: projectId as string },

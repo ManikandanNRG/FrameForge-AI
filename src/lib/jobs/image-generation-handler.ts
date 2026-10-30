@@ -55,7 +55,8 @@ export async function imageGenerationHandler(
   await mkdir(dir, { recursive: true });
 
   const count = await prisma.shotMedia.count({ where: { shotId, kind: "STORYBOARD_STILL" } });
-  const filename = `image-v${count + 1}-${Date.now()}.png`;
+  const ext = result.mimeType === "image/jpeg" ? "jpg" : "png";
+  const filename = `image-v${count + 1}-${Date.now()}.${ext}`;
   const absPath = path.join(dir, filename);
 
   await downloadImageToFile(result.storageKey, absPath);
@@ -69,7 +70,7 @@ export async function imageGenerationHandler(
       versionNumber: count + 1,
       filename,
       storagePath: absPath,
-      mimeType: "image/png",
+      mimeType: result.mimeType ?? "image/jpeg",
       fileSize: size,
       checksum,
       width: result.width ?? 1024,

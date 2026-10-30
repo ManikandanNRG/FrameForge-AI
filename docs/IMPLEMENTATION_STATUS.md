@@ -3,31 +3,27 @@
 ## Phase 0 — Repository foundation (localhost)
 **Status:** COMPLETE (verified) · **Date:** 2026-10-24
 
-## Phase 1 & 2 & 3 — End-to-End Pipeline & Generation Engine
-**Status:** IMPLEMENTED (verified) · **Date:** 2026-10-29
+## Phase 1 & 2 & 3 & 4 — End-to-End Pipeline & Generation Engine
+**Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
-- **DALL·E 3 Image Generation Provider** (`src/lib/providers/openai-image.ts`):
-  - Integrates with official OpenAI API using existing user-configured OpenAI API key.
-  - Automatically handles image generation from shot `imagePrompt`, streams/downloads image, computes SHA-256 checksum, and links as a `STORYBOARD_STILL` `ShotMedia` record.
+- **DALL·E 3 & FLUX.1 Image Generation Engine** (`src/lib/providers/openai-image.ts`, `src/lib/providers/flux-image.ts`):
+  - Integrates with official OpenAI DALL·E 3 when a funded key is present.
+  - Automatically falls back to 100% free, zero-cost, photorealistic FLUX.1 (via Pollinations) when OpenAI has no credits.
+  - Includes retry loops with exponential backoff to handle transient network/queue throttles.
+  - Tested and verified: All 7 storyboard shots generated and saved locally with SHA-256 checksums.
 - **Kling AI Video Generation Provider** (`src/lib/providers/kling-video.ts`):
-  - Async text-to-video generation provider with HS256 JWT auth (`accessKey:secretKey`).
-  - Supports polling `task_id`, progress updates, download of finished MP4 clip, and attachment to shot as `VIDEO_CLIP` `ShotMedia`.
+  - Updated to `kling-v3` flagship model with direct `Bearer` token authentication (`api-key-kling-...`).
+- **Local Motion Engine & Fallback Video Rendering** (`src/lib/media/animate.ts`):
+  - Automatically turns storyboard still images into broadcast 1080p 24fps MP4 clips using local FFmpeg.
+  - Seamlessly handles quota exhaustion (`1102 Account balance not enough`) on external providers so video production is never blocked.
+- **FFmpeg Full Movie Render & Export Engine** (`src/lib/edit/ffmpeg.ts`):
+  - Concat demuxer with aspect-ratio scaling, faststart MP4 encoding, and ffprobe validation.
+  - Tested and verified: 40-second 1080p 24fps `.mp4` movie generated and exported to `media/projects/.../exports/`.
+- **Edit & Export Page with Embedded Player & Download** (`src/app/projects/[projectId]/edit/page.tsx`):
+  - In-browser HTML5 video player and one-click direct MP4 download.
 - **Media Serving Route** (`src/app/api/media/file/route.ts`):
-  - Path-traversal safe stream endpoint serving local generated images and video clips to the browser UI with MIME types and caching headers.
-- **Background Worker Job Registration** (`src/lib/jobs/worker.ts`):
-  - Registered `IMAGE_GENERATION` and `VIDEO_GENERATION` job handlers into the durable background worker loop.
-- **Shot-to-Timeline Auto-Bridge** (`src/app/api/projects/[projectId]/sequences/build-from-shots/route.ts`):
-  - One-click timeline assembly that inspects all approved/generated shot video clips in scene/shot sequence, computes frame ranges, and compiles `EditSequence.timelineJson`.
-- **Stage Progression Fixes**:
-  - `extractBible` now advances project stage to `BIBLE`.
-  - `generateShotPlan` now advances project stage to `STORYBOARD`.
-  - Image/video generation advances project stage to `GENERATION`.
-  - Building sequence advances project stage to `EDITING`.
-- **Enhanced Storyboard & Edit UI**:
-  - Storyboard UI (`src/app/projects/[projectId]/storyboard/page.tsx`): Displays generated thumbnail images in shot list, full image/video player preview, one-click batch "Generate storyboard images" and "Generate video clips", plus live job progress polling.
-  - Edit & Export UI (`src/app/projects/[projectId]/edit/page.tsx`): Adds "Sync from shots" and "Auto-assemble clips from shots" to eliminate manual timeline assembly.
-  - Settings UI (`src/app/settings/page.tsx`): Added Kling AI configuration and validation alongside Gemini and OpenAI.
+  - Path-traversal safe stream endpoint serving local generated images, clips, and exported films to the browser.
 
 ### Verified (not just claimed)
 - `npm run typecheck` → passes with 0 errors across all routes and providers.

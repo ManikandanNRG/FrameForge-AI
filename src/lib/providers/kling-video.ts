@@ -23,20 +23,24 @@ function makeJwt(accessKey: string, secretKey: string): string {
 
 export class KlingVideoProvider implements VideoGenerationProvider {
   readonly id = "kling";
-  private accessKey: string;
-  private secretKey: string;
+  private rawCredentials: string;
 
   constructor(credentials: string) {
-    // credentials stored as "accessKey:secretKey"
-    const [ak, sk] = credentials.split(":");
-    this.accessKey = ak;
-    this.secretKey = sk;
+    this.rawCredentials = credentials.trim();
   }
 
   private headers(): Record<string, string> {
+    if (this.rawCredentials.includes(":")) {
+      const [ak, sk] = this.rawCredentials.split(":");
+      return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${makeJwt(ak, sk)}`,
+      };
+    }
+    // Direct API key (e.g. api-key-kling-...)
     return {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${makeJwt(this.accessKey, this.secretKey)}`,
+      "Authorization": `Bearer ${this.rawCredentials}`,
     };
   }
 
@@ -143,9 +147,9 @@ export async function downloadVideoToFile(url: string, localPath: string): Promi
 
 export async function testKlingKey(credentials: string): Promise<{ ok: boolean; model: string; error?: string }> {
   try {
-    const [ak, sk] = credentials.split(":");
-    if (!ak || !sk) {
-      return { ok: false, model: "", error: "Format must be accessKey:secretKey" };
+    const trimmed = credentials.trim();
+    if (!trimmed || trimmed.length < 10) {
+      return { ok: false, model: "", error: "API key looks too short" };
     }
     return { ok: true, model: "kling-v1" };
   } catch (e: unknown) {

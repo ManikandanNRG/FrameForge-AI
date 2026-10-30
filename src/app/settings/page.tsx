@@ -56,14 +56,14 @@ const PROVIDERS: ProviderConfig[] = [
     id: "kling",
     label: "Kling AI",
     badge: "Video generation",
-    placeholder: "accessKey:secretKey",
+    placeholder: "api-key-kling-... or accessKey:secretKey",
     hint: (
       <>
-        Get credentials from{" "}
+        Get your API key from{" "}
         <a href="https://klingai.com" target="_blank" rel="noreferrer" className="text-amber-400 underline">
           klingai.com
         </a>
-        . Enter in format: <code>accessKey:secretKey</code>. Generates AI video clips for each shot.
+        . Generates AI video clips for each shot.
       </>
     ),
     docsUrl: "https://klingai.com",

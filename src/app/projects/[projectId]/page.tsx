@@ -37,15 +37,17 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
 
   useEffect(() => { load(); }, [projectId]);
 
-  // Poll while a story job is running
+  // Poll while any generation job is running
   useEffect(() => {
-    const running = jobs.find(j => j.jobType === "STORY" && ["QUEUED","SUBMITTING","RUNNING","WAITING_FOR_PROVIDER"].includes(j.status));
+    const running = jobs.find(j => ["QUEUED","SUBMITTING","RUNNING","WAITING_FOR_PROVIDER"].includes(j.status));
     if (!running) return;
     const t = setInterval(() => {
       fetch(`/api/jobs/${running.id}`).then(r => r.json()).then(d => {
         const s = d.data?.job?.status;
-        if (s === "SUCCEEDED") { clearInterval(t); load(); }
-        if (s === "FAILED")    { clearInterval(t); setGenError(d.data?.job?.errorMessage ?? "Generation failed"); load(); }
+        if (s === "SUCCEEDED" || s === "FAILED") {
+          clearInterval(t);
+          load();
+        }
       });
     }, 2000);
     return () => clearInterval(t);
@@ -181,17 +183,34 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
           <section className="mt-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-zinc-400">Recent jobs</h3>
-              {jobs.some(j => j.status === "FAILED") && (
-                <button
+              <div className="flex items-center gap-3">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs border-amber-700/60 text-amber-300 hover:bg-amber-900/20"
                   onClick={async () => {
-                    await fetch(`/api/jobs?projectId=${projectId}`, { method: "DELETE" });
+                    await fetch(`/api/projects/${projectId}/shots/generate-videos`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ force: true }),
+                    });
                     load();
                   }}
-                  className="text-xs text-zinc-500 hover:text-zinc-300 underline"
                 >
-                  Clear failed history
-                </button>
-              )}
+                  🎬 Generate All Videos Now
+                </Button>
+                {jobs.some(j => j.status === "FAILED") && (
+                  <button
+                    onClick={async () => {
+                      await fetch(`/api/jobs?projectId=${projectId}`, { method: "DELETE" });
+                      load();
+                    }}
+                    className="text-xs text-zinc-500 hover:text-zinc-300 underline"
+                  >
+                    Clear failed history
+                  </button>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               {jobs.slice(0, 5).map(j => (

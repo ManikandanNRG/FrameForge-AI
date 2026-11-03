@@ -88,13 +88,16 @@ async function generateStoryCombined(
     modelId,
     systemPrompt: sys,
     userPrompt: `Write a complete short film package for a ${brief.targetRuntimeMinutes}-minute film.
+Target Story Language: "${brief.storyLanguage}".
+CRITICAL: All character dialogue and voice-over narration MUST be written in "${brief.storyLanguage}" (e.g. Tamil script for Tamil, Hindi for Hindi). Visual action lines must be in cinematic English.
+
 Return JSON with exactly these keys (all strings):
 - logline: one punchy sentence
 - premise: two sentences expanding the logline
 - synopsis: two paragraphs covering the full story arc
 - outline: brief act structure (acts 1/2/3)
-- characters: main characters with descriptions
-- screenplay: full scene-by-scene breakdown with INT./EXT. headings, action lines, and dialogue
+- characters: main characters with highly specific visual appearance descriptions (age, facial traits, skin, exact wardrobe) for visual consistency
+- screenplay: full scene-by-scene screenplay breakdown with INT./EXT. headings, action lines (English), VOICE-OVER (V.O.) narration (in ${brief.storyLanguage}), character SPEECH/DIALOGUE (in ${brief.storyLanguage}), and SOUND DESIGN/AUDIO CUES for every scene.
 
 Film idea: "${brief.sourceIdea}"`,
     schema: CombinedSchema,

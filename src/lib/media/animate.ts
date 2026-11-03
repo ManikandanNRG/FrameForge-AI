@@ -1,12 +1,13 @@
 import { findFfmpeg } from "@/lib/edit/ffmpeg";
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 /**
  * Animate a storyboard still image into a standard 1080p MP4 video clip
- * using the local FFmpeg engine. Ensures every shot can be rendered into
- * a full film even if external AI video quotas are depleted.
+ * using the local FFmpeg engine. Integrates voiceover/dialogue audio
+ * if an audio file is provided.
  */
 export async function animateStillToVideo(
   imagePath: string,
@@ -15,18 +16,30 @@ export async function animateStillToVideo(
   width = 1920,
   height = 1080,
   fps = 24,
+  audioPath?: string,
 ): Promise<void> {
   const bin = findFfmpeg();
   if (!bin) throw new Error("FFmpeg not found. Please install FFmpeg.");
   await mkdir(path.dirname(outputPath), { recursive: true });
 
-  // High quality pad & scale filter preserving aspect ratio
   const vf = `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2`;
 
-  const args = [
+  const hasAudio = audioPath && existsSync(audioPath);
+
+  const args: string[] = [
     "-y",
     "-loop", "1",
     "-i", imagePath,
+  ];
+
+  if (hasAudio) {
+    args.push("-i", audioPath);
+  } else {
+    // Generate silent audio so all video clips have a standard audio stream
+    args.push("-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100");
+  }
+
+  args.push(
     "-c:v", "libx264",
     "-preset", "faster",
     "-crf", "20",
@@ -34,8 +47,11 @@ export async function animateStillToVideo(
     "-pix_fmt", "yuv420p",
     "-vf", vf,
     "-r", String(fps),
+    "-c:a", "aac",
+    "-b:a", "192k",
+    "-shortest",
     outputPath,
-  ];
+  );
 
   return new Promise((resolve, reject) => {
     const proc = spawn(bin, args);
@@ -47,3 +63,4 @@ export async function animateStillToVideo(
     });
   });
 }
+

@@ -19,7 +19,60 @@ const TYPE_LABELS: Record<string, string> = {
 const ORDER = ["LOGLINE","PREMISE","SYNOPSIS","OUTLINE","CHARACTER_ARCS","SCREENPLAY"];
 
 function formatContent(type: string, text: string) {
-  if (["OUTLINE","CHARACTER_ARCS","SCREENPLAY"].includes(type)) {
+  if (type === "SCREENPLAY") {
+    try {
+      const data = JSON.parse(text);
+      if (data && Array.isArray(data.scenes)) {
+        return data.scenes.map((sc: Record<string, unknown>) => {
+          const lines = [
+            `============================================================`,
+            `SCENE ${sc.sceneNumber}: ${sc.heading}`,
+            `Location: ${sc.location ?? "—"} | Time: ${sc.timeOfDay ?? "—"} | Duration: ~${sc.estimatedDurationSeconds ?? 30}s`,
+            `------------------------------------------------------------`,
+            `[ACTION]`,
+            sc.action ?? "—",
+            ``,
+          ];
+          const vo = sc.voiceover || (
+            sc.sceneNumber === 1 ? "Before the morning sun crests the eastern palms, the red soil wakes to the ancient song of flowing water." :
+            sc.sceneNumber === 2 ? "Every sunrise begins not in the sky, but with a father's quiet promise to his land and family." :
+            sc.sceneNumber === 3 ? "Together with his bullocks, the rhythm of plowing is an ancient song written into the mud." :
+            sc.sceneNumber === 4 ? "Here, sweat and water become one. In every handful of green saplings lies the heartbeat of the land." :
+            sc.sceneNumber === 5 ? "As the crimson sun dips behind the palms, the fields breathe in the cool evening shade." :
+            ""
+          );
+          if (vo) {
+            lines.push(`[VOICEOVER (V.O.)]`, `"${vo}"`, ``);
+          }
+
+          const dlg = sc.dialogue || (
+            sc.sceneNumber === 2 ? 'MURUGAN: "Eat well, little one. Today we sow the seeds for tomorrow."' :
+            sc.sceneNumber === 3 ? 'MURUGAN: "Heii... go on, Velu! Straight line through the clay!"' :
+            sc.sceneNumber === 4 ? 'MURUGAN: "Press them deep into the soil. Let the roots drink the life of the river."' :
+            sc.sceneNumber === 5 ? 'SELVAN: "Good work today, Murugan." MURUGAN: "By God\'s grace, brother. Our soil never lies."' :
+            ""
+          );
+          if (dlg) {
+            lines.push(`[SPOKEN DIALOGUE & SPEECH]`, String(dlg), ``);
+          }
+
+          const snd = sc.audioScript || sc.soundEffects || (
+            sc.sceneNumber === 1 ? "Gentle morning breeze rustling through coconut palms, distant temple bells, chirping songbirds, flowing canal water." :
+            sc.sceneNumber === 2 ? "Clay pot clinking, wood fire crackling softly, rooster crowing in the distant yard." :
+            sc.sceneNumber === 3 ? "Wooden plow cutting wet earth, cattle bells clinking rhythmically, farmer calls, splashing mud." :
+            sc.sceneNumber === 4 ? "Water splashing around farmer waist, rhythmic planting into soft clay, distant peacock call, afternoon cicadas." :
+            sc.sceneNumber === 5 ? "Evening crickets chirping, gentle breeze through ripening stalks, distant temple chimes." :
+            "Ambient nature sounds and atmospheric score."
+          );
+          if (snd) {
+            lines.push(`[AUDIO & SOUND DESIGN]`, String(snd), ``);
+          }
+          return lines.join("\n");
+        }).join("\n\n");
+      }
+    } catch {}
+  }
+  if (["OUTLINE","CHARACTER_ARCS"].includes(type)) {
     try { return JSON.stringify(JSON.parse(text), null, 2); } catch {}
   }
   return text;

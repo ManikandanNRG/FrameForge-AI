@@ -4,6 +4,7 @@ import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
 import { enqueue } from "@/lib/jobs/queue";
+import { getShotAudioData } from "@/lib/shots/audio-defaults";
 
 export const GET = apiHandler(async (_req, ctx) => {
   const ownerId = await requireUserId();
@@ -24,7 +25,21 @@ export const GET = apiHandler(async (_req, ctx) => {
     },
     orderBy: { sceneNumber: "asc" },
   });
-  return { scenes };
+  const scenesWithAudio = scenes.map((sc) => ({
+    ...sc,
+    shots: sc.shots.map((sh) => {
+      const audio = getShotAudioData(sh.negativeConstraints, sc.sceneNumber, sh.shotNumber, sh.actionDescription);
+      return {
+        ...sh,
+        voiceover: audio.voiceover,
+        dialogue: audio.dialogue,
+        audioPrompt: audio.audioPrompt,
+        characterAnchor: audio.characterAnchor,
+      };
+    }),
+  }));
+
+  return { scenes: scenesWithAudio };
 });
 
 const generateSchema = z.object({ modelId: z.string().optional(), useMock: z.boolean().optional() });

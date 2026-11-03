@@ -11,7 +11,7 @@ interface ProviderConn {
 }
 
 interface ProviderConfig {
-  id: "gemini" | "openai" | "kling";
+  id: "gemini" | "openai" | "kling" | "fal" | "hedra";
   label: string;
   badge?: string;
   placeholder: string;
@@ -20,6 +20,38 @@ interface ProviderConfig {
 }
 
 const PROVIDERS: ProviderConfig[] = [
+  {
+    id: "fal",
+    label: "fal.ai (LivePortrait Lip-Sync)",
+    badge: "⭐ Best & Ultra-Cheap (~$0.01 / clip)",
+    placeholder: "falkey_...",
+    hint: (
+      <>
+        Get a key at{" "}
+        <a href="https://fal.ai/dashboard/keys" target="_blank" rel="noreferrer" className="text-amber-400 underline font-medium">
+          fal.ai/dashboard/keys
+        </a>{" "}
+        (includes free trial credits). Powers photorealistic neural <strong>LivePortrait lip-sync</strong> with mouth phonemes, blinking, and head motion for only ~1¢ per shot.
+      </>
+    ),
+    docsUrl: "https://fal.ai",
+  },
+  {
+    id: "hedra",
+    label: "Hedra (Character Studio)",
+    badge: "Cinematic Character API",
+    placeholder: "hedra_...",
+    hint: (
+      <>
+        Get an API key at{" "}
+        <a href="https://hedra.com" target="_blank" rel="noreferrer" className="text-amber-400 underline">
+          hedra.com
+        </a>
+        . Dedicated expressive character video dialogue generation.
+      </>
+    ),
+    docsUrl: "https://hedra.com",
+  },
   {
     id: "gemini",
     label: "Google Gemini",
@@ -63,7 +95,7 @@ const PROVIDERS: ProviderConfig[] = [
         <a href="https://klingai.com" target="_blank" rel="noreferrer" className="text-amber-400 underline">
           klingai.com
         </a>
-        . Generates AI video clips for each shot.
+        . Generates AI video clips (requires funded Kling API balance).
       </>
     ),
     docsUrl: "https://klingai.com",
@@ -72,7 +104,7 @@ const PROVIDERS: ProviderConfig[] = [
 
 export default function SettingsPage() {
   const [connections, setConnections] = useState<ProviderConn[]>([]);
-  const [keys, setKeys]       = useState<Record<string, string>>({ gemini: "", openai: "", kling: "" });
+  const [keys, setKeys]       = useState<Record<string, string>>({ gemini: "", openai: "", kling: "", fal: "", hedra: "" });
   const [saving, setSaving]   = useState<string | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
   const [msg, setMsg]         = useState<{ providerId: string; ok: boolean; text: string } | null>(null);

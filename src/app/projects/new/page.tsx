@@ -33,7 +33,7 @@ export default function NewProjectPage() {
     dialogueMode:  "DIALOGUE",
     targetRuntime: 360,
     audience:      "",
-    storyLanguage: "en",
+    storyLanguage: "Tamil",
   });
 
   function set(k: string, v: string | number) {
@@ -114,9 +114,19 @@ export default function NewProjectPage() {
               <input value={form.audience} onChange={e => set("audience", e.target.value)}
                 placeholder="General / Adults / Kids…" className={inputCls} />
             </Field>
-            <Field label="Story language">
-              <input value={form.storyLanguage} onChange={e => set("storyLanguage", e.target.value)}
-                placeholder="en" className={inputCls} />
+            <Field label="Story language" hint="Voiceover narration and character dialogue will be written in this language">
+              <select value={form.storyLanguage} onChange={e => set("storyLanguage", e.target.value)} className={inputCls}>
+                <option value="Tamil">Tamil (தமிழ்)</option>
+                <option value="English">English</option>
+                <option value="Hindi">Hindi (हिंदी)</option>
+                <option value="Telugu">Telugu (తెలుగు)</option>
+                <option value="Malayalam">Malayalam (മലയാളം)</option>
+                <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                <option value="Spanish">Spanish (Español)</option>
+                <option value="French">French (Français)</option>
+                <option value="German">German (Deutsch)</option>
+                <option value="Japanese">Japanese (日本語)</option>
+              </select>
             </Field>
           </div>
 

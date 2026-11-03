@@ -37,10 +37,41 @@ export async function GET(req: NextRequest): Promise<Response> {
       ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
       ".webp": "image/webp", ".gif": "image/gif",
       ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime",
+      ".mp3": "audio/mpeg", ".wav": "audio/wav", ".m4a": "audio/mp4",
     };
     const contentType = mimeMap[ext] ?? "application/octet-stream";
 
-    // Stream the file
+    const rangeHeader = req.headers.get("range");
+
+    if (rangeHeader && (contentType.startsWith("video/") || contentType.startsWith("audio/"))) {
+      const parts = rangeHeader.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : stats.size - 1;
+      const chunkSize = end - start + 1;
+
+      const stream = createReadStream(normalized, { start, end });
+      const webStream = new ReadableStream({
+        start(controller) {
+          stream.on("data", (chunk) => controller.enqueue(chunk));
+          stream.on("end", () => controller.close());
+          stream.on("error", (err) => controller.error(err));
+        },
+        cancel() { stream.destroy(); },
+      });
+
+      return new Response(webStream, {
+        status: 206,
+        headers: {
+          "Content-Range": `bytes ${start}-${end}/${stats.size}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": String(chunkSize),
+          "Content-Type": contentType,
+          "Cache-Control": "private, max-age=3600",
+        },
+      });
+    }
+
+    // Stream the whole file
     const stream = createReadStream(normalized);
     const webStream = new ReadableStream({
       start(controller) {
@@ -55,6 +86,7 @@ export async function GET(req: NextRequest): Promise<Response> {
       headers: {
         "Content-Type": contentType,
         "Content-Length": String(stats.size),
+        "Accept-Ranges": "bytes",
         "Cache-Control": "private, max-age=3600",
       },
     });

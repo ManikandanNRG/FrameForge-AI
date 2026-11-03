@@ -16,35 +16,47 @@ export const POST = apiHandler(async (_req, ctx) => {
   if (!project) throw notFound("Project not found");
   if (project.ownerId !== ownerId) throw forbidden();
 
-  // Check Kling provider is configured
-  const conn = await prisma.providerConnection.findFirst({
-    where: { ownerId, providerId: "kling", isEnabled: true },
-  });
-  if (!conn) throw badRequest("Kling AI credentials required for video generation. Add them in Settings → Providers.");
+  const body = (await _req.json().catch(() => ({}))) as {
+    force?: boolean;
+    shotId?: string;
+    useLocalMotion?: boolean;
+  };
+  const force = body.force ?? true; // Default to allow regeneration when requested
+  const singleShotId = body.shotId;
+  const useLocalMotion = body.useLocalMotion ?? true;
 
-  // Get all shots that don't yet have a video clip
+  // Get all shots with their video clips
   const shots = await prisma.shot.findMany({
-    where: { projectId: projectId as string },
+    where: {
+      projectId: projectId as string,
+      ...(singleShotId ? { id: singleShotId } : {}),
+    },
     include: {
       mediaVersions: { where: { kind: "VIDEO_CLIP" }, take: 1 },
     },
     orderBy: [{ scene: { sceneNumber: "asc" } }, { shotNumber: "asc" }],
   });
 
-  const shotsNeedingVideo = shots.filter(
-    (s) => s.mediaVersions.length === 0 && s.videoPrompt,
-  );
+  // If force is true or all shots have videos, regenerate all shots
+  let targetShots = force
+    ? shots.filter((s) => s.videoPrompt || s.imagePrompt)
+    : shots.filter((s) => s.mediaVersions.length === 0 && (s.videoPrompt || s.imagePrompt));
 
-  if (shotsNeedingVideo.length === 0) {
-    return { queued: 0, message: "All shots already have videos" };
+  if (targetShots.length === 0) {
+    // If none are missing, re-generate all shots
+    targetShots = shots.filter((s) => s.videoPrompt || s.imagePrompt);
+  }
+
+  if (targetShots.length === 0) {
+    return { queued: 0, message: "No shots found to generate" };
   }
 
   const jobs = await Promise.all(
-    shotsNeedingVideo.map((shot) =>
+    targetShots.map((shot) =>
       enqueue({
         jobType: "VIDEO_GENERATION",
         projectId: projectId as string,
-        requestPayload: { projectId: projectId as string, shotId: shot.id },
+        requestPayload: { projectId: projectId as string, shotId: shot.id, useLocalMotion },
         idempotencyKey: `vid-${shot.id}-${Date.now()}`,
       }),
     ),
@@ -54,6 +66,25 @@ export const POST = apiHandler(async (_req, ctx) => {
   await prisma.project.update({
     where: { id: projectId as string },
     data: { currentStage: "GENERATION" },
+  });
+
+  // Ensure execution starts immediately with latest code in Next.js runtime
+  setImmediate(async () => {
+    const { videoGenerationHandler } = await import("@/lib/jobs/video-generation-handler");
+    const { markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
+    for (const job of jobs) {
+      try {
+        const fresh = await prisma.generationJob.findUnique({ where: { id: job.id } });
+        if (fresh && (fresh.status === "QUEUED" || fresh.status === "SUBMITTING")) {
+          await markRunning(job.id);
+          const result = await videoGenerationHandler(job);
+          await markSucceeded(job.id, result);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await markFailed(job.id, { code: "GENERATION_FAILED", message: msg, retryable: false }).catch(() => {});
+      }
+    }
   });
 
   return { queued: jobs.length, jobIds: jobs.map((j) => j.id) };

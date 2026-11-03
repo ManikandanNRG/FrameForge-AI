@@ -131,9 +131,30 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
                 )}
               </div>
               <p className="text-zinc-300 text-sm leading-relaxed mb-4">{selected.description}</p>
-              <pre className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 text-xs text-zinc-400 overflow-auto">
-                {JSON.stringify(JSON.parse(selected.attributes || "{}"), null, 2)}
-              </pre>
+              
+              {(() => {
+                const attrs = JSON.parse(selected.attributes || "{}");
+                return (
+                  <div className="space-y-4">
+                    {attrs.consistencyAnchor && (
+                      <div className="rounded-lg border border-amber-600/50 bg-amber-950/20 p-4">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
+                            ✨ Master AI Video Consistency Anchor
+                          </span>
+                          <span className="text-[10px] text-zinc-500">Injected into all video prompts</span>
+                        </div>
+                        <p className="text-xs text-amber-200/90 leading-relaxed font-mono">
+                          {attrs.consistencyAnchor}
+                        </p>
+                      </div>
+                    )}
+                    <pre className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 text-xs text-zinc-400 overflow-auto">
+                      {JSON.stringify(attrs, null, 2)}
+                    </pre>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

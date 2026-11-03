@@ -4,22 +4,29 @@ import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
-import { ChevronRight, Sparkles, Upload, Check, Image as ImageIcon, Video, AlertCircle } from "lucide-react";
+import {
+  ChevronRight, Sparkles, Upload, Check, Image as ImageIcon, Video,
+  AlertCircle, Mic, MessageSquare, Volume2, Copy, CheckCheck, Download,
+  ExternalLink, FileCode,
+} from "lucide-react";
 
 interface ShotMedia {
   id: string; kind: string; versionNumber: number; filename: string;
   storagePath: string; mimeType: string; approvalStatus: string;
   width?: number; height?: number; durationSeconds?: number; provenance: string;
+  modelId?: string; providerId?: string;
 }
 interface Shot {
   id: string; shotNumber: number; actionDescription: string; shotSize?: string;
   imagePrompt?: string; videoPrompt?: string; approvalStatus: string;
   targetDurationSeconds: number; mediaVersions: ShotMedia[];
+  voiceover?: string; dialogue?: string; audioPrompt?: string;
 }
 interface Scene { id: string; sceneNumber: number; heading: string; shots: Shot[]; }
 
-function mediaUrl(p: string) {
-  return `/api/media/file?path=${encodeURIComponent(p)}`;
+function mediaUrl(p: string, versionId?: string) {
+  const base = `/api/media/file?path=${encodeURIComponent(p)}`;
+  return versionId ? `${base}&v=${versionId}` : base;
 }
 
 export default function StoryboardPage({ params }: { params: Promise<{ projectId: string }> }) {
@@ -36,6 +43,17 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const [importing, setImporting]         = useState<string | null>(null);
   const [imgProgress, setImgProgress]     = useState<{ done: number; total: number } | null>(null);
   const [vidProgress, setVidProgress]     = useState<{ done: number; total: number } | null>(null);
+  const [promptTab, setPromptTab]         = useState<"flow" | "kling" | "chatgpt" | "gemini" | "video" | "script" | "json">("flow");
+  const [activeMediaView, setActiveMediaView] = useState<"video" | "still">("video");
+  const [copied, setCopied]               = useState<string | null>(null);
+  const [isDragging, setIsDragging]       = useState(false);
+
+  useEffect(() => {
+    if (selected) {
+      const hasVid = selected.mediaVersions.some(m => m.kind === "VIDEO_CLIP");
+      setActiveMediaView(hasVid ? "video" : "still");
+    }
+  }, [selected?.id]);
 
   async function load() {
     const r = await fetch(`/api/projects/${projectId}/shots`);
@@ -119,9 +137,21 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     else setError(d.error?.message ?? "Failed");
   }
 
+  function playSpeechBrowser(text: string) {
+    if (!text || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 0.95;
+    window.speechSynthesis.speak(utt);
+  }
+
   async function generateImages() {
     setGenImages(true); setError(null);
-    const r = await fetch(`/api/projects/${projectId}/shots/generate-images`, { method: "POST" });
+    const r = await fetch(`/api/projects/${projectId}/shots/generate-images`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ force: true }),
+    });
     const d = await r.json();
     if (r.ok) {
       if (d.data.queued === 0) { setGenImages(false); setError(d.data.message); return; }
@@ -133,9 +163,13 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     }
   }
 
-  async function generateVideos() {
+  async function generateVideos(singleShotId?: string) {
     setGenVideos(true); setError(null);
-    const r = await fetch(`/api/projects/${projectId}/shots/generate-videos`, { method: "POST" });
+    const r = await fetch(`/api/projects/${projectId}/shots/generate-videos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ force: true, shotId: singleShotId, useLocalMotion: true }),
+    });
     const d = await r.json();
     if (r.ok) {
       if (d.data.queued === 0) { setGenVideos(false); setError(d.data.message); return; }
@@ -147,15 +181,74 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     }
   }
 
-  async function importVideo(shotId: string, file: File) {
+  async function importMedia(shotId: string, file: File) {
     setImporting(shotId);
+    setError(null);
     const form = new FormData();
     form.append("file", file);
     const r = await fetch(`/api/projects/${projectId}/shots/${shotId}/import`, { method: "POST", body: form });
     const d = await r.json();
     setImporting(null);
-    if (r.ok) load();
-    else setError(d.error?.message ?? "Import failed");
+    if (r.ok) {
+      load();
+    } else {
+      setError(d.error?.message ?? "Import failed");
+    }
+  }
+
+  // Clipboard paste listener: if user copies image from ChatGPT/Gemini and presses Ctrl+V, auto-upload to selected shot
+  useEffect(() => {
+    if (!selected) return;
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith("image/") || items[i].type.startsWith("video/")) {
+          const file = items[i].getAsFile();
+          if (file) {
+            importMedia(selected.id, file);
+            break;
+          }
+        }
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [selected?.id]);
+
+  function copyPrompt(text: string, tab: string) {
+    navigator.clipboard.writeText(text);
+    setCopied(tab);
+    setTimeout(() => setCopied(null), 2000);
+  }
+
+  function exportAllPromptsJson() {
+    const data = {
+      projectId,
+      exportedAt: new Date().toISOString(),
+      scenes: scenes.map(sc => ({
+        sceneNumber: sc.sceneNumber,
+        heading: sc.heading,
+        shots: sc.shots.map(sh => ({
+          shotNumber: sh.shotNumber,
+          shotSize: sh.shotSize,
+          durationSeconds: sh.targetDurationSeconds,
+          actionDescription: sh.actionDescription,
+          imagePrompt: sh.imagePrompt,
+          videoPrompt: sh.videoPrompt,
+          dialogue: sh.dialogue,
+          voiceover: sh.voiceover,
+          audioPrompt: sh.audioPrompt,
+        })),
+      })),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `film-prompts-${projectId.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function approveShot(shotId: string) {
@@ -171,6 +264,102 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const hasVideos         = allShots.some(s => s.mediaVersions.some(m => m.kind === "VIDEO_CLIP"));
   const selectedImage     = selected?.mediaVersions.find(m => m.kind === "STORYBOARD_STILL");
   const selectedVideo     = selected?.mediaVersions.find(m => m.kind === "VIDEO_CLIP");
+  const selectedScene     = scenes.find(sc => sc.shots.some(sh => sh.id === selected?.id));
+
+  const characterAnchor = (selected as any)?.characterAnchor ||
+    "Murugan, 48-year-old weathered South Indian Tamil farmer, sun-baked brown skin with natural laugh lines, salt-and-pepper mustache and short stubble beard, wearing a traditional faded off-white handloom cotton veshti tied at the waist and thin red sacred thread on wrist";
+
+  const googleFlowPrompt = selected ? [
+    `🎬 GOOGLE FLOW (VEO 2) DIRECT VIDEO GENERATION PROMPT:`,
+    `[CHARACTER CONSISTENCY ANCHOR]: ${characterAnchor}.`,
+    `[SCENE CONTEXT]: Scene ${selectedScene?.sceneNumber ?? 1} - ${selectedScene?.heading || "EXT. VILLAGE"}.`,
+    `[CINEMATIC FRAMING & LENS]: ${selected.shotSize ? `[${selected.shotSize} SHOT]` : "[MEDIUM CLOSE-UP]"}, 35mm anamorphic lens, shallow depth of field, 24fps motion blur.`,
+    `[MOTION & PHYSICAL ACTION]: ${selected.videoPrompt || selected.actionDescription}.`,
+    selected.voiceover ? `[AUDIO NARRATION (VO)]: "${selected.voiceover}"` : "",
+    selected.dialogue ? `[CHARACTER SPEECH]: ${selected.dialogue}` : "",
+    selected.audioPrompt ? `[FOLEY & SOUNDSCAPE]: ${selected.audioPrompt}` : "",
+    `[LIGHTING & CINEMATOGRAPHY]: Golden hour natural dawn sunlight, soft volumetric rays, documentary realism, 8K ultra-detailed human skin texture, authentic character consistency, cinematic color grade, Kodak 35mm film grain, 24fps.`,
+    `[NEGATIVE CONSTRAINTS]: Avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur.`,
+  ].filter(Boolean).join("\n\n") : "";
+
+  const klingPrompt = selected ? [
+    `Cinematic film clip of ${characterAnchor}.`,
+    `Action & Dynamics: ${selected.videoPrompt || selected.actionDescription}.`,
+    selected.shotSize ? `Shot framing: ${selected.shotSize}.` : "Medium shot.",
+    `Environment: ${selectedScene?.heading || "Rural village fields"}.`,
+    `Lighting & Style: Photorealistic 8K, cinematic natural daylight, 35mm lens, smooth organic camera motion, 24fps. No CGI, no cartoon, authentic character consistency.`,
+  ].filter(Boolean).join(" ") : "";
+
+  const chatgptPrompt = selected ? [
+    `Create a cinematic 16:9 widescreen photorealistic film still.`,
+    `Character & Subject: ${characterAnchor}.`,
+    `Action: ${selected.imagePrompt || selected.actionDescription}.`,
+    selected.shotSize ? `Framing: ${selected.shotSize} shot.` : "",
+    selected.voiceover ? `Narrative Story Beat (VO): "${selected.voiceover}".` : "",
+    selected.dialogue ? `Character Dialogue: ${selected.dialogue}.` : "",
+    `Style: Photorealistic 8k, authentic human skin texture, natural cinematic daylight, highly detailed documentary aesthetic.`,
+    `Negative constraints: Avoid cartoon, 3d render, anime, over-saturated, fake plastic skin, western generic face.`,
+    selected.videoPrompt ? `Action/Motion context: ${selected.videoPrompt}` : "",
+  ].filter(Boolean).join(" ") : "";
+
+  const geminiPrompt = selected ? [
+    `Cinematic 16:9 photorealistic film still.`,
+    `Subject: ${characterAnchor}.`,
+    `Visual: ${selected.imagePrompt || selected.actionDescription}.`,
+    selected.shotSize ? `Camera Framing: ${selected.shotSize}.` : "",
+    selected.voiceover ? `Voiceover context: "${selected.voiceover}".` : "",
+    selected.dialogue ? `Dialogue context: ${selected.dialogue}.` : "",
+    `Cinematography: 35mm lens, natural color grade, photorealistic, cinematic composition.`,
+    selected.videoPrompt ? `Action/Motion: ${selected.videoPrompt}` : "",
+  ].filter(Boolean).join(" ") : "";
+
+  const videoMotionPrompt = selected ? [
+    selected.videoPrompt || `Cinematic smooth motion of ${selected.actionDescription}. 4k photorealistic, natural environmental dynamics, professional cinematography.`,
+    selected.voiceover ? `[Voice-Over Beat]: "${selected.voiceover}"` : "",
+    selected.dialogue ? `[Character Dialogue]: ${selected.dialogue}` : "",
+    selected.audioPrompt ? `[Soundscape / Foley]: ${selected.audioPrompt}` : "",
+  ].filter(Boolean).join("\n\n") : "";
+
+  const scriptPrompt = selected ? [
+    `SCENE ${selectedScene?.sceneNumber ?? 1}: ${selectedScene?.heading || "EXT. VILLAGE"}`,
+    `SHOT ${selected.shotNumber} (${selected.shotSize || "MEDIUM SHOT"} · ${selected.targetDurationSeconds || 5}s)`,
+    `ACTION: ${selected.actionDescription}`,
+    selected.voiceover ? `\n🎙️ VOICE-OVER (NARRATOR):\n"${selected.voiceover}"` : "",
+    selected.dialogue ? `\n💬 SPOKEN DIALOGUE:\n${selected.dialogue}` : "",
+    selected.audioPrompt ? `\n🔊 SOUND DESIGN & SFX:\n${selected.audioPrompt}` : "",
+  ].filter(Boolean).join("\n") : "";
+
+  const rawJsonPrompt = selected ? JSON.stringify({
+    sceneNumber: selectedScene?.sceneNumber,
+    sceneHeading: selectedScene?.heading,
+    shotNumber: selected.shotNumber,
+    shotSize: selected.shotSize,
+    targetDurationSeconds: selected.targetDurationSeconds,
+    characterConsistencyAnchor: characterAnchor,
+    actionDescription: selected.actionDescription,
+    imagePrompt: selected.imagePrompt,
+    videoPrompt: selected.videoPrompt,
+    dialogue: selected.dialogue,
+    voiceover: selected.voiceover,
+    audioPrompt: selected.audioPrompt,
+  }, null, 2) : "";
+
+  const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {
+    flow: { label: "Open Google Flow ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    kling: { label: "Open Kling (66 Free/day) ↗", url: "https://klingai.com", color: "bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/50" },
+    chatgpt: { label: "Open ChatGPT ↗", url: "https://chatgpt.com", color: "bg-emerald-950/70 text-emerald-300 border-emerald-800 hover:bg-emerald-900/50" },
+    gemini: { label: "Open Gemini ↗", url: "https://gemini.google.com/app", color: "bg-sky-950/70 text-sky-300 border-sky-800 hover:bg-sky-900/50" },
+  };
+  const activeLauncher = engineLaunchers[promptTab];
+
+  const activePromptText =
+    promptTab === "flow" ? googleFlowPrompt :
+    promptTab === "kling" ? klingPrompt :
+    promptTab === "script" ? scriptPrompt :
+    promptTab === "chatgpt" ? chatgptPrompt :
+    promptTab === "gemini" ? geminiPrompt :
+    promptTab === "video" ? videoMotionPrompt :
+    rawJsonPrompt;
 
   return (
     <AppShell>
@@ -226,14 +415,25 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                 {vidProgress ? (
                   <div className="text-xs text-purple-300 flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full border-2 border-purple-400 border-t-transparent animate-spin" />
-                    Generating videos… {vidProgress.done}/{vidProgress.total}
+                    Animating videos… {vidProgress.done}/{vidProgress.total}
                   </div>
                 ) : (
-                  <Button size="sm" variant="secondary" loading={genVideos} onClick={generateVideos} className="w-full text-xs">
-                    <Video className="h-3 w-3" />
-                    {hasVideos ? "Regenerate videos" : "Generate video clips (Kling)"}
+                  <Button size="sm" variant="secondary" loading={genVideos} onClick={() => generateVideos()} className="w-full text-xs font-semibold bg-purple-950/40 hover:bg-purple-900/40 text-purple-200 border border-purple-800/60 shadow-sm">
+                    <Video className="h-3.5 w-3.5 text-purple-400" />
+                    🎬 Animate All Scenes to Video
                   </Button>
                 )}
+
+                {/* Export All Prompts JSON */}
+                <button
+                  type="button"
+                  onClick={exportAllPromptsJson}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition"
+                  title="Download all shot prompts in one JSON file to run in ChatGPT/Gemini"
+                >
+                  <Download className="h-3 w-3 text-amber-400" />
+                  Export All Prompts (JSON)
+                </button>
 
                 {error && (
                   <div className="flex items-start gap-1.5 text-rose-400 text-xs">
@@ -281,88 +481,381 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
           ))}
         </div>
 
-        {/* Right: shot detail */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+        {/* Right: shot studio canvas */}
+        <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-8">
           {!selected ? (
-            <div className="mt-10 text-center text-zinc-500">
-              <ImageIcon className="h-10 w-10 mx-auto mb-3 text-zinc-700" />
-              <p className="text-sm">Select a shot to view its prompts and generated media.</p>
+            <div className="h-full flex flex-col items-center justify-center text-zinc-500 py-24">
+              <ImageIcon className="h-12 w-12 text-zinc-700 mb-3" />
+              <p className="text-sm font-medium text-zinc-400">Select a shot from the left sidebar to open the studio.</p>
             </div>
           ) : (
-            <div className="max-w-2xl space-y-5">
-              <div className="flex items-center gap-3">
-                <h2 className="text-lg font-semibold">Shot {selected.shotNumber}</h2>
-                {selected.shotSize && <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{selected.shotSize}</span>}
-                <Badge status={artifactStatusBadge(selected.approvalStatus)} label={selected.approvalStatus} />
-                <span className="text-xs text-zinc-500">{selected.targetDurationSeconds}s</span>
-              </div>
-              <p className="text-zinc-300 text-sm">{selected.actionDescription}</p>
-
-              {/* Generated image */}
-              {selectedImage && (
+            <div className="max-w-7xl mx-auto space-y-6">
+              {/* Header Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
                 <div>
-                  <p className="text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1">
-                    <ImageIcon className="h-3 w-3" /> Generated image
-                    <span className="ml-1 text-zinc-600 font-normal normal-case">({selectedImage.provenance})</span>
-                  </p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={mediaUrl(selectedImage.storagePath)}
-                    alt={`Shot ${selected.shotNumber}`}
-                    className="w-full rounded-lg border border-zinc-700 object-cover max-h-80"
-                  />
+                  <div className="text-xs text-zinc-400 flex items-center gap-1.5 font-medium">
+                    <span className="text-amber-400 font-semibold">Scene {selectedScene?.sceneNumber ?? 1}</span>
+                    <span className="text-zinc-600">·</span>
+                    <span className="text-zinc-300">{selectedScene?.heading || "EXT. VILLAGE"}</span>
+                  </div>
+                  <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2 mt-0.5">
+                    Shot {selected.shotNumber}
+                    {selected.shotSize && (
+                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60">
+                        {selected.shotSize}
+                      </span>
+                    )}
+                    <span className="text-xs font-mono text-zinc-500 font-normal">
+                      {selected.targetDurationSeconds}s
+                    </span>
+                  </h2>
                 </div>
-              )}
 
-              {/* Generated video */}
-              {selectedVideo && (
-                <div>
-                  <p className="text-xs font-semibold text-zinc-500 mb-2 uppercase flex items-center gap-1">
-                    <Video className="h-3 w-3" /> Generated video
-                    <span className="ml-1 text-zinc-600 font-normal normal-case">({selectedVideo.durationSeconds?.toFixed(1)}s · {selectedVideo.provenance})</span>
-                  </p>
-                  <video
-                    src={mediaUrl(selectedVideo.storagePath)}
-                    controls
-                    className="w-full rounded-lg border border-zinc-700 max-h-80"
-                  />
+                <div className="flex items-center gap-2.5">
+                  <Badge status={artifactStatusBadge(selected.approvalStatus)} label={selected.approvalStatus} />
+                  {selected.approvalStatus !== "APPROVED" ? (
+                    <Button
+                      size="sm"
+                      onClick={() => { approveShot(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }}
+                      className="h-8 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+                    >
+                      <Check className="h-3.5 w-3.5 mr-1" /> Approve Shot
+                    </Button>
+                  ) : (
+                    <span className="text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-1 rounded-md font-medium flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Approved for Edit
+                    </span>
+                  )}
                 </div>
-              )}
-
-              {/* Image prompt */}
-              <div>
-                <p className="text-xs font-semibold text-zinc-500 mb-1 uppercase">Image prompt</p>
-                <pre className="whitespace-pre-wrap text-xs text-zinc-300 bg-zinc-900 border border-zinc-800 rounded p-3">{selected.imagePrompt ?? "—"}</pre>
               </div>
 
-              {/* Video prompt */}
-              <div>
-                <p className="text-xs font-semibold text-zinc-500 mb-1 uppercase">Video prompt</p>
-                <pre className="whitespace-pre-wrap text-xs text-zinc-300 bg-zinc-900 border border-zinc-800 rounded p-3">{selected.videoPrompt ?? "—"}</pre>
-              </div>
+              {/* 2-Column Responsive Studio Grid */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
+                {/* Left Column: Visual Stage (7 cols) */}
+                <div className="xl:col-span-7 space-y-4">
+                  {/* Cinema Viewport (16:9 Aspect Ratio) */}
+                  <div
+                    onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={e => {
+                      e.preventDefault();
+                      setIsDragging(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file && selected) importMedia(selected.id, file);
+                    }}
+                    className={`relative aspect-video w-full rounded-xl overflow-hidden bg-zinc-950 border transition-all ${
+                      isDragging
+                        ? "border-amber-400 shadow-[0_0_30px_rgba(245,158,11,0.25)]"
+                        : "border-zinc-800 hover:border-zinc-700 shadow-xl"
+                    }`}
+                  >
+                    {/* Video View */}
+                    {selectedVideo && (activeMediaView === "video" || !selectedImage) ? (
+                      <div className="relative w-full h-full flex items-center justify-center bg-black">
+                        <video
+                          key={selectedVideo.id}
+                          src={mediaUrl(selectedVideo.storagePath, selectedVideo.id)}
+                          controls
+                          playsInline
+                          preload="auto"
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 pointer-events-none">
+                          <span className="text-[11px] bg-black/85 backdrop-blur text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full font-medium shadow flex items-center gap-1">
+                            <Volume2 className="h-3 w-3 text-amber-400" /> Audio Multiplexed
+                          </span>
+                        </div>
+                      </div>
+                    ) : selectedImage ? (
+                      /* Still Image View */
+                      <div className="relative w-full h-full flex items-center justify-center bg-black">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={mediaUrl(selectedImage.storagePath)}
+                          alt={`Shot ${selected.shotNumber}`}
+                          className="w-full h-full object-contain"
+                        />
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 pointer-events-none">
+                          <span className="text-[11px] bg-black/85 backdrop-blur text-zinc-300 border border-zinc-700 px-2.5 py-0.5 rounded-full font-medium shadow flex items-center gap-1">
+                            <ImageIcon className="h-3 w-3 text-amber-400" /> Storyboard Still
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Placeholder Drop Canvas */
+                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-zinc-900/30 to-zinc-950">
+                        <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 mb-3 shadow">
+                          <Upload className="h-5 w-5" />
+                        </div>
+                        <h4 className="text-sm font-semibold text-zinc-200 mb-1">Awaiting Media Asset</h4>
+                        <p className="text-xs text-zinc-400 max-w-sm mb-3">
+                          Generate in browser using the prompt on the right, then drop here or press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[11px] font-mono text-amber-300">Ctrl+V</kbd> to paste.
+                        </p>
+                      </div>
+                    )}
 
-              {/* Actions */}
-              <div className="flex flex-wrap gap-3 pt-2">
-                <label className="cursor-pointer">
-                  <input type="file" accept="video/mp4,video/webm,video/quicktime" className="hidden"
-                    onChange={e => { const f = e.target.files?.[0]; if (f) importVideo(selected.id, f); }} />
-                  <span className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold bg-zinc-800 text-zinc-200 hover:bg-zinc-700 border border-zinc-700 ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
-                    <Upload className="h-3.5 w-3.5" />
-                    {importing === selected.id ? "Importing…" : "Import clip manually"}
-                  </span>
-                </label>
-                {selected.approvalStatus !== "APPROVED" && (
-                  <Button size="sm" onClick={() => { approveShot(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }}>
-                    <Check className="h-3.5 w-3.5" /> Approve shot
-                  </Button>
-                )}
-              </div>
+                    {/* Drag-over active glow */}
+                    {isDragging && (
+                      <div className="absolute inset-0 bg-amber-950/85 backdrop-blur-sm flex flex-col items-center justify-center text-amber-300 z-20 pointer-events-none">
+                        <Upload className="h-10 w-10 animate-bounce mb-2" />
+                        <p className="text-sm font-bold">Release to import into Shot {selected.shotNumber}</p>
+                      </div>
+                    )}
+                  </div>
 
-              {!selectedImage && !selectedVideo && (
-                <p className="text-xs text-zinc-600">
-                  Use the buttons in the left panel to generate images (DALL·E 3) or video clips (Kling AI) for all shots at once.
-                </p>
-              )}
+                  {/* Prominent Media Control & Import Station */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3.5 shadow-sm">
+                    {/* Status & Media Switcher */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/60">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Active Media</span>
+                        {selectedVideo && selectedImage ? (
+                          <div className="inline-flex rounded-lg border border-zinc-800 bg-zinc-950 p-0.5 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => setActiveMediaView("video")}
+                              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
+                                activeMediaView === "video"
+                                  ? "bg-zinc-800 text-amber-300 shadow-sm"
+                                  : "text-zinc-400 hover:text-zinc-200"
+                              }`}
+                            >
+                              <Video className="h-3 w-3" /> Video Clip
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActiveMediaView("still")}
+                              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
+                                activeMediaView === "still"
+                                  ? "bg-zinc-800 text-amber-300 shadow-sm"
+                                  : "text-zinc-400 hover:text-zinc-200"
+                              }`}
+                            >
+                              <ImageIcon className="h-3 w-3" /> Still Image
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-zinc-400 font-medium">
+                            {selectedVideo ? "🎬 Video Clip Ready" : selectedImage ? "📷 Still Image Ready" : "Awaiting Generation"}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="text-[11px] text-zinc-400 font-mono flex items-center gap-1.5">
+                        <span>Clipboard paste:</span>
+                        <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[11px] font-mono text-amber-300">Ctrl+V</kbd>
+                      </div>
+                    </div>
+
+                    {/* Generous Interactive Drop & Upload Area */}
+                    <div
+                      onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={e => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file && selected) importMedia(selected.id, file);
+                      }}
+                      className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${
+                        isDragging
+                          ? "border-amber-400 bg-amber-950/30"
+                          : "border-zinc-700/80 bg-zinc-950/50 hover:border-zinc-600 hover:bg-zinc-950/80"
+                      }`}
+                    >
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <p className="text-xs text-zinc-300 font-medium">
+                          Drag and drop your AI generated media here, or use the buttons below
+                        </p>
+                        <p className="text-[11px] text-zinc-500">
+                          Silent video clips from Kling, Luma or Google Flow are automatically dubbed with your screenplay audio on import.
+                        </p>
+
+                        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                          {selectedImage && (
+                            <button
+                              type="button"
+                              onClick={() => generateVideos(selected.id)}
+                              disabled={genVideos}
+                              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black rounded-lg text-xs font-bold transition shadow-md disabled:opacity-50"
+                              title="Turn this still image into a cinematic 1080p video clip with voiceover & motion in this app"
+                            >
+                              <Video className="h-4 w-4" />
+                              {genVideos ? "Animating Video…" : "🎬 Animate to Video (In-App)"}
+                            </button>
+                          )}
+
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="video/*"
+                              className="hidden"
+                              onChange={e => { const f = e.target.files?.[0]; if (f && selected) importMedia(selected.id, f); }}
+                            />
+                            <span className={`inline-flex items-center gap-2 px-4 py-2 bg-purple-950/80 hover:bg-purple-900/80 text-purple-200 rounded-lg text-xs border border-purple-700/80 font-semibold transition shadow-md ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
+                              <Video className="h-4 w-4 text-purple-400" />
+                              {importing === selected.id ? "Importing Video…" : "Import Video Clip (MP4)"}
+                            </span>
+                          </label>
+
+                          <label className="cursor-pointer">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={e => { const f = e.target.files?.[0]; if (f && selected) importMedia(selected.id, f); }}
+                            />
+                            <span className={`inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs border border-zinc-700 font-semibold transition shadow-md ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
+                              <ImageIcon className="h-4 w-4 text-amber-400" />
+                              {importing === selected.id ? "Importing Image…" : "Import Still Image (JPG/PNG)"}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column: AI Studio & Screenplay (5 cols) */}
+                <div className="xl:col-span-5 space-y-4">
+                  {/* AI Generation Prompt Hub Card (TOP) */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3 shadow-sm">
+                    {/* Header */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-zinc-800/60">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-amber-400" />
+                        <span className="text-xs font-semibold text-zinc-200">AI Prompt Hub</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {activeLauncher && (
+                          <button
+                            type="button"
+                            onClick={() => window.open(activeLauncher.url, "_blank")}
+                            className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md border transition shadow-sm ${activeLauncher.color}`}
+                          >
+                            <span>{activeLauncher.label}</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => copyPrompt(activePromptText, promptTab)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-md text-xs shadow-sm transition"
+                        >
+                          {copied === promptTab ? (
+                            <>
+                              <CheckCheck className="h-3.5 w-3.5" />
+                              <span>Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3.5 w-3.5" />
+                              <span>Copy Prompt</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Segmented Pill Tabs */}
+                    <div className="flex flex-wrap gap-1 p-1 bg-zinc-950 rounded-lg border border-zinc-800/80">
+                      {[
+                        { id: "flow", label: "Google Flow (Veo)" },
+                        { id: "kling", label: "Kling Direct Video" },
+                        { id: "chatgpt", label: "ChatGPT" },
+                        { id: "gemini", label: "Gemini" },
+                        { id: "script", label: "Script (Audio)" },
+                        { id: "json", label: "Raw JSON" },
+                      ].map(tab => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setPromptTab(tab.id as any)}
+                          className={`px-2.5 py-1 text-xs rounded-md font-medium transition ${
+                            promptTab === tab.id
+                              ? "bg-zinc-800 text-amber-300 shadow-sm"
+                              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Prompt Box */}
+                    <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-300 bg-black/70 border border-zinc-800 rounded-lg p-3 max-h-64 overflow-y-auto leading-relaxed selection:bg-amber-500/30">
+                      {activePromptText}
+                    </pre>
+                  </div>
+
+                  {/* Screenplay & Audio Card (BELOW PROMPT) */}
+                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3.5 shadow-sm">
+                    <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60">
+                      <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Screenplay &amp; Audio
+                      </h3>
+                      <span className="text-[11px] text-zinc-500 font-mono">S{selected.shotNumber}</span>
+                    </div>
+
+                    {/* Action Description */}
+                    <div>
+                      <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Visual Action</span>
+                      <p className="text-zinc-200 text-xs leading-relaxed mt-0.5">{selected.actionDescription}</p>
+                    </div>
+
+                    {/* Narrator Voice-Over */}
+                    {selected.voiceover && (
+                      <div className="rounded-lg bg-zinc-950/60 border border-amber-900/30 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                            <Mic className="h-3 w-3" /> Voice-Over (Narrator)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => playSpeechBrowser(selected.voiceover ?? "")}
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium transition"
+                          >
+                            <Volume2 className="h-2.5 w-2.5" /> Speak Aloud
+                          </button>
+                        </div>
+                        <p className="text-zinc-200 text-xs italic font-serif leading-relaxed border-l-2 border-amber-500/50 pl-2.5">
+                          “{selected.voiceover}”
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Spoken Dialogue */}
+                    {selected.dialogue && (
+                      <div className="rounded-lg bg-zinc-950/60 border border-sky-900/30 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3" /> Character Dialogue
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => playSpeechBrowser(selected.dialogue ?? "")}
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 font-medium transition"
+                          >
+                            <Volume2 className="h-2.5 w-2.5" /> Speak
+                          </button>
+                        </div>
+                        <p className="text-zinc-200 text-xs font-mono leading-relaxed bg-black/40 p-2 rounded border border-zinc-800/80">
+                          {selected.dialogue}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Foley & Sound Design */}
+                    {selected.audioPrompt && (
+                      <div className="text-[11px] text-zinc-400 flex items-start gap-1.5 pt-1">
+                        <span className="font-semibold text-emerald-400 uppercase text-[10px] tracking-wider shrink-0 mt-0.5">Atmosphere:</span>
+                        <span className="italic">{selected.audioPrompt}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>

@@ -7,6 +7,8 @@ import { decryptSecret } from "@/lib/crypto/encrypt";
 import { testOpenAIKey } from "@/lib/providers/openai-text";
 import { testGeminiKey } from "@/lib/providers/gemini-text";
 import { testKlingKey } from "@/lib/providers/kling-video";
+import { testFalKey } from "@/lib/providers/lipsync/fal-liveportrait";
+import { testHedraKey } from "@/lib/providers/lipsync/hedra";
 
 const bodySchema = z.object({ connectionId: z.string().min(1) });
 
@@ -22,11 +24,18 @@ export const POST = apiHandler(async (req) => {
 
   const apiKey = decryptSecret(conn.encryptedKey);
 
-  const result = conn.providerId === "gemini"
-    ? await testGeminiKey(apiKey)
-    : conn.providerId === "kling"
-    ? await testKlingKey(apiKey)
-    : await testOpenAIKey(apiKey);
+  let result: { ok: boolean; model: string; error?: string };
+  if (conn.providerId === "gemini") {
+    result = await testGeminiKey(apiKey);
+  } else if (conn.providerId === "kling") {
+    result = await testKlingKey(apiKey);
+  } else if (conn.providerId === "fal") {
+    result = await testFalKey(apiKey);
+  } else if (conn.providerId === "hedra") {
+    result = await testHedraKey(apiKey);
+  } else {
+    result = await testOpenAIKey(apiKey);
+  }
 
   await prisma.providerConnection.update({
     where: { id: conn.id },

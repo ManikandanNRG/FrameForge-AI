@@ -3,7 +3,9 @@ import path from "node:path";
 import { prisma } from "@/lib/db/client";
 import { resolveVideoProvider } from "@/lib/providers/resolve-video";
 import { downloadVideoToFile } from "@/lib/providers/kling-video";
-import { animateStillToVideo } from "@/lib/media/animate";
+import { resolveLipSyncProvider, LocalMotionProvider, type LipSyncResult } from "@/lib/providers/lipsync";
+import { synthesizeVoiceover, generateFallbackAudio } from "@/lib/media/voiceover";
+import { getShotAudioData } from "@/lib/shots/audio-defaults";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { normalizeRoot } from "@/lib/media/paths";
 import { mkdir } from "node:fs/promises";
@@ -22,19 +24,19 @@ export async function videoGenerationHandler(
   const payload = JSON.parse(job.requestPayload || "{}") as {
     projectId: string;
     shotId: string;
+    useLocalMotion?: boolean;
   };
-  const { projectId, shotId } = payload;
+  const { projectId, shotId, useLocalMotion = false } = payload;
 
-  const shot = await prisma.shot.findUnique({ where: { id: shotId } });
+  const shot = await prisma.shot.findUnique({
+    where: { id: shotId },
+    include: { scene: true },
+  });
   if (!shot) throw new Error(`Shot not found: ${shotId}`);
   if (!shot.videoPrompt) throw new Error(`Shot ${shotId} has no videoPrompt`);
 
   const project = await prisma.project.findUnique({ where: { id: projectId } });
   if (!project) throw new Error(`Project not found: ${projectId}`);
-
-  const { provider, modelId } = await resolveVideoProvider(project.ownerId);
-
-  logger.info({ projectId, shotId, model: modelId }, "video generation starting");
 
   // Find or create media root
   let root = await prisma.mediaRoot.findFirst({ where: { ownerId: project.ownerId } });
@@ -52,13 +54,21 @@ export async function videoGenerationHandler(
   const filename = `video-v${count + 1}-${Date.now()}.mp4`;
   const absPath = path.join(dir, filename);
 
-  let usedProvider = provider.id;
-  let usedModel = modelId;
+  let usedProvider = "local-audio-motion";
+  let usedModel = "lip-sync-character";
   let providerJobId = "";
   let durationSeconds = Math.round(shot.targetDurationSeconds ?? 5);
 
+  let attemptedKling = false;
   try {
-    // Attempt AI video generation via provider (e.g. Kling AI)
+    if (useLocalMotion) {
+      throw new Error("Direct in-app motion & speech video generation requested");
+    }
+
+    const { provider, modelId } = await resolveVideoProvider(project.ownerId);
+    attemptedKling = true;
+    logger.info({ projectId, shotId, model: modelId }, "attempting raw video generation via Kling");
+
     const jobRef = await provider.submit({
       modelId,
       prompt: shot.videoPrompt,
@@ -92,9 +102,13 @@ export async function videoGenerationHandler(
 
     await downloadVideoToFile(result.storageKey, absPath);
     if (result.durationSeconds) durationSeconds = result.durationSeconds;
+    usedProvider = provider.id;
+    usedModel = modelId;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logger.warn({ err: msg, shotId }, "Kling video provider unavailable or out of quota; checking storyboard still fallback");
+    if (attemptedKling) {
+      logger.warn({ err: msg, shotId }, "Kling video provider unavailable or out of quota; switching to character lip-sync / motion pipeline");
+    }
 
     // Check if shot has a generated storyboard still image
     const still = await prisma.shotMedia.findFirst({
@@ -107,11 +121,65 @@ export async function videoGenerationHandler(
       throw err;
     }
 
-    // Fall back to animating the approved storyboard still into a 1080p MP4 clip via FFmpeg
-    logger.info({ shotId, stillPath: still.storagePath }, "rendering video clip from storyboard still with FFmpeg");
-    await animateStillToVideo(still.storagePath, absPath, durationSeconds, 1920, 1080);
-    usedProvider = "local-motion";
-    usedModel = "ffmpeg-cinematic-render";
+    // Prepare speech audio (guaranteed to exist on disk)
+    const audioDir = path.join(root.path, "projects", projectId, "shots", shotId, "audio");
+    const ttsPath = path.join(audioDir, "speech.mp3");
+    let audioPath = ttsPath;
+
+    const audioData = getShotAudioData(
+      shot.negativeConstraints,
+      shot.scene.sceneNumber,
+      shot.shotNumber,
+      shot.actionDescription,
+    );
+    const speechText = audioData.dialogue || audioData.voiceover || shot.actionDescription;
+
+    try {
+      await synthesizeVoiceover(speechText, ttsPath, project.storyLanguage || "en", durationSeconds);
+      logger.info({ shotId, audioPath: ttsPath }, "prepared speech audio for video");
+    } catch (audioErr) {
+      logger.warn({ audioErr, shotId }, "voiceover synthesis failed; generating ambient audio fallback");
+      try {
+        await generateFallbackAudio(ttsPath, durationSeconds);
+      } catch (fbErr) {
+        logger.error({ fbErr }, "failed to generate fallback audio");
+      }
+    }
+
+    // Resolve active Lip-Sync provider (fal.ai LivePortrait → Hedra → Local reactive engine)
+    const lipSyncProvider = await resolveLipSyncProvider(project.ownerId);
+    logger.info({ shotId, provider: lipSyncProvider.name }, "generating character video");
+
+    let lipSyncResult: LipSyncResult;
+    try {
+      lipSyncResult = await lipSyncProvider.generateLipSync({
+        imagePath: still.storagePath,
+        audioPath,
+        outputPath: absPath,
+        durationSeconds,
+        text: speechText,
+        prompt: shot.videoPrompt,
+      });
+    } catch (providerErr) {
+      const pMsg = providerErr instanceof Error ? providerErr.message : String(providerErr);
+      logger.warn(
+        { providerErr: pMsg, provider: lipSyncProvider.name, shotId },
+        "Lip-sync provider failed or has insufficient balance; gracefully falling back to local audio-motion engine",
+      );
+      const localProvider = new LocalMotionProvider();
+      lipSyncResult = await localProvider.generateLipSync({
+        imagePath: still.storagePath,
+        audioPath,
+        outputPath: absPath,
+        durationSeconds,
+        text: speechText,
+        prompt: shot.videoPrompt,
+      });
+    }
+
+    usedProvider = lipSyncResult.providerId;
+    usedModel = lipSyncResult.modelId;
+    if (lipSyncResult.durationSeconds) durationSeconds = lipSyncResult.durationSeconds;
   }
 
   const checksum = await sha256File(absPath);

@@ -28,7 +28,6 @@ export const POST = apiHandler(async (_req, ctx) => {
           mediaVersions: {
             where: { kind: "VIDEO_CLIP" },
             orderBy: { versionNumber: "desc" },
-            take: 1,
           },
         },
         orderBy: { shotNumber: "asc" },
@@ -37,11 +36,16 @@ export const POST = apiHandler(async (_req, ctx) => {
     orderBy: { sceneNumber: "asc" },
   });
 
-  // Flatten shots that have a video clip
+  // Flatten shots that have a video clip, preserving scene context
   const clipsInOrder = scenes
-    .flatMap((sc) => sc.shots)
-    .filter((sh) => sh.mediaVersions.length > 0)
-    .map((sh) => ({ shot: sh, clip: sh.mediaVersions[0]! }));
+    .flatMap((sc) => sc.shots.map((sh) => ({ scene: sc, shot: sh })))
+    .filter(({ shot }) => shot.mediaVersions.length > 0)
+    .map(({ scene, shot }) => {
+      const clip = shot.selectedVideoId
+        ? (shot.mediaVersions.find((m) => m.id === shot.selectedVideoId) ?? shot.mediaVersions[0]!)
+        : shot.mediaVersions[0]!;
+      return { scene, shot, clip };
+    });
 
   if (clipsInOrder.length === 0) {
     throw badRequest("No video clips found. Import or generate video clips for your shots first.");
@@ -56,7 +60,7 @@ export const POST = apiHandler(async (_req, ctx) => {
   let cursorFrames = 0;
   const videoItems: TimelineItem[] = [];
 
-  for (const { shot, clip } of clipsInOrder) {
+  for (const { scene, shot, clip } of clipsInOrder) {
     const durationSecs = clip.durationSeconds ?? shot.targetDurationSeconds ?? 5;
     const durationFrames = secondsToFrames(durationSecs, fps);
 
@@ -72,7 +76,7 @@ export const POST = apiHandler(async (_req, ctx) => {
       transitionOut: null,
       transitionDurationFrames: 0,
       volume: 1,
-      label: `Scene ${shot.shotNumber} Shot ${shot.shotNumber}`,
+      label: `Scene ${scene.sceneNumber} · Shot ${shot.shotNumber}`,
     });
 
     cursorFrames += durationFrames;

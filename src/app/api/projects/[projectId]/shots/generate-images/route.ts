@@ -17,7 +17,10 @@ export const POST = apiHandler(async (_req, ctx) => {
   if (!project) throw notFound("Project not found");
   if (project.ownerId !== ownerId) throw forbidden();
 
-  // Get all shots that don't yet have a storyboard still
+  const body = (await _req.json().catch(() => ({}))) as { force?: boolean };
+  const force = body.force ?? false;
+
+  // Get all shots with their storyboard stills
   const shots = await prisma.shot.findMany({
     where: { projectId: projectId as string },
     include: {
@@ -26,12 +29,17 @@ export const POST = apiHandler(async (_req, ctx) => {
     orderBy: [{ scene: { sceneNumber: "asc" } }, { shotNumber: "asc" }],
   });
 
-  const shotsNeedingImages = shots.filter(
-    (s) => s.mediaVersions.length === 0 && s.imagePrompt,
-  );
+  let shotsNeedingImages = force
+    ? shots.filter((s) => s.imagePrompt)
+    : shots.filter((s) => s.mediaVersions.length === 0 && s.imagePrompt);
 
   if (shotsNeedingImages.length === 0) {
-    return { queued: 0, message: "All shots already have images" };
+    // If all already have images and user clicked button, re-generate all
+    shotsNeedingImages = shots.filter((s) => s.imagePrompt);
+  }
+
+  if (shotsNeedingImages.length === 0) {
+    return { queued: 0, message: "No shots found with image prompts" };
   }
 
   const jobs = await Promise.all(
@@ -44,6 +52,25 @@ export const POST = apiHandler(async (_req, ctx) => {
       }),
     ),
   );
+
+  // Execute in Next.js runtime so jobs run immediately without external worker dependency
+  setImmediate(async () => {
+    const { imageGenerationHandler } = await import("@/lib/jobs/image-generation-handler");
+    const { markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
+    for (const job of jobs) {
+      try {
+        const fresh = await prisma.generationJob.findUnique({ where: { id: job.id } });
+        if (fresh && (fresh.status === "QUEUED" || fresh.status === "SUBMITTING")) {
+          await markRunning(job.id);
+          const result = await imageGenerationHandler(job);
+          await markSucceeded(job.id, result);
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        await markFailed(job.id, { code: "GENERATION_FAILED", message: msg, retryable: false }).catch(() => {});
+      }
+    }
+  });
 
   return { queued: jobs.length, jobIds: jobs.map((j) => j.id) };
 });

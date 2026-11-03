@@ -102,6 +102,8 @@ export async function renderTimeline(
   // Build concat-demuxer input list
   const concatLines: string[] = [];
   for (const item of videoTrack.items) {
+    // If volume is 0 or clip was unselected, skip it from the concatenated master film
+    if (item.volume === 0) continue;
     const inSec  = framesToSeconds(item.sourceInFrames, fps);
     const outSec = framesToSeconds(item.sourceOutFrames, fps);
     const dur    = outSec - inSec;
@@ -111,6 +113,10 @@ export async function renderTimeline(
       `outpoint ${outSec.toFixed(3)}`,
       `duration ${dur.toFixed(3)}`,
     );
+  }
+
+  if (concatLines.length === 0) {
+    return { success: false, outputPath: "", error: "No active clips selected for rendering. Please enable at least one scene/clip in your timeline." };
   }
 
   // Write concat file to a temp path beside output
@@ -145,4 +151,47 @@ export async function renderTimeline(
   if (!probe) return { success: false, outputPath: opts.outputPath, error: "Output validation failed (ffprobe)" };
 
   return { success: true, outputPath: opts.outputPath };
+}
+
+/** Check if a media file contains an audio stream. */
+export async function hasAudioStream(filePath: string): Promise<boolean> {
+  const probe = await probeMedia(filePath);
+  if (!probe || !Array.isArray(probe.streams)) return false;
+  return probe.streams.some((s: Record<string, unknown>) => s.codec_type === "audio");
+}
+
+/**
+ * Multiplex an audio track (e.g. dialogue / voiceover MP3) onto a video clip.
+ * Preserves video stream bit-for-bit with '-c:v copy' in < 100ms.
+ * Pads audio with silence if shorter than video, trims audio if longer than video.
+ */
+export async function muxAudioOntoVideo(
+  videoPath: string,
+  audioPath: string,
+  outputPath: string,
+): Promise<{ success: boolean; error?: string }> {
+  const bin = findFfmpeg();
+  if (!bin) return { success: false, error: "FFmpeg not found" };
+
+  await mkdir(path.dirname(outputPath), { recursive: true });
+
+  const args = [
+    "-y",
+    "-i", videoPath,
+    "-i", audioPath,
+    "-map", "0:v:0",
+    "-map", "1:a:0",
+    "-c:v", "copy",
+    "-c:a", "aac",
+    "-b:a", "192k",
+    "-af", "apad",
+    "-shortest",
+    outputPath,
+  ];
+
+  const result = await runProcess(bin, args);
+  if (result.code !== 0) {
+    return { success: false, error: result.stderr.slice(-500) };
+  }
+  return { success: true };
 }

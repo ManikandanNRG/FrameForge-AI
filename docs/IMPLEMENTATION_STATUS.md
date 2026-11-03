@@ -7,6 +7,40 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Direct-to-Video Master Prompts & Character Consistency Engine** (`src/lib/story/prompts.ts`, `src/lib/bible/service.ts`, `src/lib/shots/service.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`):
+  - **Single-Line Idea to Multi-Lingual Screenplay**: Generates complete scene-by-scene script with voiceover narration and character dialogue written in the user's chosen language (e.g. Tamil, Hindi, Spanish, English) and visual action in cinematic English.
+  - **Production Bible Consistency Anchors**: Automatically extracts locked character physical identity descriptions (ethnicity, skin tone, facial hair, eye color, and exact clothing) so the same character appears across every single shot.
+  - **Direct Video Generation (Google Flow / Veo & Kling)**: Skips the still image step and generates complete direct-to-video master prompts with locked character anchors, camera dynamics, temporal action, and native dialogue cues.
+  - **Storyboard Prompt Hub**: Displays Google Flow (Veo) as the primary tab with 1-click copy and quick launcher.
+- **CapCut / Premiere Pro Desktop NLE Video Editor** (`src/app/projects/[projectId]/edit/page.tsx`):
+  - **Top 3-Panel Studio Layout**:
+    - **Media Pool & Asset Library**: Multi-tab panel (`Media`, `Audio`, `Screenplay`) with 16:9 thumbnail previews, duration badges, "Added" status, and 1-click timeline insertion.
+    - **Cinema Viewport Monitor**: Central canvas with live playhead sync, transport controls (play, pause, step 1s, jump to start), timecode readout (`00:00:00:00`), and direct MP4 export download.
+    - **Clip Inspector & Properties**: Real-time trim in/out adjustments (`-0.5s` / `+0.5s`), split at playhead (blade tool), clip reordering, and VO script view.
+  - **Multi-Track Desktop Timeline**:
+    - **Toolbar**: Split (blade cut), Delete, Clip count, and dynamic Zoom slider (`20px/s` to `120px/s`).
+    - **Time Ruler & Scrubbing**: Full timecode ruler with glowing cyan playhead that tracks playback across all tracks.
+    - **Track V1 (Video)**: Authentic filmstrip clips with repeating thumbnail frames, duration, and in/out points.
+    - **Track A1 (Voiceover)**: Audio waveform visualization with teal peak bars and screenplay audio tracking.
+    - **Track A2 (Atmosphere)**: Ambient foley and environmental sound bed.
+- **Built-In In-App Still-to-Video Animation Engine** (`src/app/api/projects/[projectId]/shots/generate-videos/route.ts`, `src/lib/jobs/video-generation-handler.ts`, `src/lib/providers/lipsync/local-motion.ts`):
+  - Allows users to animate all still images generated from ChatGPT/Gemini directly into 1080p 24fps MP4 video clips inside the app without needing external video APIs or paid credits.
+  - Applies dynamic cinematic camera motion (`zoompan` slow push-in / breath) via local FFmpeg.
+  - Synthesizes the authentic screenplay voiceover / dialogue audio via Google TTS and multiplexes it directly into the MP4 container.
+  - Added 1-click **`🎬 Animate All Scenes to Video`** prominent button in the sidebar and per-shot **`🎬 Animate to Video (In-App)`** in the media station.
+- **Browser Prompt Hub & Google Flow / Veo Integration** (`src/app/projects/[projectId]/storyboard/page.tsx`):
+  - Interactive multi-tab prompt hub with dedicated formats for:
+    - **Google Flow (Veo)**: Formatted with scene heading, camera framing, character continuity, voiceover beat, spoken dialogue, and sound effects.
+    - **ChatGPT (DALL·E 3)** & **Gemini (Imagen 3)**: High-fidelity photorealistic stills with embedded screenplay script and negative constraints.
+    - **🎬 Video Motion**: Motion dynamics, camera flow, and audio atmosphere.
+    - **🎙️ Script (VO & Dialogue)**: Clean narrator voiceover, character lines, and foley for direct voice recording or TTS.
+    - **Raw JSON Prompt**: Machine-readable scene/shot schema.
+  - Quick-launch buttons to open **Google Flow / VideoFX**, **ChatGPT**, **Gemini**, **Kling Web (66 Free credits/day)**, and **Luma Dream Machine**.
+  - One-click copy with visual feedback, and whole-project JSON export.
+- **Automatic Audio Multiplexing on Video Import** (`src/app/api/projects/[projectId]/shots/[shotId]/import/route.ts`, `src/lib/edit/ffmpeg.ts`):
+  - When silent video clips generated in Kling, Luma, or Google Flow are uploaded or pasted (`Ctrl+V`), the server checks for audio streams using `hasAudioStream`.
+  - Automatically synthesizes the shot's dialogue/voiceover using `synthesizeVoiceover` if not present.
+  - Losslessly multiplexes the audio onto the video using FFmpeg (`muxAudioOntoVideo`), so imported videos immediately play with voice and speech.
 - **DALL·E 3 & FLUX.1 Image Generation Engine** (`src/lib/providers/openai-image.ts`, `src/lib/providers/flux-image.ts`):
   - Integrates with official OpenAI DALL·E 3 when a funded key is present.
   - Automatically falls back to 100% free, zero-cost, photorealistic FLUX.1 (via Pollinations) when OpenAI has no credits.

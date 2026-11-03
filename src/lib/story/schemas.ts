@@ -38,19 +38,22 @@ export const ScreenplaySchema = z.object({
   scenes: z.array(
     z.object({
       sceneNumber: z.number(),
-      heading: z.string(),     // INT. LIGHTHOUSE - DAY
+      heading: z.string(),     // e.g. EXT. VILLAGE FIELDS - DAWN
       location: z.string(),
       timeOfDay: z.string(),
       action: z.string(),
+      voiceover: z.string().optional(),
       dialogue: z.string().optional(),
+      audioScript: z.string().optional(),
+      soundEffects: z.string().optional(),
       estimatedDurationSeconds: z.number(),
     }),
   ).min(1),
   totalEstimatedDurationSeconds: z.number(),
 });
 
-export type Logline       = z.infer<typeof LoglineSchema>;
-export type Synopsis      = z.infer<typeof SynopsisSchema>;
-export type Outline       = z.infer<typeof OutlineSchema>;
+export type Logline = z.infer<typeof LoglineSchema>;
+export type Synopsis = z.infer<typeof SynopsisSchema>;
+export type Outline = z.infer<typeof OutlineSchema>;
 export type CharacterArcs = z.infer<typeof CharacterArcSchema>;
-export type Screenplay    = z.infer<typeof ScreenplaySchema>;
+export type Screenplay = z.infer<typeof ScreenplaySchema>;

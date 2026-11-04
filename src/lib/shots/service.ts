@@ -38,17 +38,26 @@ export async function generateShotPlan(
     ? props.map((p) => `[PROP - "${p.name}"]: ${p.description}`).join("\n")
     : "";
 
+  const orientationDesc = project.aspectRatio === "PORTRAIT_9_16"
+    ? "9:16 Vertical / Portrait (1080x1920) mobile fullscreen framing"
+    : project.aspectRatio === "SQUARE_1_1"
+    ? "1:1 Square (1080x1080) framing"
+    : "16:9 Landscape (1920x1080) cinematic widescreen framing";
+
+  const charNamesList = characters.map(c => `[@${c.name}]`).join(", ") || "[@CharacterName]";
+
   const result = await provider.generateStructured({
     modelId,
     systemPrompt: `You are an elite film director, master cinematographer, and AI prompt engineer creating a complete Shot List with DIRECT-TO-VIDEO generation prompts (optimized for Google Flow / Veo 2, Kling v3, Sora, and Runway) for a ${project.visualStyle.replace(/_/g, " ")} film.
 Target Story Language for Voice-over and Dialogue: "${project.storyLanguage}".
+Film Framing & Orientation: ${orientationDesc}.
 
-CRITICAL RULE FOR GOOGLE FLOW VIDEO GENERATION:
-In Google Flow, characters are created first in the left sidebar "Characters" menu with a dedicated character generation prompt and voice profile.
-Then, in each scene's video prompt, the character is referenced using their tag with the '@' symbol (e.g., @Murugan, @Selvi).
-Google Flow natively links @[CharacterName] to the locked character model, facial identity, and voice!
-In the prompt itself, character dialogue is embedded as:
-"Dialogue: @[CharacterName] speaks in [tone]: \\"[spoken line in ${project.storyLanguage}]\\""
+CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
+1. CHARACTER TAGS & PLACEHOLDERS: Characters are referenced using square-bracketed placeholder tags (e.g., ${charNamesList}).
+   In Google Flow, typing '@' or matching the placeholder links the shot directly to the character's locked appearance and voice!
+2. DIALOGUE IN NATIVE SCRIPT: Character dialogue is embedded as:
+   "Dialogue: [@CharacterName] speaks: \\"[dialogue line in ${project.storyLanguage}]\\""
+3. PRODUCTION SPECS: Include duration, camera movement, and lighting specs matching ${orientationDesc}.
 
 MASTER CHARACTER ANCHORS:
 ${characterGuide}
@@ -62,14 +71,14 @@ Screenplay:
 ${screenplayText.slice(0, 7000)}
 
 For EACH shot provide:
-1. characterTag: The @-mention of the primary character featured (e.g. "@Murugan", "@Selvi", or "" if none).
+1. characterTag: The primary character placeholder tag featured (e.g. ${characters[0] ? `[@${characters[0].name}]` : "[@Character]"}, or "" if none).
 2. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
 3. videoPrompt: A complete DIRECT VIDEO GENERATION PROMPT formatted for Google Flow (Omni Flash / Veo 2).
    Format:
-   "@[CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. Dialogue: @[CharacterName] speaks: \\"[dialogue in ${project.storyLanguage}]\\". Voice-Over: \\"[narration in ${project.storyLanguage}]\\". Atmosphere: [ambient Foley cues]. 4k cinematic documentary photorealism, natural daylight."
-4. imagePrompt: Photorealistic 16:9 widescreen still prompt.
+   "[@CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. Dialogue: [@CharacterName] speaks: \\"[dialogue in ${project.storyLanguage}]\\". Voice-Over: \\"[narration in ${project.storyLanguage}]\\". Atmosphere: [ambient Foley cues]. 4k cinematic documentary photorealism, natural daylight, ${orientationDesc}."
+4. imagePrompt: Photorealistic visual still prompt matching ${orientationDesc}.
 5. voiceover: Compelling voice-over narration line in "${project.storyLanguage}".
-6. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '@CHARACTER speaks: "..."').
+6. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '[@CHARACTER] speaks: "..."').
 7. audioPrompt: Sound effects, ambient Foley, and music score mood.
 8. targetDurationSeconds: duration in seconds (3-8s).
 

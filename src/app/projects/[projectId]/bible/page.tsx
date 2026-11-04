@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
-import { ChevronRight, Sparkles, User, MapPin, Package, Copy, CheckCheck, ExternalLink, Mic, Volume2 } from "lucide-react";
+import { ChevronRight, Sparkles, User, MapPin, Package, Copy, CheckCheck, ExternalLink, Mic, Volume2, Edit2, Save, X, ArrowRight } from "lucide-react";
 
 interface Asset { id: string; assetType: string; name: string; description: string; approvalStatus: string; attributes: string; }
 
@@ -22,6 +22,58 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
   const [error, setError]             = useState<string | null>(null);
   const [selected, setSelected]       = useState<Asset | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [isEditing, setIsEditing]           = useState(false);
+  const [editName, setEditName]             = useState("");
+  const [editDesc, setEditDesc]             = useState("");
+  const [editFlowPrompt, setEditFlowPrompt] = useState("");
+  const [editVoice, setEditVoice]           = useState("");
+  const [editWardrobe, setEditWardrobe]     = useState("");
+  const [editPersonality, setEditPersonality] = useState("");
+  const [editAnchor, setEditAnchor]         = useState("");
+  const [savingAsset, setSavingAsset]       = useState(false);
+
+  function startEditing(a: Asset) {
+    setIsEditing(true);
+    setEditName(a.name);
+    setEditDesc(a.description);
+    let attr: any = {};
+    try { attr = JSON.parse(a.attributes || "{}"); } catch {}
+    setEditFlowPrompt(attr.googleFlowCharacterPrompt || a.description || "");
+    setEditVoice(attr.voiceProfile || "");
+    setEditWardrobe(attr.wardrobe || "");
+    setEditPersonality(attr.personality || "");
+    setEditAnchor(attr.consistencyAnchor || "");
+  }
+
+  async function saveAsset() {
+    if (!selected) return;
+    setSavingAsset(true);
+    let attr: any = {};
+    try { attr = JSON.parse(selected.attributes || "{}"); } catch {}
+    
+    attr.googleFlowCharacterPrompt = editFlowPrompt;
+    attr.voiceProfile = editVoice;
+    attr.wardrobe = editWardrobe;
+    attr.personality = editPersonality;
+    attr.consistencyAnchor = editAnchor;
+
+    const res = await fetch(`/api/projects/${projectId}/assets/${selected.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: editName,
+        description: editDesc,
+        attributes: JSON.stringify(attr),
+      }),
+    });
+    const d = await res.json();
+    setSavingAsset(false);
+    setIsEditing(false);
+    if (d.data?.asset) {
+      setSelected(d.data.asset);
+    }
+    load();
+  }
 
   function copyText(text: string, field: string) {
     navigator.clipboard.writeText(text);
@@ -127,17 +179,147 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
             <div className="text-zinc-500 text-sm mt-10">Select an asset from the list to view details.</div>
           ) : (
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <h2 className="text-xl font-semibold">{selected.name}</h2>
-                <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{selected.assetType}</span>
-                <Badge status={artifactStatusBadge(selected.approvalStatus)} label={selected.approvalStatus} />
-                {selected.approvalStatus !== "APPROVED" && (
-                  <Button size="sm" onClick={() => { approve(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }}>
-                    Approve
-                  </Button>
-                )}
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-zinc-800">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-bold">{isEditing ? "Edit Asset" : selected.name}</h2>
+                  <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{selected.assetType}</span>
+                  {!isEditing && <Badge status={artifactStatusBadge(selected.approvalStatus)} label={selected.approvalStatus} />}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {!isEditing ? (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startEditing(selected)}
+                        className="gap-1.5 text-xs border-zinc-700 bg-zinc-900 hover:bg-zinc-800"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                        <span>Edit Asset</span>
+                      </Button>
+
+                      {selected.approvalStatus !== "APPROVED" && (
+                        <Button size="sm" onClick={() => { approve(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }}>
+                          Approve
+                        </Button>
+                      )}
+
+                      <Link href={`/projects/${projectId}/storyboard`}>
+                        <Button size="sm" variant="secondary" className="gap-1.5 text-xs">
+                          <span>View in Storyboard</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        disabled={savingAsset}
+                        onClick={saveAsset}
+                        className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                        <span>{savingAsset ? "Saving…" : "Save Changes"}</span>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsEditing(false)}
+                        className="text-xs text-zinc-400"
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
-              <p className="text-zinc-300 text-sm leading-relaxed mb-4">{selected.description}</p>
+
+              {isEditing ? (
+                <div className="space-y-4 max-w-2xl bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 mb-6">
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1">Asset Name</label>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      className="w-full text-sm bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-zinc-300 mb-1">Description / Core Bio</label>
+                    <textarea
+                      rows={3}
+                      value={editDesc}
+                      onChange={e => setEditDesc(e.target.value)}
+                      className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                    />
+                  </div>
+
+                  {selected.assetType === "CHARACTER" && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-semibold text-blue-400 mb-1">
+                          Google Flow Character Creation Prompt (Paste into Google Flow &ldquo;Characters&rdquo; Menu)
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={editFlowPrompt}
+                          onChange={e => setEditFlowPrompt(e.target.value)}
+                          className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-blue-500/50 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-purple-400 mb-1">
+                          Voice Settings Directive (Accent, tone, cadence for Character Voice Settings)
+                        </label>
+                        <textarea
+                          rows={2}
+                          value={editVoice}
+                          onChange={e => setEditVoice(e.target.value)}
+                          className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-purple-500/50 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-zinc-400 mb-1">Locked Wardrobe</label>
+                          <input
+                            type="text"
+                            value={editWardrobe}
+                            onChange={e => setEditWardrobe(e.target.value)}
+                            className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-zinc-400 mb-1">Personality / Demeanor</label>
+                          <input
+                            type="text"
+                            value={editPersonality}
+                            onChange={e => setEditPersonality(e.target.value)}
+                            className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-amber-400 mb-1">Master AI Consistency Anchor</label>
+                        <textarea
+                          rows={2}
+                          value={editAnchor}
+                          onChange={e => setEditAnchor(e.target.value)}
+                          className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-amber-600/40 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <p className="text-zinc-300 text-sm leading-relaxed mb-4">{selected.description}</p>
               
               {(() => {
                 const attrs = JSON.parse(selected.attributes || "{}");
@@ -255,6 +437,8 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
                   </div>
                 );
               })()}
+                </>
+              )}
             </div>
           )}
         </div>

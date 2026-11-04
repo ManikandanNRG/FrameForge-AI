@@ -41,7 +41,19 @@ export const GET = apiHandler(async (_req, ctx) => {
     }),
   }));
 
-  return { scenes: scenesWithAudio };
+  return {
+    project: {
+      id: project.id,
+      title: project.title,
+      aspectRatio: project.aspectRatio,
+      storyLanguage: project.storyLanguage,
+      visualStyle: project.visualStyle,
+      genre: project.genre,
+      tone: project.tone,
+      targetRuntime: project.targetRuntime,
+    },
+    scenes: scenesWithAudio,
+  };
 });
 
 const generateSchema = z.object({ modelId: z.string().optional(), useMock: z.boolean().optional() });

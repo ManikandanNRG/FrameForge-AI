@@ -34,6 +34,7 @@ export default function NewProjectPage() {
     targetRuntime: 360,
     audience:      "",
     storyLanguage: "Tamil",
+    aspectRatio:   "LANDSCAPE_16_9",
   });
 
   function set(k: string, v: string | number) {
@@ -110,11 +111,22 @@ export default function NewProjectPage() {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
+            <Field label="Aspect ratio / Orientation" hint="Camera framing format for all shots & AI video generation">
+              <select value={form.aspectRatio} onChange={e => set("aspectRatio", e.target.value)} className={inputCls}>
+                <option value="LANDSCAPE_16_9">16:9 Landscape (1920x1080) — YouTube, Film, Desktop</option>
+                <option value="PORTRAIT_9_16">9:16 Vertical / Portrait (1080x1920) — Reels, Shorts, TikTok</option>
+                <option value="SQUARE_1_1">1:1 Square (1080x1080) — Instagram Feed, Socials</option>
+              </select>
+            </Field>
+
             <Field label="Target audience">
               <input value={form.audience} onChange={e => set("audience", e.target.value)}
                 placeholder="General / Adults / Kids…" className={inputCls} />
             </Field>
-            <Field label="Story language" hint="Voiceover narration and character dialogue will be written in this language">
+          </div>
+
+          <div>
+            <Field label="Story language" hint="Voiceover narration and character dialogue will be written in this native language">
               <select value={form.storyLanguage} onChange={e => set("storyLanguage", e.target.value)} className={inputCls}>
                 <option value="Tamil">Tamil (தமிழ்)</option>
                 <option value="English">English</option>

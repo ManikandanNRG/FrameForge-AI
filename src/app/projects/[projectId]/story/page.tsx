@@ -33,37 +33,17 @@ function formatContent(type: string, text: string) {
             sc.action ?? "—",
             ``,
           ];
-          const vo = sc.voiceover || (
-            sc.sceneNumber === 1 ? "Before the morning sun crests the eastern palms, the red soil wakes to the ancient song of flowing water." :
-            sc.sceneNumber === 2 ? "Every sunrise begins not in the sky, but with a father's quiet promise to his land and family." :
-            sc.sceneNumber === 3 ? "Together with his bullocks, the rhythm of plowing is an ancient song written into the mud." :
-            sc.sceneNumber === 4 ? "Here, sweat and water become one. In every handful of green saplings lies the heartbeat of the land." :
-            sc.sceneNumber === 5 ? "As the crimson sun dips behind the palms, the fields breathe in the cool evening shade." :
-            ""
-          );
+          const vo = typeof sc.voiceover === "string" ? sc.voiceover : "";
           if (vo) {
             lines.push(`[VOICEOVER (V.O.)]`, `"${vo}"`, ``);
           }
 
-          const dlg = sc.dialogue || (
-            sc.sceneNumber === 2 ? 'MURUGAN: "Eat well, little one. Today we sow the seeds for tomorrow."' :
-            sc.sceneNumber === 3 ? 'MURUGAN: "Heii... go on, Velu! Straight line through the clay!"' :
-            sc.sceneNumber === 4 ? 'MURUGAN: "Press them deep into the soil. Let the roots drink the life of the river."' :
-            sc.sceneNumber === 5 ? 'SELVAN: "Good work today, Murugan." MURUGAN: "By God\'s grace, brother. Our soil never lies."' :
-            ""
-          );
+          const dlg = typeof sc.dialogue === "string" ? sc.dialogue : "";
           if (dlg) {
             lines.push(`[SPOKEN DIALOGUE & SPEECH]`, String(dlg), ``);
           }
 
-          const snd = sc.audioScript || sc.soundEffects || (
-            sc.sceneNumber === 1 ? "Gentle morning breeze rustling through coconut palms, distant temple bells, chirping songbirds, flowing canal water." :
-            sc.sceneNumber === 2 ? "Clay pot clinking, wood fire crackling softly, rooster crowing in the distant yard." :
-            sc.sceneNumber === 3 ? "Wooden plow cutting wet earth, cattle bells clinking rhythmically, farmer calls, splashing mud." :
-            sc.sceneNumber === 4 ? "Water splashing around farmer waist, rhythmic planting into soft clay, distant peacock call, afternoon cicadas." :
-            sc.sceneNumber === 5 ? "Evening crickets chirping, gentle breeze through ripening stalks, distant temple chimes." :
-            "Ambient nature sounds and atmospheric score."
-          );
+          const snd = typeof sc.audioScript === "string" ? sc.audioScript : (typeof sc.soundEffects === "string" ? sc.soundEffects : "");
           if (snd) {
             lines.push(`[AUDIO & SOUND DESIGN]`, String(snd), ``);
           }

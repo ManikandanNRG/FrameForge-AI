@@ -9,7 +9,7 @@ import { ChevronRight, Sparkles, BookOpen, AlertCircle } from "lucide-react";
 
 interface Project {
   id: string; title: string; sourceIdea: string; currentStage: string;
-  genre?: string; tone?: string; visualStyle: string;
+  genre?: string; tone?: string; visualStyle: string; aspectRatio?: string; storyLanguage?: string;
 }
 interface Job { id: string; status: string; jobType: string; createdAt: string; errorMessage?: string; }
 
@@ -90,6 +90,14 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
             {project.genre && <span className="bg-zinc-800 rounded px-2 py-0.5 text-zinc-400">{project.genre}</span>}
             {project.tone  && <span className="bg-zinc-800 rounded px-2 py-0.5 text-zinc-400">{project.tone}</span>}
             <span className="bg-zinc-800 rounded px-2 py-0.5 text-zinc-400">{project.visualStyle.replace(/_/g," ")}</span>
+            <span className="bg-zinc-800 rounded px-2 py-0.5 text-amber-300/90 border border-amber-500/30">
+              {project.aspectRatio === "PORTRAIT_9_16" ? "9:16 Vertical / Portrait" : project.aspectRatio === "SQUARE_1_1" ? "1:1 Square" : "16:9 Landscape"}
+            </span>
+            {project.storyLanguage && (
+              <span className="bg-zinc-800 rounded px-2 py-0.5 text-blue-300/90 border border-blue-500/30">
+                {project.storyLanguage}
+              </span>
+            )}
           </div>
         </div>
 

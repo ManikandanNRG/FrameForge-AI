@@ -26,14 +26,14 @@ Screenplay:
 ${screenplayText.slice(0, 8000)}
 
 For each CHARACTER provide:
-- name: Single-word or standard character name (e.g. Murugan, Selvi) suitable for @mentions in Google Flow
+- name: Single-word or standard character name (e.g. Ayyanar, Yazhini) suitable for @mentions in Google Flow
 - role: Protagonist / Antagonist / Supporting
-- age: Estimated age (e.g. 48)
-- appearance: An ultra-detailed physical description for AI consistency (exact regional heritage/ethnicity, skin tone, facial hair, eye color, facial wrinkles/features, physical build, distinguishing marks)
-- wardrobe: EXACT clothing itemization that stays consistent throughout the film (specific garments, exact colors, fabrics, wear & tear, accessories, footwear)
+- age: Estimated age (e.g. 10 for a child, 70 for an elderly artisan)
+- appearance: An ultra-detailed physical description tailored STRICTLY to this character's true age, gender, and regional heritage (skin tone, hair length/style, facial wrinkles/features, physical build). NEVER copy or borrow traits from examples!
+- wardrobe: EXACT clothing itemization matching their age, role, and cultural context
 - personality: Demeanor, physical posture, vocal cadence
-- googleFlowCharacterPrompt: A standalone, 8K photorealistic character generation prompt formatted specifically to paste into Google Flow's "Characters" side menu to create the character model (e.g. "Full portrait of Murugan, a 48yo weathered South Indian Tamil farmer, deep sun-baked brown skin, salt-and-pepper mustache and short greying beard, wearing a traditional faded off-white cotton veshti tied at waist, thin red sacred thread on wrist, 8k documentary film still, natural soft daylight, neutral background")
-- voiceProfile: Precise voice directing instructions to set up the character's voice in Google Flow's voice menu (e.g. "Male, 45-50, authentic rural South Indian Tamil accent and intonation, grounded warm baritone, calm measured cadence. No generic international accent.")
+- googleFlowCharacterPrompt: A standalone, 8K photorealistic character generation prompt formatted specifically to paste into Google Flow's "Characters" side menu to create the character model (describing their true gender, age, facial features, hair, and clothing in cinematic detail)
+- voiceProfile: Precise voice directing instructions specifying exact gender (Male/Female/Child/Elderly), approximate age, dialect, accent, and pitch tone for Google Flow's voice selection
 
 For each LOCATION provide:
 - name: Location name

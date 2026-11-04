@@ -9,6 +9,8 @@ export const ProductionBibleSchema = z.object({
     wardrobe: z.string().optional(),
     personality: z.string(),
     arc: z.string().optional(),
+    googleFlowCharacterPrompt: z.string().optional(),
+    voiceProfile: z.string().optional(),
   })),
   locations: z.array(z.object({
     name: z.string(),

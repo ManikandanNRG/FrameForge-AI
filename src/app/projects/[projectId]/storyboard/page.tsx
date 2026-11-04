@@ -7,7 +7,7 @@ import { Badge, artifactStatusBadge } from "@/components/ui/badge";
 import {
   ChevronRight, Sparkles, Upload, Check, Image as ImageIcon, Video,
   AlertCircle, Mic, MessageSquare, Volume2, Copy, CheckCheck, Download,
-  ExternalLink, FileCode,
+  ExternalLink, FileCode, User, ChevronDown, ChevronUp,
 } from "lucide-react";
 
 interface ShotMedia {
@@ -40,6 +40,8 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const [videoJobIds, setVideoJobIds]     = useState<string[]>([]);
   const [error, setError]                 = useState<string | null>(null);
   const [selected, setSelected]           = useState<Shot | null>(null);
+  const [bibleAssets, setBibleAssets]     = useState<any[]>([]);
+  const [showCharDetails, setShowCharDetails] = useState(false);
   const [importing, setImporting]         = useState<string | null>(null);
   const [imgProgress, setImgProgress]     = useState<{ done: number; total: number } | null>(null);
   const [vidProgress, setVidProgress]     = useState<{ done: number; total: number } | null>(null);
@@ -56,9 +58,16 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   }, [selected?.id]);
 
   async function load() {
-    const r = await fetch(`/api/projects/${projectId}/shots`);
-    const d = await r.json();
+    const [shotsRes, bibleRes] = await Promise.all([
+      fetch(`/api/projects/${projectId}/shots`),
+      fetch(`/api/projects/${projectId}/bible`).catch(() => null),
+    ]);
+    const d = await shotsRes.json();
     setScenes(d.data?.scenes ?? []);
+    if (bibleRes && bibleRes.ok) {
+      const bd = await bibleRes.json();
+      setBibleAssets(bd.data?.assets ?? []);
+    }
     // Refresh selected shot
     if (selected) {
       const allShots = (d.data?.scenes ?? []).flatMap((s: Scene) => s.shots);
@@ -266,21 +275,71 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const selectedVideo     = selected?.mediaVersions.find(m => m.kind === "VIDEO_CLIP");
   const selectedScene     = scenes.find(sc => sc.shots.some(sh => sh.id === selected?.id));
 
-  const characterAnchor = (selected as any)?.characterAnchor ||
-    "Murugan, 48-year-old weathered South Indian Tamil farmer, sun-baked brown skin with natural laugh lines, salt-and-pepper mustache and short stubble beard, wearing a traditional faded off-white handloom cotton veshti tied at the waist and thin red sacred thread on wrist";
+  // Derive primary character for the selected shot
+  const shotCharName = (selected as any)?.characterName ||
+    ((selected as any)?.characterTag ? (selected as any).characterTag.replace(/^@/, "") : "");
+
+  // Find in bible assets or derive
+  const matchingCharAsset = bibleAssets.find(
+    a => a.assetType === "CHARACTER" && (
+      (shotCharName && a.name.toLowerCase() === shotCharName.toLowerCase()) ||
+      (selected && selected.actionDescription.toLowerCase().includes(a.name.toLowerCase()))
+    )
+  ) || bibleAssets.find(a => a.assetType === "CHARACTER");
+
+  const charName = shotCharName || matchingCharAsset?.name || "Murugan";
+  const charTag = `@${charName.replace(/[^a-zA-Z0-9]/g, "")}`;
+
+  let charPrompt = "";
+  let charVoiceProfile = "";
+  let charAnchor = (selected as any)?.characterAnchor || "";
+
+  if (matchingCharAsset) {
+    try {
+      const attr = JSON.parse(matchingCharAsset.attributes || "{}");
+      charPrompt = attr.googleFlowCharacterPrompt || "";
+      charVoiceProfile = attr.voiceProfile || "";
+      if (!charAnchor) charAnchor = attr.consistencyAnchor || "";
+    } catch {}
+  }
+
+  if (!charPrompt) {
+    charPrompt = `${charName}, a 48-year-old weathered South Indian Tamil farmer, deep sun-baked brown skin with natural laugh lines, salt-and-pepper mustache and short stubble beard, wearing a traditional faded off-white handloom cotton veshti tied at waist, thin red sacred thread on wrist. 8k photorealistic documentary film still, soft natural daylight, neutral background.`;
+  }
+  if (!charVoiceProfile) {
+    charVoiceProfile = "Tamil Male, age 45-50, authentic rural South Indian Tamil accent and intonation, grounded warm baritone, calm measured cadence.";
+  }
+  if (!charAnchor) {
+    charAnchor = `${charName}, 48-year-old weathered South Indian Tamil farmer, sun-baked brown skin, salt-and-pepper mustache, traditional faded off-white cotton veshti.`;
+  }
+
+  // Construct Google Flow direct video prompt using @CharacterName
+  const rawAction = selected?.actionDescription || "";
+  let taggedAction = rawAction;
+  if (!rawAction.includes(charTag)) {
+    const regex = new RegExp(`\\b${charName}\\b`, "i");
+    if (regex.test(rawAction)) {
+      taggedAction = rawAction.replace(regex, charTag);
+    } else {
+      taggedAction = `${charTag} ${rawAction}`;
+    }
+  }
 
   const googleFlowPrompt = selected ? [
-    `🎬 GOOGLE FLOW (VEO 2) DIRECT VIDEO GENERATION PROMPT:`,
-    `[CHARACTER CONSISTENCY ANCHOR]: ${characterAnchor}.`,
-    `[SCENE CONTEXT]: Scene ${selectedScene?.sceneNumber ?? 1} - ${selectedScene?.heading || "EXT. VILLAGE"}.`,
-    `[CINEMATIC FRAMING & LENS]: ${selected.shotSize ? `[${selected.shotSize} SHOT]` : "[MEDIUM CLOSE-UP]"}, 35mm anamorphic lens, shallow depth of field, 24fps motion blur.`,
-    `[MOTION & PHYSICAL ACTION]: ${selected.videoPrompt || selected.actionDescription}.`,
-    selected.voiceover ? `[AUDIO NARRATION (VO)]: "${selected.voiceover}"` : "",
-    selected.dialogue ? `[CHARACTER SPEECH]: ${selected.dialogue}` : "",
-    selected.audioPrompt ? `[FOLEY & SOUNDSCAPE]: ${selected.audioPrompt}` : "",
-    `[LIGHTING & CINEMATOGRAPHY]: Golden hour natural dawn sunlight, soft volumetric rays, documentary realism, 8K ultra-detailed human skin texture, authentic character consistency, cinematic color grade, Kodak 35mm film grain, 24fps.`,
-    `[NEGATIVE CONSTRAINTS]: Avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur.`,
-  ].filter(Boolean).join("\n\n") : "";
+    taggedAction,
+    "",
+    `Camera: ${selected.shotSize ? `${selected.shotSize} shot` : "Medium shot"}, 35mm lens, smooth cinematic camera motion at 24fps.`,
+    "",
+    selected.dialogue ? `Dialogue: ${selected.dialogue}` : "",
+    selected.voiceover ? `Voice-Over (Narrator): "${selected.voiceover}"` : "",
+    selected.audioPrompt ? `Audio Atmosphere & Foley: ${selected.audioPrompt}` : "",
+    "",
+    `Visual Style: 4K photorealistic cinematic documentary film, natural daylight, authentic South Indian character consistency, shallow depth of field, 24fps.`,
+    "",
+    `Negative: Avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur.`,
+  ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
+
+  const characterAnchor = charAnchor;
 
   const klingPrompt = selected ? [
     `Cinematic film clip of ${characterAnchor}.`,
@@ -752,7 +811,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                           ) : (
                             <>
                               <Copy className="h-3.5 w-3.5" />
-                              <span>Copy Prompt</span>
+                              <span>{promptTab === "flow" ? "Copy @Mention Prompt" : "Copy Prompt"}</span>
                             </>
                           )}
                         </button>
@@ -783,10 +842,95 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                       ))}
                     </div>
 
-                    {/* Prompt Box */}
-                    <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-300 bg-black/70 border border-zinc-800 rounded-lg p-3 max-h-64 overflow-y-auto leading-relaxed selection:bg-amber-500/30">
-                      {activePromptText}
-                    </pre>
+                    {/* Content: Google Flow 2-Step Workflow vs General Engine Tabs */}
+                    {promptTab === "flow" ? (
+                      <div className="space-y-3 pt-1">
+                        {/* Step 1: Character Setup Card */}
+                        <div className="rounded-lg border border-blue-600/40 bg-blue-950/20 p-3 space-y-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                                Step 1: Character Setup
+                              </span>
+                              <span className="text-xs font-bold text-amber-300">
+                                {charTag}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => copyPrompt(charPrompt, "charPrompt")}
+                                className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-500/40 font-semibold transition"
+                                title="Copy 8K character description prompt to create character in Google Flow Characters menu"
+                              >
+                                {copied === "charPrompt" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                                <span>{copied === "charPrompt" ? "Copied!" : "Copy Character Prompt"}</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => copyPrompt(charVoiceProfile, "voiceProfile")}
+                                className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 font-semibold transition"
+                                title="Copy character voice directives to configure voice in Google Flow Characters menu"
+                              >
+                                {copied === "voiceProfile" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                                <span>{copied === "voiceProfile" ? "Copied!" : "Copy Voice Settings"}</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => setShowCharDetails(!showCharDetails)}
+                                className="p-1 rounded text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition"
+                                title="Toggle character prompt details"
+                              >
+                                {showCharDetails ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                              </button>
+                            </div>
+                          </div>
+
+                          <p className="text-[11px] text-zinc-400 leading-relaxed">
+                            In Google Flow, create <strong className="text-amber-300">{charName}</strong> first in the left sidebar under <strong className="text-blue-300">"Characters"</strong> using the character prompt &amp; voice settings. Once saved, every scene below uses <strong className="text-blue-300">{charTag}</strong> to lock facial features and voice!
+                          </p>
+
+                          {showCharDetails && (
+                            <div className="space-y-2 pt-2 border-t border-blue-900/30">
+                              <div>
+                                <span className="text-[10px] font-semibold text-blue-300 uppercase tracking-wider">Character Creation Prompt (for Characters Menu)</span>
+                                <pre className="text-xs text-zinc-300 bg-black/60 p-2.5 rounded border border-blue-900/40 font-mono whitespace-pre-wrap leading-relaxed mt-1">
+                                  {charPrompt}
+                                </pre>
+                              </div>
+                              <div>
+                                <span className="text-[10px] font-semibold text-purple-300 uppercase tracking-wider">Voice Directive (for Character Voice Setting)</span>
+                                <p className="text-xs text-purple-200/90 bg-purple-950/40 p-2 rounded border border-purple-800/40 font-mono leading-relaxed mt-1">
+                                  {charVoiceProfile}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Step 2: Scene Video Prompt (with @Mention) */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                              <Sparkles className="h-3 w-3 text-amber-400" /> Step 2: Direct Video Prompt (Tagged with {charTag})
+                            </span>
+                            <span className="text-[10px] text-zinc-500 font-mono">Omni Flash / Veo 2</span>
+                          </div>
+
+                          <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-200 bg-black/80 border border-zinc-800 rounded-lg p-3 max-h-64 overflow-y-auto leading-relaxed selection:bg-amber-500/30">
+                            {googleFlowPrompt}
+                          </pre>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Standard Single-Step Prompt Box for Other Engines */
+                      <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-300 bg-black/70 border border-zinc-800 rounded-lg p-3 max-h-64 overflow-y-auto leading-relaxed selection:bg-amber-500/30">
+                        {activePromptText}
+                      </pre>
+                    )}
                   </div>
 
                   {/* Screenplay & Audio Card (BELOW PROMPT) */}

@@ -26,12 +26,14 @@ Screenplay:
 ${screenplayText.slice(0, 8000)}
 
 For each CHARACTER provide:
-- name: Character name (e.g. Murugan)
+- name: Single-word or standard character name (e.g. Murugan, Selvi) suitable for @mentions in Google Flow
 - role: Protagonist / Antagonist / Supporting
 - age: Estimated age (e.g. 48)
 - appearance: An ultra-detailed physical description for AI consistency (exact regional heritage/ethnicity, skin tone, facial hair, eye color, facial wrinkles/features, physical build, distinguishing marks)
 - wardrobe: EXACT clothing itemization that stays consistent throughout the film (specific garments, exact colors, fabrics, wear & tear, accessories, footwear)
 - personality: Demeanor, physical posture, vocal cadence
+- googleFlowCharacterPrompt: A standalone, 8K photorealistic character generation prompt formatted specifically to paste into Google Flow's "Characters" side menu to create the character model (e.g. "Full portrait of Murugan, a 48yo weathered South Indian Tamil farmer, deep sun-baked brown skin, salt-and-pepper mustache and short greying beard, wearing a traditional faded off-white cotton veshti tied at waist, thin red sacred thread on wrist, 8k documentary film still, natural soft daylight, neutral background")
+- voiceProfile: Precise voice directing instructions to set up the character's voice in Google Flow's voice menu (e.g. "Male, 45-50, authentic rural South Indian Tamil accent and intonation, grounded warm baritone, calm measured cadence. No generic international accent.")
 
 For each LOCATION provide:
 - name: Location name
@@ -43,7 +45,7 @@ For each PROP provide:
 - description: Physical appearance, materials, and significance
 - owner: Character who uses it
 
-Return JSON matching: { characters: [{name, role, age, appearance, wardrobe, personality, arc?}], locations: [{name, description, lighting, timeOfDayVariants?}], props: [{name, description, owner?}], visualStyleNotes? }`,
+Return JSON matching: { characters: [{name, role, age, appearance, wardrobe, personality, arc?, googleFlowCharacterPrompt?, voiceProfile?}], locations: [{name, description, lighting, timeOfDayVariants?}], props: [{name, description, owner?}] }`,
     schema: ProductionBibleSchema,
   });
 
@@ -52,9 +54,10 @@ Return JSON matching: { characters: [{name, role, age, appearance, wardrobe, per
   // Clear previous draft assets for clean regeneration
   await prisma.productionAsset.deleteMany({ where: { projectId } });
 
-  // Save characters with locked consistency anchor
+  // Save characters with locked consistency anchor and Google Flow setup
   for (const c of bible.characters) {
     const consistencyAnchor = `${c.name}: ${c.appearance}. Wardrobe: ${c.wardrobe || "traditional"}. Demeanor: ${c.personality}.`;
+    const cleanTag = `@${c.name.replace(/[^a-zA-Z0-9]/g, "")}`;
 
     await prisma.productionAsset.create({
       data: {
@@ -68,6 +71,9 @@ Return JSON matching: { characters: [{name, role, age, appearance, wardrobe, per
           wardrobe: c.wardrobe,
           personality: c.personality,
           arc: c.arc,
+          characterTag: cleanTag,
+          googleFlowCharacterPrompt: c.googleFlowCharacterPrompt || `${c.name}, ${c.appearance}, wearing ${c.wardrobe || "traditional attire"}. 8k, photorealistic cinematic portrait.`,
+          voiceProfile: c.voiceProfile || `Authentic ${project.storyLanguage || "regional"} voice, natural cadence.`,
           consistencyAnchor,
         }),
         approvalStatus: "DRAFT",

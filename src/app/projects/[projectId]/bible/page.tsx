@@ -4,7 +4,7 @@ import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
-import { ChevronRight, Sparkles, User, MapPin, Package } from "lucide-react";
+import { ChevronRight, Sparkles, User, MapPin, Package, Copy, CheckCheck, ExternalLink, Mic, Volume2 } from "lucide-react";
 
 interface Asset { id: string; assetType: string; name: string; description: string; approvalStatus: string; attributes: string; }
 
@@ -21,6 +21,13 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [error, setError]             = useState<string | null>(null);
   const [selected, setSelected]       = useState<Asset | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  function copyText(text: string, field: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  }
 
   async function load() {
     const r = await fetch(`/api/projects/${projectId}/bible`);
@@ -134,24 +141,117 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
               
               {(() => {
                 const attrs = JSON.parse(selected.attributes || "{}");
+                const charTag = attrs.characterTag || `@${selected.name.replace(/[^a-zA-Z0-9]/g, "")}`;
+                const flowPrompt = attrs.googleFlowCharacterPrompt || `${selected.name}, ${selected.description}, wearing ${attrs.wardrobe || "traditional attire"}. 8k, photorealistic cinematic portrait, soft daylight, neutral background.`;
+                const voiceProfile = attrs.voiceProfile || "Authentic regional native accent, natural vocal inflection and grounded tone.";
+
                 return (
                   <div className="space-y-4">
-                    {attrs.consistencyAnchor && (
-                      <div className="rounded-lg border border-amber-600/50 bg-amber-950/20 p-4">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
-                            ✨ Master AI Video Consistency Anchor
-                          </span>
-                          <span className="text-[10px] text-zinc-500">Injected into all video prompts</span>
+                    {/* Google Flow "Characters" Setup Guide (Crucial for VideoFX / Veo consistency) */}
+                    {selected.assetType === "CHARACTER" && (
+                      <div className="rounded-xl border border-blue-600/40 bg-blue-950/20 p-4 space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-blue-900/40">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                              Google Flow Workflow
+                            </span>
+                            <span className="text-xs font-semibold text-zinc-200">
+                              1. Create Character Model ({charTag})
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => window.open("https://aitestkitchen.withgoogle.com/tools/video-fx", "_blank")}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800 text-blue-200 rounded border border-blue-700/60 transition"
+                          >
+                            <span>Open Google Flow ↗</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </button>
                         </div>
-                        <p className="text-xs text-amber-200/90 leading-relaxed font-mono">
+
+                        <p className="text-xs text-zinc-400 leading-relaxed">
+                          In Google Flow, characters are created first in the left sidebar under <strong className="text-blue-300">"Characters"</strong>. Name this character <strong className="text-amber-300">{selected.name}</strong> and set their voice. Once saved, every scene video prompt tags <strong className="text-blue-300">{charTag}</strong> to lock their face and voice!
+                        </p>
+
+                        {/* Character Generation Prompt */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-blue-300 uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="h-3 w-3 text-amber-400" /> Character Creation Prompt (Paste in "Characters" Menu)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => copyText(flowPrompt, "charPrompt")}
+                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-500/40 font-semibold transition"
+                            >
+                              {copiedField === "charPrompt" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                              <span>{copiedField === "charPrompt" ? "Copied Prompt!" : "Copy Character Prompt"}</span>
+                            </button>
+                          </div>
+                          <pre className="text-xs text-zinc-300 bg-black/60 p-3 rounded-lg border border-blue-900/40 font-mono whitespace-pre-wrap leading-relaxed">
+                            {flowPrompt}
+                          </pre>
+                        </div>
+
+                        {/* Voice Directive */}
+                        <div className="space-y-1.5 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-purple-300 uppercase tracking-wider flex items-center gap-1">
+                              <Mic className="h-3 w-3 text-purple-400" /> Voice Settings Directive (Set in Character Voice Menu)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => copyText(voiceProfile, "voiceProfile")}
+                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 font-semibold transition"
+                            >
+                              {copiedField === "voiceProfile" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                              <span>{copiedField === "voiceProfile" ? "Copied Voice!" : "Copy Voice Settings"}</span>
+                            </button>
+                          </div>
+                          <p className="text-xs text-purple-200/90 bg-purple-950/40 p-2.5 rounded-lg border border-purple-800/40 font-mono leading-relaxed">
+                            {voiceProfile}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Master Character Consistency Anchor */}
+                    {attrs.consistencyAnchor && (
+                      <div className="rounded-xl border border-amber-600/40 bg-amber-950/20 p-4 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Master AI Video Consistency Anchor
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => copyText(attrs.consistencyAnchor, "anchor")}
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-semibold transition"
+                          >
+                            {copiedField === "anchor" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                            <span>{copiedField === "anchor" ? "Copied Anchor!" : "Copy Anchor"}</span>
+                          </button>
+                        </div>
+                        <p className="text-xs text-amber-200/90 leading-relaxed font-mono bg-black/50 p-3 rounded-lg border border-amber-800/40">
                           {attrs.consistencyAnchor}
                         </p>
                       </div>
                     )}
-                    <pre className="bg-zinc-900 rounded-lg border border-zinc-800 p-4 text-xs text-zinc-400 overflow-auto">
-                      {JSON.stringify(attrs, null, 2)}
-                    </pre>
+
+                    {/* Wardrobe & Attributes Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                      {attrs.wardrobe && (
+                        <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-3">
+                          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Locked Wardrobe</span>
+                          <p className="text-xs text-zinc-300 mt-1">{attrs.wardrobe}</p>
+                        </div>
+                      )}
+                      {attrs.personality && (
+                        <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-3">
+                          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Personality & Posture</span>
+                          <p className="text-xs text-zinc-300 mt-1">{attrs.personality}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 );
               })()}

@@ -35,6 +35,8 @@ export const GET = apiHandler(async (_req, ctx) => {
         dialogue: audio.dialogue,
         audioPrompt: audio.audioPrompt,
         characterAnchor: audio.characterAnchor,
+        characterTag: audio.characterTag,
+        characterName: audio.characterName,
       };
     }),
   }));

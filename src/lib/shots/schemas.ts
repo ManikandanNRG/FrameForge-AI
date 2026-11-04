@@ -17,6 +17,7 @@ export const ShotPlanSchema = z.object({
       lighting: z.string().optional(),
       mood: z.string().optional(),
       characterConsistencyAnchor: z.string().optional(),
+      characterTag: z.string().optional(),
       imagePrompt: z.string(),
       videoPrompt: z.string(),
       voiceover: z.string().optional(),

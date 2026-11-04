@@ -43,10 +43,14 @@ export async function generateShotPlan(
     systemPrompt: `You are an elite film director, master cinematographer, and AI prompt engineer creating a complete Shot List with DIRECT-TO-VIDEO generation prompts (optimized for Google Flow / Veo 2, Kling v3, Sora, and Runway) for a ${project.visualStyle.replace(/_/g, " ")} film.
 Target Story Language for Voice-over and Dialogue: "${project.storyLanguage}".
 
-CRITICAL RULE FOR AI VIDEO GENERATION (GOOGLE FLOW / VEO):
-Modern video AI tools generate the video directly without needing a still image. To maintain character consistency across shots, EVERY shot's 'videoPrompt' MUST explicitly include the character's locked visual identity, the environment, camera movement, temporal action, lighting, and audio beat.
+CRITICAL RULE FOR GOOGLE FLOW VIDEO GENERATION:
+In Google Flow, characters are created first in the left sidebar "Characters" menu with a dedicated character generation prompt and voice profile.
+Then, in each scene's video prompt, the character is referenced using their tag with the '@' symbol (e.g., @Murugan, @Selvi).
+Google Flow natively links @[CharacterName] to the locked character model, facial identity, and voice!
+In the prompt itself, character dialogue is embedded as:
+"Dialogue: @[CharacterName] speaks in [tone]: \\"[spoken line in ${project.storyLanguage}]\\""
 
-MASTER CHARACTER CONSISTENCY ANCHORS (USE THESE EXACTLY IN PROMPTS):
+MASTER CHARACTER ANCHORS:
 ${characterGuide}
 
 MASTER LOCATIONS:
@@ -58,18 +62,16 @@ Screenplay:
 ${screenplayText.slice(0, 7000)}
 
 For EACH shot provide:
-1. characterConsistencyAnchor: The exact character identity description used for this shot (e.g. Murugan, age, skin tone, facial hair, clothing) so character consistency is locked in.
-2. videoPrompt: A complete, self-contained MASTER DIRECT VIDEO GENERATION PROMPT (optimized for Google Flow / Veo and Kling). It MUST include:
-   - [Character Identity]: The exact character description from the Character Anchor above (age, face, clothing).
-   - [Camera & Lens]: Specific framing (e.g. Medium Close-up), lens (e.g. 35mm anamorphic), and dynamic camera movement (e.g. slow smooth push-in at 24fps with subtle organic handheld float).
-   - [Motion & Action]: Specific physical action unfolding across the shot duration (e.g. how the character moves, expressions, gestures).
-   - [Lighting & Setting]: Natural daylight, volumetric sunbeams, atmospheric dust, documentary realism.
-   - [Audio Beat]: Voiceover or dialogue in "${project.storyLanguage}".
-3. imagePrompt: Photorealistic 16:9 widescreen still prompt.
-4. voiceover: Compelling voice-over narration line in "${project.storyLanguage}".
-5. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as 'CHARACTER: "..."').
-6. audioPrompt: Sound effects, ambient Foley, and music score mood.
-7. targetDurationSeconds: duration in seconds (3-8s).
+1. characterTag: The @-mention of the primary character featured (e.g. "@Murugan", "@Selvi", or "" if none).
+2. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
+3. videoPrompt: A complete DIRECT VIDEO GENERATION PROMPT formatted for Google Flow (Omni Flash / Veo 2).
+   Format:
+   "@[CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. Dialogue: @[CharacterName] speaks: \\"[dialogue in ${project.storyLanguage}]\\". Voice-Over: \\"[narration in ${project.storyLanguage}]\\". Atmosphere: [ambient Foley cues]. 4k cinematic documentary photorealism, natural daylight."
+4. imagePrompt: Photorealistic 16:9 widescreen still prompt.
+5. voiceover: Compelling voice-over narration line in "${project.storyLanguage}".
+6. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '@CHARACTER speaks: "..."').
+7. audioPrompt: Sound effects, ambient Foley, and music score mood.
+8. targetDurationSeconds: duration in seconds (3-8s).
 
 Return JSON matching ShotPlanSchema.`,
     schema: ShotPlanSchema,
@@ -98,29 +100,11 @@ Return JSON matching ShotPlanSchema.`,
         dialogue: sh.dialogue ?? "",
         audioPrompt: sh.audioPrompt ?? sh.soundEffects ?? "",
         characterAnchor: sh.characterConsistencyAnchor ?? "",
+        characterTag: sh.characterTag ?? "",
       });
 
       await prisma.shot.create({
         data: {
-          sceneId: scene.id,
-          projectId,
-          shotNumber: sh.shotNumber,
-          actionDescription: sh.actionDescription,
-          shotSize: sh.shotSize,
-          cameraAngle: sh.cameraAngle,
-          cameraMovement: sh.cameraMovement,
-          lighting: sh.lighting,
-          mood: sh.mood,
-          imagePrompt: sh.imagePrompt,
-          videoPrompt: sh.videoPrompt,
-          negativeConstraints: audioData,
-          targetDurationSeconds: sh.targetDurationSeconds,
-          aspectRatio: project.aspectRatio === "PORTRAIT_9_16" ? "9:16" : "16:9",
-          approvalStatus: "DRAFT",
-        },
-      });
-    }
-  }
           sceneId: scene.id,
           projectId,
           shotNumber: sh.shotNumber,

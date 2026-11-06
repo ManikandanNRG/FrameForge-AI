@@ -37,6 +37,11 @@ export function getShotAudioData(
     }
   } catch {}
 
+  // Mutual exclusivity: When character dialogue exists, suppress narrator voiceover
+  if (dialogue && dialogue.trim().length > 0) {
+    voiceover = "";
+  }
+
   if (voiceover || dialogue || audioPrompt || characterAnchor || characterTag) {
     if (!characterTag && characterAnchor) {
       const match = characterAnchor.match(/^([A-Za-z0-9_-]+):/);

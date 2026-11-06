@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/client";
 import { logger } from "@/lib/logger";
 import type { TextGenerationProvider } from "@/lib/providers/types";
-import { ShotPlanSchema } from "./schemas";
+import { ShotPlanSchema, snapToOmniDuration } from "./schemas";
 
 export async function generateShotPlan(
   provider: TextGenerationProvider,
@@ -48,16 +48,28 @@ export async function generateShotPlan(
 
   const result = await provider.generateStructured({
     modelId,
-    systemPrompt: `You are an elite film director, master cinematographer, and AI prompt engineer creating a complete Shot List with DIRECT-TO-VIDEO generation prompts (optimized for Google Flow / Veo 2, Kling v3, Sora, and Runway) for a ${project.visualStyle.replace(/_/g, " ")} film.
+    systemPrompt: `You are an elite film director, master cinematographer, and AI prompt engineer creating a complete Shot List with DIRECT-TO-VIDEO generation prompts (optimized for Google Flow / Omni 1.1 Flash / Veo 2, Kling v3, Sora, and Runway) for a ${project.visualStyle.replace(/_/g, " ")} film.
 Target Story Language for Voice-over and Dialogue: "${project.storyLanguage}".
 Film Framing & Orientation: ${orientationDesc}.
 
 CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
-1. CHARACTER TAGS & PLACEHOLDERS: Characters are referenced using square-bracketed placeholder tags (e.g., ${charNamesList}).
+1. QUANTIZED DURATIONS (OMNI 1.1 FLASH STANDARD):
+   - Durations MUST be strictly quantized to: 4, 6, 8, or 10 seconds. (Google Flow Omni 1.1 Flash supports ONLY 4s, 6s, 8s, or 10s; do NOT use 3s, 5s, 7s, or 9s).
+   - Use 6s or 8s for dialogue/interaction shots; 4s for punchy action cuts; 10s for dramatic climax.
+
+2. AUDIO MUTUAL EXCLUSIVITY RULE (DIALOGUE VS VOICE-OVER):
+   - In any single shot, NEVER have both character dialogue AND a voice-over narrator simultaneously!
+   - If a character is speaking on screen:
+     - 'dialogue' contains the spoken line in ${project.storyLanguage}: e.g. [@CharacterName] speaks: "[dialogue in ${project.storyLanguage}]".
+     - 'voiceover' MUST BE EMPTY STRING ("").
+     - In 'videoPrompt', format: "[@CharacterName] [action]. Camera: [movement]. Dialogue: [@CharacterName] speaks: \\"[line]\\". Atmosphere: [Foley]. Visual Style: [style]." (Do NOT include a Voice-Over line!)
+   - If NO character is speaking on screen (silent running, wide establishing shot, dramatic pause, landscape):
+     - 'dialogue' MUST BE EMPTY STRING ("").
+     - 'voiceover' can contain a third-person narrative beat in "${project.storyLanguage}", OR empty string for pure ambient sound.
+     - In 'videoPrompt', format: "[action beat]. Camera: [movement]. Voice-Over: \\"[narration]\\". Atmosphere: [Foley]. Visual Style: [style]." (Do NOT include Dialogue!)
+
+3. CHARACTER TAGS & PLACEHOLDERS: Characters are referenced using square-bracketed placeholder tags (e.g., ${charNamesList}).
    In Google Flow, typing '@' or matching the placeholder links the shot directly to the character's locked appearance and voice!
-2. DIALOGUE IN NATIVE SCRIPT: Character dialogue is embedded as:
-   "Dialogue: [@CharacterName] speaks: \\"[dialogue line in ${project.storyLanguage}]\\""
-3. PRODUCTION SPECS: Include duration, camera movement, and lighting specs matching ${orientationDesc}.
 
 MASTER CHARACTER ANCHORS:
 ${characterGuide}
@@ -66,21 +78,26 @@ MASTER LOCATIONS:
 ${locationGuide}
 ${propsGuide}
 `,
-    userPrompt: `Break this screenplay into scenes and individual shots (each 3-8 seconds).
+    userPrompt: `Break this screenplay into scenes and individual shots (each strictly 4, 6, 8, or 10 seconds).
 Screenplay:
 ${screenplayText.slice(0, 7000)}
 
 For EACH shot provide:
-1. characterTag: The primary character placeholder tag featured (e.g. ${characters[0] ? `[@${characters[0].name}]` : "[@Character]"}, or "" if none).
-2. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
-3. videoPrompt: A complete DIRECT VIDEO GENERATION PROMPT formatted for Google Flow (Omni Flash / Veo 2).
+1. shotNumber: sequential shot number (1, 2, 3...)
+2. actionDescription: 1-2 sentences clearly describing the physical visual action happening in this shot.
+3. shotSize: Framing size (e.g. "Close-Up", "Medium Shot", "Wide Shot", "Extreme Close-Up").
+4. cameraMovement: Specific camera motion (e.g. "Low-angle tracking shot forward at 24fps", "Smooth lateral pan", "Dynamic handheld sprint tracking").
+5. lighting: Lighting direction and mood (e.g. "Golden hour backlight with warm dust motes", "Diffused midday sunlight").
+6. characterTag: The primary character placeholder tag featured (e.g. ${characters[0] ? `[@${characters[0].name}]` : "[@Character]"}, or "" if none).
+7. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
+8. videoPrompt: A complete DIRECT VIDEO GENERATION PROMPT formatted for Google Flow (Omni 1.1 Flash / Veo 2).
    Format:
-   "[@CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. Dialogue: [@CharacterName] speaks: \\"[dialogue in ${project.storyLanguage}]\\". Voice-Over: \\"[narration in ${project.storyLanguage}]\\". Atmosphere: [ambient Foley cues]. 4k cinematic documentary photorealism, natural daylight, ${orientationDesc}."
-4. imagePrompt: Photorealistic visual still prompt matching ${orientationDesc}.
-5. voiceover: Compelling voice-over narration line in "${project.storyLanguage}".
-6. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '[@CHARACTER] speaks: "..."').
-7. audioPrompt: Sound effects, ambient Foley, and music score mood.
-8. targetDurationSeconds: duration in seconds (3-8s).
+   "[@CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. [Dialogue OR Voice-Over according to mutual exclusivity rule]. Atmosphere: [ambient Foley cues]. 4k cinematic documentary photorealism, natural daylight, ${orientationDesc}."
+9. imagePrompt: Photorealistic visual still prompt matching ${orientationDesc}.
+10. voiceover: Compelling voice-over narration line in "${project.storyLanguage}" (ONLY when NO character is speaking; otherwise leave empty string "").
+11. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '[@CHARACTER] speaks: "..."'; leave empty string "" if no character speaks).
+12. audioPrompt: Sound effects, ambient Foley, and music score mood.
+13. targetDurationSeconds: duration in seconds (MUST BE EXACTLY 4, 6, 8, or 10).
 
 Return JSON matching ShotPlanSchema.`,
     schema: ShotPlanSchema,
@@ -104,9 +121,21 @@ Return JSON matching ShotPlanSchema.`,
     });
 
     for (const sh of s.shots) {
+      const duration = snapToOmniDuration(sh.targetDurationSeconds);
+      const cleanDialogue = sh.dialogue?.trim() || "";
+      const hasDialogue = cleanDialogue.length > 0;
+      const cleanVoiceover = hasDialogue ? "" : (sh.voiceover?.trim() || "");
+
+      // Ensure actionDescription is never empty
+      let actionDesc = sh.actionDescription?.trim() || "";
+      if (!actionDesc && sh.videoPrompt) {
+        const match = sh.videoPrompt.match(/^([^.]+?\.)/);
+        actionDesc = match ? match[1] : sh.videoPrompt.slice(0, 120);
+      }
+
       const audioData = JSON.stringify({
-        voiceover: sh.voiceover ?? "",
-        dialogue: sh.dialogue ?? "",
+        voiceover: cleanVoiceover,
+        dialogue: cleanDialogue,
         audioPrompt: sh.audioPrompt ?? sh.soundEffects ?? "",
         characterAnchor: sh.characterConsistencyAnchor ?? "",
         characterTag: sh.characterTag ?? "",
@@ -117,7 +146,7 @@ Return JSON matching ShotPlanSchema.`,
           sceneId: scene.id,
           projectId,
           shotNumber: sh.shotNumber,
-          actionDescription: sh.actionDescription,
+          actionDescription: actionDesc,
           shotSize: sh.shotSize,
           cameraAngle: sh.cameraAngle,
           cameraMovement: sh.cameraMovement,
@@ -126,7 +155,7 @@ Return JSON matching ShotPlanSchema.`,
           imagePrompt: sh.imagePrompt,
           videoPrompt: sh.videoPrompt,
           negativeConstraints: audioData,
-          targetDurationSeconds: sh.targetDurationSeconds,
+          targetDurationSeconds: duration,
           aspectRatio: project.aspectRatio === "PORTRAIT_9_16" ? "9:16" : "16:9",
           approvalStatus: "DRAFT",
         },

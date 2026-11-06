@@ -3,6 +3,42 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
+
+const GENRES = [
+  "Rural Village Drama / Realistic",
+  "Sports / Motivational Drama",
+  "Friendship / Buddy Comedy",
+  "Emotional Family Drama",
+  "Action & Adventure / Thriller",
+  "Suspense & Mystery",
+  "Romance & Feel-Good Drama",
+  "Sci-Fi / Futuristic",
+  "Historical / Period / Cultural",
+  "Horror & Supernatural",
+  "Children & Animation",
+  "Documentary Realism",
+];
+
+const TONES = [
+  "Playful, Authentic & Energetic",
+  "Grounded, Heartfelt & Emotional",
+  "Suspenseful, Tense & Thrilling",
+  "Inspiring & Motivational",
+  "Comedic & Lighthearted",
+  "Dark, Gritty & Intense",
+  "Poetic & Nostalgic",
+  "Epic & Grand",
+];
+
+const AUDIENCES = [
+  "Universal / Family Audience",
+  "Youth & Young Adults (18–35)",
+  "Kids & Children (All Ages)",
+  "Rural & Regional Cinema Community",
+  "Social Media & Short-form Viewers (Reels / Shorts)",
+  "Mature & Thoughtful Cinema Lovers",
+];
 
 const VISUAL_STYLES = [
   ["PHOTOREALISTIC_CINEMATIC", "Photorealistic Cinematic"],
@@ -23,6 +59,10 @@ export default function NewProjectPage() {
   const router = useRouter();
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState<string | null>(null);
+  const [autoRunPipeline, setAutoRunPipeline] = useState(true);
+  const [pipelineProgress, setPipelineProgress] = useState<string | null>(null);
+  const [analyzingIdea, setAnalyzingIdea] = useState(false);
+  const [autoDetectedBadge, setAutoDetectedBadge] = useState<string | null>(null);
   const [form, setForm]       = useState({
     title:         "",
     sourceIdea:    "",
@@ -41,18 +81,80 @@ export default function NewProjectPage() {
     setForm(f => ({ ...f, [k]: v }));
   }
 
+  async function autoDetectSettings() {
+    if (!form.sourceIdea.trim()) {
+      setError("Please type a film idea first so AI can analyze it.");
+      return;
+    }
+    setAnalyzingIdea(true);
+    setError(null);
+    setAutoDetectedBadge(null);
+
+    try {
+      const res = await fetch("/api/projects/analyze-idea", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea: form.sourceIdea }),
+      });
+      const d = await res.json();
+      if (d.data?.analysis) {
+        const a = d.data.analysis;
+        setForm(prev => ({
+          ...prev,
+          title: prev.title ? prev.title : a.suggestedTitle,
+          genre: a.genre || prev.genre,
+          tone: a.tone || prev.tone,
+          audience: a.targetAudience || prev.audience,
+          visualStyle: a.visualStyle || prev.visualStyle,
+          dialogueMode: a.dialogueMode || prev.dialogueMode,
+          storyLanguage: a.storyLanguage || prev.storyLanguage,
+          aspectRatio: a.aspectRatio || prev.aspectRatio,
+        }));
+        setAutoDetectedBadge(`✓ Auto-detected: ${a.genre} · ${a.tone} · ${a.storyLanguage} · ${a.aspectRatio === "PORTRAIT_9_16" ? "9:16 Portrait" : "16:9 Landscape"}`);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to analyze idea");
+    } finally {
+      setAnalyzingIdea(false);
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true); setError(null);
-    const r = await fetch("/api/projects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const d = await r.json();
-    setSaving(false);
-    if (r.ok) router.push(`/projects/${d.data.project.id}`);
-    else setError(d.error?.message ?? "Failed to create project");
+    setPipelineProgress(null);
+    
+    try {
+      const r = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error?.message ?? "Failed to create project");
+
+      const newProjectId = d.data.project.id;
+
+      if (autoRunPipeline) {
+        setPipelineProgress("⚡ 1-Click Studio: Generating screenplay, characters, and storyboard prompts…");
+        const pipeRes = await fetch(`/api/projects/${newProjectId}/pipeline/one-click`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ autoGenerateVideos: false }),
+        });
+        const pipeData = await pipeRes.json();
+        if (pipeRes.ok) {
+          router.push(`/projects/${newProjectId}/storyboard`);
+          return;
+        }
+      }
+
+      router.push(`/projects/${newProjectId}`);
+    } catch (err: any) {
+      setError(err.message || "Failed to create project");
+      setSaving(false);
+      setPipelineProgress(null);
+    }
   }
 
   return (
@@ -69,20 +171,58 @@ export default function NewProjectPage() {
           </Field>
 
           {/* Idea */}
-          <Field label="Film idea *" hint="Describe your film in one paragraph. Be specific — the AI will develop this.">
-            <textarea required rows={5} value={form.sourceIdea} onChange={e => set("sourceIdea", e.target.value)}
-              placeholder="A lone lighthouse keeper discovers a message in a bottle that reveals a conspiracy stretching back 100 years..."
-              className={inputCls} />
-          </Field>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-zinc-300">Film idea *</label>
+              <button
+                type="button"
+                disabled={analyzingIdea}
+                onClick={autoDetectSettings}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold transition"
+                title="AI reads your idea and automatically configures title, genre, tone, language, orientation, and style"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <span>{analyzingIdea ? "Analyzing with AI…" : "✨ Auto-detect Settings from Idea"}</span>
+              </button>
+            </div>
+            <p className="text-xs text-zinc-500 mb-1.5">
+              Describe your film in one sentence or paragraph. Click &ldquo;Auto-detect Settings&rdquo; to have AI automatically pick the best genre, tone, and orientation!
+            </p>
+            <textarea
+              required
+              rows={4}
+              value={form.sourceIdea}
+              onChange={e => set("sourceIdea", e.target.value)}
+              placeholder="e.g. One small boy running in the agriculture sugarcane land and suddenly sees an elephant eating sugarcane leaves. He shouts and runs back calling his amma..."
+              className={inputCls}
+            />
+
+            {autoDetectedBadge && (
+              <div className="mt-2 text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-800/60 p-2.5 rounded-lg flex items-center justify-between">
+                <span>{autoDetectedBadge}</span>
+              </div>
+            )}
+          </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Genre">
-              <input value={form.genre} onChange={e => set("genre", e.target.value)}
-                placeholder="Thriller, Drama, Sci-fi…" className={inputCls} />
+              <select value={form.genre} onChange={e => set("genre", e.target.value)} className={inputCls}>
+                <option value="">Select a genre…</option>
+                {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                {form.genre && !GENRES.includes(form.genre) && (
+                  <option value={form.genre}>{form.genre}</option>
+                )}
+              </select>
             </Field>
+
             <Field label="Tone">
-              <input value={form.tone} onChange={e => set("tone", e.target.value)}
-                placeholder="Dark, Hopeful, Comedic…" className={inputCls} />
+              <select value={form.tone} onChange={e => set("tone", e.target.value)} className={inputCls}>
+                <option value="">Select a tone…</option>
+                {TONES.map(t => <option key={t} value={t}>{t}</option>)}
+                {form.tone && !TONES.includes(form.tone) && (
+                  <option value={form.tone}>{form.tone}</option>
+                )}
+              </select>
             </Field>
           </div>
 
@@ -120,8 +260,13 @@ export default function NewProjectPage() {
             </Field>
 
             <Field label="Target audience">
-              <input value={form.audience} onChange={e => set("audience", e.target.value)}
-                placeholder="General / Adults / Kids…" className={inputCls} />
+              <select value={form.audience} onChange={e => set("audience", e.target.value)} className={inputCls}>
+                <option value="">Select target audience…</option>
+                {AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
+                {form.audience && !AUDIENCES.includes(form.audience) && (
+                  <option value={form.audience}>{form.audience}</option>
+                )}
+              </select>
             </Field>
           </div>
 
@@ -142,11 +287,40 @@ export default function NewProjectPage() {
             </Field>
           </div>
 
+          {/* 1-Click Pipeline Toggle */}
+          <div className="rounded-lg border border-amber-500/40 bg-amber-950/20 p-4 space-y-2">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={autoRunPipeline}
+                onChange={e => setAutoRunPipeline(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-amber-500"
+              />
+              <div>
+                <span className="text-sm font-semibold text-amber-300 flex items-center gap-1.5">
+                  ⚡ 1-Click Studio: Generate Full Film Package Immediately
+                </span>
+                <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+                  Automatically writes the screenplay with native dialogue, extracts characters with Google Flow prompts &amp; voice directives, creates scene storyboard with <span className="font-mono text-amber-300">[@Character]</span> tags, and opens the Storyboard ready to generate!
+                </p>
+              </div>
+            </label>
+          </div>
+
           {error && <p className="text-rose-400 text-sm">{error}</p>}
 
+          {pipelineProgress && (
+            <div className="flex items-center gap-2.5 text-xs text-amber-300 bg-amber-950/40 border border-amber-800/60 p-3 rounded-lg animate-pulse">
+              <span className="h-3.5 w-3.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin shrink-0" />
+              <span>{pipelineProgress}</span>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-2">
-            <Button type="submit" loading={saving}>Create project</Button>
-            <Button type="button" variant="ghost" onClick={() => router.push("/projects")}>Cancel</Button>
+            <Button type="submit" loading={saving}>
+              {autoRunPipeline ? "⚡ Create & Generate 1-Click Film" : "Create project"}
+            </Button>
+            <Button type="button" variant="ghost" disabled={saving} onClick={() => router.push("/projects")}>Cancel</Button>
           </div>
         </form>
       </div>

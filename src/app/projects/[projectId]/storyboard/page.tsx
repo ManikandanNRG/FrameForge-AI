@@ -18,6 +18,7 @@ interface ShotMedia {
 }
 interface Shot {
   id: string; shotNumber: number; actionDescription: string; shotSize?: string;
+  cameraAngle?: string; cameraMovement?: string; lighting?: string; mood?: string;
   imagePrompt?: string; videoPrompt?: string; approvalStatus: string;
   targetDurationSeconds: number; mediaVersions: ShotMedia[];
   voiceover?: string; dialogue?: string; audioPrompt?: string;
@@ -277,6 +278,29 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     const data = {
       projectId,
       exportedAt: new Date().toISOString(),
+      project: {
+        title: projectData?.title,
+        aspectRatio: projectData?.aspectRatio,
+        storyLanguage: projectData?.storyLanguage,
+        visualStyle: projectData?.visualStyle,
+      },
+      character_reference: characterAssets.length > 0 ? Object.fromEntries(
+        characterAssets.map(ca => {
+          let attr: any = {};
+          try { attr = JSON.parse(ca.attributes || "{}"); } catch {}
+          return [
+            ca.name,
+            {
+              name: ca.name,
+              tag: `[@${ca.name.replace(/[^a-zA-Z0-9]/g, "")}]`,
+              appearance: ca.description,
+              wardrobe: attr.wardrobe || "Traditional South Indian attire",
+              personality: attr.personality || "Grounded",
+              full_anchor: `${ca.name}: ${ca.description}. Wardrobe: ${attr.wardrobe || "traditional"}. Demeanor: ${attr.personality || "authentic"}.`,
+            }
+          ];
+        })
+      ) : {},
       scenes: scenes.map(sc => ({
         sceneNumber: sc.sceneNumber,
         heading: sc.heading,
@@ -388,13 +412,24 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     ? "1:1 Square (1080x1080)"
     : "16:9 Landscape (1920x1080) - Cinematic Film";
 
-  const targetDurationLabel = `${selected?.targetDurationSeconds || 5} seconds`;
+  // Quantize duration to Google Flow / Omni 1.1 Flash supported durations: 4s, 6s, 8s, or 10s
+  const allowedDurations = [4, 6, 8, 10];
+  const rawDuration = selected?.targetDurationSeconds || 6;
+  const normalizedDuration = allowedDurations.reduce((prev, curr) =>
+    Math.abs(curr - rawDuration) < Math.abs(prev - rawDuration) ? curr : prev
+  );
+  const targetDurationLabel = `${normalizedDuration} seconds`;
 
   // Bracketed character tag placeholder: [@Ayyanar] or [@Yazhini]
   const bracketedCharTag = `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]`;
 
   // Convert character name in action to bracketed tag [@CharacterName]
-  let taggedAction = selected?.actionDescription || "";
+  let rawAction = selected?.actionDescription || "";
+  if (!rawAction.trim() && selected?.videoPrompt) {
+    const match = selected.videoPrompt.match(/^([^.]+?\.)/);
+    rawAction = match ? match[1] : selected.videoPrompt.slice(0, 120);
+  }
+  let taggedAction = rawAction;
   if (taggedAction.includes(bracketedCharTag)) {
     // already bracketed
   } else if (taggedAction.includes(`@${charName}`)) {
@@ -423,7 +458,31 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     }
   }
 
-  const cameraMotion = selected?.videoPrompt || "Subtle cinematic handheld camera motion at 24fps with natural float";
+  // Camera Motion: Extract clean motion without duplicating the entire videoPrompt
+  let cameraMotion = "Subtle cinematic handheld camera motion at 24fps with natural organic float";
+  if (selected?.cameraMovement && selected.cameraMovement !== "Static" && !selected.cameraMovement.includes("[PRODUCTION SPECS]")) {
+    cameraMotion = selected.cameraMovement;
+  } else if (selected?.videoPrompt) {
+    const camMatch = selected.videoPrompt.match(/Camera:\s*([^.\n]+(?:\.[^.\n]+)?)/i);
+    if (camMatch) {
+      cameraMotion = camMatch[1].trim();
+    }
+  }
+
+  // Audio Mutual Exclusivity: Character Dialogue takes precedence.
+  // If character speaks, do NOT show Voice-Over (Narrator)!
+  const hasDialogue = Boolean(formattedDialogue && formattedDialogue.trim().length > 0);
+  const audioScriptLines: string[] = [];
+  if (hasDialogue) {
+    audioScriptLines.push(`- Spoken Dialogue: ${formattedDialogue} (with natural ${projectData?.storyLanguage || "native"} lip-synchronization)`);
+  } else if (selected?.voiceover && selected.voiceover.trim().length > 0) {
+    audioScriptLines.push(`- Voice-Over (Narrator): "${selected.voiceover}"`);
+  } else {
+    audioScriptLines.push(`- Atmosphere: Pure visual action & ambient Foley (No spoken dialogue or voice-over)`);
+  }
+  if (selected?.audioPrompt) {
+    audioScriptLines.push(`- Audio Atmosphere & Foley: ${selected.audioPrompt}`);
+  }
 
   const googleFlowPrompt = selected ? [
     taggedAction,
@@ -433,23 +492,21 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     `- Aspect Ratio & Orientation: ${orientationLabel}`,
     `- Camera Framing & Lens: ${selected.shotSize ? `${selected.shotSize} Shot` : "Medium Shot"}, 35mm lens, 24fps motion blur`,
     `- Camera Movement & Dynamics: ${cameraMotion}`,
-    `- Lighting: Natural daylight, soft golden illumination, realistic shadows, documentary realism`,
+    `- Lighting: ${selected.lighting || "Natural daylight, soft golden illumination, realistic shadows, documentary realism"}`,
     "",
     `[AUDIO & SCRIPT]:`,
-    formattedDialogue ? `- Spoken Dialogue: ${formattedDialogue}` : null,
-    selected.voiceover ? `- Voice-Over (Narrator): "${selected.voiceover}"` : null,
-    selected.audioPrompt ? `- Audio Atmosphere & Foley: ${selected.audioPrompt}` : null,
+    ...audioScriptLines,
     "",
     `[VISUAL STYLE & RENDERING]:`,
     `- Visual Style: 4K photorealistic cinematic documentary film, 35mm lens, authentic cultural textures, shallow depth of field, 24fps`,
-    `- Negative Constraints: Avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur.`,
+    `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${projectData?.storyLanguage || "native"} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
   ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
 
   const characterAnchor = charAnchor;
 
   const klingPrompt = selected ? [
     `Cinematic film clip of ${characterAnchor}.`,
-    `Action & Dynamics: ${selected.videoPrompt || selected.actionDescription}.`,
+    `Action & Dynamics: ${taggedAction}.`,
     selected.shotSize ? `Shot framing: ${selected.shotSize}.` : "Medium shot.",
     `Environment: ${selectedScene?.heading || "Rural village fields"}.`,
     `Lighting & Style: Photorealistic 8K, cinematic natural daylight, 35mm lens, smooth organic camera motion, 24fps. No CGI, no cartoon, authentic character consistency.`,
@@ -458,55 +515,91 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const chatgptPrompt = selected ? [
     `Create a cinematic 16:9 widescreen photorealistic film still.`,
     `Character & Subject: ${characterAnchor}.`,
-    `Action: ${selected.imagePrompt || selected.actionDescription}.`,
+    `Action: ${selected.imagePrompt || taggedAction}.`,
     selected.shotSize ? `Framing: ${selected.shotSize} shot.` : "",
-    selected.voiceover ? `Narrative Story Beat (VO): "${selected.voiceover}".` : "",
-    selected.dialogue ? `Character Dialogue: ${selected.dialogue}.` : "",
+    hasDialogue
+      ? `Character Dialogue: ${selected.dialogue}.`
+      : (selected.voiceover ? `Narrative Story Beat (VO): "${selected.voiceover}".` : ""),
     `Style: Photorealistic 8k, authentic human skin texture, natural cinematic daylight, highly detailed documentary aesthetic.`,
     `Negative constraints: Avoid cartoon, 3d render, anime, over-saturated, fake plastic skin, western generic face.`,
-    selected.videoPrompt ? `Action/Motion context: ${selected.videoPrompt}` : "",
   ].filter(Boolean).join(" ") : "";
 
   const geminiPrompt = selected ? [
     `Cinematic 16:9 photorealistic film still.`,
     `Subject: ${characterAnchor}.`,
-    `Visual: ${selected.imagePrompt || selected.actionDescription}.`,
+    `Visual: ${selected.imagePrompt || taggedAction}.`,
     selected.shotSize ? `Camera Framing: ${selected.shotSize}.` : "",
-    selected.voiceover ? `Voiceover context: "${selected.voiceover}".` : "",
-    selected.dialogue ? `Dialogue context: ${selected.dialogue}.` : "",
+    hasDialogue
+      ? `Dialogue context: ${selected.dialogue}.`
+      : (selected.voiceover ? `Voiceover context: "${selected.voiceover}".` : ""),
     `Cinematography: 35mm lens, natural color grade, photorealistic, cinematic composition.`,
-    selected.videoPrompt ? `Action/Motion: ${selected.videoPrompt}` : "",
   ].filter(Boolean).join(" ") : "";
 
   const videoMotionPrompt = selected ? [
-    selected.videoPrompt || `Cinematic smooth motion of ${selected.actionDescription}. 4k photorealistic, natural environmental dynamics, professional cinematography.`,
-    selected.voiceover ? `[Voice-Over Beat]: "${selected.voiceover}"` : "",
-    selected.dialogue ? `[Character Dialogue]: ${selected.dialogue}` : "",
+    taggedAction,
+    `Camera: ${cameraMotion}`,
+    hasDialogue
+      ? `[Character Dialogue]: ${selected.dialogue}`
+      : (selected.voiceover ? `[Voice-Over Beat]: "${selected.voiceover}"` : ""),
     selected.audioPrompt ? `[Soundscape / Foley]: ${selected.audioPrompt}` : "",
   ].filter(Boolean).join("\n\n") : "";
 
   const scriptPrompt = selected ? [
     `SCENE ${selectedScene?.sceneNumber ?? 1}: ${selectedScene?.heading || "EXT. VILLAGE"}`,
-    `SHOT ${selected.shotNumber} (${selected.shotSize || "MEDIUM SHOT"} · ${selected.targetDurationSeconds || 5}s)`,
-    `ACTION: ${selected.actionDescription}`,
-    selected.voiceover ? `\n🎙️ VOICE-OVER (NARRATOR):\n"${selected.voiceover}"` : "",
-    selected.dialogue ? `\n💬 SPOKEN DIALOGUE:\n${selected.dialogue}` : "",
+    `SHOT ${selected.shotNumber} (${selected.shotSize || "MEDIUM SHOT"} · ${normalizedDuration}s)`,
+    `ACTION: ${taggedAction}`,
+    hasDialogue
+      ? `\n💬 SPOKEN DIALOGUE:\n${selected.dialogue}`
+      : (selected.voiceover ? `\n🎙️ VOICE-OVER (NARRATOR):\n"${selected.voiceover}"` : ""),
     selected.audioPrompt ? `\n🔊 SOUND DESIGN & SFX:\n${selected.audioPrompt}` : "",
   ].filter(Boolean).join("\n") : "";
 
+  // Character references for external AI tools (Runway, Kling API, ComfyUI, etc.)
+  const characterReferenceForOtherTools = characterAssets.length > 0 ? Object.fromEntries(
+    characterAssets.map(ca => {
+      let attr: any = {};
+      try { attr = JSON.parse(ca.attributes || "{}"); } catch {}
+      return [
+        ca.name,
+        `${ca.name}: ${ca.description}. Wardrobe: ${attr.wardrobe || "traditional attire"}. Demeanor: ${attr.personality || "authentic"}.`
+      ];
+    })
+  ) : undefined;
+
+  // Raw JSON Prompt - Configured with complete character references for external AI tools & automation pipelines
   const rawJsonPrompt = selected ? JSON.stringify({
-    sceneNumber: selectedScene?.sceneNumber,
-    sceneHeading: selectedScene?.heading,
-    shotNumber: selected.shotNumber,
-    shotSize: selected.shotSize,
-    targetDurationSeconds: selected.targetDurationSeconds,
-    characterConsistencyAnchor: characterAnchor,
-    actionDescription: selected.actionDescription,
-    imagePrompt: selected.imagePrompt,
-    videoPrompt: selected.videoPrompt,
-    dialogue: selected.dialogue,
-    voiceover: selected.voiceover,
-    audioPrompt: selected.audioPrompt,
+    scene: `Scene ${selectedScene?.sceneNumber || 1} - Shot ${selected.shotNumber}: ${selectedScene?.heading || "Shot"}`,
+    duration_seconds: normalizedDuration,
+    aspect_ratio: projectData?.aspectRatio === "PORTRAIT_9_16" ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9",
+    style: "Photorealistic cinematic rural atmosphere",
+    character_tags: [bracketedCharTag],
+    // Provided for other AI tools (external APIs, ComfyUI, Runway, Kling, Sora) that need full character visual definitions
+    character_reference: characterReferenceForOtherTools,
+    visual_action: taggedAction,
+    camera: {
+      shot: selected.shotSize ? `${selected.shotSize} shot` : "Medium shot",
+      movement: cameraMotion,
+      lens: "35mm"
+    },
+    lighting: selected.lighting || "Natural daylight, soft golden illumination, documentary realism",
+    audio: {
+      dialogue: hasDialogue ? {
+        speaker: bracketedCharTag,
+        language: projectData?.storyLanguage || "Tamil",
+        text: selected.dialogue,
+        delivery: `Natural conversational inflection, authentic rural ${projectData?.storyLanguage || "native"} dialect`
+      } : null,
+      voiceover: (!hasDialogue && selected.voiceover) ? selected.voiceover : null,
+      ambience: selected.audioPrompt || "Gentle rural atmosphere and environmental Foley",
+    },
+    constraints: [
+      "Only the active speaker moves lips",
+      `Accurate natural ${projectData?.storyLanguage || "native"} lip synchronization`,
+      "Maintain exact character face, hair, and wardrobe consistency",
+      "No extra background crowd or distorted hands",
+      "No generated subtitles or title text",
+      "24fps cinematic motion blur"
+    ]
   }, null, 2) : "";
 
   const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {
@@ -1030,28 +1123,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                       <p className="text-zinc-200 text-xs leading-relaxed mt-0.5">{selected.actionDescription}</p>
                     </div>
 
-                    {/* Narrator Voice-Over */}
-                    {selected.voiceover && (
-                      <div className="rounded-lg bg-zinc-950/60 border border-amber-900/30 p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                            <Mic className="h-3 w-3" /> Voice-Over (Narrator)
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => playSpeechBrowser(selected.voiceover ?? "")}
-                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium transition"
-                          >
-                            <Volume2 className="h-2.5 w-2.5" /> Speak Aloud
-                          </button>
-                        </div>
-                        <p className="text-zinc-200 text-xs italic font-serif leading-relaxed border-l-2 border-amber-500/50 pl-2.5">
-                          “{selected.voiceover}”
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Spoken Dialogue */}
+                    {/* Spoken Dialogue (takes precedence when character is speaking) */}
                     {selected.dialogue && (
                       <div className="rounded-lg bg-zinc-950/60 border border-sky-900/30 p-3 space-y-2">
                         <div className="flex items-center justify-between">
@@ -1068,6 +1140,27 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                         </div>
                         <p className="text-zinc-200 text-xs font-mono leading-relaxed bg-black/40 p-2 rounded border border-zinc-800/80">
                           {selected.dialogue}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Narrator Voice-Over (Only rendered when no character dialogue is speaking) */}
+                    {!selected.dialogue && selected.voiceover && (
+                      <div className="rounded-lg bg-zinc-950/60 border border-amber-900/30 p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                            <Mic className="h-3 w-3" /> Voice-Over (Narrator)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => playSpeechBrowser(selected.voiceover ?? "")}
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium transition"
+                          >
+                            <Volume2 className="h-2.5 w-2.5" /> Speak Aloud
+                          </button>
+                        </div>
+                        <p className="text-zinc-200 text-xs italic font-serif leading-relaxed border-l-2 border-amber-500/50 pl-2.5">
+                          “{selected.voiceover}”
                         </p>
                       </div>
                     )}

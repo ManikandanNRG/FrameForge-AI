@@ -23,6 +23,9 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
   const [generating, setGenerating] = useState(false);
   const [genError, setGenError]     = useState<string | null>(null);
   const [hasProvider, setHasProvider] = useState<boolean | null>(null);
+  const [running1Click, setRunning1Click] = useState(false);
+  const [oneClickStepMessage, setOneClickStepMessage] = useState<string | null>(null);
+  const [oneClickSuccess, setOneClickSuccess] = useState<string | null>(null);
 
   async function load() {
     const [pr, jr, pvr] = await Promise.all([
@@ -64,6 +67,31 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
     setGenerating(false);
     if (r.ok) load();
     else setGenError(d.error?.message ?? "Failed to start generation");
+  }
+
+  async function runOneClickPipeline(useMock = false) {
+    setRunning1Click(true);
+    setGenError(null);
+    setOneClickSuccess(null);
+    setOneClickStepMessage("Step 1/3: Crafting complete screenplay with native dialogue…");
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/pipeline/one-click`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ useMock, autoGenerateVideos: false }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error?.message || "1-Click generation failed");
+
+      setOneClickSuccess(`Complete film package generated! ${d.data.scenesCount} Scenes, ${d.data.shotsCount} Shots, ${d.data.charactersCount} Characters ready with Google Flow prompts.`);
+      load();
+    } catch (e: any) {
+      setGenError(e.message || "Failed to execute 1-Click pipeline");
+    } finally {
+      setRunning1Click(false);
+      setOneClickStepMessage(null);
+    }
   }
 
   const activeJob = jobs.find(j => j.jobType === "STORY" && ["QUEUED","SUBMITTING","RUNNING","WAITING_FOR_PROVIDER"].includes(j.status));
@@ -120,6 +148,61 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
             <span>No AI provider connected. <Link href="/settings" className="underline font-medium">Add a Gemini (free) or OpenAI API key in Settings</Link> to generate with AI.</span>
           </div>
         )}
+
+        {/* 1-Click Studio: Full Production from Idea */}
+        <div className="rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-950/30 via-zinc-900 to-amber-950/20 p-5 shadow-lg mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500 text-black">
+                  1-Click Studio
+                </span>
+                <h2 className="text-base font-bold text-zinc-100">
+                  Generate Entire Film in Single Process
+                </h2>
+              </div>
+              <p className="text-xs text-zinc-400 mt-1 max-w-xl leading-relaxed">
+                From your idea, automatically generates complete screenplay with dialogue, extracts characters with Google Flow prompts &amp; voice directives, creates scene storyboard with <span className="font-mono text-amber-300">[@Character]</span> tags, and sets up timeline!
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <Button
+                loading={running1Click}
+                disabled={hasProvider === false}
+                onClick={() => runOneClickPipeline(false)}
+                className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shadow-md transition px-4 py-2"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                <span>{running1Click ? "Processing Pipeline…" : "⚡ 1-Click Full Generation"}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={running1Click}
+                onClick={() => runOneClickPipeline(true)}
+                className="text-xs text-zinc-400 hover:text-zinc-200"
+              >
+                Mock Test
+              </Button>
+            </div>
+          </div>
+
+          {running1Click && (
+            <div className="mt-4 pt-4 border-t border-zinc-800/80 flex items-center gap-3 text-xs text-amber-300 animate-pulse">
+              <span className="h-3.5 w-3.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+              <span>{oneClickStepMessage || "Executing end-to-end film pipeline: Screenplay → Characters → Shot List…"}</span>
+            </div>
+          )}
+          {oneClickSuccess && (
+            <div className="mt-3 pt-3 border-t border-emerald-900/40 flex items-center justify-between text-xs text-emerald-400">
+              <span>✓ {oneClickSuccess}</span>
+              <Link href={`/projects/${projectId}/storyboard`} className="underline font-bold text-amber-300 hover:text-amber-200">
+                Open Storyboard Now →
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Story section */}
         <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 mb-4">

@@ -111,13 +111,30 @@ export async function videoGenerationHandler(
     }
 
     // Check if shot has a generated storyboard still image
-    const still = await prisma.shotMedia.findFirst({
+    let still = await prisma.shotMedia.findFirst({
       where: { shotId, kind: "STORYBOARD_STILL" },
       orderBy: { versionNumber: "desc" },
     });
 
     if (!still) {
-      // Re-throw if no still is available to animate
+      logger.info({ shotId }, "no still image found; auto-generating still image on the fly for video animation");
+      try {
+        const { imageGenerationHandler } = await import("@/lib/jobs/image-generation-handler");
+        const dummyJob = {
+          id: `img-auto-${shotId}-${Date.now()}`,
+          jobType: "IMAGE_GENERATION",
+          projectId,
+          requestPayload: JSON.stringify({ projectId, shotId }),
+        } as any;
+        const imgRes = await imageGenerationHandler(dummyJob);
+        still = await prisma.shotMedia.findUnique({ where: { id: imgRes.mediaId } });
+      } catch (imgErr) {
+        logger.error({ imgErr, shotId }, "failed to auto-generate still image for video");
+        throw err;
+      }
+    }
+
+    if (!still) {
       throw err;
     }
 

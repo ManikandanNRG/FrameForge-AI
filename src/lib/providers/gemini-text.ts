@@ -12,11 +12,12 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite ✓ (verified working)" },
-  { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash-Lite ✓ (verified working)" },
+  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash ✓ (recommended, high reliability)" },
+  { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite ✓ (fast)" },
+  { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash-Lite ✓" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
+export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash";
 
 export class GeminiTextProvider implements TextGenerationProvider {
   readonly id = "gemini";
@@ -38,53 +39,73 @@ export class GeminiTextProvider implements TextGenerationProvider {
   async generateStructured<S extends z.ZodType<any, any, any>>(
     input: StructuredTextInput<S>,
   ): Promise<GenerationResult<z.infer<S>>> {
-    const model: GenerativeModel = this.client.getGenerativeModel({
-      model: input.modelId,
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.7,
-      },
-      systemInstruction: input.systemPrompt,
-    });
+    const candidateModels = [
+      input.modelId,
+      "gemini-3.5-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-3.1-flash-lite",
+    ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: string | null = null;
 
-    for (let attempt = 0; attempt <= 2; attempt++) {
-      const repairNote = attempt > 0
-        ? `\n\nPrevious attempt produced invalid output: ${lastError}. Return valid JSON only.`
-        : "";
+    for (const activeModelId of candidateModels) {
+      for (let attempt = 0; attempt <= 2; attempt++) {
+        try {
+          const model: GenerativeModel = this.client.getGenerativeModel({
+            model: activeModelId,
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.7,
+            },
+            systemInstruction: input.systemPrompt,
+          });
 
-      const response = await model.generateContent(input.userPrompt + repairNote);
-      const raw = response.response.text();
+          const repairNote = attempt > 0
+            ? `\n\nPrevious attempt produced invalid output: ${lastError}. Return valid JSON only.`
+            : "";
 
-      // Strip markdown fences if present
-      const cleaned = raw
-        .replace(/^```(?:json)?\s*/i, "")
-        .replace(/\s*```$/i, "")
-        .trim();
+          const response = await model.generateContent(input.userPrompt + repairNote);
+          const raw = response.response.text();
 
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(cleaned);
-      } catch (e) {
-        lastError = `JSON parse failed: ${e}`;
-        continue;
+          // Strip markdown fences if present
+          const cleaned = raw
+            .replace(/^```(?:json)?\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(cleaned);
+          } catch (e) {
+            lastError = `JSON parse failed: ${e}`;
+            continue;
+          }
+
+          const validated = input.schema.safeParse(parsed);
+          if (validated.success) {
+            return {
+              data: validated.data,
+              providerJobId: null,
+              usage: null,
+            };
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          lastError = JSON.stringify((validated as any).error?.issues?.slice(0, 3));
+        } catch (apiErr: any) {
+          const msg = apiErr instanceof Error ? apiErr.message : String(apiErr);
+          lastError = msg;
+          // If 503 high demand or 429 rate limit or 404 model not found, try fallback model or delay
+          if (msg.includes("503") || msg.includes("high demand") || msg.includes("429") || msg.includes("404")) {
+            // Wait briefly before retrying or switching models
+            await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+            break; // Break inner retry loop to try next candidate model
+          }
+        }
       }
-
-      const validated = input.schema.safeParse(parsed);
-      if (validated.success) {
-        return {
-          data: validated.data,
-          providerJobId: null,
-          usage: null,
-        };
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      lastError = JSON.stringify((validated as any).error?.issues?.slice(0, 3));
     }
 
     throw Object.assign(
-      new Error(`OUTPUT_VALIDATION_FAILED after repair attempts: ${lastError}`),
+      new Error(`GEMINI_GENERATION_FAILED: ${lastError}`),
       { code: "OUTPUT_VALIDATION_FAILED" },
     );
   }
@@ -96,6 +117,7 @@ export async function testGeminiKey(
 ): Promise<{ ok: boolean; model: string; error?: string }> {
   // Try models in order until one works
   const candidates = [
+    "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
     "gemini-3.1-flash-lite",
   ];

@@ -84,10 +84,14 @@ async function generateStoryCombined(
     screenplay: z.string(),
   });
 
+  const lengthDesc = brief.targetRuntimeSeconds
+    ? `${brief.targetRuntimeSeconds} seconds (approximately ${Math.round(brief.targetRuntimeSeconds / 6)} shots)`
+    : `${brief.targetRuntimeMinutes}-minute`;
+
   const r = await provider.generateStructured({
     modelId,
     systemPrompt: sys,
-    userPrompt: `Write a complete short film package for a ${brief.targetRuntimeMinutes}-minute film.
+    userPrompt: `Write a complete short film package for a ${lengthDesc} film.
 Target Story Language: "${brief.storyLanguage}".
 CRITICAL: All character dialogue and voice-over narration MUST be written in "${brief.storyLanguage}" (e.g. Tamil script for Tamil, Hindi for Hindi). Visual action lines must be in cinematic English.
 

@@ -12,6 +12,7 @@ export interface ProjectBrief {
   visualStyle: string;
   dialogueMode: string;
   targetRuntimeMinutes: number;
+  targetRuntimeSeconds?: number;
   audience?: string;
   storyLanguage: string;
 }
@@ -43,7 +44,7 @@ export function systemPrompt(brief: ProjectBrief): string {
   return `You are a world-class screenwriter and narrative director specialising in ${styleNote(brief.visualStyle)} cinema.
 Film Idea: "${brief.sourceIdea}"
 Genre: ${brief.genre ?? "unspecified"} | Tone: ${brief.tone ?? "unspecified"}
-Target runtime: ~${brief.targetRuntimeMinutes} minutes | Audience: ${brief.audience ?? "general"}
+Target runtime: ${brief.targetRuntimeSeconds ? `${brief.targetRuntimeSeconds} seconds (~${Math.round(brief.targetRuntimeSeconds / 6)} shots)` : `~${brief.targetRuntimeMinutes} minutes`} | Audience: ${brief.audience ?? "general"}
 Target Story Language: "${brief.storyLanguage}" | Dialogue policy: ${dialogueNote(brief.dialogueMode)}
 Visual style: ${styleNote(brief.visualStyle)} — keep all visual elements consistent with this aesthetic.
 

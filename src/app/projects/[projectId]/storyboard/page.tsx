@@ -347,14 +347,19 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const shotCharName = (selected as any)?.characterName ||
     ((selected as any)?.characterTag ? (selected as any).characterTag.replace(/^@/, "") : "");
 
-  // Auto-detect which character is mentioned or featured in this shot
-  const autoCharAsset = characterAssets.find(a =>
-    (shotCharName && a.name.toLowerCase() === shotCharName.toLowerCase()) ||
-    (selected && selected.actionDescription.toLowerCase().includes(a.name.toLowerCase())) ||
-    (selected && selected.dialogue && selected.dialogue.toLowerCase().includes(a.name.toLowerCase()))
+  // Auto-detect which character is mentioned or featured in this specific shot
+  const shotText = `${selected?.actionDescription || ""} ${selected?.videoPrompt || ""} ${selected?.dialogue || ""}`;
+  const matchedChar = characterAssets.find(ca => {
+    const bTag = `[@${ca.name.replace(/[^a-zA-Z0-9]/g, "")}]`;
+    const regex = new RegExp(`\\b${ca.name}\\b`, "i");
+    return shotText.includes(bTag) || shotText.includes(`@${ca.name}`) || regex.test(shotText);
+  });
+
+  const autoCharAsset = matchedChar || characterAssets.find(a =>
+    (shotCharName && a.name.toLowerCase() === shotCharName.toLowerCase())
   ) || characterAssets[0];
 
-  const activeCharAsset = (selectedCharacterId ? characterAssets.find(a => a.id === selectedCharacterId) : null) || autoCharAsset;
+  const activeCharAsset = autoCharAsset;
 
   const charName = activeCharAsset?.name || shotCharName || "Character";
   const charTag = `@${charName.replace(/[^a-zA-Z0-9]/g, "")}`;
@@ -372,6 +377,8 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
       if (!charAnchor) charAnchor = charAttrs.consistencyAnchor || "";
     } catch {}
   }
+
+  const wardrobeLock = charAttrs.wardrobe ? charAttrs.wardrobe.replace(/\.+$/, "") : "";
 
   // Construct prompt strictly from the character's genuine identity — NEVER use generic male farmer fallback!
   if (!charPrompt) {
@@ -429,17 +436,30 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     const match = selected.videoPrompt.match(/^([^.]+?\.)/);
     rawAction = match ? match[1] : selected.videoPrompt.slice(0, 120);
   }
-  let taggedAction = rawAction;
-  if (taggedAction.includes(bracketedCharTag)) {
-    // already bracketed
-  } else if (taggedAction.includes(`@${charName}`)) {
-    taggedAction = taggedAction.replace(new RegExp(`@${charName}\\b`, "g"), bracketedCharTag);
-  } else {
-    const charRegex = new RegExp(`\\b${charName}\\b`, "i");
-    if (charRegex.test(taggedAction)) {
-      taggedAction = taggedAction.replace(charRegex, bracketedCharTag);
-    } else {
-      taggedAction = `${bracketedCharTag} ${taggedAction}`;
+
+  let taggedAction = rawAction.trim();
+
+  // Replace character names with bracketed tags
+  characterAssets.forEach(ca => {
+    const bTag = `[@${ca.name.replace(/[^a-zA-Z0-9]/g, "")}]`;
+    if (!taggedAction.includes(bTag)) {
+      const charRegex = new RegExp(`\\b${ca.name}\\b`, "g");
+      taggedAction = taggedAction.replace(charRegex, bTag);
+    }
+  });
+
+  // If no bracketed tag exists anywhere in the action, add the primary character tag
+  if (!taggedAction.includes("[@")) {
+    taggedAction = `${bracketedCharTag} ${taggedAction}`;
+  }
+
+  // Strict Wardrobe Lock in Action Line:
+  // Explicitly weaves the character's approved wardrobe directly next to their tag
+  // e.g. [@Karthi] (wearing faded cotton half-shorts and shirt, barefoot)
+  if (wardrobeLock && taggedAction.includes(bracketedCharTag)) {
+    const hasWardrobeDetails = /wearing|dressed in|shorts|saree|dhoti|veshti|pants/i.test(taggedAction);
+    if (!hasWardrobeDetails) {
+      taggedAction = taggedAction.replace(bracketedCharTag, `${bracketedCharTag} (wearing ${wardrobeLock})`);
     }
   }
 
@@ -490,7 +510,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     `[PRODUCTION SPECS]:`,
     `- Target Duration: ${targetDurationLabel}`,
     `- Aspect Ratio & Orientation: ${orientationLabel}`,
-    `- Camera Framing & Lens: ${selected.shotSize ? `${selected.shotSize} Shot` : "Medium Shot"}, 35mm lens, 24fps motion blur`,
+    `- Camera Framing & Lens: ${selected.shotSize ? (selected.shotSize.toLowerCase().endsWith("shot") ? selected.shotSize : `${selected.shotSize} Shot`) : "Medium Shot"}, 35mm lens, 24fps motion blur`,
     `- Camera Movement & Dynamics: ${cameraMotion}`,
     `- Lighting: ${selected.lighting || "Natural daylight, soft golden illumination, realistic shadows, documentary realism"}`,
     "",
@@ -499,6 +519,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     "",
     `[VISUAL STYLE & RENDERING]:`,
     `- Visual Style: 4K photorealistic cinematic documentary film, 35mm lens, authentic cultural textures, shallow depth of field, 24fps`,
+    wardrobeLock ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${wardrobeLock}. Maintain 100% clothing and physical consistency across every scene (NO switching to full pants or changing clothes).` : null,
     `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${projectData?.storyLanguage || "native"} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
   ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
 

@@ -40,6 +40,16 @@ const AUDIENCES = [
   "Mature & Thoughtful Cinema Lovers",
 ];
 
+const RUNTIME_PRESETS = [
+  { seconds: 30, label: "30s — Viral Reel / Quick Short (~4-5 shots)" },
+  { seconds: 45, label: "45s — Teaser / Short Scene (~6-7 shots)" },
+  { seconds: 60, label: "60s (1 min) — Standard Short Film (~8-10 shots) [Recommended]" },
+  { seconds: 90, label: "90s (1.5 min) — Extended Story Scene (~12-14 shots)" },
+  { seconds: 120, label: "120s (2 min) — Mini Cinema Drama (~16-20 shots)" },
+  { seconds: 180, label: "180s (3 min) — Cinematic Narrative Film" },
+  { seconds: 300, label: "300s (5 min) — Full Narrative Short" },
+];
+
 const VISUAL_STYLES = [
   ["PHOTOREALISTIC_CINEMATIC", "Photorealistic Cinematic"],
   ["DOCUMENTARY",              "Documentary Realism"],
@@ -71,7 +81,7 @@ export default function NewProjectPage() {
     tone:          "",
     visualStyle:   "PHOTOREALISTIC_CINEMATIC",
     dialogueMode:  "DIALOGUE",
-    targetRuntime: 360,
+    targetRuntime: 60,
     audience:      "",
     storyLanguage: "Tamil",
     aspectRatio:   "LANDSCAPE_16_9",
@@ -99,18 +109,20 @@ export default function NewProjectPage() {
       const d = await res.json();
       if (d.data?.analysis) {
         const a = d.data.analysis;
+        const autoRuntime = a.targetRuntimeSeconds || 60;
         setForm(prev => ({
           ...prev,
           title: prev.title ? prev.title : a.suggestedTitle,
           genre: a.genre || prev.genre,
           tone: a.tone || prev.tone,
+          targetRuntime: autoRuntime,
           audience: a.targetAudience || prev.audience,
           visualStyle: a.visualStyle || prev.visualStyle,
           dialogueMode: a.dialogueMode || prev.dialogueMode,
           storyLanguage: a.storyLanguage || prev.storyLanguage,
           aspectRatio: a.aspectRatio || prev.aspectRatio,
         }));
-        setAutoDetectedBadge(`✓ Auto-detected: ${a.genre} · ${a.tone} · ${a.storyLanguage} · ${a.aspectRatio === "PORTRAIT_9_16" ? "9:16 Portrait" : "16:9 Landscape"}`);
+        setAutoDetectedBadge(`✓ Auto-detected: ${a.genre} · ${a.tone} · ${autoRuntime}s · ${a.storyLanguage} · ${a.aspectRatio === "PORTRAIT_9_16" ? "9:16 Portrait" : "16:9 Landscape"}`);
       }
     } catch (err: any) {
       setError(err.message || "Failed to analyze idea");
@@ -242,11 +254,38 @@ export default function NewProjectPage() {
                 <option value="NO_DIALOGUE">No dialogue (visual only)</option>
               </select>
             </Field>
-            {/* Runtime */}
-            <Field label="Target runtime (minutes)">
-              <input type="number" min={1} max={120} value={Math.round(form.targetRuntime / 60)}
-                onChange={e => set("targetRuntime", parseInt(e.target.value, 10) * 60)}
-                className={inputCls} />
+            {/* Video Length / Runtime */}
+            <Field label="Film length / Target runtime" hint="AI will plan pacing and shot breakdown to fit this duration">
+              <div className="flex gap-2">
+                <select
+                  value={RUNTIME_PRESETS.some(p => p.seconds === form.targetRuntime) ? form.targetRuntime : "custom"}
+                  onChange={e => {
+                    const val = e.target.value;
+                    if (val !== "custom") {
+                      set("targetRuntime", parseInt(val, 10));
+                    }
+                  }}
+                  className={`${inputCls} flex-1`}
+                >
+                  {RUNTIME_PRESETS.map(p => (
+                    <option key={p.seconds} value={p.seconds}>{p.label}</option>
+                  ))}
+                  <option value="custom">Custom duration (seconds)…</option>
+                </select>
+                {(!RUNTIME_PRESETS.some(p => p.seconds === form.targetRuntime)) && (
+                  <div className="flex items-center gap-1.5 w-32 shrink-0">
+                    <input
+                      type="number"
+                      min={10}
+                      max={3600}
+                      value={form.targetRuntime}
+                      onChange={e => set("targetRuntime", Math.max(10, parseInt(e.target.value, 10) || 60))}
+                      className={`${inputCls} text-center`}
+                    />
+                    <span className="text-xs text-zinc-400 font-mono">sec</span>
+                  </div>
+                )}
+              </div>
             </Field>
           </div>
 

@@ -22,7 +22,8 @@ export async function storyHandler(job: GenerationJob): Promise<{ ok: true }> {
     tone:                 project.tone ?? undefined,
     visualStyle:          project.visualStyle,
     dialogueMode:         project.dialogueMode,
-    targetRuntimeMinutes: Math.round(project.targetRuntime / 60),
+    targetRuntimeMinutes: Math.max(1, Math.round((project.targetRuntime || 60) / 60)),
+    targetRuntimeSeconds: project.targetRuntime || 60,
     audience:             project.audience ?? undefined,
     storyLanguage:        project.storyLanguage,
   };

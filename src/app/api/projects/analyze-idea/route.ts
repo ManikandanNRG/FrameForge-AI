@@ -14,6 +14,7 @@ const ResultSchema = z.object({
   genre: z.string(),
   tone: z.string(),
   targetAudience: z.string(),
+  targetRuntimeSeconds: z.number().default(60),
   visualStyle: z.string().default("PHOTOREALISTIC_CINEMATIC"),
   dialogueMode: z.enum(["DIALOGUE", "VOICEOVER", "NO_DIALOGUE"]).default("DIALOGUE"),
   storyLanguage: z.string().default("Tamil"),
@@ -50,6 +51,7 @@ export const POST = apiHandler(async (req) => {
       ? "Playful, Authentic & Energetic"
       : "Grounded, Heartfelt & Emotional",
     targetAudience: "Universal / Family Audience",
+    targetRuntimeSeconds: isShorts ? 45 : (isElephantVillage || isCricket) ? 60 : 90,
     visualStyle: "PHOTOREALISTIC_CINEMATIC",
     dialogueMode: "DIALOGUE" as const,
     storyLanguage: lower.includes("english") ? "English" : lower.includes("hindi") ? "Hindi" : "Tamil",
@@ -68,6 +70,7 @@ Return JSON matching:
   "genre": "Select best fitting genre (e.g. 'Rural Village Drama / Adventure', 'Sports / Motivational Drama', 'Friendship / Buddy Comedy', 'Thriller / Suspense', 'Emotional Family Drama')",
   "tone": "Select best fitting tone (e.g. 'Suspenseful, Tense & Thrilling', 'Playful, Authentic & Energetic', 'Grounded, Heartfelt & Emotional', 'Inspiring & Motivational')",
   "targetAudience": "Select ideal audience (e.g. 'Universal / Family Audience', 'Youth & Young Adults (18–35)', 'Kids & Children')",
+  "targetRuntimeSeconds": 60,
   "visualStyle": "PHOTOREALISTIC_CINEMATIC",
   "dialogueMode": "DIALOGUE",
   "storyLanguage": "Tamil",

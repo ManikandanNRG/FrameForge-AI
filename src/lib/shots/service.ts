@@ -45,10 +45,13 @@ export async function generateShotPlan(
     : "16:9 Landscape (1920x1080) cinematic widescreen framing";
 
   const charNamesList = characters.map(c => `[@${c.name}]`).join(", ") || "[@CharacterName]";
+  const totalTargetSeconds = project.targetRuntime || 60;
+  const targetShotCount = Math.max(3, Math.round(totalTargetSeconds / 6));
 
   const result = await provider.generateStructured({
     modelId,
     systemPrompt: `You are an elite film director, master cinematographer, and AI prompt engineer creating a complete Shot List with DIRECT-TO-VIDEO generation prompts (optimized for Google Flow / Omni 1.1 Flash / Veo 2, Kling v3, Sora, and Runway) for a ${project.visualStyle.replace(/_/g, " ")} film.
+Target Film Total Runtime: ${totalTargetSeconds} seconds (~${targetShotCount} shots total).
 Target Story Language for Voice-over and Dialogue: "${project.storyLanguage}".
 Film Framing & Orientation: ${orientationDesc}.
 
@@ -71,6 +74,11 @@ CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
 3. CHARACTER TAGS & PLACEHOLDERS: Characters are referenced using square-bracketed placeholder tags (e.g., ${charNamesList}).
    In Google Flow, typing '@' or matching the placeholder links the shot directly to the character's locked appearance and voice!
 
+4. STRICT WARDROBE & PHYSICAL CONTINUITY LOCK:
+   - For every shot featuring a character, ALWAYS maintain their EXACT approved wardrobe.
+   - For example, if [@Karthi] wears faded cotton half-shorts and a short-sleeve shirt, barefoot, HE MUST WEAR THAT EXACT SAME ATTIRE IN EVERY SINGLE SHOT. NEVER switch to full pants or change clothing between scenes!
+   - Weave their locked wardrobe into action and video prompts: e.g. "[@Karthi] (wearing faded cotton half-shorts and shirt, barefoot)..."
+
 MASTER CHARACTER ANCHORS:
 ${characterGuide}
 
@@ -79,6 +87,7 @@ ${locationGuide}
 ${propsGuide}
 `,
     userPrompt: `Break this screenplay into scenes and individual shots (each strictly 4, 6, 8, or 10 seconds).
+Total Film Target Runtime: ${totalTargetSeconds} seconds (~${targetShotCount} shots total). Plan the scenes and shots so the total duration approximately matches ${totalTargetSeconds} seconds.
 Screenplay:
 ${screenplayText.slice(0, 7000)}
 

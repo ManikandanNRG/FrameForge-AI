@@ -7,20 +7,20 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
-- **Two-Story Option Development & Comparison Engine (Option A vs Option B)** (`src/lib/story/schemas.ts`, `src/app/api/projects/[projectId]/story/generate-options/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/projects/[projectId]/story/page.tsx`, `src/app/projects/[projectId]/page.tsx`):
-  - **Initial One-Line Idea to 2 Competing Screenplays**: AI develops two distinctly styled full screenplays from a single line idea:
-    - **Option A (Emotional Drama & Heart)**: Intimate family bond, psychological tension, and heartfelt community support with native dialogue.
-    - **Option B (High-Stakes Thriller & Action)**: High-adrenaline survival chase, tactical village mobilization, and heroic victory.
-  - **Side-by-Side Comparison Modal**: Review titles, loglines, premises, and complete scene breakdowns (8s/10s duration) with native Tamil dialogues before committing.
+- **Two-Story Option Development & Dynamic Idea Analysis Engine (Option A vs Option B)** (`src/lib/story/schemas.ts`, `src/app/api/projects/[projectId]/story/generate-options/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/projects/[projectId]/story/page.tsx`, `src/app/projects/[projectId]/page.tsx`):
+  - **Dynamic Idea Analysis (No Hardcoded Categories)**: The AI analyzes any user idea (comedy, romance, sports, horror, fantasy, sci-fi, village drama, etc.) and formulates two organic, contrasting creative treatments (Angle A vs Angle B) derived directly from that idea.
+  - **Side-by-Side Comparison Modal**: Review dynamic concept angles, titles, loglines, premises, and complete scene breakdowns (8s/10s duration) with native Tamil dialogues before committing.
+  - **Idea Editor & Instant Preview**: Multi-line editable prompt populated with the project's actual `sourceIdea`, plus an instant mock preview button alongside AI generation.
   - **1-Click Option Activation**: Instantly writes artifacts, synchronizes database `Scene` and `Shot` records, and populates the Script Studio.
 - **Scene-by-Scene Script Studio & AI Scene Regenerator** (`src/app/projects/[projectId]/story/page.tsx`, `src/app/api/projects/[projectId]/story/regenerate-scene/route.ts`, `src/app/api/projects/[projectId]/story/scene/route.ts`):
   - **Interactive Scene Cards**: Displays `SCENE 01` badge, `⏱️ 8s / 10s` video duration tags, spoken dialogue with emotional delivery badges (`பயத்துடனும், அவசரமாகவும்`), voiceover narration, and foley sound design.
   - **Per-Scene AI Regenerate**: Rewrite any individual scene with custom director instructions while maintaining locked character wardrobe and strict dramatic cause-and-effect with neighboring scenes.
   - **Inline Script Editor Modal**: Edit scene heading, location, duration (8s/10s), character dialogue `[@Name] speaks: "..."`, voiceover, and action blocking with instant database sync.
   - **Prominent Transition to Prompts**: Finalize all dialogue and scenes first, then click **`🚀 Finalize & Proceed to Prompts (Storyboard)`**.
-- **Gemini & OpenAI Text Generation Provider Fixes** (`src/lib/providers/gemini-text.ts`, `src/lib/story/service.ts`):
-  - Corrected official Google Gemini model candidates to `gemini-2.0-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`, and `gemini-1.5-flash-8b` (resolving 404 error from invalid model names).
-  - Ensured all short and combined story generations format and persist the `SCREENPLAY` artifact as structured JSON `{ title, scenes: [...] }`.
+- **Gemini & Multi-Provider Architecture Updates** (`src/lib/providers/gemini-text.ts`, `src/lib/providers/resolve.ts`, `src/lib/api/handler.ts`):
+  - Configured Google's official Gemini models: `gemini-3.8-flash`, `gemini-3.5-flash`, `gemini-flash-latest`, and `gemini-3.5-flash-lite`.
+  - Filtered provider fallback to only include connections with `status: "CONNECTED"`, preventing exhausted keys (OpenAI 429) from crashing fallback chains.
+  - Enhanced API handler to return human-readable error messages directly to the UI rather than masking errors as generic `Unexpected error`.
 - **Direct-to-Video Master Prompts & Character Consistency Engine** (`src/lib/story/prompts.ts`, `src/lib/bible/service.ts`, `src/lib/shots/service.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`):
   - **Single-Line Idea to Multi-Lingual Screenplay**: Generates complete scene-by-scene script with voiceover narration and character dialogue written in the user's chosen language (e.g. Tamil, Hindi, Spanish, English) and visual action in cinematic English.
   - **Production Bible Consistency Anchors**: Automatically extracts locked character physical identity descriptions (ethnicity, skin tone, facial hair, eye color, and exact clothing) so the same character appears across every single shot.

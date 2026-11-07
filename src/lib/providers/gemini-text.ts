@@ -12,13 +12,14 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash ✓ (recommended, high reliability & speed)" },
-  { id: "gemini-1.5-flash", displayName: "Gemini 1.5 Flash ✓ (stable, wide quota)" },
-  { id: "gemini-1.5-pro", displayName: "Gemini 1.5 Pro ✓ (complex reasoning)" },
-  { id: "gemini-1.5-flash-8b", displayName: "Gemini 1.5 Flash-8B ✓ (ultra-fast)" },
+  { id: "gemini-3.8-flash", displayName: "Gemini 3.8 Flash ✓ (latest, high speed & accuracy)" },
+  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash ✓ (fast & reliable)" },
+  { id: "gemini-flash-latest", displayName: "Gemini Flash Latest ✓" },
+  { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite ✓" },
+  { id: "gemini-3.7-flash", displayName: "Gemini 3.7 Flash ✓" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-2.0-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
 
 export class GeminiTextProvider implements TextGenerationProvider {
   readonly id = "gemini";
@@ -42,10 +43,11 @@ export class GeminiTextProvider implements TextGenerationProvider {
   ): Promise<GenerationResult<z.infer<S>>> {
     const candidateModels = [
       input.modelId,
-      "gemini-2.0-flash",
-      "gemini-1.5-flash",
-      "gemini-1.5-flash-8b",
-      "gemini-1.5-pro",
+      "gemini-3.8-flash",
+      "gemini-3.5-flash",
+      "gemini-flash-latest",
+      "gemini-3.5-flash-lite",
+      "gemini-3.7-flash",
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: string | null = null;
@@ -119,10 +121,10 @@ export async function testGeminiKey(
 ): Promise<{ ok: boolean; model: string; error?: string }> {
   // Try models in order until one works
   const candidates = [
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-8b",
-    "gemini-1.5-pro",
+    "gemini-3.8-flash",
+    "gemini-3.5-flash",
+    "gemini-flash-latest",
+    "gemini-3.5-flash-lite",
   ];
 
   const client = new GoogleGenerativeAI(apiKey);

@@ -30,8 +30,12 @@ function buildFixture(schema: z.ZodType<any, any, any>): unknown {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (schema instanceof z.ZodArray) return [buildFixture((schema as z.ZodArray<any>).element)];
   if (schema instanceof z.ZodString)  return "Mock content";
-  if (schema instanceof z.ZodNumber)  return 1;
+  if (schema instanceof z.ZodNumber)  return 8;
   if (schema instanceof z.ZodBoolean) return true;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (schema instanceof z.ZodEnum) return (schema as z.ZodEnum<any>).options[0];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (schema instanceof z.ZodDefault) return (schema as z.ZodDefault<any>)._def.defaultValue();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (schema instanceof z.ZodOptional) return buildFixture((schema as z.ZodOptional<any>).unwrap());
   return null;

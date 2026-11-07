@@ -74,10 +74,10 @@ export async function resolveTextProvider(
 
   const [geminiConn, openaiConn] = await Promise.all([
     prisma.providerConnection.findFirst({
-      where: { ownerId, providerId: "gemini", isEnabled: true },
+      where: { ownerId, providerId: "gemini", isEnabled: true, status: "CONNECTED" },
     }),
     prisma.providerConnection.findFirst({
-      where: { ownerId, providerId: "openai", isEnabled: true },
+      where: { ownerId, providerId: "openai", isEnabled: true, status: "CONNECTED" },
     }),
   ]);
 

@@ -34,10 +34,11 @@ export function apiHandler<T>(handler: Handler<T>) {
           meta: { requestId, timestamp: new Date().toISOString() },
         });
       } catch (err) {
+        const message = err instanceof Error && err.message ? err.message : "Unexpected error";
         const e =
           err instanceof AppError
             ? err
-            : new AppError("INTERNAL_ERROR", "Unexpected error", 500);
+            : new AppError("INTERNAL_ERROR", message, 500);
         logger.error(
           { err: { code: e.code, message: e.message, status: e.status } },
           "request failed",

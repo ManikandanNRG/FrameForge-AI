@@ -133,7 +133,7 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
 
       if (projData.data?.project) {
         setProject(projData.data.project);
-        setOptionsIdeaText(projData.data.project.description || projData.data.project.title || "");
+        setOptionsIdeaText(projData.data.project.sourceIdea || projData.data.project.description || projData.data.project.title || "");
       }
 
       const list: Artifact[] = (storyData.data?.artifacts ?? []).sort(
@@ -251,8 +251,8 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
     }
   }
 
-  // Handle Generate 2 Competing Story Options (Option A vs Option B)
-  async function handleGenerateStoryOptions() {
+  // Handle Generate 2 Competing Story Options (Option A vs Option B) based on Idea Analysis
+  async function handleGenerateStoryOptions(useMock = false) {
     setIsGeneratingOptions(true);
     setOptionsError(null);
     try {
@@ -261,6 +261,7 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           idea: optionsIdeaText,
+          useMock,
         }),
       });
       const data = await res.json();
@@ -1031,36 +1032,56 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
               </div>
 
               {/* Idea Prompt Input Bar (If user wants to refine their one-line idea) */}
-              <div className="px-6 py-3 bg-zinc-900/70 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex-1 min-w-[280px]">
-                  <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider block mb-1">
-                    Initial Story Idea:
-                  </span>
-                  <input
-                    type="text"
+              <div className="px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[11px] font-mono font-bold text-zinc-300 uppercase tracking-wider">
+                      Initial Story Idea (AI will analyze this to build 2 unique story treatments):
+                    </span>
+                    <span className="text-[11px] text-zinc-500 font-mono">
+                      {optionsIdeaText.length} characters
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
                     value={optionsIdeaText}
                     onChange={e => setOptionsIdeaText(e.target.value)}
-                    placeholder="Enter your one-line story idea here..."
-                    className="w-full px-3 py-1.5 rounded-lg bg-black border border-zinc-700 text-xs text-zinc-200 focus:border-purple-500 focus:outline-none"
+                    placeholder="Enter your film idea here (any genre, character, or setting)..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-black border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:border-purple-500 focus:outline-none leading-relaxed"
                   />
                 </div>
 
-                <div className="flex items-end">
-                  <Button
-                    size="sm"
-                    loading={isGeneratingOptions}
-                    onClick={handleGenerateStoryOptions}
-                    className="bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs h-8 px-4"
-                  >
-                    <Sparkles className="h-3.5 w-3.5 mr-1" />
-                    <span>{isGeneratingOptions ? "Developing Options…" : "Regenerate 2 Options"}</span>
-                  </Button>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-[11px] text-zinc-400">
+                    💡 AI analyzes your specific idea and derives two organic, contrasting creative angles.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={isGeneratingOptions}
+                      onClick={() => handleGenerateStoryOptions(true)}
+                      className="text-xs text-zinc-400 hover:text-zinc-200 h-8"
+                    >
+                      Instant Mock Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      loading={isGeneratingOptions}
+                      onClick={() => handleGenerateStoryOptions(false)}
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs h-8 px-4 shadow-md"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 mr-1" />
+                      <span>{isGeneratingOptions ? "Analyzing & Developing…" : "Generate 2 Options with AI"}</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
 
               {optionsError && (
-                <div className="mx-6 mt-3 p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 text-xs">
-                  {optionsError}
+                <div className="mx-6 mt-3 p-3.5 rounded-xl bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-start gap-2">
+                  <span className="font-bold">Error:</span>
+                  <span>{optionsError}</span>
                 </div>
               )}
 
@@ -1069,8 +1090,8 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
                 {isGeneratingOptions ? (
                   <div className="flex flex-col items-center justify-center py-20 text-zinc-400 space-y-3">
                     <RefreshCw className="h-8 w-8 animate-spin text-purple-400" />
-                    <p className="text-sm font-semibold text-zinc-200">Developing Option A (Drama) &amp; Option B (Action)…</p>
-                    <p className="text-xs text-zinc-500">Writing complete scene breakdowns, character arcs, and Tamil dialogues.</p>
+                    <p className="text-sm font-semibold text-zinc-200">Analyzing your story idea &amp; developing 2 unique creative treatments…</p>
+                    <p className="text-xs text-zinc-500">Writing custom narrative angles, 8s/10s scene breakdowns, and authentic native dialogues.</p>
                   </div>
                 ) : storyOptions && storyOptions.length >= 2 ? (
                   <div className="space-y-4">

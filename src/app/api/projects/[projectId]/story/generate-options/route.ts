@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger";
 const requestSchema = z.object({
   idea: z.string().optional(),
   instructions: z.string().optional(),
+  useMock: z.boolean().optional(),
 });
 
 export const POST = apiHandler(async (req, ctx) => {
@@ -31,13 +32,13 @@ export const POST = apiHandler(async (req, ctx) => {
 
   const storyIdea = (parsed.data.idea && parsed.data.idea.trim().length > 0)
     ? parsed.data.idea.trim()
-    : project.description || project.title;
+    : project.sourceIdea || project.description || project.title;
 
   if (!storyIdea || storyIdea.trim().length < 5) {
     throw badRequest("Please provide an initial story idea to develop.");
   }
 
-  const { provider, modelId } = await resolveTextProvider(ownerId, false);
+  const { provider, modelId } = await resolveTextProvider(ownerId, parsed.data.useMock || false);
 
   const characterGuide = project.productionAssets.map(c => {
     let attr: any = {};
@@ -45,42 +46,43 @@ export const POST = apiHandler(async (req, ctx) => {
     return `- ${c.name} (${attr.role || "Character"}, Age ${attr.age || "unknown"}): ${c.description}. Wardrobe: ${attr.wardrobe || "traditional"}.`;
   }).join("\n");
 
-  const systemPrompt = `You are a world-class film development executive, master screenwriter, and cinematic storyteller.
+  const systemPrompt = `You are a world-class film development executive, master screenwriter, and cinematic storytelling architect.
 Film Visual Style: ${project.visualStyle.replace(/_/g, " ")}.
 Dialogue & Voice-Over Language: "${project.storyLanguage}".
 Film Orientation: ${project.aspectRatio === "PORTRAIT_9_16" ? "9:16 Vertical Mobile" : "16:9 Widescreen"}.
 
-TASK:
-Develop TWO COMPLETELY DIFFERENT story treatments (Option A vs Option B) based on the user's initial one-line idea.
+CORE DIRECTIVE — DYNAMIC STORY ANALYSIS:
+Do NOT impose fixed pre-set genres or categories (do NOT default to just Drama vs Thriller).
+Carefully ANALYZE the user's specific idea, its subject matter, themes, conflict potential, emotional spectrum, and creative possibilities.
+Based strictly on your analysis of THAT specific idea, conceive TWO DISTINCT CREATIVE STORY TREATMENTS (Option A and Option B) representing two compelling, contrasting narrative angles that organically grow out of the idea.
 
-OPTION A: "Emotional Drama & Heart"
-- Focus on emotional vulnerability, family bonds, psychological tension, and heartfelt community support.
-- Intimate, warm, grounded documentary realism.
+For example:
+- One angle might focus on the protagonist's personal emotional journey, intimate relationships, and inner courage.
+- The other angle might focus on the external spectacle, collective community action, tactical obstacles, or dynamic momentum.
+- Or, depending on the idea: one could be character-driven and grounded, while the other is fast-paced and high-stakes; or one could lean into wonder and heart, while the other leans into clever strategy and tension.
 
-OPTION B: "High-Stakes Thrill & Action"
-- Focus on high-adrenaline suspense, survival chase through the terrain, tactical village mobilization, and heroic victory.
-- Dynamic, rhythmic, fast-paced cinematic spectacle.
-
-FOR BOTH OPTIONS:
-1. Provide a compelling Title, Logline, and Premise.
-2. Provide 5-6 sequential scenes (each strictly 8s or 10s duration).
-3. Action descriptions in English, rich with camera dynamics and physical movement.
-4. Spoken Dialogue in authentic native "${project.storyLanguage}" formatted as '[@Character] speaks: "..."' with emotional delivery direction.
-5. Audio exclusivity: When characters speak dialogue, voiceover MUST be empty string ("").
-6. Airtight dramatic causality: Every shock, reaction, or scream MUST have a clear physical cause established in the scene.
+FOR BOTH OPTIONS (A and B):
+1. Give each option a custom, descriptive conceptAngle (e.g. "Community Rally & Field Defense" vs "Heartfelt Courage & Mother-Son Bond").
+2. Provide a memorable, evocative Title.
+3. Provide a punchy Logline (1 sentence) and Premise (2 sentences).
+4. Provide 5-6 sequential scenes (each strictly 8s or 10s duration).
+5. Visual action descriptions in cinematic English detailing blocking, emotional expressions, and camera motion.
+6. Spoken Dialogue in authentic native "${project.storyLanguage}" formatted as '[@Character] speaks: "..."' with emotional delivery direction.
+7. Audio exclusivity: When a character is actively speaking dialogue in a scene, narrator voiceover MUST be empty string (""). Only provide voiceover when characters are silent.
+8. Airtight dramatic causality: Every reaction, scream, or shock MUST have a clear physical cause established in the scene.
 
 Characters to weave in:
-${characterGuide || "- Authentic South Indian regional characters."}`;
+${characterGuide || "- Authentic regional characters appropriate to the story world."}`;
 
-  const userPrompt = `Develop two different full story options from this one-line idea:
+  const userPrompt = `Analyze this story idea and develop two distinctly different full story options tailored to it:
 "${storyIdea}"
 
 Additional Director Notes:
-${parsed.data.instructions || "Create two distinctly memorable screenplays with authentic cultural dialogue in " + project.storyLanguage}
+${parsed.data.instructions || "Analyze the core idea and produce two distinct creative treatments with authentic cultural dialogue in " + project.storyLanguage}
 
 Return JSON with optionA and optionB matching TwoStoryOptionsSchema.`;
 
-  logger.info({ projectId, storyIdea }, "Developing 2 competing story options");
+  logger.info({ projectId, storyIdea }, "Developing 2 competing story options based on idea analysis");
 
   const result = await provider.generateStructured({
     modelId,

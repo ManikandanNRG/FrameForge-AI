@@ -191,7 +191,7 @@ export default function BiblePage({ params }: { params: Promise<{ projectId: str
                     <>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="secondary"
                         onClick={() => startEditing(selected)}
                         className="gap-1.5 text-xs border-zinc-700 bg-zinc-900 hover:bg-zinc-800"
                       >

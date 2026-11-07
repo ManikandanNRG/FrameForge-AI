@@ -277,7 +277,7 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
               <div className="flex items-center gap-3">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="secondary"
                   className="h-7 text-xs border-amber-700/60 text-amber-300 hover:bg-amber-900/20"
                   onClick={async () => {
                     await fetch(`/api/projects/${projectId}/shots/generate-videos`, {

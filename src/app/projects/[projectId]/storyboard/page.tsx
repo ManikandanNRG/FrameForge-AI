@@ -523,42 +523,92 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${projectData?.storyLanguage || "native"} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
   ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
 
-  const characterAnchor = charAnchor;
+  // Resolve authentic location description from Production Bible (never fallback to "SCENE 1")
+  const locationAssets = bibleAssets.filter(a => a.assetType === "LOCATION");
+  const matchedLocation = locationAssets.find(l => {
+    const locLower = l.name.toLowerCase();
+    const txtLower = shotText.toLowerCase();
+    return txtLower.includes(locLower) ||
+      (locLower.includes("sugarcane") && (txtLower.includes("sugarcane") || txtLower.includes("cane") || txtLower.includes("stalk"))) ||
+      (locLower.includes("village") && (txtLower.includes("village") || txtLower.includes("courtyard") || txtLower.includes("house") || txtLower.includes("crowd")));
+  }) || locationAssets[0];
+  const locationEnvironment = matchedLocation?.description
+    ? matchedLocation.description.replace(/\.+$/, "")
+    : "Vast dense South Indian sugarcane plantation on narrow dusty red dirt pathway";
+
+  // Natural language action and camera motion without syntax brackets for external AI models (Kling, ChatGPT, Gemini)
+  const naturalAction = taggedAction
+    .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
+    .replace(/@([A-Za-z0-9_-]+)/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\.{2,}/g, ".")
+    .trim();
+
+  // Clean action without repetitive parenthetical wardrobe descriptions for fluid reading in AI prompts
+  const actionCleaned = naturalAction
+    .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\.{2,}/g, ".")
+    .trim();
+
+  const naturalCameraMotion = cameraMotion
+    .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
+    .replace(/@([A-Za-z0-9_-]+)/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\.{2,}/g, ".")
+    .trim();
+
+  const naturalDialogue = formattedDialogue
+    ? formattedDialogue.replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1").replace(/@([A-Za-z0-9_-]+)/g, "$1").trim()
+    : "";
+
+  const isPortrait = projectData?.aspectRatio === "PORTRAIT_9_16";
+  const arParam = isPortrait ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9";
+  const framingDesc = isPortrait ? "9:16 vertical mobile portrait" : "16:9 widescreen cinematic";
+  const shotFraming = selected?.shotSize
+    ? (selected.shotSize.toLowerCase().endsWith("shot") ? selected.shotSize : `${selected.shotSize} Shot`)
+    : "Medium Shot";
 
   const klingPrompt = selected ? [
-    `Cinematic film clip of ${characterAnchor}.`,
-    `Action & Dynamics: ${taggedAction}.`,
-    selected.shotSize ? `Shot framing: ${selected.shotSize}.` : "Medium shot.",
-    `Environment: ${selectedScene?.heading || "Rural village fields"}.`,
-    `Lighting & Style: Photorealistic 8K, cinematic natural daylight, 35mm lens, smooth organic camera motion, 24fps. No CGI, no cartoon, authentic character consistency.`,
-  ].filter(Boolean).join(" ") : "";
+    `A cinematic 8K photorealistic ${framingDesc} film scene.`,
+    `Subject: ${charName}, an authentic South Indian character with ${(activeCharAsset?.description || "authentic regional traits").replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || "traditional regional clothing"}.`,
+    `Action & Dynamics: ${actionCleaned}.`,
+    `Camera & Composition: ${shotFraming}, ${naturalCameraMotion}, shot on 35mm master anamorphic lens, realistic motion blur at 24fps.`,
+    `Environment & Atmosphere: ${locationEnvironment}. Lighting: ${(selected.lighting || "warm golden hour natural afternoon sunlight").replace(/\.+$/, "")}.${selected.audioPrompt ? ` Foley ambience: ${selected.audioPrompt.replace(/\.+$/, "")}.` : ""}`,
+    hasDialogue
+      ? `Dialogue & Lip Sync: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${projectData?.storyLanguage || "Tamil"} lip movements and expressive facial animation.`
+      : `Audio Pace: Pure visual cinema action and environmental Foley, no spoken character dialogue.`,
+    `Aesthetics: Photorealistic 8K cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`,
+    `--ar ${arParam} --mode pro --negative "CGI, 3D render, cartoon, anime, plastic skin, full pants, long trousers, western face, distorted anatomy, extra limbs, motion jitter, blur, subtitles, watermark, text"`,
+  ].filter(Boolean).join(" ").replace(/\s{2,}/g, " ").replace(/\.{2,}/g, ".") : "";
 
   const chatgptPrompt = selected ? [
-    `Create a cinematic 16:9 widescreen photorealistic film still.`,
-    `Character & Subject: ${characterAnchor}.`,
-    `Action: ${selected.imagePrompt || taggedAction}.`,
-    selected.shotSize ? `Framing: ${selected.shotSize} shot.` : "",
+    `Create a highly detailed, photorealistic ${framingDesc} film still from a cinematic regional film.`,
+    `Subject: ${charName}, ${activeCharAsset?.description || "authentic South Indian character"}. Wardrobe lock: strictly wearing ${wardrobeLock || "traditional clothing"} (no western clothes or long trousers).`,
+    `Scene Action: ${actionCleaned}.`,
+    `Environment: ${locationEnvironment}.`,
+    `Lighting & Mood: ${selected.lighting || "Natural golden hour daylight, soft shadows, warm highlights"}.`,
+    `Camera & Composition: ${shotFraming}, ${naturalCameraMotion}, 35mm prime lens, natural optical bokeh, 24fps film motion aesthetic.`,
     hasDialogue
-      ? `Character Dialogue: ${selected.dialogue}.`
-      : (selected.voiceover ? `Narrative Story Beat (VO): "${selected.voiceover}".` : ""),
-    `Style: Photorealistic 8k, authentic human skin texture, natural cinematic daylight, highly detailed documentary aesthetic.`,
-    `Negative constraints: Avoid cartoon, 3d render, anime, over-saturated, fake plastic skin, western generic face.`,
-  ].filter(Boolean).join(" ") : "";
+      ? `Spoken Dialogue Beat: ${naturalDialogue} (Authentic ${projectData?.storyLanguage || "Tamil"} dialect, natural conversational pacing)`
+      : (selected.voiceover ? `Voice-Over Beat: "${selected.voiceover}"` : `Soundscape Atmosphere: ${selected.audioPrompt || "Ambient rural environment"}`),
+    `Style & Realism: Authentic documentary realism, true-to-life Indian skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 8K resolution.`,
+    `Negative Constraints: Avoid cartoon, 3D CGI animation, plastic skin, long pants or modern western clothes, distorted hands, extra limbs, artificial oversaturation.`,
+  ].filter(Boolean).join("\n\n") : "";
 
   const geminiPrompt = selected ? [
-    `Cinematic 16:9 photorealistic film still.`,
-    `Subject: ${characterAnchor}.`,
-    `Visual: ${selected.imagePrompt || taggedAction}.`,
-    selected.shotSize ? `Camera Framing: ${selected.shotSize}.` : "",
-    hasDialogue
-      ? `Dialogue context: ${selected.dialogue}.`
-      : (selected.voiceover ? `Voiceover context: "${selected.voiceover}".` : ""),
-    `Cinematography: 35mm lens, natural color grade, photorealistic, cinematic composition.`,
-  ].filter(Boolean).join(" ") : "";
+    `Cinematic ${framingDesc} photorealistic film still.`,
+    `Character: ${charName}, ${activeCharAsset?.description || "authentic South Indian appearance"}. Attire: strictly wearing ${wardrobeLock || "traditional South Indian clothing"}.`,
+    `Visual Action: ${actionCleaned}.`,
+    `Setting & Background: ${locationEnvironment}.`,
+    `Cinematography: ${shotFraming}, ${naturalCameraMotion}, 35mm anamorphic prime lens, high dynamic range with natural sunlight falloff.`,
+    hasDialogue ? `Character Dialogue Context: ${naturalDialogue}` : (selected.voiceover ? `Voiceover Context: "${selected.voiceover}"` : `Atmosphere: ${selected.audioPrompt || "Quiet rural stillness"}`),
+    `Film Aesthetics: 4K master grade, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
+  ].filter(Boolean).join("\n\n") : "";
 
   const videoMotionPrompt = selected ? [
-    taggedAction,
-    `Camera: ${cameraMotion}`,
+    actionCleaned,
+    `Camera: ${naturalCameraMotion}`,
     hasDialogue
       ? `[Character Dialogue]: ${selected.dialogue}`
       : (selected.voiceover ? `[Voice-Over Beat]: "${selected.voiceover}"` : ""),
@@ -566,13 +616,18 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   ].filter(Boolean).join("\n\n") : "";
 
   const scriptPrompt = selected ? [
-    `SCENE ${selectedScene?.sceneNumber ?? 1}: ${selectedScene?.heading || "EXT. VILLAGE"}`,
-    `SHOT ${selected.shotNumber} (${selected.shotSize || "MEDIUM SHOT"} · ${normalizedDuration}s)`,
-    `ACTION: ${taggedAction}`,
-    hasDialogue
-      ? `\n💬 SPOKEN DIALOGUE:\n${selected.dialogue}`
-      : (selected.voiceover ? `\n🎙️ VOICE-OVER (NARRATOR):\n"${selected.voiceover}"` : ""),
-    selected.audioPrompt ? `\n🔊 SOUND DESIGN & SFX:\n${selected.audioPrompt}` : "",
+    `═══════════════════════════════════════════════════════════`,
+    `🎬 SCENE ${selectedScene?.sceneNumber ?? 1}: ${selectedScene?.heading || "EXT. VILLAGE"} · SHOT ${selected.shotNumber}`,
+    `⏱️ DURATION: ${normalizedDuration}s | FRAMING: ${shotFraming} | ORIENTATION: ${arParam}`,
+    `═══════════════════════════════════════════════════════════`,
+    `\n📍 LOCATION: ${locationEnvironment}`,
+    `\n👤 ACTIVE CHARACTER: ${charName} (Wardrobe: ${wardrobeLock})`,
+    `\n🎥 CAMERA & ACTION:`,
+    `${actionCleaned}`,
+    `Camera Movement: ${naturalCameraMotion}`,
+    hasDialogue ? `\n💬 CHARACTER SPOKEN DIALOGUE:\n${naturalDialogue}\n[ACTOR DIRECTION: Authentic regional ${projectData?.storyLanguage || "Tamil"} dialect, high emotional stakes, natural lip movement]` : "",
+    (!hasDialogue && selected.voiceover) ? `\n🎙️ VOICE-OVER (NARRATOR):\n"${selected.voiceover}"\n[NARRATOR DIRECTION: Warm, grounded storyteller cadence]` : "",
+    selected.audioPrompt ? `\n🔊 SOUND DESIGN & AMBIENCE:\n${selected.audioPrompt}` : "",
   ].filter(Boolean).join("\n") : "";
 
   // Character references for external AI tools (Runway, Kling API, ComfyUI, etc.)
@@ -591,23 +646,26 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const rawJsonPrompt = selected ? JSON.stringify({
     scene: `Scene ${selectedScene?.sceneNumber || 1} - Shot ${selected.shotNumber}: ${selectedScene?.heading || "Shot"}`,
     duration_seconds: normalizedDuration,
-    aspect_ratio: projectData?.aspectRatio === "PORTRAIT_9_16" ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9",
+    aspect_ratio: arParam,
     style: "Photorealistic cinematic rural atmosphere",
+    active_character: charName,
     character_tags: [bracketedCharTag],
     // Provided for other AI tools (external APIs, ComfyUI, Runway, Kling, Sora) that need full character visual definitions
     character_reference: characterReferenceForOtherTools,
-    visual_action: taggedAction,
+    visual_action: actionCleaned,
     camera: {
-      shot: selected.shotSize ? `${selected.shotSize} shot` : "Medium shot",
-      movement: cameraMotion,
-      lens: "35mm"
+      shot: shotFraming,
+      movement: naturalCameraMotion,
+      lens: "35mm anamorphic prime",
+      fps: 24
     },
     lighting: selected.lighting || "Natural daylight, soft golden illumination, documentary realism",
+    environment: locationEnvironment,
     audio: {
       dialogue: hasDialogue ? {
         speaker: bracketedCharTag,
         language: projectData?.storyLanguage || "Tamil",
-        text: selected.dialogue,
+        text: naturalDialogue,
         delivery: `Natural conversational inflection, authentic rural ${projectData?.storyLanguage || "native"} dialect`
       } : null,
       voiceover: (!hasDialogue && selected.voiceover) ? selected.voiceover : null,
@@ -616,7 +674,8 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     constraints: [
       "Only the active speaker moves lips",
       `Accurate natural ${projectData?.storyLanguage || "native"} lip synchronization`,
-      "Maintain exact character face, hair, and wardrobe consistency",
+      `Maintain exact character face, hair, and wardrobe consistency: ${wardrobeLock || "locked attire"}`,
+      "No full pants or trousers when shorts are specified",
       "No extra background crowd or distorted hands",
       "No generated subtitles or title text",
       "24fps cinematic motion blur"

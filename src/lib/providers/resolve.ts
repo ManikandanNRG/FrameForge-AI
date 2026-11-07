@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/client";
 import { decryptSecret } from "@/lib/crypto/encrypt";
 import { OpenAITextProvider } from "./openai-text";
 import { GEMINI_DEFAULT_MODEL, GeminiTextProvider } from "./gemini-text";
+import { OpenRouterTextProvider, OPENROUTER_DEFAULT_MODEL } from "./openrouter-text";
 import { MockTextProvider } from "./mock-text";
 import type { TextGenerationProvider, StructuredTextInput, GenerationResult } from "./types";
 import { logger } from "@/lib/logger";
@@ -72,7 +73,10 @@ export async function resolveTextProvider(
     return { provider: new MockTextProvider(), modelId: "mock-model" };
   }
 
-  const [geminiConn, openaiConn] = await Promise.all([
+  const [openrouterConn, geminiConn, openaiConn] = await Promise.all([
+    prisma.providerConnection.findFirst({
+      where: { ownerId, providerId: "openrouter", isEnabled: true, status: "CONNECTED" },
+    }),
     prisma.providerConnection.findFirst({
       where: { ownerId, providerId: "gemini", isEnabled: true, status: "CONNECTED" },
     }),
@@ -81,6 +85,9 @@ export async function resolveTextProvider(
     }),
   ]);
 
+  const openrouterProvider = openrouterConn
+    ? new OpenRouterTextProvider(decryptSecret(openrouterConn.encryptedKey))
+    : null;
   const geminiProvider = geminiConn
     ? new GeminiTextProvider(decryptSecret(geminiConn.encryptedKey))
     : null;
@@ -88,6 +95,20 @@ export async function resolveTextProvider(
     ? new OpenAITextProvider(decryptSecret(openaiConn.encryptedKey))
     : null;
 
+  // Gemini Free Tier (1500 RPD) + OpenRouter Free Tier (200 RPD) resilient pair (100% Zero-Cost)
+  if (geminiProvider && openrouterProvider) {
+    return {
+      provider: new ResilientMultiProvider(
+        geminiProvider,
+        GEMINI_DEFAULT_MODEL,
+        openrouterProvider,
+        OPENROUTER_DEFAULT_MODEL,
+      ),
+      modelId: GEMINI_DEFAULT_MODEL,
+    };
+  }
+
+  // Gemini + OpenAI resilient pair
   if (geminiProvider && openaiProvider) {
     return {
       provider: new ResilientMultiProvider(
@@ -97,6 +118,13 @@ export async function resolveTextProvider(
         "gpt-4o-mini",
       ),
       modelId: GEMINI_DEFAULT_MODEL,
+    };
+  }
+
+  if (openrouterProvider) {
+    return {
+      provider: openrouterProvider,
+      modelId: OPENROUTER_DEFAULT_MODEL,
     };
   }
 
@@ -116,7 +144,7 @@ export async function resolveTextProvider(
 
   throw Object.assign(
     new Error(
-      "No AI provider configured. Go to Settings → Providers and add a Gemini or OpenAI API key.",
+      "No AI provider configured. Go to Settings → Providers and add an OpenRouter, Gemini, or OpenAI API key.",
     ),
     { code: "AUTHENTICATION_FAILED" },
   );

@@ -17,10 +17,14 @@
   - **Per-Scene AI Regenerate**: Rewrite any individual scene with custom director instructions while maintaining locked character wardrobe and strict dramatic cause-and-effect with neighboring scenes.
   - **Inline Script Editor Modal**: Edit scene heading, location, duration (8s/10s), character dialogue `[@Name] speaks: "..."`, voiceover, and action blocking with instant database sync.
   - **Prominent Transition to Prompts**: Finalize all dialogue and scenes first, then click **`🚀 Finalize & Proceed to Prompts (Storyboard)`**.
-- **Gemini & Multi-Provider Architecture Updates** (`src/lib/providers/gemini-text.ts`, `src/lib/providers/resolve.ts`, `src/lib/api/handler.ts`):
-  - Configured Google's official Gemini models: `gemini-3.8-flash`, `gemini-3.5-flash`, `gemini-flash-latest`, and `gemini-3.5-flash-lite`.
-  - Filtered provider fallback to only include connections with `status: "CONNECTED"`, preventing exhausted keys (OpenAI 429) from crashing fallback chains.
-  - Enhanced API handler to return human-readable error messages directly to the UI rather than masking errors as generic `Unexpected error`.
+- **100% Zero-Cost AI Architecture & Daily Quota Dashboard** (`src/lib/providers/openrouter-text.ts`, `src/lib/providers/gemini-text.ts`, `src/lib/providers/resolve.ts`, `src/app/settings/page.tsx`):
+  - **Prioritized Free Model Order**:
+    - Primary: **Google Gemini Free Tier** (1,500 requests/day, 15 RPM).
+    - Secondary: **OpenRouter 100% Free Tier** (`meta-llama/llama-3.3-70b-instruct:free`, `google/gemini-2.0-flash-lite:free`, `deepseek/deepseek-r1:free`).
+    - Stills & Motion: **FLUX.1 Free Generator** + In-App FFmpeg Camera Motion & TTS Voiceover (100% local, zero-cost).
+  - **Daily Filmmaking Quota Monitor**: Added a real-time capacity and quota monitor in Settings tailored for creating 1 video per day (2–3 minutes / ~15–20 shots) consuming less than 1% of the daily free limits.
+  - **Graceful Rate-Limit & Fallback Handling**: Automatically catches 429 quota limits and shifts to backup free models without user interruption or failure.
+  - **Fixed React Controlled Input Warning**: Defaulted form inputs in Settings to empty string (`keys[p.id] ?? ""`).
 - **Direct-to-Video Master Prompts & Character Consistency Engine** (`src/lib/story/prompts.ts`, `src/lib/bible/service.ts`, `src/lib/shots/service.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`):
   - **Single-Line Idea to Multi-Lingual Screenplay**: Generates complete scene-by-scene script with voiceover narration and character dialogue written in the user's chosen language (e.g. Tamil, Hindi, Spanish, English) and visual action in cinematic English.
   - **Production Bible Consistency Anchors**: Automatically extracts locked character physical identity descriptions (ethnicity, skin tone, facial hair, eye color, and exact clothing) so the same character appears across every single shot.

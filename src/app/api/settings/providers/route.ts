@@ -6,7 +6,7 @@ import { requireUserId } from "@/lib/auth/session";
 import { encryptSecret } from "@/lib/crypto/encrypt";
 
 const saveSchema = z.object({
-  providerId:  z.enum(["openai", "gemini", "kling", "fal", "hedra"]),
+  providerId:  z.enum(["openai", "gemini", "kling", "fal", "hedra", "openrouter"]),
   displayName: z.string().optional(),
   apiKey:      z.string().min(5, "API key looks too short"),
 });
@@ -32,10 +32,11 @@ export const POST = apiHandler(async (req) => {
 
   const encrypted = encryptSecret(apiKey);
   const label = displayName ?? (
-    providerId === "gemini" ? "Google Gemini" :
-    providerId === "kling"  ? "Kling AI" :
-    providerId === "fal"    ? "fal.ai (LivePortrait)" :
-    providerId === "hedra"  ? "Hedra" :
+    providerId === "gemini"     ? "Google Gemini" :
+    providerId === "openrouter" ? "OpenRouter (GPT-4o, Claude, DeepSeek)" :
+    providerId === "kling"      ? "Kling AI" :
+    providerId === "fal"        ? "fal.ai (LivePortrait)" :
+    providerId === "hedra"      ? "Hedra" :
     "OpenAI"
   );
 

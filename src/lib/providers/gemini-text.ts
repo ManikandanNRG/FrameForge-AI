@@ -12,12 +12,13 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash ✓ (recommended, high reliability)" },
-  { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite ✓ (fast)" },
-  { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash-Lite ✓" },
+  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash ✓ (recommended, high reliability & speed)" },
+  { id: "gemini-1.5-flash", displayName: "Gemini 1.5 Flash ✓ (stable, wide quota)" },
+  { id: "gemini-1.5-pro", displayName: "Gemini 1.5 Pro ✓ (complex reasoning)" },
+  { id: "gemini-1.5-flash-8b", displayName: "Gemini 1.5 Flash-8B ✓ (ultra-fast)" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-2.0-flash";
 
 export class GeminiTextProvider implements TextGenerationProvider {
   readonly id = "gemini";
@@ -41,9 +42,10 @@ export class GeminiTextProvider implements TextGenerationProvider {
   ): Promise<GenerationResult<z.infer<S>>> {
     const candidateModels = [
       input.modelId,
-      "gemini-3.5-flash",
-      "gemini-3.5-flash-lite",
-      "gemini-3.1-flash-lite",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-1.5-flash-8b",
+      "gemini-1.5-pro",
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: string | null = null;
@@ -117,9 +119,10 @@ export async function testGeminiKey(
 ): Promise<{ ok: boolean; model: string; error?: string }> {
   // Try models in order until one works
   const candidates = [
-    "gemini-3.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-8b",
+    "gemini-1.5-pro",
   ];
 
   const client = new GoogleGenerativeAI(apiKey);

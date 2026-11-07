@@ -79,6 +79,17 @@ export function screenplayPrompt(brief: ProjectBrief, outline: string, character
 Write a complete professional scene-by-scene screenplay for a ~${brief.targetRuntimeMinutes}-minute ${styleNote(brief.visualStyle)} film with full audio, voice-over, and speech scripts.
 Target Language for Dialogue and Voice-Over: "${brief.storyLanguage}".
 
+CRITICAL SCREENPLAY LOGIC & DRAMATIC CAUSALITY STANDARDS:
+1. AIRTIGHT CAUSE-AND-EFFECT:
+   - Every character action, emotion, and reaction MUST be motivated by a clear physical or sensory catalyst.
+   - If a character drops an object in shock or asks "Why are you screaming?", the screenplay MUST clearly establish what they saw or heard (e.g., hearing frantic cries echoing in advance, seeing a breathless child trembling and pointing in terror).
+   - Characters must NEVER react without motivation or appear disconnected from what just happened in the preceding scene.
+2. DIALOGUE LOGIC & CONTINUITY:
+   - Spoken dialogue in "${brief.storyLanguage}" must organically match the immediate physical stakes and carry forward narrative momentum.
+   - When a character delivers urgent news, subsequent characters must acknowledge it and react realistically (e.g., "What the boy said is true! The wild elephant has broken in!").
+3. MUTUAL EXCLUSIVITY OF AUDIO BEATS:
+   - When characters are actively speaking dialogue, keep narration silent so character voices take center stage. Use voice-over primarily during visual establishing or reflective moments.
+
 Every scene must have:
 - heading: INT./EXT. LOCATION - TIME
 - action: visual action lines describing character movements, setting, and cinematic atmosphere (in English)

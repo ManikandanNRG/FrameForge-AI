@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge, jobStatusBadge } from "@/components/ui/badge";
-import { ChevronRight, Sparkles, BookOpen, AlertCircle } from "lucide-react";
+import { ChevronRight, Sparkles, BookOpen, AlertCircle, SplitSquareVertical } from "lucide-react";
 
 interface Project {
   id: string; title: string; sourceIdea: string; currentStage: string;
@@ -166,7 +166,17 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Link href={`/projects/${projectId}/story?action=options`}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="bg-purple-950/70 hover:bg-purple-900 border border-purple-700/80 text-purple-200 text-xs font-semibold px-3 py-2 shadow-sm"
+                >
+                  <SplitSquareVertical className="h-3.5 w-3.5 mr-1.5 text-purple-400" />
+                  <span>✨ 2 Story Options (A / B)</span>
+                </Button>
+              </Link>
               <Button
                 loading={running1Click}
                 disabled={hasProvider === false}
@@ -206,16 +216,26 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
 
         {/* Story section */}
         <section className="rounded-lg border border-zinc-800 bg-zinc-900 p-6 mb-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-amber-400" />
-              <h2 className="font-semibold">Story</h2>
+              <h2 className="font-semibold text-zinc-100">Story &amp; Screenplay Studio</h2>
             </div>
-            {hasStory && (
-              <Link href={`/projects/${projectId}/story`}>
-                <Button variant="secondary" size="sm">Open story studio →</Button>
+            <div className="flex items-center gap-2">
+              <Link href={`/projects/${projectId}/story?action=options`}>
+                <Button variant="secondary" size="sm" className="bg-purple-950/60 border border-purple-700/60 text-purple-300 hover:bg-purple-900/40 text-xs">
+                  <SplitSquareVertical className="h-3.5 w-3.5 mr-1.5 text-purple-400" />
+                  <span>✨ 2 Story Options (A / B)</span>
+                </Button>
               </Link>
-            )}
+              {hasStory && (
+                <Link href={`/projects/${projectId}/story`}>
+                  <Button variant="secondary" size="sm" className="text-xs border-amber-500/50 text-amber-300 hover:bg-amber-950/30">
+                    Open Story Studio →
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
 
           {activeJob && (
@@ -226,29 +246,47 @@ export default function ProjectPage({ params }: { params: Promise<{ projectId: s
           )}
 
           {!activeJob && !hasStory && (
-            <div className="space-y-3">
-              <p className="text-zinc-400 text-sm">
-                Generate a logline, synopsis, outline, and full screenplay from your idea.
-                Uses your configured AI provider (Gemini or OpenAI).
+            <div className="space-y-4">
+              <p className="text-zinc-400 text-sm leading-relaxed">
+                Develop your initial one-line idea into full screenplay options with authentic Tamil dialogue, character arcs, and cinematic scenes.
               </p>
               {genError && (
                 <div className="flex items-start gap-2 text-rose-400 text-sm">
                   <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" /> {genError}
                 </div>
               )}
-              <div className="flex gap-3">
-                <Button loading={generating} onClick={() => generateStory(false)} disabled={hasProvider === false}>
-                  <Sparkles className="h-4 w-4" /> Generate story with AI
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={`/projects/${projectId}/story?action=options`}>
+                  <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-md">
+                    <Sparkles className="h-4 w-4 mr-1.5" /> ✨ Develop 2 Story Concepts (Compare &amp; Choose)
+                  </Button>
+                </Link>
+                <Button loading={generating} onClick={() => generateStory(false)} disabled={hasProvider === false} className="bg-zinc-800 hover:bg-zinc-700 text-xs text-zinc-200">
+                  <Sparkles className="h-3.5 w-3.5 mr-1 text-amber-400" /> Generate Standard Story
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => generateStory(true)}>
-                  Test with mock (no API call)
+                <Button variant="ghost" size="sm" onClick={() => generateStory(true)} className="text-xs text-zinc-400">
+                  Test with mock
                 </Button>
               </div>
             </div>
           )}
 
           {!activeJob && hasStory && (
-            <p className="text-emerald-400 text-sm">✓ Story generated. Open the Story Studio to review and approve.</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-zinc-800/80">
+              <p className="text-emerald-400 text-xs font-medium">✓ Complete screenplay &amp; scenes ready in Story Studio.</p>
+              <div className="flex items-center gap-2">
+                <Link href={`/projects/${projectId}/story?action=options`}>
+                  <Button variant="ghost" size="sm" className="text-xs text-purple-300 hover:text-purple-200">
+                    ✨ Compare 2 Alternative Options
+                  </Button>
+                </Link>
+                <Link href={`/projects/${projectId}/story`}>
+                  <Button size="sm" className="bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs">
+                    Edit Script &amp; Scenes →
+                  </Button>
+                </Link>
+              </div>
+            </div>
           )}
         </section>
 

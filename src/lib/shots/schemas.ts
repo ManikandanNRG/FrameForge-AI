@@ -1,12 +1,11 @@
 import { z } from "zod";
 
-export const OMNI_ALLOWED_DURATIONS = [4, 6, 8, 10] as const;
+export const OMNI_ALLOWED_DURATIONS = [8, 10] as const;
 
 export function snapToOmniDuration(seconds?: number): number {
-  if (!seconds || isNaN(seconds)) return 6;
-  return OMNI_ALLOWED_DURATIONS.reduce((prev, curr) =>
-    Math.abs(curr - seconds) < Math.abs(prev - seconds) ? curr : prev
-  );
+  if (!seconds || isNaN(seconds)) return 8;
+  // Minimum 8 seconds as requested: 8s for standard scenes, 10s for climaxes
+  return seconds >= 9 ? 10 : 8;
 }
 
 const ShotItemSchema = z.object({
@@ -25,7 +24,7 @@ const ShotItemSchema = z.object({
   dialogue: z.string().optional().default(""),
   audioPrompt: z.string().optional().default(""),
   soundEffects: z.string().optional().default(""),
-  targetDurationSeconds: z.number().default(6),
+  targetDurationSeconds: z.number().default(8),
 });
 
 const SceneItemSchema = z.object({

@@ -56,9 +56,9 @@ Target Story Language for Voice-over and Dialogue: "${project.storyLanguage}".
 Film Framing & Orientation: ${orientationDesc}.
 
 CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
-1. QUANTIZED DURATIONS (OMNI 1.1 FLASH STANDARD):
-   - Durations MUST be strictly quantized to: 4, 6, 8, or 10 seconds. (Google Flow Omni 1.1 Flash supports ONLY 4s, 6s, 8s, or 10s; do NOT use 3s, 5s, 7s, or 9s).
-   - Use 6s or 8s for dialogue/interaction shots; 4s for punchy action cuts; 10s for dramatic climax.
+1. QUANTIZED DURATIONS (MINIMUM 8 SECONDS STANDARD):
+   - Durations MUST be strictly minimum 8 seconds: either 8 or 10 seconds. (Google Flow Omni 1.1 Flash supports 8s and 10s; do NOT use 4s or 6s because 4-6 seconds is too short for realistic cinematic action, full spoken dialogue, and camera movement, causing incomplete cuts).
+   - Use 8s for dialogue beats and standard action; use 10s for dramatic climax and complex action.
 
 2. AUDIO MUTUAL EXCLUSIVITY RULE (DIALOGUE VS VOICE-OVER):
    - In any single shot, NEVER have both character dialogue AND a voice-over narrator simultaneously!
@@ -79,6 +79,17 @@ CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
    - For example, if [@Karthi] wears faded cotton half-shorts and a short-sleeve shirt, barefoot, HE MUST WEAR THAT EXACT SAME ATTIRE IN EVERY SINGLE SHOT. NEVER switch to full pants or change clothing between scenes!
    - Weave their locked wardrobe into action and video prompts: e.g. "[@Karthi] (wearing faded cotton half-shorts and shirt, barefoot)..."
 
+5. PHYSICAL SKELETAL REALISM & CAMERA-FACING ALIGNMENT (PREVENT BODY COLLAPSE / HEAD-TWISTING):
+   - When a character speaks dialogue while running or moving, the camera MUST track BACKWARD ahead of the character, facing the character's front torso and face!
+   - NEVER place the camera behind a character chasing them while instructing them to lip-sync dialogue, because video models contort and collapse the character's neck and body 180 degrees backwards to face the camera!
+   - Both the character's locomotion and gaze must align forward: 'Dynamic low-angle backward tracking shot moving smoothly ahead of [@Character], facing their front torso and terrified facial expression as they sprint forward directly toward camera down the path.'
+
+6. AIRTIGHT DRAMATIC CAUSE-AND-EFFECT & DIALOGUE LOGIC:
+   - Every shot's action and spoken dialogue MUST have a clear, logical causal chain.
+   - If Character B reacts in shock or asks a question (e.g. Amma dropping a basket and asking 'Why are you shouting in terror?'), the action line MUST explicitly depict what caused that reaction (e.g. Character A's frantic shouting echoing from the path, bursting into the courtyard trembling, gasping for breath, pointing back in terror toward the wild elephant).
+   - Ensure seamless narrative continuity: each shot must logically pick up from the physical and emotional consequence of the preceding shot.
+
+
 MASTER CHARACTER ANCHORS:
 ${characterGuide}
 
@@ -86,7 +97,7 @@ MASTER LOCATIONS:
 ${locationGuide}
 ${propsGuide}
 `,
-    userPrompt: `Break this screenplay into scenes and individual shots (each strictly 4, 6, 8, or 10 seconds).
+    userPrompt: `Break this screenplay into scenes and individual shots (each strictly 8 or 10 seconds - minimum 8s).
 Total Film Target Runtime: ${totalTargetSeconds} seconds (~${targetShotCount} shots total). Plan the scenes and shots so the total duration approximately matches ${totalTargetSeconds} seconds.
 Screenplay:
 ${screenplayText.slice(0, 7000)}
@@ -95,7 +106,7 @@ For EACH shot provide:
 1. shotNumber: sequential shot number (1, 2, 3...)
 2. actionDescription: 1-2 sentences clearly describing the physical visual action happening in this shot.
 3. shotSize: Framing size (e.g. "Close-Up", "Medium Shot", "Wide Shot", "Extreme Close-Up").
-4. cameraMovement: Specific camera motion (e.g. "Low-angle tracking shot forward at 24fps", "Smooth lateral pan", "Dynamic handheld sprint tracking").
+4. cameraMovement: Specific camera motion (e.g. "Low-angle backward tracking shot forward at 24fps", "Smooth lateral pan", "Dynamic handheld tracking").
 5. lighting: Lighting direction and mood (e.g. "Golden hour backlight with warm dust motes", "Diffused midday sunlight").
 6. characterTag: The primary character placeholder tag featured (e.g. ${characters[0] ? `[@${characters[0].name}]` : "[@Character]"}, or "" if none).
 7. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
@@ -106,7 +117,7 @@ For EACH shot provide:
 10. voiceover: Compelling voice-over narration line in "${project.storyLanguage}" (ONLY when NO character is speaking; otherwise leave empty string "").
 11. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '[@CHARACTER] speaks: "..."'; leave empty string "" if no character speaks).
 12. audioPrompt: Sound effects, ambient Foley, and music score mood.
-13. targetDurationSeconds: duration in seconds (MUST BE EXACTLY 4, 6, 8, or 10).
+13. targetDurationSeconds: duration in seconds (MUST BE STRICTLY 8 or 10 - minimum 8 seconds).
 
 Return JSON matching ShotPlanSchema.`,
     schema: ShotPlanSchema,

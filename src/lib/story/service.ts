@@ -81,11 +81,11 @@ async function generateStoryCombined(
     synopsis:   z.string(),
     outline:    z.string(),
     characters: z.string(),
-    screenplay: z.string(),
+    screenplay: ScreenplaySchema,
   });
 
   const lengthDesc = brief.targetRuntimeSeconds
-    ? `${brief.targetRuntimeSeconds} seconds (approximately ${Math.round(brief.targetRuntimeSeconds / 6)} shots)`
+    ? `${brief.targetRuntimeSeconds} seconds (approximately ${Math.max(3, Math.round(brief.targetRuntimeSeconds / 8))} scenes of 8s/10s each)`
     : `${brief.targetRuntimeMinutes}-minute`;
 
   const r = await provider.generateStructured({
@@ -93,15 +93,35 @@ async function generateStoryCombined(
     systemPrompt: sys,
     userPrompt: `Write a complete short film package for a ${lengthDesc} film.
 Target Story Language: "${brief.storyLanguage}".
-CRITICAL: All character dialogue and voice-over narration MUST be written in "${brief.storyLanguage}" (e.g. Tamil script for Tamil, Hindi for Hindi). Visual action lines must be in cinematic English.
+CRITICAL SPECIFICATIONS:
+1. Target Durations: All scenes must be either 8 or 10 seconds duration (Omni Flash / Veo 2 / Kling timing standards).
+2. All character dialogue MUST be written in "${brief.storyLanguage}" (e.g. Tamil script for Tamil, Hindi for Hindi).
+3. If a character is speaking dialogue in a scene, narrator voiceover MUST be empty or omitted. Only include voiceover when characters are silent.
+4. Visual action lines must be in cinematic English with continuous narrative causality and locked wardrobe.
 
-Return JSON with exactly these keys (all strings):
+Return JSON with exactly these keys:
 - logline: one punchy sentence
 - premise: two sentences expanding the logline
 - synopsis: two paragraphs covering the full story arc
 - outline: brief act structure (acts 1/2/3)
 - characters: main characters with highly specific visual appearance descriptions (age, facial traits, skin, exact wardrobe) for visual consistency
-- screenplay: full scene-by-scene screenplay breakdown with INT./EXT. headings, action lines (English), VOICE-OVER (V.O.) narration (in ${brief.storyLanguage}), character SPEECH/DIALOGUE (in ${brief.storyLanguage}), and SOUND DESIGN/AUDIO CUES for every scene.
+- screenplay: an object with {
+    title: "${brief.title}",
+    totalEstimatedDurationSeconds: number,
+    scenes: [
+      {
+        sceneNumber: 1,
+        heading: "EXT. SUGARCANE PLANTATION - DAY",
+        location: "Sugarcane plantation",
+        timeOfDay: "DAY",
+        action: "Detailed visual action line in English...",
+        dialogue: "[@Character] speaks: \\"...\\" (in ${brief.storyLanguage})",
+        voiceover: "... (in ${brief.storyLanguage}, or empty if character speaks)",
+        audioScript: "Sound design and foley...",
+        estimatedDurationSeconds: 8
+      }
+    ]
+  }
 
 Film idea: "${brief.sourceIdea}"`,
     schema: CombinedSchema,
@@ -112,7 +132,7 @@ Film idea: "${brief.sourceIdea}"`,
   await saveArtifactVersion(projectId, "SYNOPSIS",       r.data.synopsis,   meta);
   await saveArtifactVersion(projectId, "OUTLINE",        r.data.outline,    meta);
   await saveArtifactVersion(projectId, "CHARACTER_ARCS", r.data.characters, meta);
-  await saveArtifactVersion(projectId, "SCREENPLAY",     r.data.screenplay, meta);
+  await saveArtifactVersion(projectId, "SCREENPLAY",     JSON.stringify(r.data.screenplay, null, 2), meta);
 }
 
 /** Full sequential pipeline for longer films (>3 min) — 5 calls, more detailed. */

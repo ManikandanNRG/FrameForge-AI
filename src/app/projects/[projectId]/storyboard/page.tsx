@@ -59,6 +59,15 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const [copied, setCopied]               = useState<string | null>(null);
   const [isDragging, setIsDragging]       = useState(false);
 
+  // Shot Script Editing State
+  const [isEditingShotScript, setIsEditingShotScript] = useState(false);
+  const [editShotAction, setEditShotAction] = useState("");
+  const [editShotDialogue, setEditShotDialogue] = useState("");
+  const [editShotVoiceover, setEditShotVoiceover] = useState("");
+  const [editShotAudioPrompt, setEditShotAudioPrompt] = useState("");
+  const [editShotCameraMotion, setEditShotCameraMotion] = useState("");
+  const [savingShotScript, setSavingShotScript] = useState(false);
+
   useEffect(() => {
     if (selected) {
       const hasVid = selected.mediaVersions.some(m => m.kind === "VIDEO_CLIP");
@@ -333,6 +342,66 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     load();
   }
 
+  async function setShotDuration(shotId: string, durationSeconds: number) {
+    if (!selected) return;
+    setSelected({ ...selected, targetDurationSeconds: durationSeconds });
+    setScenes(prev => prev.map(sc => ({
+      ...sc,
+      shots: sc.shots.map(sh => sh.id === shotId ? { ...sh, targetDurationSeconds: durationSeconds } : sh)
+    })));
+    try {
+      await fetch(`/api/projects/${projectId}/shots/${shotId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetDurationSeconds: durationSeconds }),
+      });
+    } catch {}
+  }
+
+  function startEditingShotScript() {
+    if (!selected) return;
+    setEditShotAction(selected.actionDescription || "");
+    setEditShotDialogue(selected.dialogue || "");
+    setEditShotVoiceover(selected.voiceover || "");
+    setEditShotAudioPrompt(selected.audioPrompt || "");
+    setEditShotCameraMotion(selected.cameraMovement || "");
+    setIsEditingShotScript(true);
+  }
+
+  async function saveShotScript() {
+    if (!selected) return;
+    setSavingShotScript(true);
+    try {
+      await fetch(`/api/projects/${projectId}/shots/${selected.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          actionDescription: editShotAction.trim(),
+          cameraMovement: editShotCameraMotion.trim(),
+          dialogue: editShotDialogue.trim(),
+          voiceover: editShotVoiceover.trim(),
+          audioPrompt: editShotAudioPrompt.trim(),
+        }),
+      });
+
+      setSelected({
+        ...selected,
+        actionDescription: editShotAction.trim(),
+        cameraMovement: editShotCameraMotion.trim(),
+        dialogue: editShotDialogue.trim(),
+        voiceover: editShotDialogue.trim().length > 0 ? "" : editShotVoiceover.trim(),
+        audioPrompt: editShotAudioPrompt.trim(),
+      });
+
+      setIsEditingShotScript(false);
+      await load();
+    } catch (e) {
+      console.error("Failed to save shot script", e);
+    } finally {
+      setSavingShotScript(false);
+    }
+  }
+
   const allShots = scenes.flatMap(s => s.shots);
   const approvedCount     = allShots.filter(s => s.approvalStatus === "APPROVED").length;
   const hasImages         = allShots.some(s => s.mediaVersions.some(m => m.kind === "STORYBOARD_STILL"));
@@ -419,12 +488,10 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     ? "1:1 Square (1080x1080)"
     : "16:9 Landscape (1920x1080) - Cinematic Film";
 
-  // Quantize duration to Google Flow / Omni 1.1 Flash supported durations: 4s, 6s, 8s, or 10s
-  const allowedDurations = [4, 6, 8, 10];
-  const rawDuration = selected?.targetDurationSeconds || 6;
-  const normalizedDuration = allowedDurations.reduce((prev, curr) =>
-    Math.abs(curr - rawDuration) < Math.abs(prev - rawDuration) ? curr : prev
-  );
+  // Quantize duration to Google Flow / Omni 1.1 Flash supported durations: minimum 8s (8s or 10s)
+  const allowedDurations = [8, 10];
+  const rawDuration = selected?.targetDurationSeconds || 8;
+  const normalizedDuration = rawDuration >= 9 ? 10 : 8;
   const targetDurationLabel = `${normalizedDuration} seconds`;
 
   // Bracketed character tag placeholder: [@Ayyanar] or [@Yazhini]
@@ -521,6 +588,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
     `- Visual Style: 4K photorealistic cinematic documentary film, 35mm lens, authentic cultural textures, shallow depth of field, 24fps`,
     wardrobeLock ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${wardrobeLock}. Maintain 100% clothing and physical consistency across every scene (NO switching to full pants or changing clothes).` : null,
     `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${projectData?.storyLanguage || "native"} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
+    `- Anatomical Integrity & Locomotion Alignment: Strict forward physiological alignment of chest, torso, neck, and face in the direction of movement. Explicitly prohibit backward-twisted neck, 180-degree head rotation, contorted spine, unnatural body collapse, or mismatched locomotion direction.`,
   ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
 
   // Resolve authentic location description from Production Bible (never fallback to "SCENE 1")
@@ -579,7 +647,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
       ? `Dialogue & Lip Sync: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${projectData?.storyLanguage || "Tamil"} lip movements and expressive facial animation.`
       : `Audio Pace: Pure visual cinema action and environmental Foley, no spoken character dialogue.`,
     `Aesthetics: Photorealistic 8K cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`,
-    `--ar ${arParam} --mode pro --negative "CGI, 3D render, cartoon, anime, plastic skin, full pants, long trousers, western face, distorted anatomy, extra limbs, motion jitter, blur, subtitles, watermark, text"`,
+    `--ar ${arParam} --mode pro --negative "CGI, 3D render, cartoon, anime, plastic skin, full pants, long trousers, western face, distorted anatomy, extra limbs, motion jitter, blur, subtitles, watermark, text, backwards head, twisted neck, 180 degree head rotation, broken spine, contorted body, disjointed torso, mismatched limbs"`,
   ].filter(Boolean).join(" ").replace(/\s{2,}/g, " ").replace(/\.{2,}/g, ".") : "";
 
   const chatgptPrompt = selected ? [
@@ -593,7 +661,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
       ? `Spoken Dialogue Beat: ${naturalDialogue} (Authentic ${projectData?.storyLanguage || "Tamil"} dialect, natural conversational pacing)`
       : (selected.voiceover ? `Voice-Over Beat: "${selected.voiceover}"` : `Soundscape Atmosphere: ${selected.audioPrompt || "Ambient rural environment"}`),
     `Style & Realism: Authentic documentary realism, true-to-life Indian skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 8K resolution.`,
-    `Negative Constraints: Avoid cartoon, 3D CGI animation, plastic skin, long pants or modern western clothes, distorted hands, extra limbs, artificial oversaturation.`,
+    `Negative Constraints: Avoid cartoon, 3D CGI animation, plastic skin, long pants or modern western clothes, distorted hands, extra limbs, artificial oversaturation, twisted neck, backwards head rotation, contorted spine, unnatural body collapse.`,
   ].filter(Boolean).join("\n\n") : "";
 
   const geminiPrompt = selected ? [
@@ -676,6 +744,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
       `Accurate natural ${projectData?.storyLanguage || "native"} lip synchronization`,
       `Maintain exact character face, hair, and wardrobe consistency: ${wardrobeLock || "locked attire"}`,
       "No full pants or trousers when shorts are specified",
+      "Strict natural forward anatomical alignment: chest, torso, and face face forward in the direction of movement without backward-twisting neck or contorted body",
       "No extra background crowd or distorted hands",
       "No generated subtitles or title text",
       "24fps cinematic motion blur"
@@ -843,9 +912,32 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                         {selected.shotSize}
                       </span>
                     )}
-                    <span className="text-xs font-mono text-zinc-500 font-normal">
-                      {selected.targetDurationSeconds}s
-                    </span>
+                    <div className="inline-flex items-center rounded-md border border-zinc-700/80 bg-zinc-950 p-0.5 text-xs shadow-inner">
+                      <button
+                        type="button"
+                        onClick={() => setShotDuration(selected.id, 8)}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono font-semibold transition ${
+                          normalizedDuration === 8
+                            ? "bg-amber-500 text-black shadow-sm"
+                            : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                        title="Set shot duration to 8 seconds (Google Flow standard)"
+                      >
+                        ⏱️ 8s
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShotDuration(selected.id, 10)}
+                        className={`px-2 py-0.5 rounded text-[11px] font-mono font-semibold transition ${
+                          normalizedDuration === 10
+                            ? "bg-amber-500 text-black shadow-sm"
+                            : "text-zinc-400 hover:text-zinc-200"
+                        }`}
+                        title="Set shot duration to 10 seconds (Climax / Extended action)"
+                      >
+                        ⏱️ 10s
+                      </button>
+                    </div>
                   </h2>
                 </div>
 
@@ -1191,10 +1283,31 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                   {/* Screenplay & Audio Card (BELOW PROMPT) */}
                   <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3.5 shadow-sm">
                     <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60">
-                      <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Screenplay &amp; Audio
-                      </h3>
-                      <span className="text-[11px] text-zinc-500 font-mono">S{selected.shotNumber}</span>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                        <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                          Screenplay &amp; Audio
+                        </h3>
+                        <span className="text-[11px] text-zinc-500 font-mono">S{selected.shotNumber}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/projects/${projectId}/story`}
+                          className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition"
+                          title="Open full scene-by-scene script editor"
+                        >
+                          <span>Full Script Studio</span>
+                          <ExternalLink className="h-2.5 w-2.5" />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => startEditingShotScript()}
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 text-[11px] font-semibold transition shadow-sm"
+                        >
+                          <Edit2 className="h-3 w-3 text-amber-400" />
+                          <span>Edit Script</span>
+                        </button>
+                      </div>
                     </div>
 
                     {/* Action Description */}
@@ -1259,6 +1372,108 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
           )}
         </div>
       </div>
+
+      {/* Edit Shot Script Modal */}
+      {isEditingShotScript && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/80">
+              <div className="flex items-center gap-2">
+                <Edit2 className="h-4 w-4 text-amber-400" />
+                <h3 className="text-sm font-bold text-zinc-100">
+                  Edit Script Beat · Shot {selected.shotNumber} (Scene {selectedScene?.sceneNumber ?? 1})
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingShotScript(false)}
+                className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-zinc-300 mb-1">Visual Action (English)</label>
+                <textarea
+                  rows={3}
+                  value={editShotAction}
+                  onChange={e => setEditShotAction(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:border-amber-500 focus:outline-none leading-relaxed font-sans"
+                  placeholder="Describe visual action..."
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-sky-400 mb-1">
+                  Spoken Character Dialogue ({projectData?.storyLanguage || "Tamil"})
+                </label>
+                <textarea
+                  rows={2}
+                  value={editShotDialogue}
+                  onChange={e => setEditShotDialogue(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-sky-900/40 text-zinc-200 focus:border-sky-500 focus:outline-none leading-relaxed font-mono"
+                  placeholder='e.g. [@Amma] speaks: "கார்த்தி! ஏன் இப்படி அலறிட்டே ஓடி வர்ற?!"'
+                />
+                <p className="text-[11px] text-zinc-500 mt-1">
+                  When dialogue is specified, narrator voiceover is automatically suppressed.
+                </p>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-amber-400 mb-1">
+                  Voice-Over (Narrator) ({projectData?.storyLanguage || "Tamil"})
+                </label>
+                <textarea
+                  rows={2}
+                  value={editShotVoiceover}
+                  onChange={e => setEditShotVoiceover(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-amber-900/40 text-zinc-200 focus:border-amber-500 focus:outline-none leading-relaxed font-serif italic"
+                  placeholder='Narrator voiceover beat (used only when no character is speaking dialogue)'
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-zinc-400 mb-1">Camera Movement</label>
+                  <input
+                    type="text"
+                    value={editShotCameraMotion}
+                    onChange={e => setEditShotCameraMotion(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:border-amber-500 focus:outline-none font-mono"
+                    placeholder="e.g. Dynamic low-angle tracking shot..."
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-zinc-400 mb-1">Sound Atmosphere &amp; Foley</label>
+                  <input
+                    type="text"
+                    value={editShotAudioPrompt}
+                    onChange={e => setEditShotAudioPrompt(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:border-amber-500 focus:outline-none font-mono"
+                    placeholder="e.g. Rustling leaves, panting..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 px-6 py-3 border-t border-zinc-800 bg-zinc-900/80">
+              <Button variant="ghost" size="sm" onClick={() => setIsEditingShotScript(false)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                loading={savingShotScript}
+                onClick={saveShotScript}
+                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+              >
+                <Save className="h-3.5 w-3.5 mr-1" /> Save Shot Script
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Google Flow Character Setup & Consistency Modal */}
       {isCharModalOpen && (

@@ -17,29 +17,41 @@ export const POST = apiHandler(async (_req, ctx) => {
   if (!project) throw notFound("Project not found");
   if (project.ownerId !== ownerId) throw forbidden();
 
-  const body = (await _req.json().catch(() => ({}))) as { force?: boolean };
+  const body = (await _req.json().catch(() => ({}))) as { force?: boolean; shotId?: string };
   const force = body.force ?? false;
+  const targetShotId = body.shotId;
 
-  // Get all shots with their storyboard stills
+  // Get shots with their storyboard stills (filtered by targetShotId if single shot requested)
   const shots = await prisma.shot.findMany({
-    where: { projectId: projectId as string },
+    where: {
+      projectId: projectId as string,
+      ...(targetShotId ? { id: targetShotId } : {}),
+    },
     include: {
       mediaVersions: { where: { kind: "STORYBOARD_STILL" }, take: 1 },
     },
     orderBy: [{ scene: { sceneNumber: "asc" } }, { shotNumber: "asc" }],
   });
 
-  let shotsNeedingImages = force
-    ? shots.filter((s) => s.imagePrompt)
-    : shots.filter((s) => s.mediaVersions.length === 0 && s.imagePrompt);
+  let shotsNeedingImages: typeof shots = [];
 
-  if (shotsNeedingImages.length === 0) {
-    // If all already have images and user clicked button, re-generate all
-    shotsNeedingImages = shots.filter((s) => s.imagePrompt);
+  if (targetShotId) {
+    // Single shot explicit on-demand request: always generate for this shot
+    shotsNeedingImages = shots;
+  } else {
+    // Bulk generation: either all (if force) or those without a still yet
+    shotsNeedingImages = force
+      ? shots.filter((s) => s.imagePrompt || s.actionDescription)
+      : shots.filter((s) => s.mediaVersions.length === 0 && (s.imagePrompt || s.actionDescription));
+
+    if (shotsNeedingImages.length === 0) {
+      // If all already have images and user clicked button, re-generate all
+      shotsNeedingImages = shots.filter((s) => s.imagePrompt || s.actionDescription);
+    }
   }
 
   if (shotsNeedingImages.length === 0) {
-    return { queued: 0, message: "No shots found with image prompts" };
+    return { queued: 0, message: "No shots found to generate images" };
   }
 
   const jobs = await Promise.all(

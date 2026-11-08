@@ -7,7 +7,7 @@ import { Badge, artifactStatusBadge } from "@/components/ui/badge";
 import {
   ChevronRight, Sparkles, Upload, Check, Image as ImageIcon, Video,
   AlertCircle, Mic, MessageSquare, Volume2, Copy, CheckCheck, Download,
-  ExternalLink, FileCode, User, ChevronDown, ChevronUp, X, Edit2, Save,
+  ExternalLink, FileCode, User, ChevronDown, ChevronUp, X, Edit2, Save, RefreshCw,
 } from "lucide-react";
 
 interface ShotMedia {
@@ -35,6 +35,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
   const [scenes, setScenes]               = useState<Scene[]>([]);
   const [generating, setGenerating]       = useState(false);
   const [genImages, setGenImages]         = useState(false);
+  const [singleGenImageShotId, setSingleGenImageShotId] = useState<string | null>(null);
   const [genVideos, setGenVideos]         = useState(false);
   const [activeJobId, setActiveJobId]     = useState<string | null>(null);
   const [imageJobIds, setImageJobIds]     = useState<string[]>([]);
@@ -127,6 +128,8 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
         setImageJobIds([]);
         setImgProgress(null);
         setGenImages(false);
+        setSingleGenImageShotId(null);
+        setActiveMediaView("still");
         load();
       }
     }, 3000);
@@ -191,6 +194,44 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
       setGenImages(false);
       setError(d.error?.message ?? "Failed to start image generation");
     }
+  }
+
+  async function generateSingleShotImage(shotId: string) {
+    setSingleGenImageShotId(shotId);
+    setError(null);
+    try {
+      const r = await fetch(`/api/projects/${projectId}/shots/generate-images`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ force: true, shotId }),
+      });
+      const d = await r.json();
+      if (r.ok) {
+        if (d.data?.queued === 0) {
+          setSingleGenImageShotId(null);
+          setError(d.data?.message || "Failed to generate image");
+          return;
+        }
+        if (d.data?.jobIds?.length > 0) {
+          setImageJobIds(prev => [...prev, ...d.data.jobIds]);
+        }
+      } else {
+        setSingleGenImageShotId(null);
+        setError(d.error?.message ?? "Failed to start image generation");
+      }
+    } catch (e) {
+      setSingleGenImageShotId(null);
+      setError(e instanceof Error ? e.message : "Failed to start image generation");
+    }
+  }
+
+  function downloadImage(storagePath: string, shotNum: number) {
+    const url = mediaUrl(storagePath);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Shot-${shotNum}-still.jpg`;
+    a.target = "_blank";
+    a.click();
   }
 
   async function generateVideos(singleShotId?: string) {
@@ -865,8 +906,10 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                   <button key={sh.id} onClick={() => setSelected(sh)}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 ${selected?.id === sh.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"}`}>
                     {/* Thumbnail */}
-                    <span className="h-8 w-12 rounded overflow-hidden shrink-0 bg-zinc-800 flex items-center justify-center">
-                      {img ? (
+                    <span className="h-8 w-12 rounded overflow-hidden shrink-0 bg-zinc-800 flex items-center justify-center relative">
+                      {singleGenImageShotId === sh.id ? (
+                        <span className="h-3 w-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+                      ) : img ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={mediaUrl(img.storagePath)} alt="" className="h-full w-full object-cover" />
                       ) : (
@@ -1006,7 +1049,15 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                           alt={`Shot ${selected.shotNumber}`}
                           className="w-full h-full object-contain"
                         />
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 pointer-events-none">
+                        <div className="absolute top-3 right-3 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => downloadImage(selectedImage.storagePath, selected.shotNumber)}
+                            className="text-[11px] bg-black/85 hover:bg-black text-amber-300 border border-amber-500/50 px-2.5 py-1 rounded-full font-semibold shadow flex items-center gap-1.5 transition"
+                            title="Download still image for Kling / Luma Image-to-Video"
+                          >
+                            <Download className="h-3 w-3 text-amber-400" /> Download for I2V
+                          </button>
                           <span className="text-[11px] bg-black/85 backdrop-blur text-zinc-300 border border-zinc-700 px-2.5 py-0.5 rounded-full font-medium shadow flex items-center gap-1">
                             <ImageIcon className="h-3 w-3 text-amber-400" /> Storyboard Still
                           </span>
@@ -1014,13 +1065,31 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                       </div>
                     ) : (
                       /* Placeholder Drop Canvas */
-                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-zinc-900/30 to-zinc-950">
-                        <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 mb-3 shadow">
-                          <Upload className="h-5 w-5" />
+                      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-b from-zinc-900/40 via-zinc-950 to-zinc-950 space-y-3">
+                        <div className="h-12 w-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow">
+                          <Sparkles className="h-6 w-6" />
                         </div>
-                        <h4 className="text-sm font-semibold text-zinc-200 mb-1">Awaiting Media Asset</h4>
-                        <p className="text-xs text-zinc-400 max-w-sm mb-3">
-                          Generate in browser using the prompt on the right, then drop here or press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[11px] font-mono text-amber-300">Ctrl+V</kbd> to paste.
+                        <div className="space-y-1 max-w-md">
+                          <h4 className="text-sm font-bold text-zinc-100">Ready for Visual Still</h4>
+                          <p className="text-xs text-zinc-400 leading-relaxed">
+                            Generate an AI still image for Image-to-Video models (Kling, Luma, Wan 2.1) or in-app animation.
+                          </p>
+                        </div>
+                        <div className="pt-1">
+                          <button
+                            type="button"
+                            onClick={() => generateSingleShotImage(selected.id)}
+                            disabled={singleGenImageShotId === selected.id}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black rounded-lg text-xs font-bold transition shadow-lg disabled:opacity-50"
+                          >
+                            <Sparkles className={`h-4 w-4 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                            {singleGenImageShotId === selected.id
+                              ? "Generating 1080p Still with FLUX.1…"
+                              : "🎨 Generate AI Image (100% Free FLUX.1)"}
+                          </button>
+                        </div>
+                        <p className="text-[11px] text-zinc-500">
+                          Optional · Or drag &amp; drop an image / press <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[10px] font-mono text-amber-300">Ctrl+V</kbd> to paste
                         </p>
                       </div>
                     )}
@@ -1102,17 +1171,53 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                           Silent video clips from Kling, Luma or Google Flow are automatically dubbed with your screenplay audio on import.
                         </p>
 
-                        <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                          {/* On-Demand Single Shot Generate/Regenerate Image button */}
+                          <button
+                            type="button"
+                            onClick={() => generateSingleShotImage(selected.id)}
+                            disabled={singleGenImageShotId === selected.id}
+                            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition shadow-md disabled:opacity-50 ${
+                              selectedImage
+                                ? "bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/30"
+                                : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black"
+                            }`}
+                            title={selectedImage ? "Regenerate this still image with a new seed" : "Generate a 1080p still image for this scene using free FLUX.1"}
+                          >
+                            {selectedImage ? (
+                              <RefreshCw className={`h-3.5 w-3.5 text-amber-400 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                            ) : (
+                              <Sparkles className={`h-3.5 w-3.5 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                            )}
+                            {singleGenImageShotId === selected.id
+                              ? "Generating Still…"
+                              : selectedImage
+                              ? "🔄 Regenerate Still (FLUX.1)"
+                              : "🎨 Generate AI Still (Free FLUX.1)"}
+                          </button>
+
+                          {selectedImage && (
+                            <button
+                              type="button"
+                              onClick={() => downloadImage(selectedImage.storagePath, selected.shotNumber)}
+                              className="inline-flex items-center gap-2 px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg text-xs font-semibold transition shadow-md"
+                              title="Download still image to upload to Kling, Luma Dream Machine, or Google Flow for Image-to-Video"
+                            >
+                              <Download className="h-3.5 w-3.5 text-amber-400" />
+                              Download Still (for I2V)
+                            </button>
+                          )}
+
                           {selectedImage && (
                             <button
                               type="button"
                               onClick={() => generateVideos(selected.id)}
                               disabled={genVideos}
-                              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black rounded-lg text-xs font-bold transition shadow-md disabled:opacity-50"
-                              title="Turn this still image into a cinematic 1080p video clip with voiceover & motion in this app"
+                              className="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-purple-900/80 to-purple-800/80 hover:from-purple-800 hover:to-purple-700 text-purple-100 border border-purple-600/60 rounded-lg text-xs font-bold transition shadow-md disabled:opacity-50"
+                              title="Turn this still image into a cinematic video clip with voiceover & motion in this app"
                             >
-                              <Video className="h-4 w-4" />
-                              {genVideos ? "Animating Video…" : "🎬 Animate to Video (In-App)"}
+                              <Video className="h-3.5 w-3.5 text-purple-300" />
+                              {genVideos ? "Animating Video…" : "🎬 Animate to Video"}
                             </button>
                           )}
 
@@ -1123,9 +1228,9 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                               className="hidden"
                               onChange={e => { const f = e.target.files?.[0]; if (f && selected) importMedia(selected.id, f); }}
                             />
-                            <span className={`inline-flex items-center gap-2 px-4 py-2 bg-purple-950/80 hover:bg-purple-900/80 text-purple-200 rounded-lg text-xs border border-purple-700/80 font-semibold transition shadow-md ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
-                              <Video className="h-4 w-4 text-purple-400" />
-                              {importing === selected.id ? "Importing Video…" : "Import Video Clip (MP4)"}
+                            <span className={`inline-flex items-center gap-2 px-3 py-2 bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 rounded-lg text-xs border border-purple-800/50 font-medium transition shadow-sm ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
+                              <Video className="h-3.5 w-3.5 text-purple-400" />
+                              {importing === selected.id ? "Importing…" : "Import MP4"}
                             </span>
                           </label>
 
@@ -1136,9 +1241,9 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                               className="hidden"
                               onChange={e => { const f = e.target.files?.[0]; if (f && selected) importMedia(selected.id, f); }}
                             />
-                            <span className={`inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 rounded-lg text-xs border border-zinc-700 font-semibold transition shadow-md ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
-                              <ImageIcon className="h-4 w-4 text-amber-400" />
-                              {importing === selected.id ? "Importing Image…" : "Import Still Image (JPG/PNG)"}
+                            <span className={`inline-flex items-center gap-2 px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700 font-medium transition shadow-sm ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
+                              <ImageIcon className="h-3.5 w-3.5 text-amber-400" />
+                              {importing === selected.id ? "Importing…" : "Import Image"}
                             </span>
                           </label>
                         </div>
@@ -1183,6 +1288,16 @@ export default function StoryboardPage({ params }: { params: Promise<{ projectId
                             <ExternalLink className="h-3 w-3" />
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => generateSingleShotImage(selected.id)}
+                          disabled={singleGenImageShotId === selected.id}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 rounded-md text-xs font-semibold shadow-sm transition disabled:opacity-50"
+                          title="Generate free 1080p FLUX.1 still image for this scene"
+                        >
+                          <Sparkles className={`h-3 w-3 text-amber-400 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                          <span>{singleGenImageShotId === selected.id ? "Generating…" : "Generate Still"}</span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => copyPrompt(activePromptText, promptTab)}

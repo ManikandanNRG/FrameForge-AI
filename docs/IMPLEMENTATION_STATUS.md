@@ -7,6 +7,13 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **On-Demand Single-Shot & Bulk Free AI Image Generation for Image-to-Video (I2V)** (`src/app/api/projects/[projectId]/shots/generate-images/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`, `src/lib/providers/resolve-image.ts`, `src/lib/providers/flux-image.ts`):
+  - **100% Free & Zero-Cost**: Powered by open-source FLUX.1 (via Pollinations), requiring zero API keys, zero credit cards, and zero usage limits.
+  - **On-Demand & Optional**: Not blocking or mandatory. Users can generate still images per-shot whenever needed for Image-to-Video workflows (Kling, Luma Dream Machine, Wan 2.1, Hailuo, Runway Gen-3) or in-app animation.
+  - **Single-Shot 1-Click Generation**: Added `🎨 Generate AI Image (100% Free FLUX.1)` directly inside the Cinema Viewport, Media Station, and AI Prompt Hub header.
+  - **Instant Image-to-Video (I2V) Export**: Added `⬇️ Download Still (for I2V)` to download 1080p still images to the user's computer with 1 click for direct upload into video generation models.
+  - **Aspect-Ratio Conscious Dimensions**: Automatically matches the project orientation (`768x1360` for 9:16 vertical, `1280x720` for 16:9 widescreen, `1024x1024` for square).
+  - **Image Variation & Regeneration**: `🔄 Regenerate Still` triggers fresh generation with a new seed.
 - **Two-Story Option Development & Dynamic Idea Analysis Engine (Option A vs Option B)** (`src/lib/story/schemas.ts`, `src/app/api/projects/[projectId]/story/generate-options/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/projects/[projectId]/story/page.tsx`, `src/app/projects/[projectId]/page.tsx`):
   - **Dynamic Idea Analysis (No Hardcoded Categories)**: The AI analyzes any user idea (comedy, romance, sports, horror, fantasy, sci-fi, village drama, etc.) and formulates two organic, contrasting creative treatments (Angle A vs Angle B) derived directly from that idea.
   - **Side-by-Side Comparison Modal**: Review dynamic concept angles, titles, loglines, premises, and complete scene breakdowns (8s/10s duration) with native Tamil dialogues before committing.

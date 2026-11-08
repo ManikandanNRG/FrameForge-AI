@@ -6,23 +6,28 @@ import type { ImageGenerationProvider } from "./types";
 
 /**
  * Resolve an image generation provider for a given owner.
- * If an active, verified OpenAI connection exists, use DALL-E 3.
- * Otherwise, default to free, open-source FLUX.1 (zero-cost, no key required).
+ * Defaults to 100% free open-source FLUX.1 (zero-cost, no key required).
+ * If explicitly requested, can use OpenAI DALL-E 3 when a connected key is present.
  */
 export async function resolveImageProvider(
   ownerId: string,
+  preferred?: "flux" | "openai",
 ): Promise<{ provider: ImageGenerationProvider; modelId: string }> {
-  const openaiConn = await prisma.providerConnection.findFirst({
-    where: { ownerId, providerId: "openai", isEnabled: true, status: "CONNECTED" },
-  });
-  if (openaiConn) {
-    return {
-      provider: new OpenAIImageProvider(decryptSecret(openaiConn.encryptedKey)),
-      modelId: "dall-e-3",
-    };
+  if (preferred === "openai") {
+    const openaiConn = await prisma.providerConnection.findFirst({
+      where: { ownerId, providerId: "openai", isEnabled: true, status: "CONNECTED" },
+    });
+    if (openaiConn) {
+      try {
+        return {
+          provider: new OpenAIImageProvider(decryptSecret(openaiConn.encryptedKey)),
+          modelId: "dall-e-3",
+        };
+      } catch {}
+    }
   }
 
-  // Default to 100% free open-source FLUX.1
+  // Default to 100% free open-source FLUX.1 (zero-cost, no API key required)
   return {
     provider: new FluxImageProvider(),
     modelId: "flux-schnell",

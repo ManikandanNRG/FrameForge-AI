@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
@@ -30,8 +31,9 @@ function mediaUrl(p: string, versionId?: string) {
   return versionId ? `${base}&v=${versionId}` : base;
 }
 
-export default function StoryboardPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = use(params);
+export default function StoryboardPage() {
+  const routeParams = useParams();
+  const projectId = (routeParams?.projectId as string) || "";
   const [scenes, setScenes]               = useState<Scene[]>([]);
   const [generating, setGenerating]       = useState(false);
   const [genImages, setGenImages]         = useState(false);

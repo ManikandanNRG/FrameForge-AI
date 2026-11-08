@@ -4,8 +4,9 @@
   "private": true,
   "description": "Single, easy tool to make AI videos: idea -> story -> storyboard -> generation -> edit -> export. Localhost-first Phase 0.",
   "scripts": {
-    "dev": "concurrently -n web,worker -c blue,green \"next dev\" \"tsx src/lib/jobs/run-worker.ts\"",
-    "dev:web": "next dev",
+    "dev": "concurrently -n web,worker -c blue,green \"next dev --webpack\" \"tsx src/lib/jobs/run-worker.ts\"",
+    "dev:web": "next dev --webpack",
+    "dev:turbo": "concurrently -n web,worker -c blue,green \"next dev --turbopack\" \"tsx src/lib/jobs/run-worker.ts\"",
     "worker": "tsx src/lib/jobs/run-worker.ts",
     "build": "next build",
     "start": "next start",

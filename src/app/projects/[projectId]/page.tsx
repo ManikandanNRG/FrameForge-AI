@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge, jobStatusBadge } from "@/components/ui/badge";
@@ -15,8 +15,9 @@ interface Job { id: string; status: string; jobType: string; createdAt: string; 
 
 const stageOrder = ["BRIEF","STORY","BIBLE","STORYBOARD","GENERATION","EDITING","EXPORT","COMPLETE"];
 
-export default function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = use(params);
+export default function ProjectPage() {
+  const routeParams = useParams();
+  const projectId = (routeParams?.projectId as string) || "";
   const router = useRouter();
   const [project, setProject]       = useState<Project | null>(null);
   const [jobs, setJobs]             = useState<Job[]>([]);

@@ -7,6 +7,17 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Dev Server Webpack Stability & Route Params Hook Refactor (Resolved Flickering Reload Loop)** (`package.json`, `src/app/projects/[projectId]/*`):
+  - **Turbopack HMR Loop Resolution**: Next.js 16.4.3 Turbopack on Windows was caught in an endless file-lock / cache mismatch loop in `.next/dev/cache/turbopack/` (generating 34,281 HMR reload events at 10 requests/sec). Cleared the corrupted `.next` cache and switched `dev` and `dev:web` scripts to `next dev --webpack` for rock-solid dev server stability.
+  - **Synchronous `useParams()` Migration**: Replaced asynchronous `React.use(params)` across all dynamic client pages (`story`, `storyboard`, `bible`, `edit`, `page.tsx`) with Next.js official synchronous `useParams()` hook, preventing client Suspense re-mounting and screen flashing.
+  - **Localhost Session Auto-Recovery**: If a dev server restart or cookie expiration causes `session.userId` to be missing on localhost in development mode, `requireUserId()` and `/api/auth/me` automatically attach and persist the single local owner user (`env.OWNER_EMAIL`), preventing 401 Unauthorized locks across all project and generation routes.
+  - **URL Query Param Loop Prevention**: Guarded the `action=options` trigger in `story/page.tsx` with a `useRef` and immediately sanitized the browser URL with `window.history.replaceState({}, "", window.location.pathname)` to eliminate rapid re-execution and reloads.
+  - **Detailed API Error Logging**: Enhanced `apiHandler` logging to record HTTP method and pathname upon request failure for instant debugging.
+- **Inline AI Director Co-Pilot (Chat-Bot Scene Refinement)** (`src/app/projects/[projectId]/story/page.tsx`, `src/app/api/projects/[projectId]/story/regenerate-scene/route.ts`, `src/lib/providers/gemini-text.ts`):
+  - **Inline Chat-Bot Bar on Every Scene Card**: Users can now type natural language instructions directly into any scene card (e.g. *"Make Karthi shout louder in Tamil"*, *"Mother hugs him tightly in fear"*, *"Increase suspense when elephant appears"*).
+  - **Quick-Prompt Inspiration Pills**: 1-click pills to append common director adjustments (`+ Make dialogue more emotional`, `+ Add frantic screams & fear`, `+ Increase suspense with elephant threat`, `+ Make action faster & urgent`).
+  - **1-Click AI Rewrite**: Direct `✨ AI Rewrite` button on the input bar that rewrites that exact scene in real-time, preserving locked character wardrobe, voice continuity, and dramatic cause-and-effect with neighboring scenes.
+  - **Optimized Gemini Model Resolution**: Pointed directly to `gemini-2.5-flash` and `gemini-flash-latest` as primary models for zero-latency, reliable scriptwriting without model 404 retries.
 - **On-Demand Single-Shot & Bulk Free AI Image Generation for Image-to-Video (I2V)** (`src/app/api/projects/[projectId]/shots/generate-images/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`, `src/lib/providers/resolve-image.ts`, `src/lib/providers/flux-image.ts`):
   - **100% Free & Zero-Cost**: Powered by open-source FLUX.1 (via Pollinations), requiring zero API keys, zero credit cards, and zero usage limits.
   - **On-Demand & Optional**: Not blocking or mandatory. Users can generate still images per-shot whenever needed for Image-to-Video workflows (Kling, Luma Dream Machine, Wan 2.1, Hailuo, Runway Gen-3) or in-app animation.

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, use, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
@@ -139,8 +140,9 @@ function generateSpeechWaveform(text: string, count: number): number[] {
   return bars;
 }
 
-export default function NLEEditorPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = use(params);
+export default function NLEEditorPage() {
+  const routeParams = useParams();
+  const projectId = (routeParams?.projectId as string) || "";
 
   // Core Data
   const [sequence, setSequence]           = useState<Sequence | null>(null);

@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
@@ -85,8 +86,10 @@ const TYPE_LABELS: Record<string, string> = {
 
 const ORDER = ["SCREENPLAY", "LOGLINE", "SYNOPSIS", "OUTLINE", "CHARACTER_ARCS"];
 
-export default function StoryStudioPage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = use(params);
+export default function StoryStudioPage() {
+  const routeParams = useParams();
+  const projectId = (routeParams?.projectId as string) || "";
+  const actionOptionsHandledRef = useRef(false);
   const [project, setProject] = useState<ProjectData | null>(null);
   const [artifacts, setArtifacts] = useState<Artifact[]>([]);
   const [dbScenesFallback, setDbScenesFallback] = useState<SceneData[]>([]);
@@ -103,6 +106,13 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
   const [regenInstructions, setRegenInstructions] = useState<string>("");
   const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
   const [regenError, setRegenError] = useState<string | null>(null);
+
+  // Inline Scene AI Director Chat Co-Pilot State
+  const [sceneAiInputs, setSceneAiInputs] = useState<Record<number, string>>({});
+  const [inlineRegenLoadingScene, setInlineRegenLoadingScene] = useState<number | null>(null);
+  const [inlineRegenError, setInlineRegenError] = useState<string | null>(null);
+  const [inlineRegenErrorScene, setInlineRegenErrorScene] = useState<number | null>(null);
+  const [inlineRegenSuccessScene, setInlineRegenSuccessScene] = useState<number | null>(null);
 
   // 2-Story Options Generation State (Option A vs Option B)
   const [showOptionsModal, setShowOptionsModal] = useState<boolean>(false);
@@ -171,11 +181,12 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
 
   useEffect(() => {
     loadData();
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && !actionOptionsHandledRef.current) {
       const params = new URLSearchParams(window.location.search);
       if (params.get("action") === "options") {
+        actionOptionsHandledRef.current = true;
+        window.history.replaceState({}, "", window.location.pathname);
         setShowOptionsModal(true);
-        handleGenerateStoryOptions();
       }
     }
   }, [projectId]);
@@ -248,6 +259,40 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
       setRegenError(err.message || "Failed to regenerate scene.");
     } finally {
       setIsRegenerating(false);
+    }
+  }
+
+  // Handle Inline Scene AI Director Chat-Bot Co-Pilot
+  async function handleInlineSceneRegenerate(sceneNum: number) {
+    const instructions = sceneAiInputs[sceneNum] || "";
+    setInlineRegenLoadingScene(sceneNum);
+    setInlineRegenError(null);
+    setInlineRegenErrorScene(null);
+    setInlineRegenSuccessScene(null);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/story/regenerate-scene`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sceneNumber: sceneNum,
+          instructions: instructions.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Failed to rewrite scene with AI");
+      }
+
+      setSceneAiInputs(prev => ({ ...prev, [sceneNum]: "" }));
+      setInlineRegenSuccessScene(sceneNum);
+      setTimeout(() => setInlineRegenSuccessScene(null), 4000);
+      await loadData();
+    } catch (err: any) {
+      setInlineRegenErrorScene(sceneNum);
+      setInlineRegenError(err.message || "Failed to rewrite scene.");
+    } finally {
+      setInlineRegenLoadingScene(null);
     }
   }
 
@@ -684,6 +729,112 @@ export default function StoryStudioPage({ params }: { params: Promise<{ projectI
                             </p>
                           </div>
                         )}
+
+                        {/* AI Director Co-Pilot (Chat-Bot Style Inline Scene Instruction) */}
+                        <div className="mt-4 pt-3.5 border-t border-purple-900/40 bg-purple-950/25 -mx-6 -mb-6 p-4 rounded-b-2xl space-y-2.5">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-purple-300">
+                              <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+                              <span>AI Director Co-Pilot · Modify Scene {scene.sceneNumber}</span>
+                            </div>
+                            <span className="text-[11px] text-zinc-400 font-mono">
+                              Type instruction like a chat bot &amp; click AI Rewrite
+                            </span>
+                          </div>
+
+                          {/* Quick instruction pills */}
+                          <div className="flex flex-wrap gap-1.5">
+                            {[
+                              "Make dialogue more emotional",
+                              "Add frantic screams & fear",
+                              "Increase suspense with elephant threat",
+                              "Add mother comforting Karthi",
+                              "Make action faster & urgent",
+                            ].map((hint) => (
+                              <button
+                                key={hint}
+                                type="button"
+                                onClick={() => {
+                                  setSceneAiInputs((prev) => ({
+                                    ...prev,
+                                    [scene.sceneNumber]: prev[scene.sceneNumber]
+                                      ? `${prev[scene.sceneNumber]}, ${hint}`
+                                      : hint,
+                                  }));
+                                }}
+                                className="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-950/80 hover:bg-purple-900 text-purple-300 border border-purple-750/60 transition font-medium"
+                              >
+                                + {hint}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Chat-bot input form */}
+                          <div className="flex gap-2">
+                            <div className="relative flex-1">
+                              <input
+                                type="text"
+                                value={sceneAiInputs[scene.sceneNumber] || ""}
+                                onChange={(e) =>
+                                  setSceneAiInputs((prev) => ({
+                                    ...prev,
+                                    [scene.sceneNumber]: e.target.value,
+                                  }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    handleInlineSceneRegenerate(scene.sceneNumber);
+                                  }
+                                }}
+                                placeholder={`e.g. "Make Karthi shout louder in Tamil", "Add sound of crashing basket", "Make mother hug him"...`}
+                                disabled={inlineRegenLoadingScene === scene.sceneNumber}
+                                className="w-full px-3.5 py-2 rounded-xl bg-zinc-950 border border-purple-900/60 hover:border-purple-700 focus:border-purple-500 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none transition font-sans pr-8 shadow-inner"
+                              />
+                              {sceneAiInputs[scene.sceneNumber] && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSceneAiInputs((prev) => ({
+                                      ...prev,
+                                      [scene.sceneNumber]: "",
+                                    }))
+                                  }
+                                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 p-0.5"
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleInlineSceneRegenerate(scene.sceneNumber)}
+                              disabled={inlineRegenLoadingScene === scene.sceneNumber}
+                              className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center gap-1.5 shrink-0 disabled:opacity-50"
+                            >
+                              <Sparkles
+                                className={`h-3.5 w-3.5 ${
+                                  inlineRegenLoadingScene === scene.sceneNumber ? "animate-spin" : ""
+                                }`}
+                              />
+                              <span>
+                                {inlineRegenLoadingScene === scene.sceneNumber
+                                  ? "Rewriting Scene…"
+                                  : "✨ AI Rewrite"}
+                              </span>
+                            </button>
+                          </div>
+
+                          {inlineRegenError && inlineRegenErrorScene === scene.sceneNumber && (
+                            <p className="text-[11px] text-rose-400 font-medium">{inlineRegenError}</p>
+                          )}
+                          {inlineRegenSuccessScene === scene.sceneNumber && (
+                            <p className="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+                              <Check className="h-3 w-3" /> Scene {scene.sceneNumber} successfully rewritten with your instructions!
+                            </p>
+                          )}
+                        </div>
 
                       </div>
                     </div>

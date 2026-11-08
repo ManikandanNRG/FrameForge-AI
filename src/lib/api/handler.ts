@@ -40,7 +40,7 @@ export function apiHandler<T>(handler: Handler<T>) {
             ? err
             : new AppError("INTERNAL_ERROR", message, 500);
         logger.error(
-          { err: { code: e.code, message: e.message, status: e.status } },
+          { path: `${req.method} ${req.nextUrl.pathname}`, err: { code: e.code, message: e.message, status: e.status } },
           "request failed",
         );
         return Response.json(

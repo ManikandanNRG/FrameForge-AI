@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,9 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
   PROP:      <Package className="h-3.5 w-3.5" />,
 };
 
-export default function BiblePage({ params }: { params: Promise<{ projectId: string }> }) {
-  const { projectId } = use(params);
+export default function BiblePage() {
+  const routeParams = useParams();
+  const projectId = (routeParams?.projectId as string) || "";
   const [assets, setAssets]           = useState<Asset[]>([]);
   const [generating, setGenerating]   = useState(false);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);

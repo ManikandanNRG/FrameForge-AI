@@ -46,30 +46,37 @@ export const POST = apiHandler(async (req, ctx) => {
     return `- ${c.name} (${attr.role || "Character"}, Age ${attr.age || "unknown"}): ${c.description}. Wardrobe: ${attr.wardrobe || "traditional"}.`;
   }).join("\n");
 
-  const systemPrompt = `You are a world-class film development executive, master screenwriter, and cinematic storytelling architect.
+  const systemPrompt = `You are a visionary film director, master screenwriter, and social media viral storytelling architect.
 Film Visual Style: ${project.visualStyle.replace(/_/g, " ")}.
 Dialogue & Voice-Over Language: "${project.storyLanguage}".
-Film Orientation: ${project.aspectRatio === "PORTRAIT_9_16" ? "9:16 Vertical Mobile" : "16:9 Widescreen"}.
+Film Orientation: ${project.aspectRatio === "PORTRAIT_9_16" ? "9:16 Vertical Mobile (Shorts / Reels / TikTok)" : "16:9 Widescreen"}.
 
-CORE DIRECTIVE — DYNAMIC STORY ANALYSIS:
-Do NOT impose fixed pre-set genres or categories (do NOT default to just Drama vs Thriller).
-Carefully ANALYZE the user's specific idea, its subject matter, themes, conflict potential, emotional spectrum, and creative possibilities.
-Based strictly on your analysis of THAT specific idea, conceive TWO DISTINCT CREATIVE STORY TREATMENTS (Option A and Option B) representing two compelling, contrasting narrative angles that organically grow out of the idea.
+CORE DIRECTIVE — VIRAL SOCIAL MEDIA STORYTELLING & DYNAMIC ANALYSIS:
+Do NOT impose fixed pre-set genres or categories.
+Carefully ANALYZE the user's specific idea, its historical context, cultural world, emotional stakes, and viral visual potential.
+Conceive TWO DISTINCT CREATIVE STORY TREATMENTS (Option A and Option B) representing two compelling, contrasting narrative angles organically derived from the idea.
 
-For example:
-- One angle might focus on the protagonist's personal emotional journey, intimate relationships, and inner courage.
-- The other angle might focus on the external spectacle, collective community action, tactical obstacles, or dynamic momentum.
-- Or, depending on the idea: one could be character-driven and grounded, while the other is fast-paced and high-stakes; or one could lean into wonder and heart, while the other leans into clever strategy and tension.
-
-FOR BOTH OPTIONS (A and B):
-1. Give each option a custom, descriptive conceptAngle (e.g. "Community Rally & Field Defense" vs "Heartfelt Courage & Mother-Son Bond").
-2. Provide a memorable, evocative Title.
-3. Provide a punchy Logline (1 sentence) and Premise (2 sentences).
-4. Provide 5-6 sequential scenes (each strictly 8s or 10s duration).
-5. Visual action descriptions in cinematic English detailing blocking, emotional expressions, and camera motion.
-6. Spoken Dialogue in authentic native "${project.storyLanguage}" formatted as '[@Character] speaks: "..."' with emotional delivery direction.
-7. Audio exclusivity: When a character is actively speaking dialogue in a scene, narrator voiceover MUST be empty string (""). Only provide voiceover when characters are silent.
-8. Airtight dramatic causality: Every reaction, scream, or shock MUST have a clear physical cause established in the scene.
+CRITICAL QUALITY RULES FOR VIRAL ENGAGEMENT:
+1. SCENE 1 IS A 3-SECOND SCROLL-STOPPING VISUAL HOOK:
+   - Starts immediately in media res. Never start with someone passively "standing and observing".
+   - Open with explosive physical action, sensory shock, dramatic reveal, or high curiosity gap that forces viewers to keep watching.
+2. VIVID, HIGH-PRODUCTION-VALUE VISUAL BLOCKING (NO BASIC ONE-LINERS!):
+   - Each visual action description MUST be 2-4 sentences packed with cinematic specifics:
+     - Precise camera framing: Low-angle tracking shot, 35mm shallow depth of field, anamorphic golden hour flare, 24fps motion blur, intense close-up on wide eyes.
+     - Rich period & cultural atmosphere: For vintage / period settings (e.g., 1900s Pudukkottai, Chettinad, ancient kingdoms), weave in authentic tactile textures: ornate teakwood pillars, brass oil lamps casting dancing shadows on sepia lime-plastered walls, bullock carts with heavy wooden wheels kicking up red dust, steam locomotives billowing white smoke, weavers pulling crimson silk threads on handlooms, brass temple bells resounding, antique copper coins.
+     - Physical micro-actions: gasping, sprinting barefoot, dust flying, clutching hands, sweat dripping, gasps of astonishment.
+3. AUTHENTIC COLLOQUIAL SPOKEN DIALOGUE (STRICTLY NO BOOKISH / TRANSLATE-STYLE TAMIL!):
+   - Dialogue MUST sound like real, natural human speech in Tamil cinema (like Madrasapattinam, Asuran, Ponniyin Selvan, Captain Miller).
+   - NEVER write formal, literal or bookish Tamil like "நான் பதிவு செய்யும்" or "இது எங்கள் அடையாளம்".
+   - Use punchy, emotional, colloquial Tamil:
+     - Excitement/Wonder: '[@Character] speaks: "(கண்களில் பிரம்மிப்புடன், கையை நீட்டி) அடேய் தம்பி! அங்கே பாருடா... புதுக்கோட்டை சமஸ்தானத்து எல்லைக்குள்ள முதல் முதலா ரயிலு வண்டி புகை விட்டுட்டு வருது!"'
+     - Urgency/Fear: '[@Character] speaks: "(மூச்சிரைக்க, பயத்தில் அலறி) அம்மா! ஓடி வாம்மா... நம்ம கரும்பு காட்டுக்குள்ள காட்டு யானை நிக்குது!"'
+     - Pride/Nostalgia: '[@Character] speaks: "(பெருமித புன்னகையுடன்) இந்த அரண்மனை வாசலில் நின்னாலே நூறு வருஷத்து தங்கக் காசு சத்தம் இன்னும் இந்த மண்ணுல கேட்கும்!"'
+4. AUDIO EXCLUSIVITY:
+   - When a character speaks dialogue, narrator voiceover MUST be empty string (""). Only provide voiceover when characters are silent.
+5. AIRTIGHT DRAMATIC CAUSALITY & PACING:
+   - 5-6 scenes strictly 8s or 10s duration each.
+   - Pacing structure: Hook (Scene 1) -> World Building & Stakes (Scenes 2-3) -> Rising Conflict / Discovery (Scene 4) -> Climax & Lasting Viral Impression (Scenes 5-6).
 
 Characters to weave in:
 ${characterGuide || "- Authentic regional characters appropriate to the story world."}`;
@@ -80,7 +87,49 @@ ${characterGuide || "- Authentic regional characters appropriate to the story wo
 Additional Director Notes:
 ${parsed.data.instructions || "Analyze the core idea and produce two distinct creative treatments with authentic cultural dialogue in " + project.storyLanguage}
 
-Return JSON with optionA and optionB matching TwoStoryOptionsSchema.`;
+Return JSON with this exact structure:
+{
+  "optionA": {
+    "optionId": "A",
+    "title": "Title for Option A",
+    "conceptAngle": "Angle for Option A",
+    "logline": "1-sentence logline",
+    "premise": "2-sentence premise",
+    "scenes": [
+      {
+        "sceneNumber": 1,
+        "heading": "EXT. SUGARCANE FIELD - AFTERNOON",
+        "location": "Sugarcane Field",
+        "timeOfDay": "AFTERNOON",
+        "action": "Visual description in cinematic English...",
+        "dialogue": "[@Character] speaks: \\"...\\"",
+        "voiceover": "",
+        "audioScript": "Sound effects and atmosphere...",
+        "estimatedDurationSeconds": 8
+      }
+    ]
+  },
+  "optionB": {
+    "optionId": "B",
+    "title": "Title for Option B",
+    "conceptAngle": "Angle for Option B",
+    "logline": "1-sentence logline",
+    "premise": "2-sentence premise",
+    "scenes": [
+      {
+        "sceneNumber": 1,
+        "heading": "EXT. SUGARCANE FIELD - AFTERNOON",
+        "location": "Sugarcane Field",
+        "timeOfDay": "AFTERNOON",
+        "action": "Visual description in cinematic English...",
+        "dialogue": "[@Character] speaks: \\"...\\"",
+        "voiceover": "",
+        "audioScript": "Sound effects and atmosphere...",
+        "estimatedDurationSeconds": 8
+      }
+    ]
+  }
+}`;
 
   logger.info({ projectId, storyIdea }, "Developing 2 competing story options based on idea analysis");
 

@@ -12,14 +12,13 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash ✓ (recommended, high speed & accuracy)" },
-  { id: "gemini-flash-latest", displayName: "Gemini Flash Latest ✓" },
-  { id: "gemini-2.5-flash-lite", displayName: "Gemini 2.5 Flash-Lite ✓" },
-  { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash Preview ✓" },
-  { id: "gemini-2.5-pro", displayName: "Gemini 2.5 Pro ✓" },
+  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash ✓ (recommended, high speed & accuracy)" },
+  { id: "gemini-1.5-flash", displayName: "Gemini 1.5 Flash ✓ (ultra-stable free tier)" },
+  { id: "gemini-3.1-pro-preview", displayName: "Gemini 3.1 Pro Preview (Latest generation)" },
+  { id: "gemini-1.5-pro", displayName: "Gemini 1.5 Pro ✓" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-2.0-flash";
 
 export class GeminiTextProvider implements TextGenerationProvider {
   readonly id = "gemini";
@@ -43,11 +42,10 @@ export class GeminiTextProvider implements TextGenerationProvider {
   ): Promise<GenerationResult<z.infer<S>>> {
     const candidateModels = [
       input.modelId,
-      "gemini-2.5-flash",
-      "gemini-flash-latest",
-      "gemini-2.5-flash-lite",
-      "gemini-3-flash-preview",
-      "gemini-2.5-pro",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
+      "gemini-3.1-pro-preview",
+      "gemini-1.5-pro",
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: string | null = null;
@@ -121,10 +119,10 @@ export async function testGeminiKey(
 ): Promise<{ ok: boolean; model: string; error?: string }> {
   // Try models in order until one works
   const candidates = [
-    "gemini-2.5-flash",
-    "gemini-flash-latest",
-    "gemini-2.5-flash-lite",
-    "gemini-3-flash-preview",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro",
   ];
 
   const client = new GoogleGenerativeAI(apiKey);

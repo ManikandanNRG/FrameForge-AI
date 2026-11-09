@@ -100,7 +100,175 @@ export const POST = apiHandler(async (req, ctx) => {
     data: { currentVersionId: spVer.id },
   });
 
-  // 4. Synchronize Database Scenes and Shots
+  // 4. Save SYNOPSIS artifact
+  const synopsisText = `CREATIVE ANGLE: ${option.conceptAngle}
+TITLE: ${option.title}
+
+LOGLINE:
+${option.logline}
+
+PREMISE:
+${option.premise}
+
+NARRATIVE SUMMARY:
+${option.scenes
+  .map(
+    (s) =>
+      `• Scene ${s.sceneNumber} (${s.heading}): ${s.action} ${
+        s.dialogue ? `[Dialogue: ${s.dialogue}]` : ""
+      }`
+  )
+  .join("\n\n")}
+
+PRODUCTION VISION:
+A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featuring authentic ${project.storyLanguage} dialogue and dynamic pacing.`;
+
+  const synopsisArt = await prisma.storyArtifact.upsert({
+    where: { projectId_artifactType: { projectId: projectId as string, artifactType: "SYNOPSIS" } },
+    create: { projectId: projectId as string, artifactType: "SYNOPSIS", approvalStatus: "DRAFT" },
+    update: { approvalStatus: "DRAFT" },
+  });
+  const synCount = await prisma.artifactVersion.count({ where: { artifactId: synopsisArt.id } });
+  const synVer = await prisma.artifactVersion.create({
+    data: {
+      artifactId: synopsisArt.id,
+      versionNumber: synCount + 1,
+      contentText: synopsisText,
+      source: "AI",
+      createdByUserId: ownerId,
+    },
+  });
+  await prisma.storyArtifact.update({
+    where: { id: synopsisArt.id },
+    data: { currentVersionId: synVer.id },
+  });
+
+  // 5. Save OUTLINE artifact (3-Act Dramatic Structure)
+  const act1Scenes = option.scenes.slice(0, 2);
+  const act2Scenes = option.scenes.slice(2, 4);
+  const act3Scenes = option.scenes.slice(4);
+
+  const outlineJson = {
+    acts: [
+      {
+        actNumber: 1,
+        title: "Act I — The Hook & Inciting Event",
+        summary: act1Scenes.map((s) => s.action).join(" "),
+        sequences: act1Scenes.map((s) => `Scene ${s.sceneNumber}: ${s.heading}`),
+      },
+      {
+        actNumber: 2,
+        title: "Act II — Rising Stakes & Confrontation",
+        summary: act2Scenes.map((s) => s.action).join(" "),
+        sequences: act2Scenes.map((s) => `Scene ${s.sceneNumber}: ${s.heading}`),
+      },
+      {
+        actNumber: 3,
+        title: "Act III — Climax & Viral Resolution",
+        summary: act3Scenes.map((s) => s.action).join(" "),
+        sequences: act3Scenes.map((s) => `Scene ${s.sceneNumber}: ${s.heading}`),
+      },
+    ],
+    estimatedRuntimeMinutes: Math.max(1, Math.round(screenplayJson.totalEstimatedDurationSeconds / 60)),
+  };
+
+  const outlineArt = await prisma.storyArtifact.upsert({
+    where: { projectId_artifactType: { projectId: projectId as string, artifactType: "OUTLINE" } },
+    create: { projectId: projectId as string, artifactType: "OUTLINE", approvalStatus: "DRAFT" },
+    update: { approvalStatus: "DRAFT" },
+  });
+  const outCount = await prisma.artifactVersion.count({ where: { artifactId: outlineArt.id } });
+  const outVer = await prisma.artifactVersion.create({
+    data: {
+      artifactId: outlineArt.id,
+      versionNumber: outCount + 1,
+      contentText: JSON.stringify(outlineJson, null, 2),
+      source: "AI",
+      createdByUserId: ownerId,
+    },
+  });
+  await prisma.storyArtifact.update({
+    where: { id: outlineArt.id },
+    data: { currentVersionId: outVer.id },
+  });
+
+  // 6. Extract Characters & Save CHARACTER_ARCS artifact + Production Assets
+  const charMap = new Map<string, { role: string; scenes: string[] }>();
+  for (const sc of option.scenes) {
+    const matches = (sc.action + " " + (sc.dialogue || "")).match(/\[@([A-Za-z0-9_-]+)\]/g) || [];
+    for (const m of matches) {
+      const name = m.replace(/\[@|\]/g, "");
+      if (!charMap.has(name)) {
+        charMap.set(name, {
+          role: charMap.size === 0 ? "Protagonist" : "Supporting",
+          scenes: [sc.heading],
+        });
+      } else {
+        charMap.get(name)!.scenes.push(sc.heading);
+      }
+    }
+  }
+
+  // Fallback characters if none tagged
+  if (charMap.size === 0) {
+    charMap.set("Protagonist", { role: "Protagonist", scenes: ["Main Story World"] });
+  }
+
+  const charArcsJson = {
+    characters: Array.from(charMap.entries()).map(([name, info]) => ({
+      name,
+      role: info.role,
+      arc: `Experiences the primary story beats across ${info.scenes.length} scenes, driving the action in ${info.scenes[0] || "the film"}.`,
+    })),
+  };
+
+  const charArcArt = await prisma.storyArtifact.upsert({
+    where: { projectId_artifactType: { projectId: projectId as string, artifactType: "CHARACTER_ARCS" } },
+    create: { projectId: projectId as string, artifactType: "CHARACTER_ARCS", approvalStatus: "DRAFT" },
+    update: { approvalStatus: "DRAFT" },
+  });
+  const arcCount = await prisma.artifactVersion.count({ where: { artifactId: charArcArt.id } });
+  const arcVer = await prisma.artifactVersion.create({
+    data: {
+      artifactId: charArcArt.id,
+      versionNumber: arcCount + 1,
+      contentText: JSON.stringify(charArcsJson, null, 2),
+      source: "AI",
+      createdByUserId: ownerId,
+    },
+  });
+  await prisma.storyArtifact.update({
+    where: { id: charArcArt.id },
+    data: { currentVersionId: arcVer.id },
+  });
+
+  // Auto-create character assets in Production Bible so Step 2 (Assets) is immediately populated!
+  for (const [name, info] of Array.from(charMap.entries())) {
+    const existingAsset = await prisma.productionAsset.findFirst({
+      where: { projectId: projectId as string, name },
+    });
+    if (!existingAsset) {
+      const attributes = {
+        role: info.role,
+        age: name.toLowerCase().includes("boy") || name.toLowerCase().includes("karthi") ? 10 : 35,
+        wardrobe: "Authentic traditional regional attire matching the story era and culture.",
+        googleFlowCharacterPrompt: `8k photorealistic cinematic character portrait of ${name}, authentic cultural features, detailed skin texture, natural expressive eyes, high production value 35mm film still.`,
+        voiceProfile: `Authentic ${project.storyLanguage} native speaker, natural conversational cadence, expressive emotional range.`,
+      };
+      await prisma.productionAsset.create({
+        data: {
+          projectId: projectId as string,
+          name,
+          assetType: "CHARACTER",
+          description: `${info.role} in ${option.title}`,
+          attributes: JSON.stringify(attributes),
+          approvalStatus: "APPROVED",
+        },
+      });
+    }
+  }
+
+  // 7. Synchronize Database Scenes and Shots
   await prisma.scene.deleteMany({ where: { projectId: projectId as string } });
 
   for (const sc of option.scenes) {

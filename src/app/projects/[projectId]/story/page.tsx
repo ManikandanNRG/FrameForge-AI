@@ -70,6 +70,7 @@ interface ProjectData {
   id: string;
   title: string;
   description?: string;
+  sourceIdea?: string;
   visualStyle: string;
   storyLanguage: string;
   aspectRatio: string;
@@ -514,10 +515,11 @@ export default function StoryStudioPage() {
                   </button>
 
                   <Link
-                    href={`/projects/${projectId}/storyboard`}
+                    href={`/projects/${projectId}/bible`}
                     className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition shadow-md"
+                    title="Proceed to Step 2: Assets (Lock characters, appearance, and wardrobe)"
                   >
-                    <span>Proceed to Storyboard Prompts</span>
+                    <span>Proceed to Step 2: Assets</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
@@ -784,6 +786,34 @@ export default function StoryStudioPage() {
                   </div>
                 );
               })}
+
+              {/* Step 1 Completion & Next Action Guidance Card */}
+              <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-zinc-900 to-amber-950/20 p-6 mt-6 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle className="h-5 w-5 text-emerald-400" />
+                    <h3 className="text-base font-bold text-zinc-100">
+                      Step 1: Script &amp; Dialogues Finalized
+                    </h3>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-medium">
+                      {screenplayScenes.length} Scenes Ready
+                    </span>
+                  </div>
+                  <p className="text-xs text-zinc-400 max-w-xl leading-relaxed">
+                    Your screenplay dialogue, camera blocking, and timings are set. Next, proceed to <strong>Step 2: Assets (Bible)</strong> to review your locked character facial profiles, wardrobe, and voice directives before generating video prompts.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <Link
+                    href={`/projects/${projectId}/bible`}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition shadow-lg hover:shadow-amber-500/20"
+                  >
+                    <span>Proceed to Step 2: Assets (Bible)</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              </div>
             </div>
           ) : (
             
@@ -870,9 +900,55 @@ export default function StoryStudioPage() {
                     </div>
                   </div>
                 ) : (
-                  <pre className="whitespace-pre-wrap text-xs font-mono text-zinc-300 leading-relaxed bg-black/60 rounded-xl p-4 border border-zinc-800 max-h-[600px] overflow-y-auto">
-                    {currentVersion?.contentText || "No content generated yet."}
-                  </pre>
+                  <div className="space-y-4">
+                    <pre className="whitespace-pre-wrap text-xs font-mono text-zinc-300 leading-relaxed bg-black/60 rounded-xl p-5 border border-zinc-800 max-h-[600px] overflow-y-auto">
+                      {(() => {
+                        if (currentVersion?.contentText && currentVersion.contentText.trim().length > 0) {
+                          return currentVersion.contentText;
+                        }
+                        if (screenplayScenes.length === 0) {
+                          return "No content generated yet. Click 'Develop 2 Story Options' above to generate your screenplay.";
+                        }
+                        if (activeTab === "SYNOPSIS") {
+                          return `FILM SYNOPSIS & NARRATIVE SUMMARY:\n\n${project?.sourceIdea ? `ORIGINAL PREMISE:\n"${project.sourceIdea}"\n\n` : ""}SCENE-BY-SCENE NARRATIVE ARC:\n${screenplayScenes.map(s => `• Scene ${s.sceneNumber} (${s.heading}):\n  Visual: ${s.action}\n  ${s.dialogue ? `Dialogue: ${s.dialogue}` : ""}`).join("\n\n")}`;
+                        }
+                        if (activeTab === "OUTLINE") {
+                          const act1 = screenplayScenes.slice(0, 2);
+                          const act2 = screenplayScenes.slice(2, 4);
+                          const act3 = screenplayScenes.slice(4);
+                          return `3-ACT DRAMATIC FILM OUTLINE:\n\nACT I — THE HOOK & WORLD SETUP (Scenes 1-2):\n${act1.map(s => `• Scene ${s.sceneNumber} (${s.heading}): ${s.action}`).join("\n\n")}\n\nACT II — RISING CONFLICT & COMPLICATIONS (Scenes 3-4):\n${act2.map(s => `• Scene ${s.sceneNumber} (${s.heading}): ${s.action}`).join("\n\n")}\n\nACT III — CLIMAX & PAYOFF (Scenes 5-6):\n${act3.map(s => `• Scene ${s.sceneNumber} (${s.heading}): ${s.action}`).join("\n\n")}`;
+                        }
+                        if (activeTab === "CHARACTER_ARCS") {
+                          const charSet = new Set<string>();
+                          screenplayScenes.forEach(s => {
+                            const matches = (s.action + " " + (s.dialogue || "")).match(/\[@([A-Za-z0-9_-]+)\]/g) || [];
+                            matches.forEach(m => charSet.add(m.replace(/\[@|\]/g, "")));
+                          });
+                          if (charSet.size === 0) charSet.add("Protagonist");
+                          return `CHARACTER PROFILES & DRAMATIC ROLES:\n\n${Array.from(charSet).map((name, idx) => `• [@${name}] (${idx === 0 ? "Protagonist" : "Supporting Character"}):\n  Appears in: ${screenplayScenes.filter(s => (s.action + (s.dialogue || "")).includes(`[@${name}]`)).map(s => `Scene ${s.sceneNumber}`).join(", ") || "Main Scenes"}\n  Wardrobe & Role: Locked regional character profile used for Google Flow visual continuity.`).join("\n\n")}`;
+                        }
+                        return "No content generated yet.";
+                      })()}
+                    </pre>
+
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-zinc-800/80">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTab("SCREENPLAY")}
+                        className="text-xs text-amber-400 hover:text-amber-300 font-medium flex items-center gap-1 transition"
+                      >
+                        ← Return to Screenplay (Script) Scene Cards
+                      </button>
+
+                      <Link
+                        href={`/projects/${projectId}/bible`}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-xs font-bold transition shadow-md"
+                      >
+                        <span>Proceed to Step 2: Assets (Bible)</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

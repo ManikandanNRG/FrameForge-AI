@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
+import { ProjectWorkflowNav } from "@/components/nav/ProjectWorkflowNav";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
 import {
@@ -402,86 +403,28 @@ export default function StoryStudioPage() {
     <AppShell>
       <div className="flex flex-col min-h-screen bg-black text-zinc-100">
         
-        {/* Global Cinema Studio Top Header Navigation (Matching User Screenshots) */}
-        <header className="border-b border-zinc-800/80 bg-zinc-950/90 backdrop-blur sticky top-0 z-40 px-6 py-3">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-            
-            {/* Project Title & Breadcrumb */}
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/projects/${projectId}`}
-                className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-amber-400 hover:bg-zinc-800 transition"
-                title="Return to Project Overview"
-              >
-                <Clapperboard className="h-4 w-4" />
-              </Link>
-              <div>
-                <h1 className="text-sm font-bold text-zinc-100 flex items-center gap-2 truncate max-w-xs md:max-w-md">
-                  {project?.title || "Screenplay Studio"}
-                </h1>
-                <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-mono">
-                  <span>CineFlow Studio</span>
-                  <span>·</span>
-                  <span className="text-amber-400 font-medium">Script Editor</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pipeline Stage Tabs */}
-            <nav className="flex items-center gap-1 p-1 bg-zinc-900/80 rounded-xl border border-zinc-800 text-xs">
-              <span className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 font-bold border border-amber-500/30 flex items-center gap-1.5">
-                <Film className="h-3.5 w-3.5 text-amber-400" />
-                <span>1. Script</span>
-              </span>
-              <Link
-                href={`/projects/${projectId}/bible`}
-                className="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 transition flex items-center gap-1.5"
-              >
-                <Layers className="h-3.5 w-3.5" />
-                <span>2. Assets (Bible)</span>
-              </Link>
-              <Link
-                href={`/projects/${projectId}/storyboard`}
-                className="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 transition flex items-center gap-1.5"
-              >
-                <Clapperboard className="h-3.5 w-3.5" />
-                <span>3. Storyboard</span>
-              </Link>
-              <Link
-                href={`/projects/${projectId}/edit`}
-                className="px-3 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 transition flex items-center gap-1.5"
-              >
-                <Video className="h-3.5 w-3.5" />
-                <span>4. Video Studio</span>
-              </Link>
-            </nav>
-
-            {/* Style Badge & Actions */}
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowOptionsModal(true);
-                  if (!storyOptions) handleGenerateStoryOptions();
-                }}
-                className="px-3 py-1.5 rounded-lg bg-purple-950/70 hover:bg-purple-900/80 text-purple-200 border border-purple-700/80 text-xs font-semibold shadow-sm transition flex items-center gap-1.5"
-                title="Develop two different story options from your idea to compare and choose the best one"
-              >
-                <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-                <span>✨ 2 Story Options (A / B)</span>
-              </button>
-
-              <Link
-                href={`/projects/${projectId}/storyboard`}
-                className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-lg text-xs transition shadow-sm flex items-center gap-1.5"
-                title="Proceed to AI Prompt generation once story dialogue is finalized"
-              >
-                <span>Finalize &amp; Open Storyboard</span>
-                <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </div>
-        </header>
+        {/* Global Film Production 5-Step Workflow Nav */}
+        <ProjectWorkflowNav
+          projectId={projectId}
+          activeStep="script"
+          projectTitle={project?.title}
+          visualStyle={project?.visualStyle}
+          rightAction={
+            <button
+              type="button"
+              onClick={() => {
+                setShowOptionsModal(true);
+                if (!storyOptions) handleGenerateStoryOptions();
+              }}
+              className="px-3 py-1.5 rounded-xl bg-purple-950/70 hover:bg-purple-900/80 text-purple-200 border border-purple-700/80 text-xs font-semibold shadow-sm transition flex items-center gap-1.5"
+              title="Develop two different story options from your idea to compare and choose the best one"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+              <span className="hidden sm:inline">✨ 2 Story Options (A / B)</span>
+              <span className="sm:hidden">Options</span>
+            </button>
+          }
+        />
 
         {/* Studio Sub-Header & Artifact Selector */}
         <div className="border-b border-zinc-900 bg-zinc-950/40 px-6 py-2.5">

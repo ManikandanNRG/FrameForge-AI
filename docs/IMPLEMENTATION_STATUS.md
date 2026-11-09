@@ -7,6 +7,16 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Persistent 5-Step Film Production Workflow Navigation & YouTube Launch Kit** (`src/components/nav/ProjectWorkflowNav.tsx`, `src/app/projects/[projectId]/*`):
+  - **Unified 5-Step Pipeline Navigation Bar**: Added a persistent, studio-styled top navigation bar across all project pages following the natural filmmaking order:
+    1. **`1. Script`** (`/projects/[id]/story`): Screenplay development, scene-by-scene scriptwriting, 2 story options comparison, and inline AI Director co-pilot.
+    2. **`2. Assets`** (`/projects/[id]/bible`): Character consistency library, wardrobe & physical appearance locking, and production bible lore.
+    3. **`3. Storyboard`** (`/projects/[id]/storyboard`): Video generation prompts (Google Flow / Kling), free FLUX.1 stills, and shot approvals.
+    4. **`4. Video Studio`** (`/projects/[id]/edit`): Multi-track NLE desktop timeline editor, real-time scrubbing, audio mixing, and clip trimming.
+    5. **`5. YouTube Launch`** (`/projects/[id]/edit?view=export` / Launch Kit Modal): Master 1080p MP4 preview player, 1-click download, copyable YouTube/Social title, description, and hashtags, plus completion checklist.
+  - **Context-Aware Progression**: Each stage features active step gradient highlighting and a contextual "Next Step" button (`Next: Assets (Bible) →`, `Next: Storyboard →`, `Next: Video Studio →`, `5. YouTube Launch 🚀`).
+  - **YouTube Launch & Export Kit Modal**: Built directly into the workflow nav so creators can preview the master film, copy YouTube-ready metadata (title, bilingual synopsis, production tags), and download the final video file with one click.
+  - **Project Overview Pipeline Grid**: Replaced the previous 3-link list on `/projects/[id]` with an interactive 5-step pipeline command center.
 - **Dev Server Webpack Stability & Route Params Hook Refactor (Resolved Flickering Reload Loop)** (`package.json`, `src/app/projects/[projectId]/*`):
   - **Turbopack HMR Loop Resolution**: Next.js 16.4.3 Turbopack on Windows was caught in an endless file-lock / cache mismatch loop in `.next/dev/cache/turbopack/` (generating 34,281 HMR reload events at 10 requests/sec). Cleared the corrupted `.next` cache and switched `dev` and `dev:web` scripts to `next dev --webpack` for rock-solid dev server stability.
   - **Synchronous `useParams()` Migration**: Replaced asynchronous `React.use(params)` across all dynamic client pages (`story`, `storyboard`, `bible`, `edit`, `page.tsx`) with Next.js official synchronous `useParams()` hook, preventing client Suspense re-mounting and screen flashing.

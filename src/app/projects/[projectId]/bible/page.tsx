@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
+import { ProjectWorkflowNav } from "@/components/nav/ProjectWorkflowNav";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
 import { ChevronRight, Sparkles, User, MapPin, Package, Copy, CheckCheck, ExternalLink, Mic, Volume2, Edit2, Save, X, ArrowRight } from "lucide-react";
@@ -18,6 +19,7 @@ const TYPE_ICON: Record<string, React.ReactNode> = {
 export default function BiblePage() {
   const routeParams = useParams();
   const projectId = (routeParams?.projectId as string) || "";
+  const [project, setProject]         = useState<any>(null);
   const [assets, setAssets]           = useState<Asset[]>([]);
   const [generating, setGenerating]   = useState(false);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -84,9 +86,12 @@ export default function BiblePage() {
   }
 
   async function load() {
-    const r = await fetch(`/api/projects/${projectId}/bible`);
-    const d = await r.json();
-    setAssets(d.data?.assets ?? []);
+    const [bRes, pRes] = await Promise.all([
+      fetch(`/api/projects/${projectId}/bible`).then(r => r.json()),
+      fetch(`/api/projects/${projectId}`).then(r => r.json()).catch(() => null),
+    ]);
+    setAssets(bRes.data?.assets ?? []);
+    if (pRes?.data?.project) setProject(pRes.data.project);
   }
 
   useEffect(() => { load(); }, [projectId]);
@@ -128,9 +133,18 @@ export default function BiblePage() {
 
   return (
     <AppShell>
-      <div className="flex h-screen overflow-hidden">
-        {/* Left panel */}
-        <div className="w-64 shrink-0 border-r border-zinc-800 overflow-y-auto py-6 px-3">
+      <div className="flex flex-col h-screen overflow-hidden">
+        {/* Global Film Production 5-Step Workflow Nav */}
+        <ProjectWorkflowNav
+          projectId={projectId}
+          activeStep="assets"
+          projectTitle={project?.title}
+          visualStyle={project?.visualStyle}
+        />
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left panel */}
+          <div className="w-64 shrink-0 border-r border-zinc-800 overflow-y-auto py-6 px-3">
           <div className="px-3 mb-4 text-xs text-zinc-500 flex gap-1 items-center">
             <Link href={`/projects/${projectId}`} className="hover:text-zinc-300">Project</Link>
             <ChevronRight className="h-2.5 w-2.5" />
@@ -445,6 +459,7 @@ export default function BiblePage() {
           )}
         </div>
       </div>
+    </div>
     </AppShell>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
+import { ProjectWorkflowNav } from "@/components/nav/ProjectWorkflowNav";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
 import {
@@ -813,14 +814,29 @@ export default function StoryboardPage() {
 
   return (
     <AppShell>
-      <div className="flex h-screen overflow-hidden">
-        {/* Left: scene/shot list */}
-        <div className="w-72 shrink-0 border-r border-zinc-800 overflow-y-auto py-4 px-2">
-          <div className="px-3 mb-3 text-xs text-zinc-500 flex gap-1 items-center">
-            <Link href={`/projects/${projectId}`} className="hover:text-zinc-300">Project</Link>
-            <ChevronRight className="h-2.5 w-2.5" />
-            <span>Storyboard</span>
-          </div>
+      <div className="flex flex-col h-screen overflow-hidden">
+        {/* Global Film Production 5-Step Workflow Nav */}
+        <ProjectWorkflowNav
+          projectId={projectId}
+          activeStep="storyboard"
+          projectTitle={projectData?.title}
+          visualStyle={projectData?.visualStyle}
+          rightAction={
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={exportAllPromptsJson}
+              className="text-xs h-7 px-2.5 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white"
+            >
+              <FileCode className="h-3.5 w-3.5 mr-1" />
+              <span>Export Prompts (JSON)</span>
+            </Button>
+          }
+        />
+
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left: scene/shot list */}
+          <div className="w-72 shrink-0 border-r border-zinc-800 overflow-y-auto py-4 px-2">
 
           {/* Action bar */}
           <div className="px-3 mb-4 space-y-2">
@@ -1488,6 +1504,7 @@ export default function StoryboardPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
 
       {/* Edit Shot Script Modal */}

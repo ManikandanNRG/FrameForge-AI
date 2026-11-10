@@ -3,9 +3,26 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-zinc-950 text-zinc-100;
+  @apply bg-slate-50 text-slate-900;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom crisp modern scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

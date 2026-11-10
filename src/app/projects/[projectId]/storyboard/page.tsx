@@ -811,56 +811,56 @@ export default function StoryboardPage() {
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left: scene/shot list */}
-          <div className="w-72 shrink-0 border-r border-zinc-800 overflow-y-auto py-4 px-2">
+          <div className="w-72 shrink-0 border-r border-slate-200 bg-white overflow-y-auto py-4 px-2 shadow-xs">
 
           {/* Action bar */}
           <div className="px-3 mb-4 space-y-2">
             {scenes.length === 0 && !activeJobId && (
               <>
-                <p className="text-sm text-zinc-400">Generate your shot plan from the screenplay.</p>
-                {error && <p className="text-rose-400 text-xs">{error}</p>}
-                <Button size="sm" loading={generating} onClick={() => generateShotPlan(false)} className="w-full">
-                  <Sparkles className="h-3.5 w-3.5" /> Plan shots with AI
+                <p className="text-sm text-slate-600">Generate your shot plan from the screenplay.</p>
+                {error && <p className="text-rose-600 text-xs font-medium">{error}</p>}
+                <Button size="sm" loading={generating} onClick={() => generateShotPlan(false)} className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-xs">
+                  <Sparkles className="h-3.5 w-3.5 mr-1" /> Plan shots with AI
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => generateShotPlan(true)} className="w-full">
+                <Button size="sm" variant="ghost" onClick={() => generateShotPlan(true)} className="w-full text-slate-600">
                   Test mock
                 </Button>
               </>
             )}
 
             {activeJobId && (
-              <div className="flex items-center gap-2 text-sm text-blue-300">
-                <span className="h-3 w-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+              <div className="flex items-center gap-2 text-sm text-blue-700 font-medium">
+                <span className="h-3 w-3 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
                 Planning shots…
               </div>
             )}
 
             {scenes.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs text-zinc-500">{approvedCount}/{allShots.length} shots approved</p>
+                <p className="text-xs font-bold text-slate-500">{approvedCount}/{allShots.length} shots approved</p>
 
                 {/* Image generation */}
                 {imgProgress ? (
-                  <div className="text-xs text-amber-300 flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+                  <div className="text-xs text-amber-800 flex items-center gap-2 font-medium">
+                    <span className="h-2.5 w-2.5 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
                     Generating images… {imgProgress.done}/{imgProgress.total}
                   </div>
                 ) : (
-                  <Button size="sm" variant="secondary" loading={genImages} onClick={generateImages} className="w-full text-xs">
-                    <ImageIcon className="h-3 w-3" />
+                  <Button size="sm" variant="secondary" loading={genImages} onClick={generateImages} className="w-full text-xs bg-white border-slate-200 hover:bg-slate-50 text-slate-700 shadow-2xs font-semibold">
+                    <ImageIcon className="h-3 w-3 mr-1" />
                     {hasImages ? "Regenerate images" : "Generate storyboard images"}
                   </Button>
                 )}
 
                 {/* Video generation */}
                 {vidProgress ? (
-                  <div className="text-xs text-purple-300 flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full border-2 border-purple-400 border-t-transparent animate-spin" />
+                  <div className="text-xs text-purple-800 flex items-center gap-2 font-medium">
+                    <span className="h-2.5 w-2.5 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
                     Animating videos… {vidProgress.done}/{vidProgress.total}
                   </div>
                 ) : (
-                  <Button size="sm" variant="secondary" loading={genVideos} onClick={() => generateVideos()} className="w-full text-xs font-semibold bg-purple-950/40 hover:bg-purple-900/40 text-purple-200 border border-purple-800/60 shadow-sm">
-                    <Video className="h-3.5 w-3.5 text-purple-400" />
+                  <Button size="sm" variant="secondary" loading={genVideos} onClick={() => generateVideos()} className="w-full text-xs font-bold bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs">
+                    <Video className="h-3.5 w-3.5 mr-1 text-purple-600" />
                     🎬 Animate All Scenes to Video
                   </Button>
                 )}
@@ -869,15 +869,15 @@ export default function StoryboardPage() {
                 <button
                   type="button"
                   onClick={exportAllPromptsJson}
-                  className="w-full flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 transition"
+                  className="w-full flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition shadow-2xs"
                   title="Download all shot prompts in one JSON file to run in ChatGPT/Gemini"
                 >
-                  <Download className="h-3 w-3 text-amber-400" />
+                  <Download className="h-3 w-3 text-amber-600" />
                   Export All Prompts (JSON)
                 </button>
 
                 {error && (
-                  <div className="flex items-start gap-1.5 text-rose-400 text-xs">
+                  <div className="flex items-start gap-1.5 text-rose-600 text-xs font-medium">
                     <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -889,7 +889,7 @@ export default function StoryboardPage() {
           {/* Shot list */}
           {scenes.map(sc => (
             <div key={sc.id} className="mb-3">
-              <p className="px-3 py-1 text-xs font-semibold text-zinc-500 uppercase">
+              <p className="px-3 py-1 text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Scene {sc.sceneNumber}: {sc.heading}
               </p>
               {sc.shots.map(sh => {
@@ -897,25 +897,29 @@ export default function StoryboardPage() {
                 const vid = sh.mediaVersions.find(m => m.kind === "VIDEO_CLIP");
                 return (
                   <button key={sh.id} onClick={() => setSelected(sh)}
-                    className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 ${selected?.id === sh.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"}`}>
+                    className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center gap-2 transition-all ${
+                      selected?.id === sh.id
+                        ? "bg-slate-100 text-slate-900 font-semibold border border-slate-200/80 shadow-2xs"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}>
                     {/* Thumbnail */}
-                    <span className="h-8 w-12 rounded overflow-hidden shrink-0 bg-zinc-800 flex items-center justify-center relative">
+                    <span className="h-8 w-12 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-200 flex items-center justify-center relative shadow-2xs">
                       {singleGenImageShotId === sh.id ? (
-                        <span className="h-3 w-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+                        <span className="h-3 w-3 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
                       ) : img ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={mediaUrl(img.storagePath)} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <ImageIcon className="h-3 w-3 text-zinc-600" />
+                        <ImageIcon className="h-3 w-3 text-slate-400" />
                       )}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className="text-zinc-600 text-xs">S{sh.shotNumber}</span>
-                      <span className="block truncate text-xs">{sh.actionDescription}</span>
+                      <span className="text-slate-400 text-xs font-mono">S{sh.shotNumber}</span>
+                      <span className="block truncate text-xs text-slate-700">{sh.actionDescription}</span>
                     </span>
                     <div className="flex flex-col gap-0.5 shrink-0">
-                      {img && <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Image ready" />}
-                      {vid && <span className="w-1.5 h-1.5 rounded-full bg-purple-400" title="Video ready" />}
+                      {img && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Image ready" />}
+                      {vid && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" title="Video ready" />}
                     </div>
                   </button>
                 );
@@ -925,37 +929,37 @@ export default function StoryboardPage() {
         </div>
 
         {/* Right: shot studio canvas */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-8">
+        <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-8 bg-slate-50/40">
           {!selected ? (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-500 py-24">
-              <ImageIcon className="h-12 w-12 text-zinc-700 mb-3" />
-              <p className="text-sm font-medium text-zinc-400">Select a shot from the left sidebar to open the studio.</p>
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-24">
+              <ImageIcon className="h-12 w-12 text-slate-300 mb-3" />
+              <p className="text-sm font-semibold text-slate-600">Select a shot from the left sidebar to open the studio.</p>
             </div>
           ) : (
             <div className="max-w-7xl mx-auto space-y-6">
               {/* Header Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
                 <div>
-                  <div className="text-xs text-zinc-400 flex items-center gap-1.5 font-medium">
-                    <span className="text-amber-400 font-semibold">Scene {selectedScene?.sceneNumber ?? 1}</span>
-                    <span className="text-zinc-600">·</span>
-                    <span className="text-zinc-300">{selectedScene?.heading || "EXT. VILLAGE"}</span>
+                  <div className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+                    <span className="text-amber-700 font-bold">Scene {selectedScene?.sceneNumber ?? 1}</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="text-slate-700 font-semibold">{selectedScene?.heading || "EXT. VILLAGE"}</span>
                   </div>
-                  <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2 mt-0.5">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mt-0.5">
                     Shot {selected.shotNumber}
                     {selected.shotSize && (
-                      <span className="text-xs font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700/60">
+                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                         {selected.shotSize}
                       </span>
                     )}
-                    <div className="inline-flex items-center rounded-md border border-zinc-700/80 bg-zinc-950 p-0.5 text-xs shadow-inner">
+                    <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs shadow-2xs">
                       <button
                         type="button"
                         onClick={() => setShotDuration(selected.id, 8)}
-                        className={`px-2 py-0.5 rounded text-[11px] font-mono font-semibold transition ${
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold transition ${
                           normalizedDuration === 8
-                            ? "bg-amber-500 text-black shadow-sm"
-                            : "text-zinc-400 hover:text-zinc-200"
+                            ? "bg-amber-500 text-slate-950 shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                         }`}
                         title="Set shot duration to 8 seconds (Google Flow standard)"
                       >
@@ -964,10 +968,10 @@ export default function StoryboardPage() {
                       <button
                         type="button"
                         onClick={() => setShotDuration(selected.id, 10)}
-                        className={`px-2 py-0.5 rounded text-[11px] font-mono font-semibold transition ${
+                        className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold transition ${
                           normalizedDuration === 10
-                            ? "bg-amber-500 text-black shadow-sm"
-                            : "text-zinc-400 hover:text-zinc-200"
+                            ? "bg-amber-500 text-slate-950 shadow-xs"
+                            : "text-slate-600 hover:text-slate-900"
                         }`}
                         title="Set shot duration to 10 seconds (Climax / Extended action)"
                       >
@@ -983,12 +987,12 @@ export default function StoryboardPage() {
                     <Button
                       size="sm"
                       onClick={() => { approveShot(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }}
-                      className="h-8 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+                      className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs"
                     >
                       <Check className="h-3.5 w-3.5 mr-1" /> Approve Shot
                     </Button>
                   ) : (
-                    <span className="text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-1 rounded-md font-medium flex items-center gap-1">
+                    <span className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full font-bold flex items-center gap-1 shadow-2xs">
                       <Check className="h-3 w-3" /> Approved for Edit
                     </span>
                   )}
@@ -1097,46 +1101,46 @@ export default function StoryboardPage() {
                   </div>
 
                   {/* Prominent Media Control & Import Station */}
-                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3.5 shadow-sm">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3.5 shadow-xs">
                     {/* Status & Media Switcher */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/60">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">Active Media</span>
+                        <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Active Media</span>
                         {selectedVideo && selectedImage ? (
-                          <div className="inline-flex rounded-lg border border-zinc-800 bg-zinc-950 p-0.5 text-xs">
+                          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs">
                             <button
                               type="button"
                               onClick={() => setActiveMediaView("video")}
-                              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
+                              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-semibold transition ${
                                 activeMediaView === "video"
-                                  ? "bg-zinc-800 text-amber-300 shadow-sm"
-                                  : "text-zinc-400 hover:text-zinc-200"
+                                  ? "bg-white text-slate-900 shadow-2xs"
+                                  : "text-slate-600 hover:text-slate-900"
                               }`}
                             >
-                              <Video className="h-3 w-3" /> Video Clip
+                              <Video className="h-3 w-3 text-purple-600" /> Video Clip
                             </button>
                             <button
                               type="button"
                               onClick={() => setActiveMediaView("still")}
-                              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
+                              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-semibold transition ${
                                 activeMediaView === "still"
-                                  ? "bg-zinc-800 text-amber-300 shadow-sm"
-                                  : "text-zinc-400 hover:text-zinc-200"
+                                  ? "bg-white text-slate-900 shadow-2xs"
+                                  : "text-slate-600 hover:text-slate-900"
                               }`}
                             >
-                              <ImageIcon className="h-3 w-3" /> Still Image
+                              <ImageIcon className="h-3 w-3 text-amber-600" /> Still Image
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-zinc-400 font-medium">
+                          <span className="text-xs text-slate-500 font-medium">
                             {selectedVideo ? "🎬 Video Clip Ready" : selectedImage ? "📷 Still Image Ready" : "Awaiting Generation"}
                           </span>
                         )}
                       </div>
 
-                      <div className="text-[11px] text-zinc-400 font-mono flex items-center gap-1.5">
+                      <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
                         <span>Clipboard paste:</span>
-                        <kbd className="px-1.5 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-[11px] font-mono text-amber-300">Ctrl+V</kbd>
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 rounded text-[11px] font-mono text-slate-700 font-bold">Ctrl+V</kbd>
                       </div>
                     </div>
 
@@ -1152,15 +1156,15 @@ export default function StoryboardPage() {
                       }}
                       className={`rounded-xl border-2 border-dashed p-4 text-center transition-all ${
                         isDragging
-                          ? "border-amber-400 bg-amber-950/30"
-                          : "border-zinc-700/80 bg-zinc-950/50 hover:border-zinc-600 hover:bg-zinc-950/80"
+                          ? "border-amber-400 bg-amber-50"
+                          : "border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-slate-100/60"
                       }`}
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
-                        <p className="text-xs text-zinc-300 font-medium">
+                        <p className="text-xs text-slate-700 font-semibold">
                           Drag and drop your AI generated media here, or use the buttons below
                         </p>
-                        <p className="text-[11px] text-zinc-500">
+                        <p className="text-[11px] text-slate-500 leading-relaxed">
                           Silent video clips from Kling, Luma or Google Flow are automatically dubbed with your screenplay audio on import.
                         </p>
 
@@ -1170,15 +1174,15 @@ export default function StoryboardPage() {
                             type="button"
                             onClick={() => generateSingleShotImage(selected.id)}
                             disabled={singleGenImageShotId === selected.id}
-                            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold transition shadow-md disabled:opacity-50 ${
+                            className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-50 ${
                               selectedImage
-                                ? "bg-zinc-900 hover:bg-zinc-800 text-amber-300 border border-amber-500/30"
-                                : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black"
+                                ? "bg-slate-100 hover:bg-slate-200 text-amber-900 border border-amber-300"
+                                : "bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
                             }`}
                             title={selectedImage ? "Regenerate this still image with a new seed" : "Generate a 1080p still image for this scene using free FLUX.1"}
                           >
                             {selectedImage ? (
-                              <RefreshCw className={`h-3.5 w-3.5 text-amber-400 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                              <RefreshCw className={`h-3.5 w-3.5 text-amber-600 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
                             ) : (
                               <Sparkles className={`h-3.5 w-3.5 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
                             )}
@@ -1193,10 +1197,10 @@ export default function StoryboardPage() {
                             <button
                               type="button"
                               onClick={() => downloadImage(selectedImage.storagePath, selected.shotNumber)}
-                              className="inline-flex items-center gap-2 px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 rounded-lg text-xs font-semibold transition shadow-md"
+                              className="inline-flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition shadow-2xs"
                               title="Download still image to upload to Kling, Luma Dream Machine, or Google Flow for Image-to-Video"
                             >
-                              <Download className="h-3.5 w-3.5 text-amber-400" />
+                              <Download className="h-3.5 w-3.5 text-amber-600" />
                               Download Still (for I2V)
                             </button>
                           )}
@@ -1206,10 +1210,10 @@ export default function StoryboardPage() {
                               type="button"
                               onClick={() => generateVideos(selected.id)}
                               disabled={genVideos}
-                              className="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-purple-900/80 to-purple-800/80 hover:from-purple-800 hover:to-purple-700 text-purple-100 border border-purple-600/60 rounded-lg text-xs font-bold transition shadow-md disabled:opacity-50"
+                              className="inline-flex items-center gap-2 px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition shadow-xs disabled:opacity-50"
                               title="Turn this still image into a cinematic video clip with voiceover & motion in this app"
                             >
-                              <Video className="h-3.5 w-3.5 text-purple-300" />
+                              <Video className="h-3.5 w-3.5 text-purple-200" />
                               {genVideos ? "Animating Video…" : "🎬 Animate to Video"}
                             </button>
                           )}
@@ -1221,8 +1225,8 @@ export default function StoryboardPage() {
                               className="hidden"
                               onChange={e => { const f = e.target.files?.[0]; if (f && selected) importMedia(selected.id, f); }}
                             />
-                            <span className={`inline-flex items-center gap-2 px-3 py-2 bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 rounded-lg text-xs border border-purple-800/50 font-medium transition shadow-sm ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
-                              <Video className="h-3.5 w-3.5 text-purple-400" />
+                            <span className={`inline-flex items-center gap-2 px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs border border-purple-200 font-bold transition shadow-2xs ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
+                              <Video className="h-3.5 w-3.5 text-purple-600" />
                               {importing === selected.id ? "Importing…" : "Import MP4"}
                             </span>
                           </label>
@@ -1234,8 +1238,8 @@ export default function StoryboardPage() {
                               className="hidden"
                               onChange={e => { const f = e.target.files?.[0]; if (f && selected) importMedia(selected.id, f); }}
                             />
-                            <span className={`inline-flex items-center gap-2 px-3 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-lg text-xs border border-zinc-700 font-medium transition shadow-sm ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
-                              <ImageIcon className="h-3.5 w-3.5 text-amber-400" />
+                            <span className={`inline-flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs border border-slate-300 font-bold transition shadow-2xs ${importing === selected.id ? "opacity-50 pointer-events-none" : ""}`}>
+                              <ImageIcon className="h-3.5 w-3.5 text-slate-600" />
                               {importing === selected.id ? "Importing…" : "Import Image"}
                             </span>
                           </label>
@@ -1248,12 +1252,12 @@ export default function StoryboardPage() {
                 {/* Right Column: AI Studio & Screenplay (5 cols) */}
                 <div className="xl:col-span-5 space-y-4">
                   {/* AI Generation Prompt Hub Card (TOP) */}
-                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3 shadow-sm">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3.5 shadow-xs">
                     {/* Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-zinc-800/60">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-amber-400" />
-                        <span className="text-xs font-semibold text-zinc-200">AI Prompt Hub</span>
+                        <Sparkles className="h-4 w-4 text-amber-600" />
+                        <span className="text-xs font-bold text-slate-900">AI Prompt Hub</span>
                       </div>
                       
                       <div className="flex items-center gap-2">
@@ -1264,10 +1268,10 @@ export default function StoryboardPage() {
                               setEditingCharId(null);
                               setIsCharModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700/80 rounded-md text-xs font-semibold shadow-sm transition"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold shadow-2xs transition"
                             title="Open Google Flow Character Library & Consistency Prompts"
                           >
-                            <User className="h-3.5 w-3.5 text-blue-400" />
+                            <User className="h-3.5 w-3.5 text-blue-600" />
                             <span>Characters ({characterAssets.length})</span>
                           </button>
                         )}
@@ -1275,7 +1279,7 @@ export default function StoryboardPage() {
                           <button
                             type="button"
                             onClick={() => window.open(activeLauncher.url, "_blank")}
-                            className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md border transition shadow-sm ${activeLauncher.color}`}
+                            className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border transition shadow-2xs ${activeLauncher.color}`}
                           >
                             <span>{activeLauncher.label}</span>
                             <ExternalLink className="h-3 w-3" />
@@ -1285,16 +1289,16 @@ export default function StoryboardPage() {
                           type="button"
                           onClick={() => generateSingleShotImage(selected.id)}
                           disabled={singleGenImageShotId === selected.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 rounded-md text-xs font-semibold shadow-sm transition disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold shadow-2xs transition disabled:opacity-50"
                           title="Generate free 1080p FLUX.1 still image for this scene"
                         >
-                          <Sparkles className={`h-3 w-3 text-amber-400 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                          <Sparkles className={`h-3 w-3 text-amber-600 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
                           <span>{singleGenImageShotId === selected.id ? "Generating…" : "Generate Still"}</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => copyPrompt(activePromptText, promptTab)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-md text-xs shadow-sm transition"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs shadow-xs transition"
                         >
                           {copied === promptTab ? (
                             <>
@@ -1312,7 +1316,7 @@ export default function StoryboardPage() {
                     </div>
 
                     {/* Segmented Pill Tabs */}
-                    <div className="flex flex-wrap gap-1 p-1 bg-zinc-950 rounded-lg border border-zinc-800/80">
+                    <div className="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
                       {[
                         { id: "flow", label: "Google Flow (Veo)" },
                         { id: "kling", label: "Kling Direct Video" },
@@ -1324,10 +1328,10 @@ export default function StoryboardPage() {
                         <button
                           key={tab.id}
                           onClick={() => setPromptTab(tab.id as any)}
-                          className={`px-2.5 py-1 text-xs rounded-md font-medium transition ${
+                          className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition ${
                             promptTab === tab.id
-                              ? "bg-zinc-800 text-amber-300 shadow-sm"
-                              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900"
+                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                           }`}
                         >
                           {tab.label}
@@ -1336,27 +1340,27 @@ export default function StoryboardPage() {
                     </div>
 
                     {/* Universal Physics Health Bar & Auto-Enhance Button */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-emerald-950/20 border border-emerald-800/40 rounded-lg text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <div className="flex items-center gap-1 text-emerald-400 font-semibold">
-                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                        <div className="flex items-center gap-1 text-emerald-800 font-bold">
+                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                           <span>Universal Physics Engine</span>
                         </div>
-                        <span className="text-[10px] bg-emerald-900/60 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700/50 font-mono">
+                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300 font-mono font-bold">
                           Verified
                         </span>
                         {detectedEntities?.hasVehicleOrMount && (
-                          <span className="text-[10px] bg-amber-950/70 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700/50 font-mono">
+                          <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-300 font-mono font-bold">
                             Front-Harness Locked
                           </span>
                         )}
                         {detectedEntities?.hasLocomotion && (
-                          <span className="text-[10px] bg-blue-950/70 text-blue-300 px-1.5 py-0.5 rounded border border-blue-700/50 font-mono">
+                          <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-300 font-mono font-bold">
                             Skeletal Aligned
                           </span>
                         )}
                         {detectedEntities?.hasHandheldProp && (
-                          <span className="text-[10px] bg-purple-950/70 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700/50 font-mono">
+                          <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-300 font-mono font-bold">
                             Rigid Grip Anchored
                           </span>
                         )}
@@ -1367,10 +1371,10 @@ export default function StoryboardPage() {
                         <button
                           type="button"
                           onClick={() => setCreditSaverMode(!creditSaverMode)}
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold border transition flex items-center gap-1 ${
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center gap-1 shadow-2xs ${
                             creditSaverMode
-                              ? "bg-emerald-950/80 text-emerald-300 border-emerald-600/70 hover:bg-emerald-900/60"
-                              : "bg-purple-950/80 text-purple-300 border-purple-600/70 hover:bg-purple-900/60"
+                              ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700"
+                              : "bg-purple-600 text-white border-purple-700 hover:bg-purple-700"
                           }`}
                           title={
                             creditSaverMode
@@ -1384,23 +1388,23 @@ export default function StoryboardPage() {
                         <button
                           onClick={handleAutoEnhance}
                           disabled={isAutoEnhancing}
-                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-md transition disabled:opacity-50"
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-300 rounded-lg transition disabled:opacity-50 shadow-2xs"
                           title="Audit and automatically fortify this shot's kinematics and physical invariants"
                         >
                           {isAutoEnhancing ? (
                             <>
-                              <RefreshCw className="h-3 w-3 animate-spin text-emerald-400" />
+                              <RefreshCw className="h-3 w-3 animate-spin text-emerald-600" />
                               <span>Auditing Physics...</span>
                             </>
                           ) : enhanceSuccess ? (
                             <>
-                              <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
                               <span>Physics Fortified!</span>
                             </>
                           ) : (
                             <>
-                              <Zap className="h-3 w-3 text-emerald-400" />
-                              <span>⚡ Auto-Enhance Physics</span>
+                              <Zap className="h-3 w-3 text-emerald-600" />
+                              <span>⚡ Auto-Enhance</span>
                             </>
                           )}
                         </button>
@@ -1410,18 +1414,18 @@ export default function StoryboardPage() {
                     {/* Content: Google Flow vs General Engine Tabs */}
                     {promptTab === "flow" ? (
                       <div className="space-y-2.5 pt-1">
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-zinc-800/60">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                              <Sparkles className="h-3 w-3 text-amber-400" /> Shot Video Prompt
+                            <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="h-3 w-3 text-amber-600" /> Shot Video Prompt
                             </span>
-                            <span className="text-[10px] text-zinc-500 font-mono">Omni Flash / Veo 2</span>
+                            <span className="text-[10px] text-slate-500 font-mono">Omni Flash / Veo 2</span>
                           </div>
 
                           {/* Tagged characters pill list */}
                           {characterAssets.length > 0 && (
                             <div className="flex items-center gap-1.5 text-[11px]">
-                              <span className="text-zinc-500 text-[10px]">Tagged:</span>
+                              <span className="text-slate-500 text-[10px] font-medium">Tagged:</span>
                               {characterAssets.map(ca => {
                                 const bTag = `[@${ca.name.replace(/[^a-zA-Z0-9]/g, "")}]`;
                                 const isMentioned = googleFlowPrompt.includes(bTag) || activeCharAsset?.id === ca.id;
@@ -1433,10 +1437,10 @@ export default function StoryboardPage() {
                                       setSelectedCharacterId(ca.id);
                                       setIsCharModalOpen(true);
                                     }}
-                                    className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold transition flex items-center gap-1 ${
+                                    className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold transition flex items-center gap-1 ${
                                       isMentioned
-                                        ? "bg-blue-950/70 text-blue-300 border border-blue-600/60 hover:bg-blue-900/80"
-                                        : "bg-zinc-800/60 text-zinc-400 border border-zinc-700/40 hover:bg-zinc-700/60"
+                                        ? "bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100"
+                                        : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
                                     }`}
                                     title={`Click to view/edit ${ca.name}'s character prompt & voice profile`}
                                   >
@@ -1448,32 +1452,32 @@ export default function StoryboardPage() {
                           )}
                         </div>
 
-                        <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-200 bg-black/80 border border-zinc-800 rounded-lg p-3 min-h-[220px] max-h-[380px] overflow-y-auto leading-relaxed selection:bg-amber-500/30">
+                        <pre className="whitespace-pre-wrap font-mono text-xs text-slate-900 bg-slate-50 border border-slate-200 rounded-xl p-3.5 min-h-[220px] max-h-[380px] overflow-y-auto leading-relaxed shadow-inner">
                           {googleFlowPrompt}
                         </pre>
                       </div>
                     ) : (
                       /* Standard Single-Step Prompt Box for Other Engines */
-                      <pre className="whitespace-pre-wrap font-mono text-xs text-zinc-300 bg-black/70 border border-zinc-800 rounded-lg p-3 min-h-[220px] max-h-[380px] overflow-y-auto leading-relaxed selection:bg-amber-500/30">
+                      <pre className="whitespace-pre-wrap font-mono text-xs text-slate-900 bg-slate-50 border border-slate-200 rounded-xl p-3.5 min-h-[220px] max-h-[380px] overflow-y-auto leading-relaxed shadow-inner">
                         {activePromptText}
                       </pre>
                     )}
                   </div>
 
                   {/* Screenplay & Audio Card (BELOW PROMPT) */}
-                  <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 p-4 space-y-3.5 shadow-sm">
-                    <div className="flex items-center justify-between pb-2 border-b border-zinc-800/60">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3.5 shadow-xs">
+                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                        <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+                        <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                           Screenplay &amp; Audio
                         </h3>
-                        <span className="text-[11px] text-zinc-500 font-mono">S{selected.shotNumber}</span>
+                        <span className="text-[11px] text-slate-500 font-mono">S{selected.shotNumber}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/projects/${projectId}/story`}
-                          className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 transition"
+                          className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 transition font-medium"
                           title="Open full scene-by-scene script editor"
                         >
                           <span>Full Script Studio</span>
@@ -1482,9 +1486,9 @@ export default function StoryboardPage() {
                         <button
                           type="button"
                           onClick={() => startEditingShotScript()}
-                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300 border border-zinc-700 text-[11px] font-semibold transition shadow-sm"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold transition shadow-2xs"
                         >
-                          <Edit2 className="h-3 w-3 text-amber-400" />
+                          <Edit2 className="h-3 w-3 text-amber-600" />
                           <span>Edit Script</span>
                         </button>
                       </div>
@@ -1492,26 +1496,26 @@ export default function StoryboardPage() {
 
                     {/* Action Description */}
                     <div>
-                      <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Visual Action</span>
-                      <p className="text-zinc-200 text-xs leading-relaxed mt-0.5">{selected.actionDescription}</p>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Visual Action</span>
+                      <p className="text-slate-800 text-xs leading-relaxed mt-1 font-medium">{selected.actionDescription}</p>
                     </div>
 
                     {/* Spoken Dialogue (takes precedence when character is speaking) */}
                     {selected.dialogue && (
-                      <div className="rounded-lg bg-zinc-950/60 border border-sky-900/30 p-3 space-y-2">
+                      <div className="rounded-xl bg-sky-50/50 border border-sky-200 p-3.5 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1">
-                            <MessageSquare className="h-3 w-3" /> Character Dialogue
+                          <span className="text-[11px] font-bold text-sky-800 uppercase tracking-wider flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3 text-sky-600" /> Character Dialogue
                           </span>
                           <button
                             type="button"
                             onClick={() => playSpeechBrowser(selected.dialogue ?? "")}
-                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-sky-500/10 hover:bg-sky-500/20 text-sky-300 border border-sky-500/30 font-medium transition"
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 font-bold transition shadow-2xs"
                           >
                             <Volume2 className="h-2.5 w-2.5" /> Speak
                           </button>
                         </div>
-                        <p className="text-zinc-200 text-xs font-mono leading-relaxed bg-black/40 p-2 rounded border border-zinc-800/80">
+                        <p className="text-slate-900 text-xs font-mono leading-relaxed bg-white p-2.5 rounded-lg border border-sky-200 shadow-2xs">
                           {selected.dialogue}
                         </p>
                       </div>
@@ -1519,20 +1523,20 @@ export default function StoryboardPage() {
 
                     {/* Narrator Voice-Over (Only rendered when no character dialogue is speaking) */}
                     {!selected.dialogue && selected.voiceover && (
-                      <div className="rounded-lg bg-zinc-950/60 border border-amber-900/30 p-3 space-y-2">
+                      <div className="rounded-xl bg-amber-50/50 border border-amber-200 p-3.5 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                            <Mic className="h-3 w-3" /> Voice-Over (Narrator)
+                          <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                            <Mic className="h-3 w-3 text-amber-600" /> Voice-Over (Narrator)
                           </span>
                           <button
                             type="button"
                             onClick={() => playSpeechBrowser(selected.voiceover ?? "")}
-                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium transition"
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold transition shadow-2xs"
                           >
                             <Volume2 className="h-2.5 w-2.5" /> Speak Aloud
                           </button>
                         </div>
-                        <p className="text-zinc-200 text-xs italic font-serif leading-relaxed border-l-2 border-amber-500/50 pl-2.5">
+                        <p className="text-slate-800 text-xs italic font-serif leading-relaxed border-l-2 border-amber-400 pl-2.5">
                           “{selected.voiceover}”
                         </p>
                       </div>
@@ -1540,8 +1544,8 @@ export default function StoryboardPage() {
 
                     {/* Foley & Sound Design */}
                     {selected.audioPrompt && (
-                      <div className="text-[11px] text-zinc-400 flex items-start gap-1.5 pt-1">
-                        <span className="font-semibold text-emerald-400 uppercase text-[10px] tracking-wider shrink-0 mt-0.5">Atmosphere:</span>
+                      <div className="text-[11px] text-slate-500 flex items-start gap-1.5 pt-1">
+                        <span className="font-bold text-emerald-700 uppercase text-[10px] tracking-wider shrink-0 mt-0.5">Atmosphere:</span>
                         <span className="italic">{selected.audioPrompt}</span>
                       </div>
                     )}
@@ -1556,19 +1560,19 @@ export default function StoryboardPage() {
 
       {/* Edit Shot Script Modal */}
       {isEditingShotScript && selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
               <div className="flex items-center gap-2">
-                <Edit2 className="h-4 w-4 text-amber-400" />
-                <h3 className="text-sm font-bold text-zinc-100">
+                <Edit2 className="h-4 w-4 text-amber-600" />
+                <h3 className="text-sm font-bold text-slate-900">
                   Edit Script Beat · Shot {selected.shotNumber} (Scene {selectedScene?.sceneNumber ?? 1})
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsEditingShotScript(false)}
-                className="p-1 rounded-md text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800"
+                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1576,78 +1580,78 @@ export default function StoryboardPage() {
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
               <div>
-                <label className="block font-semibold text-zinc-300 mb-1">Visual Action (English)</label>
+                <label className="block font-bold text-slate-700 mb-1">Visual Action (English)</label>
                 <textarea
                   rows={3}
                   value={editShotAction}
                   onChange={e => setEditShotAction(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:border-amber-500 focus:outline-none leading-relaxed font-sans"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:border-amber-500 focus:outline-none leading-relaxed font-sans shadow-xs"
                   placeholder="Describe visual action..."
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-sky-400 mb-1">
+                <label className="block font-bold text-sky-800 mb-1">
                   Spoken Character Dialogue ({projectData?.storyLanguage || "Tamil"})
                 </label>
                 <textarea
                   rows={2}
                   value={editShotDialogue}
                   onChange={e => setEditShotDialogue(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-sky-900/40 text-zinc-200 focus:border-sky-500 focus:outline-none leading-relaxed font-mono"
+                  className="w-full px-3 py-2 rounded-xl bg-sky-50/50 border border-sky-300 text-slate-900 focus:border-sky-500 focus:outline-none leading-relaxed font-mono shadow-xs"
                   placeholder='e.g. [@Amma] speaks: "கார்த்தி! ஏன் இப்படி அலறிட்டே ஓடி வர்ற?!"'
                 />
-                <p className="text-[11px] text-zinc-500 mt-1">
+                <p className="text-[11px] text-slate-500 mt-1">
                   When dialogue is specified, narrator voiceover is automatically suppressed.
                 </p>
               </div>
 
               <div>
-                <label className="block font-semibold text-amber-400 mb-1">
+                <label className="block font-bold text-amber-800 mb-1">
                   Voice-Over (Narrator) ({projectData?.storyLanguage || "Tamil"})
                 </label>
                 <textarea
                   rows={2}
                   value={editShotVoiceover}
                   onChange={e => setEditShotVoiceover(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-amber-900/40 text-zinc-200 focus:border-amber-500 focus:outline-none leading-relaxed font-serif italic"
+                  className="w-full px-3 py-2 rounded-xl bg-amber-50/50 border border-amber-300 text-slate-900 focus:border-amber-500 focus:outline-none leading-relaxed font-serif italic shadow-xs"
                   placeholder='Narrator voiceover beat (used only when no character is speaking dialogue)'
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-semibold text-zinc-400 mb-1">Camera Movement</label>
+                  <label className="block font-bold text-slate-700 mb-1">Camera Movement</label>
                   <input
                     type="text"
                     value={editShotCameraMotion}
                     onChange={e => setEditShotCameraMotion(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:border-amber-500 focus:outline-none font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:border-amber-500 focus:outline-none font-mono shadow-xs"
                     placeholder="e.g. Dynamic low-angle tracking shot..."
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-zinc-400 mb-1">Sound Atmosphere &amp; Foley</label>
+                  <label className="block font-bold text-slate-700 mb-1">Sound Atmosphere &amp; Foley</label>
                   <input
                     type="text"
                     value={editShotAudioPrompt}
                     onChange={e => setEditShotAudioPrompt(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-200 focus:border-amber-500 focus:outline-none font-mono"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:border-amber-500 focus:outline-none font-mono shadow-xs"
                     placeholder="e.g. Rustling leaves, panting..."
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 px-6 py-3 border-t border-zinc-800 bg-zinc-900/80">
-              <Button variant="ghost" size="sm" onClick={() => setIsEditingShotScript(false)}>
+            <div className="flex items-center justify-end gap-3 px-6 py-3 border-t border-slate-200 bg-slate-50/80">
+              <Button variant="ghost" size="sm" onClick={() => setIsEditingShotScript(false)} className="text-slate-600 hover:text-slate-900">
                 Cancel
               </Button>
               <Button
                 size="sm"
                 loading={savingShotScript}
                 onClick={saveShotScript}
-                className="bg-amber-500 hover:bg-amber-400 text-black font-semibold"
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-xs"
               >
                 <Save className="h-3.5 w-3.5 mr-1" /> Save Shot Script
               </Button>
@@ -1658,22 +1662,22 @@ export default function StoryboardPage() {
 
       {/* Google Flow Character Setup & Consistency Modal */}
       {isCharModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-zinc-700 bg-zinc-950 shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col">
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/80">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400">
+                <div className="p-2 rounded-xl bg-blue-100 border border-blue-200 text-blue-700">
                   <User className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     Character Consistency Library
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-medium">
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 font-semibold font-mono">
                       {characterAssets.length} {characterAssets.length === 1 ? "Character" : "Characters"}
                     </span>
                   </h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Google Flow &ldquo;Characters&rdquo; Setup Prompts &amp; Voice Profiles
                   </p>
                 </div>
@@ -1685,24 +1689,24 @@ export default function StoryboardPage() {
                   setIsCharModalOpen(false);
                   setEditingCharId(null);
                 }}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Modal Explainer Banner */}
-            <div className="px-6 py-3 bg-blue-950/30 border-b border-blue-900/40 text-xs text-blue-200/90 leading-relaxed flex items-start gap-2.5">
-              <Sparkles className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+            <div className="px-6 py-3 bg-blue-50/60 border-b border-blue-100 text-xs text-blue-900 leading-relaxed flex items-start gap-2.5">
+              <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <strong>How to use in Google Flow:</strong> In Google Flow&apos;s left sidebar under <strong>&ldquo;Characters&rdquo;</strong>, create each character once using their prompt &amp; voice directive below. Once created, your scene prompts reference them as <span className="font-mono bg-blue-900/50 px-1 py-0.5 rounded text-amber-300 font-bold">[@CharacterName]</span> to lock their facial appearance, wardrobe, and voice throughout the entire film!
+                <strong>How to use in Google Flow:</strong> In Google Flow&apos;s left sidebar under <strong>&ldquo;Characters&rdquo;</strong>, create each character once using their prompt &amp; voice directive below. Once created, your scene prompts reference them as <span className="font-mono bg-blue-100 px-1 py-0.5 rounded text-blue-800 font-bold">[@CharacterName]</span> to lock their facial appearance, wardrobe, and voice throughout the entire film!
               </div>
             </div>
 
             {/* Character Cards List */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {characterAssets.length === 0 ? (
-                <div className="text-center py-12 text-zinc-500">
+                <div className="text-center py-12 text-slate-400">
                   No character assets found. Extract or create characters in the Production Bible.
                 </div>
               ) : (
@@ -1720,20 +1724,20 @@ export default function StoryboardPage() {
                   return (
                     <div
                       key={ca.id}
-                      className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-4 hover:border-zinc-700 transition"
+                      className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 space-y-4 hover:border-slate-300 transition shadow-2xs"
                     >
                       {/* Character Title Bar */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-zinc-800/80">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
                         <div className="flex items-center gap-2.5">
-                          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 border border-amber-300">
                             {cTag}
                           </span>
-                          <h3 className="text-sm font-bold text-zinc-100">{ca.name}</h3>
+                          <h3 className="text-sm font-bold text-slate-900">{ca.name}</h3>
                           {attr.age && (
-                            <span className="text-xs text-zinc-400">({attr.age} years old)</span>
+                            <span className="text-xs text-slate-500 font-medium">({attr.age} years old)</span>
                           )}
                           {attr.role && (
-                            <span className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+                            <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 font-semibold">
                               {attr.role}
                             </span>
                           )}
@@ -1745,12 +1749,12 @@ export default function StoryboardPage() {
                               <button
                                 type="button"
                                 onClick={() => copyPrompt(flowPrompt, `charPrompt-${ca.id}`)}
-                                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-200 border border-blue-500/40 font-semibold transition"
+                                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 font-bold transition shadow-2xs"
                                 title="Copy 8K description prompt for Google Flow Characters menu"
                               >
                                 {copied === `charPrompt-${ca.id}` ? (
                                   <>
-                                    <CheckCheck className="h-3.5 w-3.5 text-emerald-400" />
+                                    <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
                                     <span>Copied!</span>
                                   </>
                                 ) : (
@@ -1764,12 +1768,12 @@ export default function StoryboardPage() {
                               <button
                                 type="button"
                                 onClick={() => copyPrompt(voice, `charVoice-${ca.id}`)}
-                                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 text-purple-200 border border-purple-500/40 font-semibold transition"
+                                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 font-bold transition shadow-2xs"
                                 title="Copy voice settings directive for Google Flow"
                               >
                                 {copied === `charVoice-${ca.id}` ? (
                                   <>
-                                    <CheckCheck className="h-3.5 w-3.5 text-emerald-400" />
+                                    <CheckCheck className="h-3.5 w-3.5 text-emerald-600" />
                                     <span>Copied!</span>
                                   </>
                                 ) : (
@@ -1783,7 +1787,7 @@ export default function StoryboardPage() {
                               <button
                                 type="button"
                                 onClick={() => startEditingCharacter(ca)}
-                                className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 font-medium transition"
+                                className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-semibold transition shadow-2xs"
                                 title="Edit this character prompt and voice profile"
                               >
                                 <Edit2 className="h-3 w-3" />
@@ -1796,7 +1800,7 @@ export default function StoryboardPage() {
                                 type="button"
                                 disabled={savingChar}
                                 onClick={() => saveEditedCharacter(ca.id)}
-                                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition shadow-sm"
+                                className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition shadow-xs"
                               >
                                 <Save className="h-3.5 w-3.5" />
                                 <span>{savingChar ? "Saving…" : "Save Changes"}</span>
@@ -1804,7 +1808,7 @@ export default function StoryboardPage() {
                               <button
                                 type="button"
                                 onClick={() => setEditingCharId(null)}
-                                className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition"
+                                className="text-xs px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 transition"
                               >
                                 Cancel
                               </button>
@@ -1817,65 +1821,65 @@ export default function StoryboardPage() {
                       {!isEditing ? (
                         <div className="space-y-3">
                           <div>
-                            <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">
+                            <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
                               Character Creation Prompt (for Google Flow &ldquo;Characters&rdquo; Menu)
                             </span>
-                            <pre className="text-xs text-zinc-200 bg-black/60 p-3 rounded-lg border border-blue-900/40 font-mono whitespace-pre-wrap leading-relaxed mt-1">
+                            <pre className="text-xs text-slate-900 bg-white p-3.5 rounded-xl border border-blue-200 font-mono whitespace-pre-wrap leading-relaxed mt-1 shadow-2xs">
                               {flowPrompt}
                             </pre>
                           </div>
 
                           <div>
-                            <span className="text-[10px] font-semibold text-purple-400 uppercase tracking-wider">
+                            <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">
                               Voice Directive (for Google Flow Character Voice Selection)
                             </span>
-                            <p className="text-xs text-purple-200/90 bg-purple-950/40 p-2.5 rounded-lg border border-purple-800/40 font-mono leading-relaxed mt-1">
+                            <p className="text-xs text-purple-900 bg-white p-3 rounded-xl border border-purple-200 font-mono leading-relaxed mt-1 shadow-2xs">
                               {voice}
                             </p>
                           </div>
 
                           {wardrobe && (
-                            <div className="text-xs text-zinc-400 flex items-center gap-2">
-                              <span className="text-[10px] uppercase font-semibold text-zinc-500">Wardrobe:</span>
-                              <span>{wardrobe}</span>
+                            <div className="text-xs text-slate-600 flex items-center gap-2">
+                              <span className="text-[10px] uppercase font-bold text-slate-400">Wardrobe:</span>
+                              <span className="font-medium text-slate-800">{wardrobe}</span>
                             </div>
                           )}
                         </div>
                       ) : (
                         <div className="space-y-3 pt-2">
                           <div>
-                            <label className="block text-xs font-semibold text-blue-400 mb-1">
+                            <label className="block text-xs font-bold text-blue-700 mb-1">
                               Character Creation Prompt (8K photorealistic portrait prompt for Google Flow):
                             </label>
                             <textarea
                               rows={4}
                               value={charEditPrompt}
                               onChange={e => setCharEditPrompt(e.target.value)}
-                              className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-blue-500/50 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                              className="w-full text-xs font-mono bg-blue-50/40 text-slate-900 border border-blue-300 rounded-xl p-3 focus:border-blue-500 focus:outline-none leading-relaxed"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-purple-400 mb-1">
+                            <label className="block text-xs font-bold text-purple-700 mb-1">
                               Voice Profile Directive (Accent, tone, pitch, intonation):
                             </label>
                             <textarea
                               rows={2}
                               value={charEditVoice}
                               onChange={e => setCharEditVoice(e.target.value)}
-                              className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-purple-500/50 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                              className="w-full text-xs font-mono bg-purple-50/40 text-slate-900 border border-purple-300 rounded-xl p-3 focus:border-purple-500 focus:outline-none leading-relaxed"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-xs font-semibold text-zinc-400 mb-1">
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
                               Wardrobe &amp; Physical Features:
                             </label>
                             <input
                               type="text"
                               value={charEditWardrobe}
                               onChange={e => setCharEditWardrobe(e.target.value)}
-                              className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                              className="w-full text-xs bg-slate-50 text-slate-900 border border-slate-300 rounded-xl px-3 py-2 focus:border-amber-500 focus:outline-none"
                             />
                           </div>
                         </div>
@@ -1887,8 +1891,8 @@ export default function StoryboardPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3 border-t border-zinc-800 bg-zinc-900/60 flex items-center justify-between">
-              <span className="text-xs text-zinc-400">
+            <div className="px-6 py-3.5 border-t border-slate-200 bg-slate-50/80 flex items-center justify-between">
+              <span className="text-xs text-slate-500">
                 Changes saved here update the database and all scene prompts automatically.
               </span>
               <button
@@ -1897,7 +1901,7 @@ export default function StoryboardPage() {
                   setIsCharModalOpen(false);
                   setEditingCharId(null);
                 }}
-                className="px-4 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition"
+                className="px-4 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
               >
                 Done
               </button>

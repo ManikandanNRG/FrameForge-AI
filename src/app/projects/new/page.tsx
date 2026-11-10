@@ -172,32 +172,32 @@ export default function NewProjectPage() {
   return (
     <AppShell>
       <div className="mx-auto max-w-2xl px-8 py-10">
-        <h1 className="text-2xl font-bold mb-1">New project</h1>
-        <p className="text-zinc-400 text-sm mb-8">Describe your film. AI will develop the story from here.</p>
+        <h1 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">New project</h1>
+        <p className="text-slate-500 text-sm mb-8">Describe your film. AI will develop the story, characters, and shots from here.</p>
 
         <form onSubmit={submit} className="space-y-6">
           {/* Title */}
           <Field label="Project title *">
             <input required value={form.title} onChange={e => set("title", e.target.value)}
-              placeholder="My Film" className={inputCls} />
+              placeholder="e.g. Pudukkottai Chronicles" className={inputCls} />
           </Field>
 
           {/* Idea */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-zinc-300">Film idea *</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-semibold text-slate-800">Film idea *</label>
               <button
                 type="button"
                 disabled={analyzingIdea}
                 onClick={autoDetectSettings}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-semibold transition shadow-xs"
                 title="AI reads your idea and automatically configures title, genre, tone, language, orientation, and style"
               >
-                <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                <Sparkles className="h-3.5 w-3.5 text-amber-600" />
                 <span>{analyzingIdea ? "Analyzing with AI…" : "✨ Auto-detect Settings from Idea"}</span>
               </button>
             </div>
-            <p className="text-xs text-zinc-500 mb-1.5">
+            <p className="text-xs text-slate-500 mb-2">
               Describe your film in one sentence or paragraph. Click &ldquo;Auto-detect Settings&rdquo; to have AI automatically pick the best genre, tone, and orientation!
             </p>
             <textarea
@@ -210,7 +210,7 @@ export default function NewProjectPage() {
             />
 
             {autoDetectedBadge && (
-              <div className="mt-2 text-xs text-emerald-300 bg-emerald-950/40 border border-emerald-800/60 p-2.5 rounded-lg flex items-center justify-between">
+              <div className="mt-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center justify-between font-medium">
                 <span>{autoDetectedBadge}</span>
               </div>
             )}
@@ -327,39 +327,41 @@ export default function NewProjectPage() {
           </div>
 
           {/* 1-Click Pipeline Toggle */}
-          <div className="rounded-lg border border-amber-500/40 bg-amber-950/20 p-4 space-y-2">
+          <div className="rounded-2xl border border-amber-300 bg-amber-50/70 p-5 space-y-2 shadow-xs">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
                 checked={autoRunPipeline}
                 onChange={e => setAutoRunPipeline(e.target.checked)}
-                className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-amber-500"
+                className="mt-1 h-4 w-4 rounded border-slate-300 bg-white text-amber-500 focus:ring-amber-500"
               />
               <div>
-                <span className="text-sm font-semibold text-amber-300 flex items-center gap-1.5">
+                <span className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
                   ⚡ 1-Click Studio: Generate Full Film Package Immediately
                 </span>
-                <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-                  Automatically writes the screenplay with native dialogue, extracts characters with Google Flow prompts &amp; voice directives, creates scene storyboard with <span className="font-mono text-amber-300">[@Character]</span> tags, and opens the Storyboard ready to generate!
+                <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Automatically writes the screenplay with native dialogue, extracts characters with Google Flow prompts &amp; voice directives, creates scene storyboard with <span className="font-mono text-amber-800 font-semibold">[@Character]</span> tags, and opens the Storyboard ready to generate!
                 </p>
               </div>
             </label>
           </div>
 
-          {error && <p className="text-rose-400 text-sm">{error}</p>}
+          {error && <p className="text-rose-600 text-sm font-medium">{error}</p>}
 
           {pipelineProgress && (
-            <div className="flex items-center gap-2.5 text-xs text-amber-300 bg-amber-950/40 border border-amber-800/60 p-3 rounded-lg animate-pulse">
-              <span className="h-3.5 w-3.5 rounded-full border-2 border-amber-400 border-t-transparent animate-spin shrink-0" />
+            <div className="flex items-center gap-2.5 text-xs text-amber-900 bg-amber-100 border border-amber-300 p-3.5 rounded-xl font-medium animate-pulse">
+              <span className="h-3.5 w-3.5 rounded-full border-2 border-amber-600 border-t-transparent animate-spin shrink-0" />
               <span>{pipelineProgress}</span>
             </div>
           )}
 
           <div className="flex gap-3 pt-2">
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-xs">
               {autoRunPipeline ? "⚡ Create & Generate 1-Click Film" : "Create project"}
             </Button>
-            <Button type="button" variant="ghost" disabled={saving} onClick={() => router.push("/projects")}>Cancel</Button>
+            <Button type="button" variant="ghost" disabled={saving} onClick={() => router.push("/projects")} className="text-slate-600 hover:text-slate-900">
+              Cancel
+            </Button>
           </div>
         </form>
       </div>
@@ -367,13 +369,13 @@ export default function NewProjectPage() {
   );
 }
 
-const inputCls = "w-full rounded-md border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm focus:border-amber-500 focus:outline-none";
+const inputCls = "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 focus:outline-none shadow-xs transition";
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-zinc-300 mb-1">{label}</label>
-      {hint && <p className="text-xs text-zinc-500 mb-1.5">{hint}</p>}
+      <label className="block text-sm font-semibold text-slate-800 mb-1">{label}</label>
+      {hint && <p className="text-xs text-slate-500 mb-1.5 leading-relaxed">{hint}</p>}
       {children}
     </div>
   );

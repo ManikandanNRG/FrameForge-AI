@@ -144,25 +144,27 @@ export default function BiblePage() {
 
         <div className="flex flex-1 overflow-hidden">
           {/* Left panel */}
-          <div className="w-64 shrink-0 border-r border-zinc-800 overflow-y-auto py-6 px-3">
-          <div className="px-3 mb-4 text-xs text-zinc-500 flex gap-1 items-center">
-            <Link href={`/projects/${projectId}`} className="hover:text-zinc-300">Project</Link>
+          <div className="w-64 shrink-0 border-r border-slate-200 bg-white overflow-y-auto py-6 px-3 shadow-xs">
+          <div className="px-3 mb-4 text-xs text-slate-500 flex gap-1 items-center font-medium">
+            <Link href={`/projects/${projectId}`} className="hover:text-slate-800">Project</Link>
             <ChevronRight className="h-2.5 w-2.5" />
-            <span>Production Bible</span>
+            <span className="text-slate-900 font-bold">Production Bible</span>
           </div>
 
           {assets.length === 0 && !activeJobId && (
             <div className="px-3 space-y-3">
-              <p className="text-sm text-zinc-400">Extract characters, locations, and props from your approved screenplay.</p>
-              {error && <p className="text-rose-400 text-xs">{error}</p>}
-              <Button size="sm" loading={generating} onClick={() => generate(false)} className="w-full"><Sparkles className="h-3.5 w-3.5" /> Extract Bible</Button>
-              <Button size="sm" variant="ghost" onClick={() => generate(true)} className="w-full">Test mock</Button>
+              <p className="text-sm text-slate-600">Extract characters, locations, and props from your approved screenplay.</p>
+              {error && <p className="text-rose-600 text-xs font-medium">{error}</p>}
+              <Button size="sm" loading={generating} onClick={() => generate(false)} className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-xs">
+                <Sparkles className="h-3.5 w-3.5 mr-1" /> Extract Bible
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => generate(true)} className="w-full text-slate-600">Test mock</Button>
             </div>
           )}
 
           {activeJobId && (
-            <div className="px-3 flex items-center gap-2 text-sm text-blue-300">
-              <span className="h-3 w-3 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+            <div className="px-3 flex items-center gap-2 text-sm text-blue-700 font-medium">
+              <span className="h-3 w-3 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
               Extracting…
             </div>
           )}
@@ -171,10 +173,14 @@ export default function BiblePage() {
             <>
               {Object.entries(grouped).map(([type, list]) => list.length > 0 && (
                 <div key={type} className="mb-4">
-                  <p className="px-3 text-xs font-semibold text-zinc-500 mb-1 uppercase tracking-wider">{type}S</p>
+                  <p className="px-3 text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">{type}S</p>
                   {list.map(a => (
                     <button key={a.id} onClick={() => setSelected(a)}
-                      className={`w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2 transition-colors ${selected?.id === a.id ? "bg-zinc-800 text-zinc-100" : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"}`}>
+                      className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center gap-2 transition-all ${
+                        selected?.id === a.id
+                          ? "bg-slate-100 text-slate-900 font-semibold border border-slate-200/80 shadow-2xs"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}>
                       {TYPE_ICON[type]}
                       <span className="flex-1 truncate">{a.name}</span>
                       <Badge status={artifactStatusBadge(a.approvalStatus)} label="" />
@@ -183,22 +189,24 @@ export default function BiblePage() {
                 </div>
               ))}
               <div className="px-3 mt-4">
-                <Button size="sm" variant="ghost" loading={generating} onClick={() => generate(false)} className="w-full">Re-extract</Button>
+                <Button size="sm" variant="ghost" loading={generating} onClick={() => generate(false)} className="w-full text-slate-600 hover:text-slate-900">
+                  Re-extract
+                </Button>
               </div>
             </>
           )}
         </div>
 
         {/* Right: detail */}
-        <div className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="flex-1 overflow-y-auto px-8 py-6 bg-slate-50/40">
           {!selected ? (
-            <div className="text-zinc-500 text-sm mt-10">Select an asset from the list to view details.</div>
+            <div className="text-slate-400 text-sm mt-10">Select an asset from the list to view details.</div>
           ) : (
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-zinc-800">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-bold">{isEditing ? "Edit Asset" : selected.name}</h2>
-                  <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded text-zinc-400">{selected.assetType}</span>
+                  <h2 className="text-xl font-bold text-slate-900">{isEditing ? "Edit Asset" : selected.name}</h2>
+                  <span className="text-xs bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full text-slate-700 font-semibold">{selected.assetType}</span>
                   {!isEditing && <Badge status={artifactStatusBadge(selected.approvalStatus)} label={selected.approvalStatus} />}
                 </div>
 
@@ -209,20 +217,20 @@ export default function BiblePage() {
                         size="sm"
                         variant="secondary"
                         onClick={() => startEditing(selected)}
-                        className="gap-1.5 text-xs border-zinc-700 bg-zinc-900 hover:bg-zinc-800"
+                        className="gap-1.5 text-xs border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs"
                       >
-                        <Edit2 className="h-3.5 w-3.5" />
+                        <Edit2 className="h-3.5 w-3.5 text-slate-500" />
                         <span>Edit Asset</span>
                       </Button>
 
                       {selected.approvalStatus !== "APPROVED" && (
-                        <Button size="sm" onClick={() => { approve(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }}>
+                        <Button size="sm" onClick={() => { approve(selected.id); setSelected({ ...selected, approvalStatus: "APPROVED" }); }} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
                           Approve
                         </Button>
                       )}
 
                       <Link href={`/projects/${projectId}/storyboard`}>
-                        <Button size="sm" variant="secondary" className="gap-1.5 text-xs">
+                        <Button size="sm" variant="secondary" className="gap-1.5 text-xs bg-white border-slate-200 shadow-2xs text-slate-800 font-semibold">
                           <span>View in Storyboard</span>
                           <ArrowRight className="h-3 w-3" />
                         </Button>
@@ -234,7 +242,7 @@ export default function BiblePage() {
                         size="sm"
                         disabled={savingAsset}
                         onClick={saveAsset}
-                        className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
+                        className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-xs"
                       >
                         <Save className="h-3.5 w-3.5" />
                         <span>{savingAsset ? "Saving…" : "Save Changes"}</span>
@@ -243,7 +251,7 @@ export default function BiblePage() {
                         size="sm"
                         variant="ghost"
                         onClick={() => setIsEditing(false)}
-                        className="text-xs text-zinc-400"
+                        className="text-xs text-slate-500 hover:text-slate-800"
                       >
                         Cancel
                       </Button>
@@ -253,81 +261,81 @@ export default function BiblePage() {
               </div>
 
               {isEditing ? (
-                <div className="space-y-4 max-w-2xl bg-zinc-900/60 border border-zinc-800 rounded-xl p-5 mb-6">
+                <div className="space-y-4 max-w-2xl bg-white border border-slate-200 rounded-2xl p-6 mb-6 shadow-xs">
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300 mb-1">Asset Name</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Asset Name</label>
                     <input
                       type="text"
                       value={editName}
                       onChange={e => setEditName(e.target.value)}
-                      className="w-full text-sm bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                      className="w-full text-sm bg-slate-50 text-slate-900 border border-slate-300 rounded-xl px-3 py-2 focus:border-amber-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-zinc-300 mb-1">Description / Core Bio</label>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Description / Core Bio</label>
                     <textarea
                       rows={3}
                       value={editDesc}
                       onChange={e => setEditDesc(e.target.value)}
-                      className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                      className="w-full text-xs bg-slate-50 text-slate-900 border border-slate-300 rounded-xl p-3 focus:border-amber-500 focus:outline-none leading-relaxed"
                     />
                   </div>
 
                   {selected.assetType === "CHARACTER" && (
                     <>
                       <div>
-                        <label className="block text-xs font-semibold text-blue-400 mb-1">
+                        <label className="block text-xs font-bold text-blue-700 mb-1">
                           Google Flow Character Creation Prompt (Paste into Google Flow &ldquo;Characters&rdquo; Menu)
                         </label>
                         <textarea
                           rows={4}
                           value={editFlowPrompt}
                           onChange={e => setEditFlowPrompt(e.target.value)}
-                          className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-blue-500/50 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                          className="w-full text-xs font-mono bg-blue-50/40 text-slate-900 border border-blue-300 rounded-xl p-3 focus:border-blue-500 focus:outline-none leading-relaxed"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-purple-400 mb-1">
+                        <label className="block text-xs font-bold text-purple-700 mb-1">
                           Voice Settings Directive (Accent, tone, cadence for Character Voice Settings)
                         </label>
                         <textarea
                           rows={2}
                           value={editVoice}
                           onChange={e => setEditVoice(e.target.value)}
-                          className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-purple-500/50 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                          className="w-full text-xs font-mono bg-purple-50/40 text-slate-900 border border-purple-300 rounded-xl p-3 focus:border-purple-500 focus:outline-none leading-relaxed"
                         />
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-xs font-semibold text-zinc-400 mb-1">Locked Wardrobe</label>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Locked Wardrobe</label>
                           <input
                             type="text"
                             value={editWardrobe}
                             onChange={e => setEditWardrobe(e.target.value)}
-                            className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                            className="w-full text-xs bg-slate-50 text-slate-900 border border-slate-300 rounded-xl px-3 py-2 focus:border-amber-500 focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-xs font-semibold text-zinc-400 mb-1">Personality / Demeanor</label>
+                          <label className="block text-xs font-bold text-slate-700 mb-1">Personality / Demeanor</label>
                           <input
                             type="text"
                             value={editPersonality}
                             onChange={e => setEditPersonality(e.target.value)}
-                            className="w-full text-xs bg-black/80 text-zinc-100 border border-zinc-700 rounded-lg px-3 py-2 focus:border-amber-400 focus:outline-none"
+                            className="w-full text-xs bg-slate-50 text-slate-900 border border-slate-300 rounded-xl px-3 py-2 focus:border-amber-500 focus:outline-none"
                           />
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-amber-400 mb-1">Master AI Consistency Anchor</label>
+                        <label className="block text-xs font-bold text-amber-800 mb-1">Master AI Consistency Anchor</label>
                         <textarea
                           rows={2}
                           value={editAnchor}
                           onChange={e => setEditAnchor(e.target.value)}
-                          className="w-full text-xs font-mono bg-black/80 text-zinc-100 border border-amber-600/40 rounded-lg p-2.5 focus:border-amber-400 focus:outline-none leading-relaxed"
+                          className="w-full text-xs font-mono bg-amber-50/40 text-slate-900 border border-amber-300 rounded-xl p-3 focus:border-amber-500 focus:outline-none leading-relaxed"
                         />
                       </div>
                     </>
@@ -335,7 +343,7 @@ export default function BiblePage() {
                 </div>
               ) : (
                 <>
-                  <p className="text-zinc-300 text-sm leading-relaxed mb-4">{selected.description}</p>
+                  <p className="text-slate-700 text-sm leading-relaxed mb-5 font-medium">{selected.description}</p>
               
               {(() => {
                 const attrs = JSON.parse(selected.attributes || "{}");
@@ -347,46 +355,46 @@ export default function BiblePage() {
                   <div className="space-y-4">
                     {/* Google Flow "Characters" Setup Guide (Crucial for VideoFX / Veo consistency) */}
                     {selected.assetType === "CHARACTER" && (
-                      <div className="rounded-xl border border-blue-600/40 bg-blue-950/20 p-4 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-blue-900/40">
+                      <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5 space-y-3.5 shadow-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-blue-200">
                           <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/40">
+                            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-300">
                               Google Flow Workflow
                             </span>
-                            <span className="text-xs font-semibold text-zinc-200">
+                            <span className="text-xs font-bold text-slate-900">
                               1. Create Character Model ({charTag})
                             </span>
                           </div>
                           <button
                             type="button"
                             onClick={() => window.open("https://aitestkitchen.withgoogle.com/tools/video-fx", "_blank")}
-                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 bg-blue-900/60 hover:bg-blue-800 text-blue-200 rounded border border-blue-700/60 transition"
+                            className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-xs"
                           >
                             <span>Open Google Flow ↗</span>
                             <ExternalLink className="h-3 w-3" />
                           </button>
                         </div>
 
-                        <p className="text-xs text-zinc-400 leading-relaxed">
-                          In Google Flow, characters are created first in the left sidebar under <strong className="text-blue-300">"Characters"</strong>. Name this character <strong className="text-amber-300">{selected.name}</strong> and set their voice. Once saved, every scene video prompt tags <strong className="text-blue-300">{charTag}</strong> to lock their face and voice!
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          In Google Flow, characters are created first in the left sidebar under <strong className="text-blue-800">"Characters"</strong>. Name this character <strong className="text-amber-800">{selected.name}</strong> and set their voice. Once saved, every scene video prompt tags <strong className="text-blue-800">{charTag}</strong> to lock their face and voice!
                         </p>
 
                         {/* Character Generation Prompt */}
                         <div className="space-y-1.5 pt-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-blue-300 uppercase tracking-wider flex items-center gap-1">
-                              <Sparkles className="h-3 w-3 text-amber-400" /> Character Creation Prompt (Paste in "Characters" Menu)
+                            <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center gap-1">
+                              <Sparkles className="h-3 w-3 text-amber-600" /> Character Creation Prompt (Paste in "Characters" Menu)
                             </span>
                             <button
                               type="button"
                               onClick={() => copyText(flowPrompt, "charPrompt")}
-                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 border border-blue-500/40 font-semibold transition"
+                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 font-bold transition shadow-2xs"
                             >
-                              {copiedField === "charPrompt" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                              {copiedField === "charPrompt" ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
                               <span>{copiedField === "charPrompt" ? "Copied Prompt!" : "Copy Character Prompt"}</span>
                             </button>
                           </div>
-                          <pre className="text-xs text-zinc-300 bg-black/60 p-3 rounded-lg border border-blue-900/40 font-mono whitespace-pre-wrap leading-relaxed">
+                          <pre className="text-xs text-slate-900 bg-white p-3.5 rounded-xl border border-blue-200 font-mono whitespace-pre-wrap leading-relaxed shadow-2xs">
                             {flowPrompt}
                           </pre>
                         </div>
@@ -394,19 +402,19 @@ export default function BiblePage() {
                         {/* Voice Directive */}
                         <div className="space-y-1.5 pt-1">
                           <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-purple-300 uppercase tracking-wider flex items-center gap-1">
-                              <Mic className="h-3 w-3 text-purple-400" /> Voice Settings Directive (Set in Character Voice Menu)
+                            <span className="text-[11px] font-bold text-purple-800 uppercase tracking-wider flex items-center gap-1">
+                              <Mic className="h-3 w-3 text-purple-600" /> Voice Settings Directive (Set in Character Voice Menu)
                             </span>
                             <button
                               type="button"
                               onClick={() => copyText(voiceProfile, "voiceProfile")}
-                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 font-semibold transition"
+                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-purple-50 text-purple-700 border border-purple-200 font-bold transition shadow-2xs"
                             >
-                              {copiedField === "voiceProfile" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                              {copiedField === "voiceProfile" ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
                               <span>{copiedField === "voiceProfile" ? "Copied Voice!" : "Copy Voice Settings"}</span>
                             </button>
                           </div>
-                          <p className="text-xs text-purple-200/90 bg-purple-950/40 p-2.5 rounded-lg border border-purple-800/40 font-mono leading-relaxed">
+                          <p className="text-xs text-purple-900 bg-white p-3 rounded-xl border border-purple-200 font-mono leading-relaxed shadow-2xs">
                             {voiceProfile}
                           </p>
                         </div>
@@ -415,21 +423,21 @@ export default function BiblePage() {
 
                     {/* Master Character Consistency Anchor */}
                     {attrs.consistencyAnchor && (
-                      <div className="rounded-xl border border-amber-600/40 bg-amber-950/20 p-4 space-y-2">
+                      <div className="rounded-2xl border border-amber-300 bg-amber-50/40 p-5 space-y-2 shadow-xs">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                            <Sparkles className="h-3.5 w-3.5 text-amber-400" /> Master AI Video Consistency Anchor
+                          <span className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                            <Sparkles className="h-3.5 w-3.5 text-amber-600" /> Master AI Video Consistency Anchor
                           </span>
                           <button
                             type="button"
                             onClick={() => copyText(attrs.consistencyAnchor, "anchor")}
-                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-500/40 font-semibold transition"
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold transition shadow-2xs"
                           >
-                            {copiedField === "anchor" ? <CheckCheck className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                            {copiedField === "anchor" ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
                             <span>{copiedField === "anchor" ? "Copied Anchor!" : "Copy Anchor"}</span>
                           </button>
                         </div>
-                        <p className="text-xs text-amber-200/90 leading-relaxed font-mono bg-black/50 p-3 rounded-lg border border-amber-800/40">
+                        <p className="text-xs text-slate-900 leading-relaxed font-mono bg-white p-3.5 rounded-xl border border-amber-200 shadow-2xs">
                           {attrs.consistencyAnchor}
                         </p>
                       </div>
@@ -438,15 +446,15 @@ export default function BiblePage() {
                     {/* Wardrobe & Attributes Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                       {attrs.wardrobe && (
-                        <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-3">
-                          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Locked Wardrobe</span>
-                          <p className="text-xs text-zinc-300 mt-1">{attrs.wardrobe}</p>
+                        <div className="rounded-xl bg-white border border-slate-200 p-3.5 shadow-2xs">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Locked Wardrobe</span>
+                          <p className="text-xs text-slate-800 font-medium mt-1">{attrs.wardrobe}</p>
                         </div>
                       )}
                       {attrs.personality && (
-                        <div className="rounded-lg bg-zinc-900/80 border border-zinc-800 p-3">
-                          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Personality & Posture</span>
-                          <p className="text-xs text-zinc-300 mt-1">{attrs.personality}</p>
+                        <div className="rounded-xl bg-white border border-slate-200 p-3.5 shadow-2xs">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Personality &amp; Posture</span>
+                          <p className="text-xs text-slate-800 font-medium mt-1">{attrs.personality}</p>
                         </div>
                       )}
                     </div>

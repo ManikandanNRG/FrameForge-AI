@@ -29,26 +29,34 @@ export default function ProjectsPage() {
 
   return (
     <AppShell>
-      <div className="px-8 py-10">
-        <div className="flex items-center justify-between mb-8">
+      <div className="max-w-6xl mx-auto px-8 py-10">
+        <div className="flex items-center justify-between mb-8 pb-5 border-b border-slate-200">
           <div>
-            <h1 className="text-2xl font-bold">Projects</h1>
-            <p className="text-zinc-400 text-sm mt-1">Your AI film productions</p>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Projects</h1>
+            <p className="text-slate-500 text-sm mt-1">Your AI film productions &amp; YouTube channels</p>
           </div>
           <Link href="/projects/new">
-            <Button><Plus className="h-4 w-4" /> New project</Button>
+            <Button className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-xs">
+              <Plus className="h-4 w-4 mr-1.5" /> New project
+            </Button>
           </Link>
         </div>
 
-        {loading && <p className="text-zinc-500 text-sm">Loading…</p>}
+        {loading && (
+          <div className="py-20 text-center">
+            <p className="text-slate-500 text-sm">Loading productions…</p>
+          </div>
+        )}
 
         {!loading && projects.length === 0 && (
-          <div className="rounded-lg border border-dashed border-zinc-700 p-12 text-center">
-            <Film className="h-8 w-8 text-zinc-600 mx-auto mb-3" />
-            <p className="text-zinc-400 font-medium">No projects yet</p>
-            <p className="text-zinc-600 text-sm mt-1 mb-4">Start by describing your film idea</p>
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center shadow-xs">
+            <Film className="h-10 w-10 text-slate-400 mx-auto mb-3" />
+            <p className="text-slate-800 font-semibold text-base">No projects yet</p>
+            <p className="text-slate-500 text-sm mt-1 mb-5">Start by describing your film idea or YouTube concept</p>
             <Link href="/projects/new">
-              <Button><Plus className="h-4 w-4" /> Create first project</Button>
+              <Button className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold">
+                <Plus className="h-4 w-4 mr-1.5" /> Create first project
+              </Button>
             </Link>
           </div>
         )}
@@ -56,19 +64,27 @@ export default function ProjectsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((p) => (
             <Link key={p.id} href={`/projects/${p.id}`} className="group block">
-              <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-5 hover:border-zinc-600 transition-colors">
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <h2 className="font-semibold text-zinc-100 line-clamp-2">{p.title}</h2>
-                  <ArrowRight className="h-4 w-4 text-zinc-600 shrink-0 mt-0.5 group-hover:text-amber-400 transition-colors" />
+              <div className="h-full rounded-2xl border border-slate-200 bg-white p-5 hover:border-amber-400 hover:shadow-md transition shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-2.5">
+                    <h2 className="font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-2">
+                      {p.title}
+                    </h2>
+                    <ArrowRight className="h-4 w-4 text-slate-400 shrink-0 mt-0.5 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+                  </div>
+                  {p.description && (
+                    <p className="text-slate-500 text-xs line-clamp-2 mb-4 leading-relaxed">
+                      {p.description}
+                    </p>
+                  )}
                 </div>
-                {p.description && (
-                  <p className="text-zinc-500 text-sm line-clamp-2 mb-3">{p.description}</p>
-                )}
-                <div className="flex items-center justify-between text-xs text-zinc-500">
-                  <span className="rounded bg-zinc-800 px-2 py-0.5">
+                <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">
+                  <span className="rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 font-medium text-slate-700">
                     {stageLabel[p.currentStage] ?? p.currentStage}
                   </span>
-                  <span>{new Date(p.updatedAt).toLocaleDateString()}</span>
+                  <span className="font-mono text-[11px] text-slate-400">
+                    {new Date(p.updatedAt).toLocaleDateString()}
+                  </span>
                 </div>
               </div>
             </Link>

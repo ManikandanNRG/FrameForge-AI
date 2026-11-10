@@ -216,14 +216,14 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
   return (
     <>
       {/* Top Workflow Navigation Bar */}
-      <header className="sticky top-0 z-40 w-full bg-[#0d0e12]/95 backdrop-blur-md border-b border-zinc-800/80 px-4 md:px-6 py-2.5">
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 md:px-6 py-2.5 shadow-xs">
         <div className="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-3">
           
           {/* Left: Project Branding & Return */}
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href={`/projects/${projectId}`}
-              className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-amber-400 hover:bg-zinc-800 hover:border-zinc-700 transition shadow-sm"
+              className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-amber-600 hover:bg-slate-200 transition shadow-xs"
               title="Return to Project Dashboard"
             >
               <Film className="h-4 w-4" />
@@ -231,14 +231,14 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
             <div>
               <Link
                 href={`/projects/${projectId}`}
-                className="text-sm font-bold text-zinc-100 hover:text-amber-400 transition flex items-center gap-1.5 truncate max-w-[180px] sm:max-w-xs md:max-w-sm"
+                className="text-sm font-bold text-slate-900 hover:text-amber-600 transition flex items-center gap-1.5 truncate max-w-[180px] sm:max-w-xs md:max-w-sm"
               >
                 <span>{cleanTitle}</span>
               </Link>
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 font-mono">
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-mono">
                 <span>CineFlow Studio</span>
                 <span>·</span>
-                <span className="text-amber-400/90 font-medium capitalize">
+                <span className="text-amber-600 font-semibold capitalize">
                   {activeStep === "overview" ? "Production Hub" : `${steps.find((s) => s.id === activeStep)?.label} Stage`}
                 </span>
               </div>
@@ -247,7 +247,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
 
           {/* Center: 5-Step Order of Workflow (Script -> Assets -> Storyboard -> Video Studio -> YouTube Launch) */}
           <nav className="order-last lg:order-none w-full lg:w-auto flex items-center justify-center overflow-x-auto py-1">
-            <div className="flex items-center gap-1 p-1 bg-zinc-950/90 rounded-2xl border border-zinc-800/90 shadow-inner">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-2xl border border-slate-200 shadow-inner">
               {steps.map((step) => {
                 const isActive = activeStep === step.id;
                 const Icon = step.icon;
@@ -259,20 +259,20 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                     onClick={step.onClick}
                     className={`px-3 sm:px-3.5 py-1.5 rounded-xl flex items-center gap-2 transition text-xs whitespace-nowrap ${
                       isActive
-                        ? "bg-gradient-to-r from-blue-950 via-indigo-950 to-blue-900 text-sky-200 border border-sky-500/50 shadow-md font-semibold"
-                        : "text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900/90 font-medium"
+                        ? "bg-white text-blue-700 border border-slate-200 shadow-xs font-bold"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-white/60 font-medium"
                     }`}
                   >
                     <span
                       className={`text-[11px] font-mono ${
-                        isActive ? "text-sky-400 font-bold" : "text-zinc-500"
+                        isActive ? "text-blue-600 font-bold" : "text-slate-400"
                       }`}
                     >
                       {step.number}.
                     </span>
                     <Icon
                       className={`h-3.5 w-3.5 ${
-                        isActive ? "text-sky-300" : "text-zinc-500"
+                        isActive ? "text-blue-600" : "text-slate-400"
                       }`}
                     />
                     <span>{step.label}</span>
@@ -285,9 +285,9 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
           {/* Right: Visual Style Badge & Next Step Action */}
           <div className="flex items-center gap-2.5 shrink-0 ml-auto lg:ml-0">
             {/* Visual Style Pill */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-900/80 border border-zinc-800 text-[11px] text-zinc-400 font-mono">
-              <span className="text-zinc-500">Style:</span>
-              <span className="text-amber-400 font-semibold">{styleLabel}</span>
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-600 font-mono">
+              <span className="text-slate-400">Style:</span>
+              <span className="text-slate-900 font-bold">{styleLabel}</span>
             </div>
 
             {/* Custom Right Action (e.g. 2 Story Options button or Shot planner) */}
@@ -299,14 +299,14 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 <button
                   type="button"
                   onClick={nextStep.action}
-                  className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 shrink-0"
+                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-1.5 shrink-0"
                 >
                   <span>{nextStep.label}</span>
                 </button>
               ) : (
                 <Link
                   href={nextStep.href}
-                  className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-black font-semibold rounded-xl text-xs transition shadow-sm flex items-center gap-1.5 shrink-0"
+                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-1.5 shrink-0"
                 >
                   <span>{nextStep.label}</span>
                   <ChevronRight className="h-3.5 w-3.5" />
@@ -320,23 +320,23 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
 
       {/* 5. YouTube Launch & Film Export Kit Modal */}
       {showLaunchModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-150">
-          <div className="relative w-full max-w-3xl max-h-[92vh] overflow-hidden rounded-2xl border border-sky-500/40 bg-zinc-950 shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="relative w-full max-w-3xl max-h-[92vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col text-slate-900">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-gradient-to-r from-blue-950/60 via-zinc-950 to-indigo-950/40">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/30 text-sky-400">
+                <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600">
                   <Rocket className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     5. YouTube Launch &amp; Film Export Kit
-                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-500/20 text-sky-300 border border-blue-500/40 font-mono">
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-mono font-semibold">
                       Final Master
                     </span>
                   </h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     Download your master rendered MP4 and copy pre-formatted launch metadata for YouTube, Shorts &amp; TikTok.
                   </p>
                 </div>
@@ -345,7 +345,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
               <button
                 type="button"
                 onClick={() => setShowLaunchModal(false)}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -355,17 +355,17 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
               {/* 1. Master Film Export Preview / Download */}
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <Film className="h-4 w-4 text-amber-400" /> Master Video Status
+                  <span className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Film className="h-4 w-4 text-amber-500" /> Master Video Status
                   </span>
                   {latestExport ? (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono flex items-center gap-1">
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono flex items-center gap-1 font-semibold">
                       <Check className="h-3 w-3" /> Rendered &amp; Ready
                     </span>
                   ) : (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800 font-mono">
+                    <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-mono font-semibold">
                       Ready to Render in Video Studio
                     </span>
                   )}
@@ -376,10 +376,10 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                     <video
                       controls
                       src={`/api/media/file?path=${encodeURIComponent(latestExport.outputPath)}`}
-                      className="w-full max-h-72 rounded-lg bg-black object-contain border border-zinc-800"
+                      className="w-full max-h-72 rounded-xl bg-black object-contain border border-slate-200 shadow-xs"
                     />
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                      <div className="text-xs text-zinc-400 font-mono">
+                      <div className="text-xs text-slate-500 font-mono">
                         <span>File: {latestExport.outputFilename || "master_film.mp4"}</span>
                         {latestExport.outputFileSize && (
                           <span> · {(latestExport.outputFileSize / (1024 * 1024)).toFixed(1)} MB</span>
@@ -388,7 +388,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                       <a
                         href={`/api/media/file?path=${encodeURIComponent(latestExport.outputPath)}`}
                         download={latestExport.outputFilename || "master_film.mp4"}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-md flex items-center gap-2"
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-xs flex items-center gap-2"
                       >
                         <Download className="h-4 w-4" />
                         <span>Download 1080p Master MP4</span>
@@ -397,13 +397,13 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                   </div>
                 ) : (
                   <div className="py-6 text-center space-y-3">
-                    <p className="text-xs text-zinc-400 max-w-md mx-auto">
+                    <p className="text-xs text-slate-600 max-w-md mx-auto">
                       Assemble all scene clips and VO audio tracks in the Video Studio, then click &ldquo;Render Master MP4&rdquo; to produce the final export.
                     </p>
                     <Link
                       href={`/projects/${projectId}/edit`}
                       onClick={() => setShowLaunchModal(false)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs transition shadow-md"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shadow-xs"
                     >
                       <Video className="h-4 w-4" />
                       <span>Open Video Studio &amp; Render</span>
@@ -413,20 +413,20 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
               </div>
 
               {/* 2. High-CTR YouTube Thumbnail Studio (1280x720, FLUX.1 Free) */}
-              <div className="rounded-xl border border-amber-500/40 bg-zinc-900/70 p-4 space-y-4">
+              <div className="rounded-xl border border-amber-200 bg-amber-50/20 p-4 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                    <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600">
                       <ImageIcon className="h-4 w-4" />
                     </div>
                     <div>
-                      <span className="text-xs font-bold text-zinc-100 flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
                         High-CTR YouTube Thumbnail Studio
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 font-mono font-semibold">
                           1280×720 · 16:9 · Free FLUX.1
                         </span>
                       </span>
-                      <p className="text-[11px] text-zinc-400">
+                      <p className="text-[11px] text-slate-500">
                         Viral curiosity-gap composition engineered for maximum YouTube Feed click-through-rate.
                       </p>
                     </div>
@@ -436,7 +436,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                     type="button"
                     onClick={handleGenerateThumbnail}
                     disabled={generatingThumbnail}
-                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-bold text-xs shadow-md flex items-center gap-1.5 transition disabled:opacity-50"
+                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-bold text-xs shadow-xs flex items-center gap-1.5 transition disabled:opacity-50"
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     <span>{generatingThumbnail ? "Synthesizing 1280×720..." : (thumbnail ? "Re-Generate Thumbnail" : "Generate Thumbnail (Free)")}</span>
@@ -444,7 +444,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 </div>
 
                 {thumbnailError && (
-                  <div className="p-2.5 rounded-lg bg-red-950/50 border border-red-800 text-red-300 text-xs">
+                  <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs">
                     {thumbnailError}
                   </div>
                 )}
@@ -454,7 +454,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                   
                   {/* Left: Thumbnail Preview & Overlay */}
                   <div className="space-y-2">
-                    <div className="relative aspect-video w-full rounded-xl bg-black border border-zinc-800 overflow-hidden shadow-inner flex items-center justify-center group">
+                    <div className="relative aspect-video w-full rounded-xl bg-slate-900 border border-slate-200 overflow-hidden shadow-xs flex items-center justify-center group">
                       {thumbnail?.thumbnailUrl ? (
                         <>
                           <img
@@ -473,12 +473,12 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                           </div>
                         </>
                       ) : (
-                        <div className="text-center p-6 space-y-2">
-                          <Zap className="h-8 w-8 text-amber-400/60 mx-auto" />
-                          <p className="text-xs text-zinc-400">
+                        <div className="text-center p-6 space-y-2 text-slate-400">
+                          <Zap className="h-8 w-8 text-amber-500/60 mx-auto" />
+                          <p className="text-xs text-slate-300 font-medium">
                             No thumbnail generated yet.
                           </p>
-                          <p className="text-[11px] text-zinc-500">
+                          <p className="text-[11px] text-slate-400">
                             Click &ldquo;Generate Thumbnail&rdquo; to create a high-contrast 16:9 viral thumbnail using the project&apos;s lead character and visual style.
                           </p>
                         </div>
@@ -491,12 +491,12 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                         <button
                           type="button"
                           onClick={() => copyToClipboard(thumbnail.prompt || "", "thumbPrompt")}
-                          className="text-[11px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-mono transition"
+                          className="text-[11px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-mono transition"
                         >
                           {copiedField === "thumbPrompt" ? (
                             <>
-                              <Check className="h-3 w-3 text-emerald-400" />
-                              <span className="text-emerald-400">Copied!</span>
+                              <Check className="h-3 w-3 text-emerald-600" />
+                              <span className="text-emerald-600 font-semibold">Copied!</span>
                             </>
                           ) : (
                             <>
@@ -509,7 +509,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                         <a
                           href={thumbnail.thumbnailUrl}
                           download={`youtube_thumbnail_${projectId}.jpg`}
-                          className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow flex items-center gap-1.5"
+                          className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-xs flex items-center gap-1.5"
                         >
                           <Download className="h-3.5 w-3.5" />
                           <span>Download 1280×720 PNG</span>
@@ -519,9 +519,9 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                   </div>
 
                   {/* Right: Controls & Presets */}
-                  <div className="space-y-3 bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
+                  <div className="space-y-3 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
                     <div>
-                      <label className="text-[11px] font-bold text-zinc-300 block mb-1.5 uppercase font-mono tracking-wider">
+                      <label className="text-[11px] font-bold text-slate-700 block mb-1.5 uppercase font-mono tracking-wider">
                         Viral Visual Style Preset:
                       </label>
                       <div className="grid grid-cols-1 gap-1.5">
@@ -530,51 +530,51 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                           onClick={() => setThumbnailStyle("CURIOSITY_SHOCK")}
                           className={`px-3 py-2 rounded-lg text-left text-xs transition flex items-center justify-between border ${
                             thumbnailStyle === "CURIOSITY_SHOCK"
-                              ? "bg-amber-500/20 border-amber-500/60 text-amber-200 font-bold"
-                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                              ? "bg-amber-50 border-amber-300 text-amber-900 font-bold"
+                              : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:text-slate-900"
                           }`}
                         >
                           <span>⚡ Curiosity &amp; Shock (Wide Eyes, Mouth Open)</span>
-                          {thumbnailStyle === "CURIOSITY_SHOCK" && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                          {thumbnailStyle === "CURIOSITY_SHOCK" && <Check className="h-3.5 w-3.5 text-amber-600" />}
                         </button>
                         <button
                           type="button"
                           onClick={() => setThumbnailStyle("EPIC_CINEMATIC")}
                           className={`px-3 py-2 rounded-lg text-left text-xs transition flex items-center justify-between border ${
                             thumbnailStyle === "EPIC_CINEMATIC"
-                              ? "bg-amber-500/20 border-amber-500/60 text-amber-200 font-bold"
-                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                              ? "bg-amber-50 border-amber-300 text-amber-900 font-bold"
+                              : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:text-slate-900"
                           }`}
                         >
                           <span>🎬 Epic Cinematic (Golden Hour &amp; Deep Bokeh)</span>
-                          {thumbnailStyle === "EPIC_CINEMATIC" && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                          {thumbnailStyle === "EPIC_CINEMATIC" && <Check className="h-3.5 w-3.5 text-amber-600" />}
                         </button>
                         <button
                           type="button"
                           onClick={() => setThumbnailStyle("DRAMATIC_CONFLICT")}
                           className={`px-3 py-2 rounded-lg text-left text-xs transition flex items-center justify-between border ${
                             thumbnailStyle === "DRAMATIC_CONFLICT"
-                              ? "bg-amber-500/20 border-amber-500/60 text-amber-200 font-bold"
-                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                              ? "bg-amber-50 border-amber-300 text-amber-900 font-bold"
+                              : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:text-slate-900"
                           }`}
                         >
                           <span>⚔️ Dramatic Conflict (Teal/Orange Standoff)</span>
-                          {thumbnailStyle === "DRAMATIC_CONFLICT" && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                          {thumbnailStyle === "DRAMATIC_CONFLICT" && <Check className="h-3.5 w-3.5 text-amber-600" />}
                         </button>
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 pt-1 border-t border-zinc-800/80">
+                    <div className="space-y-1.5 pt-1 border-t border-slate-100">
                       <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-bold text-zinc-300 uppercase font-mono tracking-wider">
+                        <label className="text-[11px] font-bold text-slate-700 uppercase font-mono tracking-wider">
                           Bold YouTube Headline Overlay:
                         </label>
-                        <label className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={showHeadlineOverlay}
                             onChange={(e) => setShowHeadlineOverlay(e.target.checked)}
-                            className="rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-0"
+                            className="rounded border-slate-300 bg-white text-amber-500 focus:ring-0"
                           />
                           <span>Show in Preview</span>
                         </label>
@@ -584,9 +584,9 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                         value={thumbnailHeadline}
                         onChange={(e) => setThumbnailHeadline(e.target.value)}
                         placeholder='e.g. "DON&apos;T MISS THIS!", "99% WRONG!", "1900 MYSTERY"'
-                        className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500 font-sans"
+                        className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-amber-500 font-sans transition"
                       />
-                      <p className="text-[10px] text-zinc-500">
+                      <p className="text-[10px] text-slate-500">
                         Simulates high-contrast YouTube click-hook text overlay on the 1280x720 canvas.
                       </p>
                     </div>
@@ -599,18 +599,18 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
               {/* 3. YouTube Video Title */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-zinc-300">
+                  <label className="text-xs font-bold text-slate-700">
                     YouTube &amp; Shorts Video Title
                   </label>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(youtubeTitle, "title")}
-                    className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-mono transition"
+                    className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-mono transition"
                   >
                     {copiedField === "title" ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied!</span>
+                        <Check className="h-3 w-3 text-emerald-600" />
+                        <span className="text-emerald-600 font-semibold">Copied!</span>
                       </>
                     ) : (
                       <>
@@ -624,25 +624,25 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                   type="text"
                   readOnly
                   value={youtubeTitle}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-100 font-sans focus:outline-none select-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 font-sans focus:outline-none select-all"
                 />
               </div>
 
               {/* 4. YouTube Video Description */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-zinc-300">
+                  <label className="text-xs font-bold text-slate-700">
                     YouTube Video Description (With Story Synopsis &amp; AI Credits)
                   </label>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(youtubeDescription, "desc")}
-                    className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-mono transition"
+                    className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-mono transition"
                   >
                     {copiedField === "desc" ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied!</span>
+                        <Check className="h-3 w-3 text-emerald-600" />
+                        <span className="text-emerald-600 font-semibold">Copied!</span>
                       </>
                     ) : (
                       <>
@@ -656,25 +656,25 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                   rows={6}
                   readOnly
                   value={youtubeDescription}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-200 font-mono leading-relaxed focus:outline-none select-all"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 font-mono leading-relaxed focus:outline-none select-all"
                 />
               </div>
 
               {/* 5. Hashtags & Tags */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-zinc-300">
+                  <label className="text-xs font-bold text-slate-700">
                     SEO Keywords &amp; Hashtags
                   </label>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(youtubeTags, "tags")}
-                    className="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 font-mono transition"
+                    className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 font-mono transition"
                   >
                     {copiedField === "tags" ? (
                       <>
-                        <Check className="h-3 w-3 text-emerald-400" />
-                        <span className="text-emerald-400">Copied!</span>
+                        <Check className="h-3 w-3 text-emerald-600" />
+                        <span className="text-emerald-600 font-semibold">Copied!</span>
                       </>
                     ) : (
                       <>
@@ -688,27 +688,27 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                   type="text"
                   readOnly
                   value={youtubeTags}
-                  className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-700 text-xs text-zinc-300 font-mono focus:outline-none select-all"
+                  className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 font-mono focus:outline-none select-all"
                 />
               </div>
 
               {/* 6. Production Pipeline Completion Checklist */}
-              <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-2">
-                <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+                <span className="text-[11px] font-mono font-bold text-slate-500 uppercase tracking-wider block">
                   AI Production Pipeline Checklist:
                 </span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <Check className="h-3.5 w-3.5" /> 1. Screenplay &amp; Dialogues crafted
+                  <div className="flex items-center gap-2 text-emerald-700 font-medium">
+                    <Check className="h-3.5 w-3.5 text-emerald-600" /> 1. Screenplay &amp; Dialogues crafted
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <Check className="h-3.5 w-3.5" /> 2. Character &amp; Wardrobe consistency locked
+                  <div className="flex items-center gap-2 text-emerald-700 font-medium">
+                    <Check className="h-3.5 w-3.5 text-emerald-600" /> 2. Character &amp; Wardrobe consistency locked
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <Check className="h-3.5 w-3.5" /> 3. Google Flow / Veo prompts generated
+                  <div className="flex items-center gap-2 text-emerald-700 font-medium">
+                    <Check className="h-3.5 w-3.5 text-emerald-600" /> 3. Google Flow / Veo prompts generated
                   </div>
-                  <div className="flex items-center gap-2 text-emerald-400">
-                    <Check className="h-3.5 w-3.5" /> 4. Free FLUX.1 stills &amp; shots ready
+                  <div className="flex items-center gap-2 text-emerald-700 font-medium">
+                    <Check className="h-3.5 w-3.5 text-emerald-600" /> 4. Free FLUX.1 stills &amp; shots ready
                   </div>
                 </div>
               </div>
@@ -716,14 +716,14 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
             </div>
 
             {/* Modal Footer */}
-            <div className="flex items-center justify-between px-6 py-3.5 border-t border-zinc-800 bg-zinc-950">
-              <span className="text-[11px] text-zinc-500 font-mono">
+            <div className="flex items-center justify-between px-6 py-3.5 border-t border-slate-100 bg-slate-50">
+              <span className="text-[11px] text-slate-500 font-mono">
                 CineFlow AI Filmmaking Studio · Step 5 of 5
               </span>
               <button
                 type="button"
                 onClick={() => setShowLaunchModal(false)}
-                className="px-4 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition"
+                className="px-4 py-1.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold transition"
               >
                 Close
               </button>

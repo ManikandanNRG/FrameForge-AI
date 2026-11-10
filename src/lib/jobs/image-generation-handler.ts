@@ -6,6 +6,7 @@ import { downloadImageToFile } from "@/lib/providers/openai-image";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { normalizeRoot } from "@/lib/media/paths";
 import { mkdir } from "node:fs/promises";
+import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
 import { logger } from "@/lib/logger";
 
 export async function imageGenerationHandler(
@@ -75,27 +76,20 @@ export async function imageGenerationHandler(
     locationAssets[0]?.description ||
     "dense rural South Indian sugarcane plantation with narrow dusty red dirt pathway";
 
-  // Synthesize master cinematic photographic prompt matching Google Flow / 35mm master quality
-  const shotFraming = shot.shotSize
-    ? shot.shotSize.toLowerCase().endsWith("shot")
-      ? shot.shotSize
-      : `${shot.shotSize} Shot`
-    : "Medium Shot";
-  const lighting =
-    shot.lighting ||
-    "Warm golden hour natural afternoon sunlight, realistic soft shadows, documentary realism";
+  // Synthesize master cinematic photographic prompt using Universal Prompt Compiler
+  const bundle = compileCinematicPrompt({
+    actionDescription: shot.actionDescription || shot.imagePrompt || "",
+    shotSize: shot.shotSize,
+    lighting: shot.lighting,
+    characterName: characterAnchor ? characterAnchor.split(",")[0] : null,
+    characterDescription: characterAnchor,
+    wardrobeLock,
+    locationDescription: locationEnv,
+    aspectRatio: project.aspectRatio,
+    storyLanguage: project.storyLanguage,
+  });
 
-  const promptToUse = [
-    `A breathtaking 8K photorealistic cinematic documentary film still, ${shotFraming}.`,
-    characterAnchor ? `Subject: ${characterAnchor}.` : null,
-    `Scene Action: ${actionCleaned}.`,
-    `Environment: ${locationEnv}.`,
-    `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting}, shallow depth of field, authentic human skin pores with subtle perspiration, Kodak Portra 400 35mm film grain, 24fps motion blur, realistic cloth textile folds.`,
-    `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life Indian skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs, NO modern western clothing.`,
-    `Vehicular & Animal Integrity: For any cart or wagon, draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward. Strictly NO draft animals tied behind or at the rear of the cart; strictly NO duplicate animals or animals appearing on both front and rear ends of a vehicle.`,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const promptToUse = bundle.fluxStillPrompt;
 
   // Generate image
   const jobRef = await provider.generate({

@@ -107,3 +107,16 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - `generateShotPlan`: Loads all character and location anchors from `ProductionAsset` and injects them directly into every shot's `videoPrompt`.
   - Multi-Lingual Screenplay: Dialogue and voiceover narration generated in the user's selected input language (e.g., Tamil script for Tamil, Hindi for Hindi), while visual camera directions remain in cinematic English for maximum AI model comprehension.
   - Storyboard AI Prompt Hub: Features Google Flow (Veo) as primary tab with 1-click prompt copy and deep-link launcher.
+
+## ADR-009: Universal Cinematic World & Physics Compiler
+- **Date**: 2026-11-10 · **Status**: Approved & Implemented
+- **Context**: Video diffusion models (Google Flow / Veo, Kling, Sora, Wan 2.1) and image generators (FLUX.1) hallucinate physical anomalies (e.g. draft animals tied to both ends of a cart, 180° backward-twisted necks, limbs fusing into vehicles, floating props) due to ambiguous scene prompts lacking physical invariants and spatial depth staging.
+- **Decision**:
+  1. Replace ad-hoc, scene-by-scene prompt adjustments with an automated, universal system: `Universal Cinematic World & Kinematics Engine` (`src/lib/story/world-engine.ts`) and `Universal Prompt Compiler` (`src/lib/story/prompt-compiler.ts`).
+  2. Enforce four universal physical laws across all generated prompts:
+     - **Mechanical & Propulsion Law**: Single-point forward propulsion for all vehicles, carts, wagons, and mounts; strictly forbids dual-ended harnesses or rear-hitched animals.
+     - **Skeletal & Locomotion Law**: Enforces forward physiological alignment of chest, neck, face, and gaze in direction of movement; pairs moving dialogue with backward tracking camera to eliminate 180° neck-twisting.
+     - **3-Plane Spatial Depth Staging**: Separates Foreground (hero actors), Midground (grounded vehicles/props), and Background (architecture/sky) so diffusion models do not fuse background entities into hero subjects.
+     - **Prop Manipulation & Permanence**: Single designated hand grip with rigid mass conservation.
+  3. Universal Multi-Engine Negative Constraint Matrix: Automatically injects engine-specific negative guardrails into Google Flow, Kling, Sora, and FLUX.1.
+  4. Storyboard UI "Universal Physics Inspector" & Auto-Enhance API: Real-time physics status badge in the Prompt Hub with a 1-click `⚡ Auto-Enhance Physics` action that audits and repairs any custom prompt on demand.

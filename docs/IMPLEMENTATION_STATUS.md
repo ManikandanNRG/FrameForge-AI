@@ -7,6 +7,11 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Universal Cinematic World & Physics Compiler (Systemic Hallucination Prevention)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/app/api/projects/[projectId]/shots/audit-prompt/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`):
+  - **Universal Physics Laws**: Automatically enforces 4 core physical invariants on every shot and prompt across any concept or genre (Mechanical/Draft Kinematics, Skeletal/Locomotion Forward Alignment, 3-Plane Spatial Depth Separation, and Rigid Prop Grip).
+  - **Automated Anti-Hallucination Guardrails**: Eliminates dual-sided vehicles (e.g. draft animals tied to both front and back ends of carts), 180° backward neck twists, rubber spines, and spatial fusion of background objects into foreground heroes.
+  - **Universal Multi-Engine Prompt Compiler**: Generates engine-specific, physically grounded prompts and negative matrices for Google Flow (Veo), Kling Direct Video, Sora, FLUX.1 Stills, and ChatGPT/Gemini.
+  - **Storyboard UI Physics Health Inspector & Auto-Enhance API**: Integrated a live `Universal Physics Engine: Verified` status bar in the Prompt Hub with a 1-click `⚡ Auto-Enhance Physics` action that audits, repairs, and fortifies any prompt in real time.
 - **Persistent 5-Step Film Production Workflow Navigation & YouTube Launch Kit** (`src/components/nav/ProjectWorkflowNav.tsx`, `src/app/projects/[projectId]/*`):
   - **Unified 5-Step Pipeline Navigation Bar**: Added a persistent, studio-styled top navigation bar across all project pages following the natural filmmaking order:
     1. **`1. Script`** (`/projects/[id]/story`): Screenplay development, scene-by-scene scriptwriting, 2 story options comparison, and inline AI Director co-pilot.

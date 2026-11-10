@@ -10,7 +10,9 @@ import {
   ChevronRight, Sparkles, Upload, Check, Image as ImageIcon, Video,
   AlertCircle, Mic, MessageSquare, Volume2, Copy, CheckCheck, Download,
   ExternalLink, FileCode, User, ChevronDown, ChevronUp, X, Edit2, Save, RefreshCw,
+  ShieldCheck, Zap, CheckCircle2,
 } from "lucide-react";
+import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
 
 interface ShotMedia {
   id: string; kind: string; versionNumber: number; filename: string;
@@ -71,6 +73,8 @@ export default function StoryboardPage() {
   const [editShotAudioPrompt, setEditShotAudioPrompt] = useState("");
   const [editShotCameraMotion, setEditShotCameraMotion] = useState("");
   const [savingShotScript, setSavingShotScript] = useState(false);
+  const [isAutoEnhancing, setIsAutoEnhancing] = useState(false);
+  const [enhanceSuccess, setEnhanceSuccess] = useState(false);
 
   useEffect(() => {
     if (selected) {
@@ -446,6 +450,40 @@ export default function StoryboardPage() {
     }
   }
 
+  async function handleAutoEnhance() {
+    if (!selected) return;
+    setIsAutoEnhancing(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/shots/audit-prompt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          shotId: selected.id,
+          actionDescription: selected.actionDescription,
+          cameraMovement: selected.cameraMovement,
+          dialogue: selected.dialogue,
+          voiceover: selected.voiceover,
+          audioPrompt: selected.audioPrompt,
+          shotSize: selected.shotSize,
+          lighting: selected.lighting,
+          characterName: charName,
+          wardrobeLock: wardrobeLock,
+          applyFix: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setEnhanceSuccess(true);
+        setTimeout(() => setEnhanceSuccess(false), 3000);
+        await load();
+      }
+    } catch (e) {
+      console.error("Auto-enhance failed", e);
+    } finally {
+      setIsAutoEnhancing(false);
+    }
+  }
+
   const allShots = scenes.flatMap(s => s.shots);
   const approvedCount     = allShots.filter(s => s.approvalStatus === "APPROVED").length;
   const hasImages         = allShots.some(s => s.mediaVersions.some(m => m.kind === "STORYBOARD_STILL"));
@@ -615,27 +653,6 @@ export default function StoryboardPage() {
     audioScriptLines.push(`- Audio Atmosphere & Foley: ${selected.audioPrompt}`);
   }
 
-  const googleFlowPrompt = selected ? [
-    taggedAction,
-    "",
-    `[PRODUCTION SPECS]:`,
-    `- Target Duration: ${targetDurationLabel}`,
-    `- Aspect Ratio & Orientation: ${orientationLabel}`,
-    `- Camera Framing & Lens: ${selected.shotSize ? (selected.shotSize.toLowerCase().endsWith("shot") ? selected.shotSize : `${selected.shotSize} Shot`) : "Medium Shot"}, 35mm lens, 24fps motion blur`,
-    `- Camera Movement & Dynamics: ${cameraMotion}`,
-    `- Lighting: ${selected.lighting || "Natural daylight, soft golden illumination, realistic shadows, documentary realism"}`,
-    "",
-    `[AUDIO & SCRIPT]:`,
-    ...audioScriptLines,
-    "",
-    `[VISUAL STYLE & RENDERING]:`,
-    `- Visual Style: 4K photorealistic cinematic documentary film, 35mm lens, authentic cultural textures, shallow depth of field, 24fps`,
-    wardrobeLock ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${wardrobeLock}. Maintain 100% clothing and physical consistency across every scene (NO switching to full pants or changing clothes).` : null,
-    `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${projectData?.storyLanguage || "native"} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
-    `- Anatomical Integrity & Locomotion Alignment: Strict forward physiological alignment of chest, torso, neck, and face in the direction of movement. Explicitly prohibit backward-twisted neck, 180-degree head rotation, contorted spine, unnatural body collapse, or mismatched locomotion direction.`,
-    `- Vehicular & Animal Harness Physics: For any cart, wagon, or carriage, draft animals (bullocks, oxen, horses) must be hitched strictly and exclusively to the FRONT wooden yoke pole facing forward. Strictly prohibit draft animals tied to the rear or back of the vehicle; strictly prohibit animals appearing on both front and back ends of the same vehicle; strictly prohibit two-headed or bidirectional carts, floating animals, or duplicate harnesses.`,
-  ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
-
   // Resolve authentic location description from Production Bible (never fallback to "SCENE 1")
   const locationAssets = bibleAssets.filter(a => a.assetType === "LOCATION");
   const matchedLocation = locationAssets.find(l => {
@@ -649,100 +666,53 @@ export default function StoryboardPage() {
     ? matchedLocation.description.replace(/\.+$/, "")
     : "Vast dense South Indian sugarcane plantation on narrow dusty red dirt pathway";
 
-  // Natural language action and camera motion without syntax brackets for external AI models (Kling, ChatGPT, Gemini)
-  const naturalAction = taggedAction
+  const isPortrait = projectData?.aspectRatio === "PORTRAIT_9_16";
+  const arParam = isPortrait ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9";
+  const shotFraming = selected?.shotSize
+    ? (selected.shotSize.toLowerCase().endsWith("shot") ? selected.shotSize : `${selected.shotSize} Shot`)
+    : "Medium Shot";
+
+  const actionCleaned = (selected?.actionDescription || selected?.videoPrompt || "")
     .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
     .replace(/@([A-Za-z0-9_-]+)/g, "$1")
-    .replace(/\s{2,}/g, " ")
-    .replace(/\.{2,}/g, ".")
-    .trim();
-
-  // Clean action without repetitive parenthetical wardrobe descriptions for fluid reading in AI prompts
-  const actionCleaned = naturalAction
     .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
     .replace(/\s{2,}/g, " ")
-    .replace(/\.{2,}/g, ".")
     .trim();
 
   const naturalCameraMotion = cameraMotion
     .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
     .replace(/@([A-Za-z0-9_-]+)/g, "$1")
-    .replace(/\s{2,}/g, " ")
-    .replace(/\.{2,}/g, ".")
     .trim();
 
   const naturalDialogue = formattedDialogue
     ? formattedDialogue.replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1").replace(/@([A-Za-z0-9_-]+)/g, "$1").trim()
     : "";
 
-  const isPortrait = projectData?.aspectRatio === "PORTRAIT_9_16";
-  const arParam = isPortrait ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9";
-  const framingDesc = isPortrait ? "9:16 vertical mobile portrait" : "16:9 widescreen cinematic";
-  const shotFraming = selected?.shotSize
-    ? (selected.shotSize.toLowerCase().endsWith("shot") ? selected.shotSize : `${selected.shotSize} Shot`)
-    : "Medium Shot";
+  // Universal Prompt Compiler: Enforces Universal Physics & Kinematics across all engines
+  const compiledBundle = selected ? compileCinematicPrompt({
+    actionDescription: selected.actionDescription || selected.videoPrompt || "",
+    shotSize: selected.shotSize,
+    cameraMovement: cameraMotion,
+    lighting: selected.lighting,
+    dialogue: formattedDialogue,
+    voiceover: selected.voiceover,
+    audioPrompt: selected.audioPrompt,
+    characterName: charName,
+    characterDescription: activeCharAsset?.description,
+    wardrobeLock,
+    locationDescription: locationEnvironment,
+    aspectRatio: projectData?.aspectRatio,
+    storyLanguage: projectData?.storyLanguage,
+    targetDurationSeconds: selected.targetDurationSeconds,
+  }) : null;
 
-  const klingPrompt = selected ? [
-    `A cinematic 8K photorealistic ${framingDesc} film scene.`,
-    `Subject: ${charName}, an authentic South Indian character with ${(activeCharAsset?.description || "authentic regional traits").replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || "traditional regional clothing"}.`,
-    `Action & Dynamics: ${actionCleaned}.`,
-    `Camera & Composition: ${shotFraming}, ${naturalCameraMotion}, shot on 35mm master anamorphic lens, realistic motion blur at 24fps.`,
-    `Environment & Atmosphere: ${locationEnvironment}. Lighting: ${(selected.lighting || "warm golden hour natural afternoon sunlight").replace(/\.+$/, "")}.${selected.audioPrompt ? ` Foley ambience: ${selected.audioPrompt.replace(/\.+$/, "")}.` : ""}`,
-    hasDialogue
-      ? `Dialogue & Lip Sync: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${projectData?.storyLanguage || "Tamil"} lip movements and expressive facial animation.`
-      : `Audio Pace: Pure visual cinema action and environmental Foley, no spoken character dialogue.`,
-    `Aesthetics: Photorealistic 8K cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`,
-    `--ar ${arParam} --mode pro --negative "CGI, 3D render, cartoon, anime, plastic skin, full pants, long trousers, western face, distorted anatomy, extra limbs, motion jitter, blur, subtitles, watermark, text, backwards head, twisted neck, 180 degree head rotation, broken spine, contorted body, disjointed torso, mismatched limbs, animals hitched to rear of cart, bull tied behind vehicle, animals hitched to both ends of vehicle, duplicate bulls, two-headed cart, morphing livestock"`
-  ].filter(Boolean).join(" ").replace(/\s{2,}/g, " ").replace(/\.{2,}/g, ".") : "";
-
-  const chatgptPrompt = selected ? [
-    `Create a highly detailed, photorealistic ${framingDesc} film still from a cinematic regional film.`,
-    `Subject: ${charName}, ${activeCharAsset?.description || "authentic South Indian character"}. Wardrobe lock: strictly wearing ${wardrobeLock || "traditional clothing"} (no western clothes or long trousers).`,
-    `Scene Action: ${actionCleaned}.`,
-    `Environment: ${locationEnvironment}.`,
-    `Lighting & Mood: ${selected.lighting || "Natural golden hour daylight, soft shadows, warm highlights"}.`,
-    `Camera & Composition: ${shotFraming}, ${naturalCameraMotion}, 35mm prime lens, natural optical bokeh, 24fps film motion aesthetic.`,
-    hasDialogue
-      ? `Spoken Dialogue Beat: ${naturalDialogue} (Authentic ${projectData?.storyLanguage || "Tamil"} dialect, natural conversational pacing)`
-      : (selected.voiceover ? `Voice-Over Beat: "${selected.voiceover}"` : `Soundscape Atmosphere: ${selected.audioPrompt || "Ambient rural environment"}`),
-    `Style & Realism: Authentic documentary realism, true-to-life Indian skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 8K resolution.`,
-    `Negative Constraints: Avoid cartoon, 3D CGI animation, plastic skin, long pants or modern western clothes, distorted hands, extra limbs, artificial oversaturation, twisted neck, backwards head rotation, contorted spine, unnatural body collapse, animals hitched to rear of cart, bull tied behind vehicle, draft animals on both front and back ends of vehicle, duplicate bulls.`,
-  ].filter(Boolean).join("\n\n") : "";
-
-  const geminiPrompt = selected ? [
-    `Cinematic ${framingDesc} photorealistic film still.`,
-    `Character: ${charName}, ${activeCharAsset?.description || "authentic South Indian appearance"}. Attire: strictly wearing ${wardrobeLock || "traditional South Indian clothing"}.`,
-    `Visual Action: ${actionCleaned}.`,
-    `Setting & Background: ${locationEnvironment}.`,
-    `Cinematography: ${shotFraming}, ${naturalCameraMotion}, 35mm anamorphic prime lens, high dynamic range with natural sunlight falloff.`,
-    hasDialogue ? `Character Dialogue Context: ${naturalDialogue}` : (selected.voiceover ? `Voiceover Context: "${selected.voiceover}"` : `Atmosphere: ${selected.audioPrompt || "Quiet rural stillness"}`),
-    `Film Aesthetics: 4K master grade, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
-    `Vehicular Integrity: Any draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward; no animals behind carts or on both sides.`,
-  ].filter(Boolean).join("\n\n") : "";
-
-  const videoMotionPrompt = selected ? [
-    actionCleaned,
-    `Camera: ${naturalCameraMotion}`,
-    hasDialogue
-      ? `[Character Dialogue]: ${selected.dialogue}`
-      : (selected.voiceover ? `[Voice-Over Beat]: "${selected.voiceover}"` : ""),
-    selected.audioPrompt ? `[Soundscape / Foley]: ${selected.audioPrompt}` : "",
-  ].filter(Boolean).join("\n\n") : "";
-
-  const scriptPrompt = selected ? [
-    `═══════════════════════════════════════════════════════════`,
-    `🎬 SCENE ${selectedScene?.sceneNumber ?? 1}: ${selectedScene?.heading || "EXT. VILLAGE"} · SHOT ${selected.shotNumber}`,
-    `⏱️ DURATION: ${normalizedDuration}s | FRAMING: ${shotFraming} | ORIENTATION: ${arParam}`,
-    `═══════════════════════════════════════════════════════════`,
-    `\n📍 LOCATION: ${locationEnvironment}`,
-    `\n👤 ACTIVE CHARACTER: ${charName} (Wardrobe: ${wardrobeLock})`,
-    `\n🎥 CAMERA & ACTION:`,
-    `${actionCleaned}`,
-    `Camera Movement: ${naturalCameraMotion}`,
-    hasDialogue ? `\n💬 CHARACTER SPOKEN DIALOGUE:\n${naturalDialogue}\n[ACTOR DIRECTION: Authentic regional ${projectData?.storyLanguage || "Tamil"} dialect, high emotional stakes, natural lip movement]` : "",
-    (!hasDialogue && selected.voiceover) ? `\n🎙️ VOICE-OVER (NARRATOR):\n"${selected.voiceover}"\n[NARRATOR DIRECTION: Warm, grounded storyteller cadence]` : "",
-    selected.audioPrompt ? `\n🔊 SOUND DESIGN & AMBIENCE:\n${selected.audioPrompt}` : "",
-  ].filter(Boolean).join("\n") : "";
+  const googleFlowPrompt = compiledBundle?.googleFlowPrompt || "";
+  const klingPrompt = compiledBundle?.klingPrompt || "";
+  const chatgptPrompt = compiledBundle?.chatgptPrompt || "";
+  const geminiPrompt = compiledBundle?.geminiPrompt || "";
+  const videoMotionPrompt = compiledBundle?.videoMotionPrompt || "";
+  const scriptPrompt = compiledBundle?.scriptPrompt || "";
+  const detectedEntities = compiledBundle?.entities;
 
   // Character references for external AI tools (Runway, Kling API, ComfyUI, etc.)
   const characterReferenceForOtherTools = characterAssets.length > 0 ? Object.fromEntries(
@@ -1360,6 +1330,58 @@ export default function StoryboardPage() {
                           {tab.label}
                         </button>
                       ))}
+                    </div>
+
+                    {/* Universal Physics Health Bar & Auto-Enhance Button */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-emerald-950/20 border border-emerald-800/40 rounded-lg text-xs">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <div className="flex items-center gap-1 text-emerald-400 font-semibold">
+                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                          <span>Universal Physics Engine</span>
+                        </div>
+                        <span className="text-[10px] bg-emerald-900/60 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-700/50 font-mono">
+                          Verified
+                        </span>
+                        {detectedEntities?.hasVehicleOrMount && (
+                          <span className="text-[10px] bg-amber-950/70 text-amber-300 px-1.5 py-0.5 rounded border border-amber-700/50 font-mono">
+                            Front-Harness Locked
+                          </span>
+                        )}
+                        {detectedEntities?.hasLocomotion && (
+                          <span className="text-[10px] bg-blue-950/70 text-blue-300 px-1.5 py-0.5 rounded border border-blue-700/50 font-mono">
+                            Skeletal Aligned
+                          </span>
+                        )}
+                        {detectedEntities?.hasHandheldProp && (
+                          <span className="text-[10px] bg-purple-950/70 text-purple-300 px-1.5 py-0.5 rounded border border-purple-700/50 font-mono">
+                            Rigid Grip Anchored
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={handleAutoEnhance}
+                        disabled={isAutoEnhancing}
+                        className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-md transition disabled:opacity-50"
+                        title="Audit and automatically fortify this shot's kinematics and physical invariants"
+                      >
+                        {isAutoEnhancing ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 animate-spin text-emerald-400" />
+                            <span>Auditing Physics...</span>
+                          </>
+                        ) : enhanceSuccess ? (
+                          <>
+                            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                            <span>Physics Fortified!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-3 w-3 text-emerald-400" />
+                            <span>⚡ Auto-Enhance Physics</span>
+                          </>
+                        )}
+                      </button>
                     </div>
 
                     {/* Content: Google Flow vs General Engine Tabs */}

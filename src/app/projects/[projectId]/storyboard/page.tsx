@@ -633,6 +633,7 @@ export default function StoryboardPage() {
     wardrobeLock ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${wardrobeLock}. Maintain 100% clothing and physical consistency across every scene (NO switching to full pants or changing clothes).` : null,
     `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${projectData?.storyLanguage || "native"} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
     `- Anatomical Integrity & Locomotion Alignment: Strict forward physiological alignment of chest, torso, neck, and face in the direction of movement. Explicitly prohibit backward-twisted neck, 180-degree head rotation, contorted spine, unnatural body collapse, or mismatched locomotion direction.`,
+    `- Vehicular & Animal Harness Physics: For any cart, wagon, or carriage, draft animals (bullocks, oxen, horses) must be hitched strictly and exclusively to the FRONT wooden yoke pole facing forward. Strictly prohibit draft animals tied to the rear or back of the vehicle; strictly prohibit animals appearing on both front and back ends of the same vehicle; strictly prohibit two-headed or bidirectional carts, floating animals, or duplicate harnesses.`,
   ].filter(line => line !== null && line !== undefined).join("\n").replace(/\n{3,}/g, "\n\n") : "";
 
   // Resolve authentic location description from Production Bible (never fallback to "SCENE 1")
@@ -691,7 +692,7 @@ export default function StoryboardPage() {
       ? `Dialogue & Lip Sync: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${projectData?.storyLanguage || "Tamil"} lip movements and expressive facial animation.`
       : `Audio Pace: Pure visual cinema action and environmental Foley, no spoken character dialogue.`,
     `Aesthetics: Photorealistic 8K cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`,
-    `--ar ${arParam} --mode pro --negative "CGI, 3D render, cartoon, anime, plastic skin, full pants, long trousers, western face, distorted anatomy, extra limbs, motion jitter, blur, subtitles, watermark, text, backwards head, twisted neck, 180 degree head rotation, broken spine, contorted body, disjointed torso, mismatched limbs"`,
+    `--ar ${arParam} --mode pro --negative "CGI, 3D render, cartoon, anime, plastic skin, full pants, long trousers, western face, distorted anatomy, extra limbs, motion jitter, blur, subtitles, watermark, text, backwards head, twisted neck, 180 degree head rotation, broken spine, contorted body, disjointed torso, mismatched limbs, animals hitched to rear of cart, bull tied behind vehicle, animals hitched to both ends of vehicle, duplicate bulls, two-headed cart, morphing livestock"`
   ].filter(Boolean).join(" ").replace(/\s{2,}/g, " ").replace(/\.{2,}/g, ".") : "";
 
   const chatgptPrompt = selected ? [
@@ -705,7 +706,7 @@ export default function StoryboardPage() {
       ? `Spoken Dialogue Beat: ${naturalDialogue} (Authentic ${projectData?.storyLanguage || "Tamil"} dialect, natural conversational pacing)`
       : (selected.voiceover ? `Voice-Over Beat: "${selected.voiceover}"` : `Soundscape Atmosphere: ${selected.audioPrompt || "Ambient rural environment"}`),
     `Style & Realism: Authentic documentary realism, true-to-life Indian skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 8K resolution.`,
-    `Negative Constraints: Avoid cartoon, 3D CGI animation, plastic skin, long pants or modern western clothes, distorted hands, extra limbs, artificial oversaturation, twisted neck, backwards head rotation, contorted spine, unnatural body collapse.`,
+    `Negative Constraints: Avoid cartoon, 3D CGI animation, plastic skin, long pants or modern western clothes, distorted hands, extra limbs, artificial oversaturation, twisted neck, backwards head rotation, contorted spine, unnatural body collapse, animals hitched to rear of cart, bull tied behind vehicle, draft animals on both front and back ends of vehicle, duplicate bulls.`,
   ].filter(Boolean).join("\n\n") : "";
 
   const geminiPrompt = selected ? [
@@ -716,6 +717,7 @@ export default function StoryboardPage() {
     `Cinematography: ${shotFraming}, ${naturalCameraMotion}, 35mm anamorphic prime lens, high dynamic range with natural sunlight falloff.`,
     hasDialogue ? `Character Dialogue Context: ${naturalDialogue}` : (selected.voiceover ? `Voiceover Context: "${selected.voiceover}"` : `Atmosphere: ${selected.audioPrompt || "Quiet rural stillness"}`),
     `Film Aesthetics: 4K master grade, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
+    `Vehicular Integrity: Any draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward; no animals behind carts or on both sides.`,
   ].filter(Boolean).join("\n\n") : "";
 
   const videoMotionPrompt = selected ? [

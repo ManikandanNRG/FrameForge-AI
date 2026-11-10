@@ -92,6 +92,7 @@ export async function imageGenerationHandler(
     `Environment: ${locationEnv}.`,
     `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting}, shallow depth of field, authentic human skin pores with subtle perspiration, Kodak Portra 400 35mm film grain, 24fps motion blur, realistic cloth textile folds.`,
     `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life Indian skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs, NO modern western clothing.`,
+    `Vehicular & Animal Integrity: For any cart or wagon, draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward. Strictly NO draft animals tied behind or at the rear of the cart; strictly NO duplicate animals or animals appearing on both front and rear ends of a vehicle.`,
   ]
     .filter(Boolean)
     .join(" ");

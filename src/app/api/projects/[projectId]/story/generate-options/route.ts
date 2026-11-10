@@ -74,9 +74,12 @@ CRITICAL QUALITY RULES FOR VIRAL ENGAGEMENT:
      - Pride/Nostalgia: '[@Character] speaks: "(பெருமித புன்னகையுடன்) இந்த அரண்மனை வாசலில் நின்னாலே நூறு வருஷத்து தங்கக் காசு சத்தம் இன்னும் இந்த மண்ணுல கேட்கும்!"'
 4. AUDIO EXCLUSIVITY:
    - When a character speaks dialogue, narrator voiceover MUST be empty string (""). Only provide voiceover when characters are silent.
-5. AIRTIGHT DRAMATIC CAUSALITY & PACING:
+7. AIRTIGHT DRAMATIC CAUSALITY & PACING:
    - 5-6 scenes strictly 8s or 10s duration each.
    - Pacing structure: Hook (Scene 1) -> World Building & Stakes (Scenes 2-3) -> Rising Conflict / Discovery (Scene 4) -> Climax & Lasting Viral Impression (Scenes 5-6).
+8. VEHICULAR & DRAFT ANIMAL HARNESS INTEGRITY:
+   - When describing carts, carriages, or wagons with draft animals (bullocks, oxen, horses), draft animals must be hitched strictly and exclusively to the front wooden yoke pole facing forward.
+   - Strictly forbid animals hitched behind or at the rear of a vehicle, or appearing on both front and back ends.
 
 Characters to weave in:
 ${characterGuide || "- Authentic regional characters appropriate to the story world."}`;

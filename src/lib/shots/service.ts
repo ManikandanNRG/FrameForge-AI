@@ -84,10 +84,14 @@ CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
    - NEVER place the camera behind a character chasing them while instructing them to lip-sync dialogue, because video models contort and collapse the character's neck and body 180 degrees backwards to face the camera!
    - Both the character's locomotion and gaze must align forward: 'Dynamic low-angle backward tracking shot moving smoothly ahead of [@Character], facing their front torso and terrified facial expression as they sprint forward directly toward camera down the path.'
 
-6. AIRTIGHT DRAMATIC CAUSE-AND-EFFECT & DIALOGUE LOGIC:
+8. AIRTIGHT DRAMATIC CAUSE-AND-EFFECT & DIALOGUE LOGIC:
    - Every shot's action and spoken dialogue MUST have a clear, logical causal chain.
    - If Character B reacts in shock or asks a question (e.g. Amma dropping a basket and asking 'Why are you shouting in terror?'), the action line MUST explicitly depict what caused that reaction (e.g. Character A's frantic shouting echoing from the path, bursting into the courtyard trembling, gasping for breath, pointing back in terror toward the wild elephant).
    - Ensure seamless narrative continuity: each shot must logically pick up from the physical and emotional consequence of the preceding shot.
+
+7. VEHICULAR & DRAFT ANIMAL HARNESS INTEGRITY:
+   - For any cart, carriage, or wagon featuring draft animals (e.g. bullocks, oxen, horses), draft animals MUST be hitched strictly and exclusively to the FRONT wooden yoke pole facing forward.
+   - Explicitly forbid animals tied to the rear or back of the vehicle, forbid animals appearing on both front and rear ends of the same vehicle, and forbid duplicate or morphing livestock.
 
 
 MASTER CHARACTER ANCHORS:

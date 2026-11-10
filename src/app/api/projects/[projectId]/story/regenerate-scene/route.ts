@@ -12,18 +12,32 @@ const regenerateSchema = z.object({
   modelId: z.string().optional(),
 });
 
-const SingleSceneSchema = z.object({
-  sceneNumber: z.number(),
-  heading: z.string(),
-  location: z.string(),
-  timeOfDay: z.string(),
-  action: z.string(),
+const SingleSceneSchema = z.preprocess((val: any) => {
+  if (typeof val !== "object" || !val) return {};
+  return {
+    sceneNumber: val.sceneNumber ?? val.scene_number ?? val.number ?? 1,
+    heading: val.heading ?? val.scene_heading ?? "EXT. SCENE - DAY",
+    location: val.location ?? "Location",
+    timeOfDay: val.timeOfDay ?? val.time_of_day ?? "DAY",
+    action: val.action ?? val.visualAction ?? val.visual_action ?? val.description ?? "",
+    voiceover: val.voiceover ?? val.voice_over ?? "",
+    dialogue: val.dialogue ?? val.dialogues ?? val.spokenDialogue ?? "",
+    audioScript: val.audioScript ?? val.audio_prompt ?? val.soundEffects ?? "",
+    soundEffects: val.soundEffects ?? "",
+    estimatedDurationSeconds: Number(val.estimatedDurationSeconds ?? val.duration ?? 8) || 8,
+  };
+}, z.object({
+  sceneNumber: z.coerce.number().default(1),
+  heading: z.string().default("EXT. SCENE - DAY"),
+  location: z.string().default("Location"),
+  timeOfDay: z.string().default("DAY"),
+  action: z.string().default(""),
   voiceover: z.string().optional().default(""),
   dialogue: z.string().optional().default(""),
   audioScript: z.string().optional().default(""),
   soundEffects: z.string().optional().default(""),
-  estimatedDurationSeconds: z.number().default(8),
-});
+  estimatedDurationSeconds: z.coerce.number().default(8),
+}));
 
 export const POST = apiHandler(async (req, ctx) => {
   const ownerId = await requireUserId();
@@ -80,21 +94,26 @@ export const POST = apiHandler(async (req, ctx) => {
   // 2. Resolve text generation provider (Gemini / OpenAI)
   const { provider, modelId: resolvedModelId } = await resolveTextProvider(ownerId, false);
 
-  const systemPrompt = `You are an elite film director, master screenwriter, and AI prompt architect.
+  const systemPrompt = `You are an elite film director, master screenwriter, and AI prompt architect specializing in high-engagement, viral cinema and rich period dramas.
 Film Visual Style: ${project.visualStyle.replace(/_/g, " ")}.
 Film Language for Dialogue and Voiceover: "${project.storyLanguage}".
 
-CRITICAL DRAMATIC CAUSE-AND-EFFECT & CONTINUITY RULES:
-1. Rewrite ONLY Scene ${sceneNumber} based on the director's specific instructions.
-2. Maintain strict narrative causality with preceding Scene ${prevScene ? prevScene.sceneNumber : "N/A"} and following Scene ${nextScene ? nextScene.sceneNumber : "N/A"}.
-3. Every reaction, gasp, or question MUST have a clear physical cause (e.g. hearing shouts in advance, trembling in terror, visible actions).
-4. Audio mutual exclusivity: If characters are speaking dialogue, keep voiceover empty (""). Character dialogue MUST be written in authentic native "${project.storyLanguage}".
-5. Character continuity: Maintain locked names and wardrobe.
+CRITICAL SCREENPLAY QUALITY & CONTINUITY DIRECTIVES:
+1. Rewrite ONLY Scene ${sceneNumber} strictly obeying the director's instructions.
+2. NEVER write generic 1-2 sentence summaries. Write deeply visual, high-octane 3-4 sentence cinema-grade visual action:
+   - Dynamic camera movement (low-angle tracking, sweeping cranes, anamorphic push-ins, shallow depth of field).
+   - Period & cultural sensory textures (e.g. swirling red dust, handwoven textiles, brass lanterns, weathered teakwood, smoke, warm golden lighting).
+   - Micro-expressions, tension, and visceral character physical action.
+3. Spoken Dialogue: Write authentic, natural colloquial "${project.storyLanguage}" (e.g. natural Tamil dialogue, NOT translated textbook Tamil). The dialogue must sound like a real person from this culture and era speaking naturally.
+4. Format dialogue strictly as: '[@CharacterName] speaks: "..."'. If a character speaks, leave voiceover empty ("").
+5. Audio Design: Provide detailed ambient Foley, period acoustic cues, and sound textures.
+6. Character continuity: Respect established characters, relationships, and wardrobes.
+7. Vehicular & Animal Harness Integrity: For any cart, wagon, or carriage, draft animals must be hitched strictly and exclusively to the front wooden yoke pole facing forward. Never describe or permit animals tied behind or at the rear of a vehicle, or appearing on both front and back ends.
 
 Characters:
 ${characterGuide || "Authentic regional characters."}`;
 
-  const userPrompt = `Rewrite Scene ${sceneNumber} for this film.
+  const userPrompt = `Rewrite Scene ${sceneNumber} for this film with viral cinematic power.
 
 Current Scene ${sceneNumber}:
 Heading: ${currentScene.heading}
@@ -109,17 +128,17 @@ Following Scene (${nextScene ? `Scene ${nextScene.sceneNumber}: ${nextScene.head
 ${nextScene ? `Action: ${nextScene.action}\nDialogue: ${nextScene.dialogue || "None"}` : "Final Scene"}
 
 Director's Specific Instructions for this Scene:
-${instructions && instructions.trim().length > 0 ? instructions : "Make the dramatic action sharper, more vivid, and ensure airtight emotional cause-and-effect between characters."}
+${instructions && instructions.trim().length > 0 ? instructions : "Upgrade this into a full cinematic sequence with 3-4 sentences of rich visual camera action, sensory textures, authentic colloquial Tamil dialogue, and atmospheric sound design."}
 
 Return JSON with:
 sceneNumber: ${sceneNumber}
 heading: scene heading (e.g. ${currentScene.heading})
 location: location name
 timeOfDay: time of day
-action: 2-3 sentences of vivid, cinema-ready visual action in English
+action: 3-4 sentences of vivid, cinema-ready visual action in English with camera movement and period textures (NEVER a single brief line!)
 voiceover: voiceover narration in "${project.storyLanguage}" (leave empty "" if character speaks)
-dialogue: character spoken line in "${project.storyLanguage}" formatted as '[@Character] speaks: "..."' (leave empty "" if no speech)
-audioScript: sound design, Foley, ambience
+dialogue: character spoken line in authentic colloquial "${project.storyLanguage}" formatted as '[@Character] speaks: "..."' (leave empty "" if no speech)
+audioScript: rich sound design, Foley, and ambient acoustic atmosphere
 soundEffects: key SFX
 estimatedDurationSeconds: duration (strictly 8 or 10)`;
 

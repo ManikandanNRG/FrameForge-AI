@@ -19,6 +19,10 @@ import {
   X,
   Share2,
   ExternalLink,
+  Image as ImageIcon,
+  Wand2,
+  Layers,
+  Zap,
 } from "lucide-react";
 
 export type WorkflowStepId = "overview" | "script" | "assets" | "storyboard" | "editor" | "launch";
@@ -44,6 +48,14 @@ export function ProjectWorkflowNav({
   const [latestExport, setLatestExport] = useState<any>(null);
   const [loadingExport, setLoadingExport] = useState(false);
 
+  // YouTube Thumbnail Studio State
+  const [thumbnail, setThumbnail] = useState<any>(null);
+  const [thumbnailStyle, setThumbnailStyle] = useState<"CURIOSITY_SHOCK" | "EPIC_CINEMATIC" | "DRAMATIC_CONFLICT">("CURIOSITY_SHOCK");
+  const [thumbnailHeadline, setThumbnailHeadline] = useState<string>("DON'T MISS THIS!");
+  const [showHeadlineOverlay, setShowHeadlineOverlay] = useState<boolean>(true);
+  const [generatingThumbnail, setGeneratingThumbnail] = useState<boolean>(false);
+  const [thumbnailError, setThumbnailError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!projectId) return;
     // Fetch project details for launch metadata
@@ -59,6 +71,7 @@ export function ProjectWorkflowNav({
     setShowLaunchModal(true);
     setLoadingExport(true);
     try {
+      // 1. Fetch export
       const seqRes = await fetch(`/api/projects/${projectId}/sequences`).then((r) => r.json());
       const firstSeq = seqRes.data?.sequences?.[0];
       if (firstSeq) {
@@ -68,10 +81,45 @@ export function ProjectWorkflowNav({
           setLatestExport(successful);
         }
       }
+      // 2. Fetch thumbnail
+      fetch(`/api/projects/${projectId}/thumbnail`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.ok && d.thumbnail) {
+            setThumbnail(d.thumbnail);
+            if (d.thumbnail.headlineText) setThumbnailHeadline(d.thumbnail.headlineText);
+            if (d.thumbnail.style) setThumbnailStyle(d.thumbnail.style);
+          }
+        })
+        .catch(() => {});
     } catch (e) {
       console.error("Failed to load exports for launch kit", e);
     } finally {
       setLoadingExport(false);
+    }
+  }
+
+  async function handleGenerateThumbnail() {
+    setGeneratingThumbnail(true);
+    setThumbnailError(null);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/thumbnail`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          style: thumbnailStyle,
+          headlineText: thumbnailHeadline,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok || !d.ok) {
+        throw new Error(d.error || d.message || "Failed to generate thumbnail");
+      }
+      setThumbnail(d.thumbnail);
+    } catch (err: any) {
+      setThumbnailError(err.message || "Thumbnail generation error");
+    } finally {
+      setGeneratingThumbnail(false);
     }
   }
 
@@ -364,7 +412,191 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 )}
               </div>
 
-              {/* 2. YouTube Video Title */}
+              {/* 2. High-CTR YouTube Thumbnail Studio (1280x720, FLUX.1 Free) */}
+              <div className="rounded-xl border border-amber-500/40 bg-zinc-900/70 p-4 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400">
+                      <ImageIcon className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-zinc-100 flex items-center gap-2">
+                        High-CTR YouTube Thumbnail Studio
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">
+                          1280×720 · 16:9 · Free FLUX.1
+                        </span>
+                      </span>
+                      <p className="text-[11px] text-zinc-400">
+                        Viral curiosity-gap composition engineered for maximum YouTube Feed click-through-rate.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateThumbnail}
+                    disabled={generatingThumbnail}
+                    className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-black font-bold text-xs shadow-md flex items-center gap-1.5 transition disabled:opacity-50"
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>{generatingThumbnail ? "Synthesizing 1280×720..." : (thumbnail ? "Re-Generate Thumbnail" : "Generate Thumbnail (Free)")}</span>
+                  </button>
+                </div>
+
+                {thumbnailError && (
+                  <div className="p-2.5 rounded-lg bg-red-950/50 border border-red-800 text-red-300 text-xs">
+                    {thumbnailError}
+                  </div>
+                )}
+
+                {/* 2-Column Studio Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                  
+                  {/* Left: Thumbnail Preview & Overlay */}
+                  <div className="space-y-2">
+                    <div className="relative aspect-video w-full rounded-xl bg-black border border-zinc-800 overflow-hidden shadow-inner flex items-center justify-center group">
+                      {thumbnail?.thumbnailUrl ? (
+                        <>
+                          <img
+                            src={thumbnail.thumbnailUrl}
+                            alt="YouTube Thumbnail"
+                            className="w-full h-full object-cover"
+                          />
+                          {/* Live YouTube-Style Bold Text Overlay */}
+                          {showHeadlineOverlay && thumbnailHeadline && (
+                            <div className="absolute top-3 right-3 max-w-[65%] px-3 py-1 bg-yellow-400 text-black font-black uppercase text-xs sm:text-sm tracking-tight rounded shadow-2xl border-2 border-black rotate-[-2deg] select-none pointer-events-none drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)]">
+                              {thumbnailHeadline}
+                            </div>
+                          )}
+                          <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 backdrop-blur-sm text-[10px] font-mono text-zinc-300 border border-zinc-700">
+                            1280 × 720 HD
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center p-6 space-y-2">
+                          <Zap className="h-8 w-8 text-amber-400/60 mx-auto" />
+                          <p className="text-xs text-zinc-400">
+                            No thumbnail generated yet.
+                          </p>
+                          <p className="text-[11px] text-zinc-500">
+                            Click &ldquo;Generate Thumbnail&rdquo; to create a high-contrast 16:9 viral thumbnail using the project&apos;s lead character and visual style.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Download & Copy Buttons */}
+                    {thumbnail?.thumbnailUrl && (
+                      <div className="flex items-center justify-between gap-2 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(thumbnail.prompt || "", "thumbPrompt")}
+                          className="text-[11px] text-zinc-400 hover:text-zinc-200 flex items-center gap-1 font-mono transition"
+                        >
+                          {copiedField === "thumbPrompt" ? (
+                            <>
+                              <Check className="h-3 w-3 text-emerald-400" />
+                              <span className="text-emerald-400">Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3 w-3" />
+                              <span>Copy Prompt</span>
+                            </>
+                          )}
+                        </button>
+
+                        <a
+                          href={thumbnail.thumbnailUrl}
+                          download={`youtube_thumbnail_${projectId}.jpg`}
+                          className="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow flex items-center gap-1.5"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          <span>Download 1280×720 PNG</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Controls & Presets */}
+                  <div className="space-y-3 bg-zinc-950/60 p-3.5 rounded-xl border border-zinc-800/80">
+                    <div>
+                      <label className="text-[11px] font-bold text-zinc-300 block mb-1.5 uppercase font-mono tracking-wider">
+                        Viral Visual Style Preset:
+                      </label>
+                      <div className="grid grid-cols-1 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailStyle("CURIOSITY_SHOCK")}
+                          className={`px-3 py-2 rounded-lg text-left text-xs transition flex items-center justify-between border ${
+                            thumbnailStyle === "CURIOSITY_SHOCK"
+                              ? "bg-amber-500/20 border-amber-500/60 text-amber-200 font-bold"
+                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                          }`}
+                        >
+                          <span>⚡ Curiosity &amp; Shock (Wide Eyes, Mouth Open)</span>
+                          {thumbnailStyle === "CURIOSITY_SHOCK" && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailStyle("EPIC_CINEMATIC")}
+                          className={`px-3 py-2 rounded-lg text-left text-xs transition flex items-center justify-between border ${
+                            thumbnailStyle === "EPIC_CINEMATIC"
+                              ? "bg-amber-500/20 border-amber-500/60 text-amber-200 font-bold"
+                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                          }`}
+                        >
+                          <span>🎬 Epic Cinematic (Golden Hour &amp; Deep Bokeh)</span>
+                          {thumbnailStyle === "EPIC_CINEMATIC" && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setThumbnailStyle("DRAMATIC_CONFLICT")}
+                          className={`px-3 py-2 rounded-lg text-left text-xs transition flex items-center justify-between border ${
+                            thumbnailStyle === "DRAMATIC_CONFLICT"
+                              ? "bg-amber-500/20 border-amber-500/60 text-amber-200 font-bold"
+                              : "bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200"
+                          }`}
+                        >
+                          <span>⚔️ Dramatic Conflict (Teal/Orange Standoff)</span>
+                          {thumbnailStyle === "DRAMATIC_CONFLICT" && <Check className="h-3.5 w-3.5 text-amber-400" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1 border-t border-zinc-800/80">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-bold text-zinc-300 uppercase font-mono tracking-wider">
+                          Bold YouTube Headline Overlay:
+                        </label>
+                        <label className="flex items-center gap-1.5 text-[11px] text-zinc-400 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={showHeadlineOverlay}
+                            onChange={(e) => setShowHeadlineOverlay(e.target.checked)}
+                            className="rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-0"
+                          />
+                          <span>Show in Preview</span>
+                        </label>
+                      </div>
+                      <input
+                        type="text"
+                        value={thumbnailHeadline}
+                        onChange={(e) => setThumbnailHeadline(e.target.value)}
+                        placeholder='e.g. "DON&apos;T MISS THIS!", "99% WRONG!", "1900 MYSTERY"'
+                        className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500 font-sans"
+                      />
+                      <p className="text-[10px] text-zinc-500">
+                        Simulates high-contrast YouTube click-hook text overlay on the 1280x720 canvas.
+                      </p>
+                    </div>
+
+                  </div>
+
+                </div>
+              </div>
+
+              {/* 3. YouTube Video Title */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-zinc-300">
@@ -396,7 +628,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 />
               </div>
 
-              {/* 3. YouTube Video Description */}
+              {/* 4. YouTube Video Description */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-zinc-300">
@@ -428,7 +660,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 />
               </div>
 
-              {/* 4. Hashtags & Tags */}
+              {/* 5. Hashtags & Tags */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-zinc-300">
@@ -460,7 +692,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 />
               </div>
 
-              {/* 5. Production Pipeline Completion Checklist */}
+              {/* 6. Production Pipeline Completion Checklist */}
               <div className="rounded-xl border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-2">
                 <span className="text-[11px] font-mono font-bold text-zinc-400 uppercase tracking-wider block">
                   AI Production Pipeline Checklist:

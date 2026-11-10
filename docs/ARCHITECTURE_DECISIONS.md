@@ -120,3 +120,17 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - **Prop Manipulation & Permanence**: Single designated hand grip with rigid mass conservation.
   3. Universal Multi-Engine Negative Constraint Matrix: Automatically injects engine-specific negative guardrails into Google Flow, Kling, Sora, and FLUX.1.
   4. Storyboard UI "Universal Physics Inspector" & Auto-Enhance API: Real-time physics status badge in the Prompt Hub with a 1-click `⚡ Auto-Enhance Physics` action that audits and repairs any custom prompt on demand.
+
+## ADR-010: High-CTR YouTube Thumbnail Studio & Viral Cash-Cow Workflow Integration
+- **Date**: 2026-11-10 · **Status**: Approved & Implemented
+- **Context**: Reverse-engineering of Sabarkaro.com (an expensive creator toolkit charging ₹35,000–₹88,000/year for faceless YouTube channels) revealed that YouTube creators prioritize rapid ideation from proven cash-cow niches and high-CTR thumbnail generation over manual editing.
+- **Decision**:
+  1. **High-CTR YouTube Thumbnail Studio (Step 5)**:
+     - Built an integrated thumbnail studio in Step 5 Launch Kit (`/api/projects/[projectId]/thumbnail` + `ProjectWorkflowNav.tsx`).
+     - Generates 1280x720 (16:9) thumbnails powered by free FLUX.1 with 3 viral style presets: `⚡ Curiosity & Shock` (expressive reaction face, high contrast rim-light), `🎬 Epic Cinematic` (golden hour atmosphere, deep bokeh), and `⚔️ Dramatic Conflict` (teal-orange tension).
+     - Live simulation of bold YouTube-style headline typography overlays with 1-click download.
+  2. **1-Click Viral Cash-Cow Presets (Step 1)**:
+     - Integrated quick-action pills in the Director Pitch modal covering top creator niches: Health & Remedies, Ancient Dynasties, Village Wildlife, Unsolved Mysteries, Psychology of Money, and Cyber AI 2050.
+  3. **YouTube Competitor Video Cloner**:
+     - Built a competitor URL importer in the Director Pitch modal to clone viral retention pacing and adapt proven concepts into original 5-scene screenplays in native dialogue.
+  4. **Zero-Cost Advantage**: All features operate completely free using local resources, free FLUX.1, and the free Gemini tier, eliminating the need for ₹35,000–₹88,000/year subscriptions.

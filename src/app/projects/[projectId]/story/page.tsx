@@ -26,6 +26,8 @@ import {
   ArrowRight,
   Check,
   SplitSquareVertical,
+  Zap,
+  Link as LinkIcon,
 } from "lucide-react";
 
 interface ArtifactVersion {
@@ -88,6 +90,45 @@ const TYPE_LABELS: Record<string, string> = {
 
 const ORDER = ["SCREENPLAY", "LOGLINE", "SYNOPSIS", "OUTLINE", "CHARACTER_ARCS"];
 
+const CASHCOW_PRESETS = [
+  {
+    id: "health",
+    icon: "🍎",
+    label: "Health & Remedies",
+    prompt: "Top 5 hidden dangers and miraculous benefits of drinking organic apple cider vinegar daily on an empty stomach, revealing what modern medical doctors don't talk about.",
+  },
+  {
+    id: "vintage",
+    icon: "📜",
+    label: "1900s Vintage Pudukkottai",
+    prompt: "I need to show the old years Pudukkottai city in 1900 years (vintage), with antique wooden bullock carts, brass oil lamps, royal palace courtyards, and ancestral pride.",
+  },
+  {
+    id: "elephant",
+    icon: "🌾",
+    label: "Village Boy & Wild Elephant",
+    prompt: "One small boy running in the agriculture sugarcane land, and suddenly he sees an elephant eating sugarcane leaves, shouting and running back to call his mother and village people to chase it out.",
+  },
+  {
+    id: "mystery",
+    icon: "🛸",
+    label: "Unsolved Mystery",
+    prompt: "The terrifying true mystery of a ghost vessel found adrift undamaged in deep waters with the captain's warm tea still on the table and all crew vanishing without a trace.",
+  },
+  {
+    id: "wealth",
+    icon: "💰",
+    label: "Psychology of Money",
+    prompt: "The psychological trap why 90% of sudden lottery millionaires lose everything within 3 years, and the ancient Chettiar compounding wealth secrets that endure centuries.",
+  },
+  {
+    id: "tech",
+    icon: "⚡",
+    label: "Cyber AI 2050",
+    prompt: "The world's first autonomous flying hypercar test over a futuristic neon megacity takes an unexpected trajectory into a heavily classified off-grid research compound.",
+  },
+];
+
 export default function StoryStudioPage() {
   const routeParams = useParams();
   const projectId = (routeParams?.projectId as string) || "";
@@ -121,6 +162,7 @@ export default function StoryStudioPage() {
   const [storyOptions, setStoryOptions] = useState<StoryOption[] | null>(null);
   const [selectedOptionTab, setSelectedOptionTab] = useState<"A" | "B">("A");
   const [optionsIdeaText, setOptionsIdeaText] = useState<string>("");
+  const [ytCompetitorUrl, setYtCompetitorUrl] = useState<string>("");
   const [isGeneratingOptions, setIsGeneratingOptions] = useState<boolean>(false);
   const [isSelectingOption, setIsSelectingOption] = useState<boolean>(false);
   const [optionsError, setOptionsError] = useState<string | null>(null);
@@ -1202,7 +1244,34 @@ export default function StoryStudioPage() {
               </div>
 
               {/* Idea Prompt Input Bar (If user wants to refine their one-line idea) */}
-              <div className="px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 space-y-3">
+              <div className="px-6 py-4 bg-zinc-900/80 border-b border-zinc-800 space-y-3.5">
+                
+                {/* 1. Viral Cash-Cow 1-Click Presets (Sabarkaro Mode) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Zap className="h-3.5 w-3.5" /> 1-Click Viral Cash-Cow Presets (Sabarkaro Mode):
+                    </span>
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      Click any pill to auto-fill proven hook
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {CASHCOW_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => setOptionsIdeaText(preset.prompt)}
+                        className="px-2.5 py-1 rounded-lg bg-zinc-800/90 hover:bg-amber-950/40 border border-zinc-700/80 hover:border-amber-500/60 text-xs text-zinc-300 hover:text-amber-200 transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                      >
+                        <span>{preset.icon}</span>
+                        <span>{preset.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 2. Core Idea Input */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[11px] font-mono font-bold text-zinc-300 uppercase tracking-wider">
@@ -1219,6 +1288,33 @@ export default function StoryStudioPage() {
                     placeholder="Enter your film idea here (any genre, character, or setting)..."
                     className="w-full px-3.5 py-2.5 rounded-xl bg-black border border-zinc-700 text-xs text-zinc-100 placeholder-zinc-500 focus:border-purple-500 focus:outline-none leading-relaxed"
                   />
+                </div>
+
+                {/* 3. Clone Viral YouTube Competitor Video */}
+                <div className="p-2.5 rounded-xl bg-sky-950/30 border border-sky-800/40 flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1.5 text-xs text-sky-400 font-mono font-semibold">
+                    <LinkIcon className="h-3.5 w-3.5" />
+                    <span>Clone Viral YouTube Video:</span>
+                  </div>
+                  <div className="flex-1 min-w-[240px] flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      placeholder="Paste viral YouTube URL (e.g. https://www.youtube.com/watch?v=...)"
+                      value={ytCompetitorUrl}
+                      onChange={(e) => setYtCompetitorUrl(e.target.value)}
+                      className="flex-1 px-3 py-1.5 rounded-lg bg-black border border-zinc-700 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-sky-500"
+                    />
+                    <button
+                      type="button"
+                      disabled={!ytCompetitorUrl.trim()}
+                      onClick={() => {
+                        setOptionsIdeaText(`Analyze and clone the viral hook and storytelling structure of this YouTube video: ${ytCompetitorUrl.trim()}. Re-engineer it into an original 5-scene cinematic screenplay in native dialogue with fresh narrative perspective.`);
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs transition disabled:opacity-40 shadow-sm"
+                    >
+                      Import Hook
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-3">

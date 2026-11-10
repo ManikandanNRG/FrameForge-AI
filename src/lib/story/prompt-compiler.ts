@@ -27,6 +27,7 @@ export interface CompilePromptOptions {
   aspectRatio?: string | null; // PORTRAIT_9_16 | LANDSCAPE_16_9 | SQUARE_1_1
   storyLanguage?: string | null;
   targetDurationSeconds?: number | null;
+  creditSaverMode?: boolean; // Default true: uses Standard 10-credit mode & 1080p HD instead of expensive 25-35 credit Pro mode
 }
 
 export interface CompiledPromptBundle {
@@ -39,6 +40,7 @@ export interface CompiledPromptBundle {
   scriptPrompt: string;
   entities: DetectedEntities;
   universalNegativePrompt: string;
+  creditCostEstimate: string;
 }
 
 export function compileCinematicPrompt(options: CompilePromptOptions): CompiledPromptBundle {
@@ -61,6 +63,10 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const entities = detectPhysicalEntities(actionDescription);
   const lang = storyLanguage || "Tamil";
+  const isCreditSaver = options.creditSaverMode !== false; // default true: 10 credits Standard mode
+  const klingModeFlag = isCreditSaver ? "--mode std" : "--mode pro";
+  const creditCostEstimate = isCreditSaver ? "10 credits (Standard Mode - 66 free daily credits allows ~6 videos)" : "25–35 credits (Pro Mode)";
+  const qualityDescriptor = isCreditSaver ? "1080p Full HD" : "4K master grade";
 
   // 1. Duration Quantization (Google Flow / Omni 1.1 Flash minimum 8s standard)
   const rawDuration = targetDurationSeconds || 8;
@@ -243,9 +249,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     .join("\n")
     .replace(/\n{3,}/g, "\n\n");
 
-  // 9. Build Kling / Sora Prompt
+  // 9. Build Kling / Sora Prompt (Credit-Optimized)
   const klingPrompt = [
-    `A cinematic 8K photorealistic ${framingDesc} film scene.`,
+    `A cinematic ${qualityDescriptor} ${framingDesc} film scene.`,
     characterName
       ? `Subject: ${characterName}, an authentic character with ${(characterDescription || "authentic regional traits").replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || "traditional clothing"}.`
       : null,
@@ -258,17 +264,17 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     entities.hasVehicleOrMount
       ? `Vehicular Invariant: Draft animals must be hitched strictly and exclusively to the front yoke facing forward; no animals at the rear.`
       : null,
-    `Aesthetics: Photorealistic 8K cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`,
-    `--ar ${arParam} --mode pro --negative "${universalNegativePrompt}"`,
+    `Aesthetics: Photorealistic 1080p cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`,
+    `--ar ${arParam} ${klingModeFlag} --negative "${universalNegativePrompt}"`,
   ]
     .filter(Boolean)
     .join(" ")
     .replace(/\s{2,}/g, " ")
     .replace(/\.{2,}/g, ".");
 
-  // 10. Build FLUX.1 Still Reference Prompt
+  // 10. Build FLUX.1 Still Reference Prompt (Fast, clean 1080p without token bloating)
   const fluxStillPrompt = [
-    `A breathtaking 8K photorealistic cinematic documentary film still, ${shotFraming}.`,
+    `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`,
     characterName
       ? `Subject: ${characterName}, ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
       : null,
@@ -301,7 +307,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : voiceover
       ? `Voice-Over Beat: "${voiceover}"`
       : `Soundscape Atmosphere: ${audioPrompt || "Ambient rural environment"}`,
-    `Style & Realism: Authentic documentary realism, true-to-life skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 8K resolution.`,
+    `Style & Realism: Authentic documentary realism, true-to-life skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 1080p Full HD resolution.`,
     `Physical Invariants: Strict forward skeletal alignment; no backward head rotation; draft animals hitched exclusively at the front yoke of vehicles; no animals behind carts or on both ends.`,
     `Negative Constraints: ${universalNegativePrompt}.`,
   ]
@@ -321,7 +327,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : voiceover
       ? `Voiceover Context: "${voiceover}"`
       : `Atmosphere: ${audioPrompt || "Quiet rural stillness"}`,
-    `Film Aesthetics: 4K master grade, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
+    `Film Aesthetics: 1080p Full HD, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
     `Vehicular Integrity: Any draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward; no animals behind carts or on both sides.`,
   ]
     .filter(Boolean)
@@ -343,6 +349,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const scriptPrompt = [
     `🎬 SHOT DURATION: ${normalizedDuration}s | FRAMING: ${shotFraming} | ORIENTATION: ${arParam}`,
+    `💳 ESTIMATED KLING CREDITS: ${creditCostEstimate}`,
     `\n📍 LOCATION: ${locationDescription || "Scene Location"}`,
     characterName ? `\n👤 ACTIVE CHARACTER: ${charName} (Wardrobe: ${wardrobeLock || "Standard"})` : "",
     `\n🎥 CAMERA & ACTION:`,
@@ -367,6 +374,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     scriptPrompt,
     entities,
     universalNegativePrompt,
+    creditCostEstimate,
   };
 }
 

@@ -7,6 +7,17 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **High-CTR YouTube Thumbnail Studio & Cash-Cow Creator Tools (Zero-Cost Alternative to Sabarkaro)** (`src/app/api/projects/[projectId]/thumbnail/route.ts`, `src/components/nav/ProjectWorkflowNav.tsx`, `src/app/projects/[projectId]/story/page.tsx`):
+  - **High-CTR YouTube Thumbnail Studio in Step 5 Launch Kit**:
+    - Dedicated 1280x720 16:9 thumbnail generator powered by FLUX.1 (Free, zero API key required).
+    - 3 viral style presets: `⚡ Curiosity & Shock` (expressive reaction face, high contrast rim-light), `🎬 Epic Cinematic` (golden hour atmosphere, deep bokeh), and `⚔️ Dramatic Conflict` (teal-orange tension).
+    - Live typography preview simulating bold YouTube feed headline overlays (e.g., *"99% WRONG!"*, *"DON'T MISS THIS!"*).
+    - 1-click `Download 1280×720 PNG` and `Copy Prompt` buttons directly alongside master film export.
+  - **1-Click Cash-Cow Viral Quick-Pills (Sabarkaro Mode)**:
+    - Added quick-preset pills in the Director Pitch modal covering the most viral faceless YouTube niches: Health & Remedies, Vintage History, Wildlife Action, Unsolved Mysteries, Psychology of Money, and Cyber AI 2050.
+    - Clicking any pill auto-fills a curated, high-retention viral concept with instant 1-click option development.
+  - **YouTube Competitor Video Cloner**:
+    - Added a competitor URL cloner bar in the Director Pitch modal allowing creators to paste any viral YouTube link to extract narrative hooks and generate an original 5-scene cinematic screenplay in native dialogue.
 - **Universal Cinematic World & Physics Compiler (Systemic Hallucination Prevention)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/app/api/projects/[projectId]/shots/audit-prompt/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`):
   - **Universal Physics Laws**: Automatically enforces 4 core physical invariants on every shot and prompt across any concept or genre (Mechanical/Draft Kinematics, Skeletal/Locomotion Forward Alignment, 3-Plane Spatial Depth Separation, and Rigid Prop Grip).
   - **Automated Anti-Hallucination Guardrails**: Eliminates dual-sided vehicles (e.g. draft animals tied to both front and back ends of carts), 180° backward neck twists, rubber spines, and spatial fusion of background objects into foreground heroes.

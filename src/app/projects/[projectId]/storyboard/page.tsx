@@ -75,6 +75,7 @@ export default function StoryboardPage() {
   const [savingShotScript, setSavingShotScript] = useState(false);
   const [isAutoEnhancing, setIsAutoEnhancing] = useState(false);
   const [enhanceSuccess, setEnhanceSuccess] = useState(false);
+  const [creditSaverMode, setCreditSaverMode] = useState<boolean>(true);
 
   useEffect(() => {
     if (selected) {
@@ -704,6 +705,7 @@ export default function StoryboardPage() {
     aspectRatio: projectData?.aspectRatio,
     storyLanguage: projectData?.storyLanguage,
     targetDurationSeconds: selected.targetDurationSeconds,
+    creditSaverMode,
   }) : null;
 
   const googleFlowPrompt = compiledBundle?.googleFlowPrompt || "";
@@ -713,6 +715,7 @@ export default function StoryboardPage() {
   const videoMotionPrompt = compiledBundle?.videoMotionPrompt || "";
   const scriptPrompt = compiledBundle?.scriptPrompt || "";
   const detectedEntities = compiledBundle?.entities;
+  const creditCostEstimate = compiledBundle?.creditCostEstimate || "10 credits (Standard Mode)";
 
   // Character references for external AI tools (Runway, Kling API, ComfyUI, etc.)
   const characterReferenceForOtherTools = characterAssets.length > 0 ? Object.fromEntries(
@@ -769,7 +772,7 @@ export default function StoryboardPage() {
 
   const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {
     flow: { label: "Open Google Flow ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
-    kling: { label: "Open Kling (66 Free/day) ↗", url: "https://klingai.com", color: "bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/50" },
+    kling: { label: "Open Kling (10 Cr / video) ↗", url: "https://klingai.com", color: "bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/50" },
     chatgpt: { label: "Open ChatGPT ↗", url: "https://chatgpt.com", color: "bg-emerald-950/70 text-emerald-300 border-emerald-800 hover:bg-emerald-900/50" },
     gemini: { label: "Open Gemini ↗", url: "https://gemini.google.com/app", color: "bg-sky-950/70 text-sky-300 border-sky-800 hover:bg-sky-900/50" },
   };
@@ -1359,29 +1362,49 @@ export default function StoryboardPage() {
                         )}
                       </div>
 
-                      <button
-                        onClick={handleAutoEnhance}
-                        disabled={isAutoEnhancing}
-                        className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-md transition disabled:opacity-50"
-                        title="Audit and automatically fortify this shot's kinematics and physical invariants"
-                      >
-                        {isAutoEnhancing ? (
-                          <>
-                            <RefreshCw className="h-3 w-3 animate-spin text-emerald-400" />
-                            <span>Auditing Physics...</span>
-                          </>
-                        ) : enhanceSuccess ? (
-                          <>
-                            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                            <span>Physics Fortified!</span>
-                          </>
-                        ) : (
-                          <>
-                            <Zap className="h-3 w-3 text-emerald-400" />
-                            <span>⚡ Auto-Enhance Physics</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        {/* Credit Optimizer Mode Toggle */}
+                        <button
+                          type="button"
+                          onClick={() => setCreditSaverMode(!creditSaverMode)}
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold border transition flex items-center gap-1 ${
+                            creditSaverMode
+                              ? "bg-emerald-950/80 text-emerald-300 border-emerald-600/70 hover:bg-emerald-900/60"
+                              : "bg-purple-950/80 text-purple-300 border-purple-600/70 hover:bg-purple-900/60"
+                          }`}
+                          title={
+                            creditSaverMode
+                              ? "Credit Saver Mode: Generates with --mode std (10 credits/shot). Maximizes your 66 free daily credits to create 6+ videos daily!"
+                              : "Pro Mode: Generates with --mode pro (25-35 credits/shot). Burns through credits faster."
+                          }
+                        >
+                          <span>{creditSaverMode ? "🟢 10 Credits (Saver)" : "🟣 25+ Credits (Pro)"}</span>
+                        </button>
+
+                        <button
+                          onClick={handleAutoEnhance}
+                          disabled={isAutoEnhancing}
+                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 rounded-md transition disabled:opacity-50"
+                          title="Audit and automatically fortify this shot's kinematics and physical invariants"
+                        >
+                          {isAutoEnhancing ? (
+                            <>
+                              <RefreshCw className="h-3 w-3 animate-spin text-emerald-400" />
+                              <span>Auditing Physics...</span>
+                            </>
+                          ) : enhanceSuccess ? (
+                            <>
+                              <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                              <span>Physics Fortified!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Zap className="h-3 w-3 text-emerald-400" />
+                              <span>⚡ Auto-Enhance Physics</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Content: Google Flow vs General Engine Tabs */}

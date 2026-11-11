@@ -60,10 +60,32 @@ export default function StoryboardPage() {
   const [importing, setImporting]         = useState<string | null>(null);
   const [imgProgress, setImgProgress]     = useState<{ done: number; total: number } | null>(null);
   const [vidProgress, setVidProgress]     = useState<{ done: number; total: number } | null>(null);
-  const [promptTab, setPromptTab]         = useState<"flow" | "kling" | "video" | "flux" | "chatgpt" | "gemini" | "script" | "json">("flow");
+  const [promptTab, setPromptTab]         = useState<"flux" | "video" | "flow" | "kling" | "chatgpt" | "gemini" | "script" | "json">("flux");
   const [activeMediaView, setActiveMediaView] = useState<"video" | "still">("video");
   const [copied, setCopied]               = useState<string | null>(null);
   const [isDragging, setIsDragging]       = useState(false);
+  const [genPortraitCharId, setGenPortraitCharId] = useState<string | null>(null);
+
+  async function generateModalCharacterPortrait(assetId: string) {
+    setGenPortraitCharId(assetId);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/assets/${assetId}/generate-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        alert(d.error?.message || "Failed to generate character portrait");
+      } else {
+        await load();
+      }
+    } catch (e: any) {
+      alert(e.message || "Failed to generate character portrait");
+    } finally {
+      setGenPortraitCharId(null);
+    }
+  }
 
   // Shot Script Editing State
   const [isEditingShotScript, setIsEditingShotScript] = useState(false);
@@ -780,9 +802,9 @@ export default function StoryboardPage() {
   }, null, 2) : "";
 
   const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {
-    flow: { label: "Open Google Flow ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    flux: { label: "Open Midjourney / FLUX ↗", url: "https://midjourney.com", color: "bg-pink-950/70 text-pink-300 border-pink-800 hover:bg-pink-900/50" },
     video: { label: "Open Google Flow / Kling I2V ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
-    flux: { label: "Open Midjourney / Web ↗", url: "https://midjourney.com", color: "bg-pink-950/70 text-pink-300 border-pink-800 hover:bg-pink-900/50" },
+    flow: { label: "Open Google Flow Direct ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
     kling: { label: "Open Kling (10 Cr / video) ↗", url: "https://klingai.com", color: "bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/50" },
     chatgpt: { label: "Open ChatGPT ↗", url: "https://chatgpt.com", color: "bg-emerald-950/70 text-emerald-300 border-emerald-800 hover:bg-emerald-900/50" },
     gemini: { label: "Open Gemini ↗", url: "https://gemini.google.com/app", color: "bg-sky-950/70 text-sky-300 border-sky-800 hover:bg-sky-900/50" },
@@ -1014,8 +1036,8 @@ export default function StoryboardPage() {
               {/* 2-Column Responsive Studio Grid */}
               <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 
-                {/* Left Column: Visual Stage (7 cols) */}
-                <div className="xl:col-span-7 space-y-4">
+                {/* Left Column: Visual Stage (7 cols, sticky on desktop) */}
+                <div className="xl:col-span-7 space-y-4 xl:sticky xl:top-4 self-start">
                   {/* Cinema Viewport (16:9 Aspect Ratio) */}
                   <div
                     onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
@@ -1263,16 +1285,21 @@ export default function StoryboardPage() {
 
                 {/* Right Column: AI Studio & Screenplay (5 cols) */}
                 <div className="xl:col-span-5 space-y-4">
-                  {/* AI Generation Prompt Hub Card (TOP) */}
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3.5 shadow-xs">
-                    {/* Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
+                  {/* Unified AI Studio Card */}
+                  <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+                    {/* 1. Header Bar: Title + Essential Actions */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-b border-slate-200">
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-amber-600" />
-                        <span className="text-xs font-bold text-slate-900">AI Prompt Hub</span>
+                        <h3 className="text-xs font-bold text-slate-900 tracking-wide">
+                          Prompt Studio
+                        </h3>
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                          Shot {selected.shotNumber}
+                        </span>
                       </div>
-                      
-                      <div className="flex items-center gap-2">
+
+                      <div className="flex items-center gap-1.5">
                         {characterAssets.length > 0 && (
                           <button
                             type="button"
@@ -1280,37 +1307,18 @@ export default function StoryboardPage() {
                               setEditingCharId(null);
                               setIsCharModalOpen(true);
                             }}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold shadow-2xs transition"
-                            title="Open Google Flow Character Library & Consistency Prompts"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold shadow-2xs transition"
+                            title="Open Character Library & Consistency Prompts"
                           >
-                            <User className="h-3.5 w-3.5 text-blue-600" />
+                            <User className="h-3 w-3 text-blue-600" />
                             <span>Characters ({characterAssets.length})</span>
                           </button>
                         )}
-                        {activeLauncher && (
-                          <button
-                            type="button"
-                            onClick={() => window.open(activeLauncher.url, "_blank")}
-                            className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg border transition shadow-2xs ${activeLauncher.color}`}
-                          >
-                            <span>{activeLauncher.label}</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => generateSingleShotImage(selected.id)}
-                          disabled={singleGenImageShotId === selected.id}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold shadow-2xs transition disabled:opacity-50"
-                          title="Generate free 1080p FLUX.1 still image for this scene"
-                        >
-                          <Sparkles className={`h-3 w-3 text-amber-600 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
-                          <span>{singleGenImageShotId === selected.id ? "Generating…" : "Generate Still"}</span>
-                        </button>
+
                         <button
                           type="button"
                           onClick={() => copyPrompt(activePromptText, promptTab)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs shadow-xs transition"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs shadow-xs transition whitespace-nowrap"
                         >
                           {copied === promptTab ? (
                             <>
@@ -1320,306 +1328,326 @@ export default function StoryboardPage() {
                           ) : (
                             <>
                               <Copy className="h-3.5 w-3.5" />
-                              <span>{promptTab === "flow" ? "Copy @Mention Prompt" : promptTab === "video" ? "Copy I2V Motion Prompt" : promptTab === "flux" ? "Copy Still Prompt" : "Copy Prompt"}</span>
+                              <span>Copy Prompt</span>
                             </>
                           )}
                         </button>
                       </div>
                     </div>
 
-                    {/* Segmented Pill Tabs */}
-                    <div className="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
-                      {[
-                        { id: "flow", label: "Google Flow (Direct Video)" },
-                        { id: "video", label: "🎬 I2V Motion (Google Flow / Kling / Runway)" },
-                        { id: "flux", label: "🖼️ Still Image (Stage 1)" },
-                        { id: "kling", label: "Kling Direct Video" },
-                        { id: "chatgpt", label: "ChatGPT" },
-                        { id: "gemini", label: "Gemini" },
-                        { id: "script", label: "Script (Audio)" },
-                        { id: "json", label: "Raw JSON" },
-                      ].map(tab => (
+                    {/* 2. Primary 3-Stage Pipeline Switcher (Prominent & Clean) */}
+                    <div className="p-4 pb-0 space-y-2.5">
+                      <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
                         <button
-                          key={tab.id}
-                          onClick={() => setPromptTab(tab.id as any)}
-                          className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition ${
-                            promptTab === tab.id
-                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500 font-bold"
+                          type="button"
+                          onClick={() => setPromptTab("flux")}
+                          className={`py-1.5 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
+                            promptTab === "flux"
+                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
                               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                           }`}
                         >
-                          {tab.label}
+                          <span>🖼️ 1. Still Image</span>
                         </button>
-                      ))}
+                        <button
+                          type="button"
+                          onClick={() => setPromptTab("video")}
+                          className={`py-1.5 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
+                            promptTab === "video"
+                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                          }`}
+                        >
+                          <span>🎬 2. I2V Motion</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setPromptTab("flow")}
+                          className={`py-1.5 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
+                            promptTab === "flow"
+                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                          }`}
+                        >
+                          <span>⚡ Direct Video</span>
+                        </button>
+                      </div>
+
+                      {/* Secondary Format Selectors (Subtle, single line) */}
+                      <div className="flex items-center justify-between text-[11px] px-1 text-slate-500">
+                        <span className="font-semibold text-slate-400">Other formats:</span>
+                        <div className="flex items-center gap-1">
+                          {[
+                            { id: "kling", label: "Kling" },
+                            { id: "chatgpt", label: "ChatGPT" },
+                            { id: "gemini", label: "Gemini" },
+                            { id: "script", label: "Script" },
+                            { id: "json", label: "JSON" },
+                          ].map(tab => (
+                            <button
+                              key={tab.id}
+                              onClick={() => setPromptTab(tab.id as any)}
+                              className={`px-2 py-0.5 rounded-md font-medium transition ${
+                                promptTab === tab.id
+                                  ? "bg-slate-900 text-white font-bold"
+                                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                              }`}
+                            >
+                              {tab.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
-                    {/* 2-Stage I2V Pro Workflow Banner */}
-                    {(promptTab === "video" || promptTab === "flux") && (
-                      <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
-                        <div className="flex items-start gap-2">
-                          <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-bold text-amber-950">2-Stage Image-to-Video Workflow (Zero Hallucination &amp; 100% Continuity)</p>
-                            <p className="text-[11px] text-amber-900/90 mt-0.5 leading-relaxed">
-                              <strong>Stage 1:</strong> Click <em>&quot;Generate Still (FLUX.1)&quot;</em> above to lock your 1080p keyframe reference. <br />
-                              <strong>Stage 2:</strong> In <strong>Google Flow (Veo)</strong>, <strong>Kling I2V</strong>, <strong>Runway Gen-3</strong>, <strong>Luma Dream Machine</strong>, or <strong>Wan 2.1</strong>, upload the still as your <strong>Start Frame / Reference Image</strong>, and paste this <strong>I2V Motion Prompt</strong> to animate the scene with zero face or kitchen morphing!
-                            </p>
+                    {/* 3. Workflow Guidance Badge (Compact & Meaningful) */}
+                    <div className="px-4 pt-3">
+                      {promptTab === "flux" && (
+                        <div className="flex items-center justify-between gap-2 p-2.5 bg-amber-50/70 border border-amber-200 rounded-xl text-xs text-amber-900">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                            <span className="text-[11px] font-medium leading-tight">
+                              <strong>Stage 1:</strong> Generate still keyframe first to lock face, wardrobe, and scene setting.
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => generateSingleShotImage(selected.id)}
+                            disabled={singleGenImageShotId === selected.id}
+                            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold shadow-xs transition disabled:opacity-50"
+                          >
+                            <Sparkles className={`h-3 w-3 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
+                            <span>{singleGenImageShotId === selected.id ? "Generating…" : "Generate Still (FLUX.1)"}</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {promptTab === "video" && (
+                        <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                            <span className="text-[11px] font-medium leading-tight">
+                              <strong>Stage 2:</strong> Upload your still as <strong>Start Frame</strong>, then paste this prompt to animate!
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1 pt-0.5 text-[10px]">
+                            <span className="font-bold text-blue-700 mr-0.5">Open Tool:</span>
+                            <a href="https://aitestkitchen.withgoogle.com/tools/video-fx" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-blue-800 border border-blue-200 hover:bg-blue-100 transition">Google Flow ↗</a>
+                            <a href="https://klingai.com" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-purple-800 border border-purple-200 hover:bg-purple-100 transition">Kling ↗</a>
+                            <a href="https://runwayml.com" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition">Runway ↗</a>
+                            <a href="https://lumalabs.ai/dream-machine" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-pink-800 border border-pink-200 hover:bg-pink-100 transition">Luma ↗</a>
+                            <a href="https://huggingface.co/spaces/Wan-AI/Wan2.1" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-amber-800 border border-amber-200 hover:bg-amber-100 transition">Wan 2.1 ↗</a>
                           </div>
                         </div>
+                      )}
 
-                        {/* Direct Launch Badges */}
-                        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-amber-200/60 text-[10px]">
-                          <span className="font-bold text-amber-800 uppercase tracking-wider mr-1">Launch I2V Tool:</span>
+                      {promptTab === "flow" && (
+                        <div className="flex items-center justify-between gap-2 p-2.5 bg-purple-50/70 border border-purple-200 rounded-xl text-xs text-purple-900">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
+                            <span className="text-[11px] font-medium leading-tight">
+                              <strong>Direct Video:</strong> Single-step generation with tagged character models.
+                            </span>
+                          </div>
                           <a
                             href="https://aitestkitchen.withgoogle.com/tools/video-fx"
                             target="_blank"
                             rel="noreferrer"
-                            className="px-2 py-0.5 font-bold rounded-md bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200 transition"
+                            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-[11px] font-bold shadow-xs transition"
                           >
-                            Google Flow (Veo I2V) ↗
-                          </a>
-                          <a
-                            href="https://klingai.com"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2 py-0.5 font-bold rounded-md bg-purple-100 text-purple-900 border border-purple-300 hover:bg-purple-200 transition"
-                          >
-                            Kling I2V ↗
-                          </a>
-                          <a
-                            href="https://runwayml.com"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2 py-0.5 font-bold rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-200 transition"
-                          >
-                            Runway Gen-3 ↗
-                          </a>
-                          <a
-                            href="https://lumalabs.ai/dream-machine"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2 py-0.5 font-bold rounded-md bg-pink-100 text-pink-900 border border-pink-300 hover:bg-pink-200 transition"
-                          >
-                            Luma Dream Machine ↗
-                          </a>
-                          <a
-                            href="https://huggingface.co/spaces/Wan-AI/Wan2.1"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-2 py-0.5 font-bold rounded-md bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition"
-                          >
-                            Wan 2.1 ↗
+                            <span>Open Google Flow ↗</span>
                           </a>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
-                    {/* Universal Physics Health Bar & Auto-Enhance Button */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <div className="flex items-center gap-1 text-emerald-800 font-bold">
-                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                          <span>Universal Physics Engine</span>
-                        </div>
-                        <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300 font-mono font-bold">
-                          Verified
+                    {/* 4. Prompt Text Box Canvas (Immediate & Centered) */}
+                    <div className="p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                          <span>
+                            {promptTab === "flux"
+                              ? "Scene Still Image Prompt"
+                              : promptTab === "video"
+                              ? "Image-to-Video Motion Prompt"
+                              : promptTab === "flow"
+                              ? "Google Flow Prompt"
+                              : `${promptTab.toUpperCase()} Output`}
+                          </span>
                         </span>
-                        {detectedEntities?.hasVehicleOrMount && (
-                          <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-300 font-mono font-bold">
-                            Front-Harness Locked
-                          </span>
-                        )}
-                        {detectedEntities?.hasLocomotion && (
-                          <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-300 font-mono font-bold">
-                            Skeletal Aligned
-                          </span>
-                        )}
-                        {detectedEntities?.hasHandheldProp && (
-                          <span className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full border border-purple-300 font-mono font-bold">
-                            Rigid Grip Anchored
-                          </span>
+
+                        {/* Character Mention Pills */}
+                        {characterAssets.length > 0 && (
+                          <div className="flex items-center gap-1 text-[10px]">
+                            <span className="text-slate-400 font-medium">Mentions:</span>
+                            {characterAssets.map(ca => {
+                              const bTag = `[@${ca.name.replace(/[^a-zA-Z0-9]/g, "")}]`;
+                              const isMentioned = activePromptText.includes(bTag) || activePromptText.includes(ca.name);
+                              return (
+                                <button
+                                  key={ca.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setSelectedCharacterId(ca.id);
+                                    setIsCharModalOpen(true);
+                                  }}
+                                  className={`px-1.5 py-0.5 rounded font-mono font-bold transition ${
+                                    isMentioned
+                                      ? "bg-blue-100 text-blue-800 border border-blue-200"
+                                      : "bg-slate-100 text-slate-500 border border-slate-200"
+                                  }`}
+                                  title={`View ${ca.name}`}
+                                >
+                                  {bTag}
+                                </button>
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {/* Credit Optimizer Mode Toggle */}
+                      <div className="relative group">
+                        <pre className="whitespace-pre-wrap font-mono text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3.5 h-44 overflow-y-auto leading-relaxed shadow-inner focus:outline-none">
+                          {activePromptText}
+                        </pre>
                         <button
                           type="button"
-                          onClick={() => setCreditSaverMode(!creditSaverMode)}
-                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition flex items-center gap-1 shadow-2xs ${
-                            creditSaverMode
-                              ? "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700"
-                              : "bg-purple-600 text-white border-purple-700 hover:bg-purple-700"
-                          }`}
-                          title={
-                            creditSaverMode
-                              ? "Credit Saver Mode: Generates with --mode std (10 credits/shot). Maximizes your 66 free daily credits to create 6+ videos daily!"
-                              : "Pro Mode: Generates with --mode pro (25-35 credits/shot). Burns through credits faster."
-                          }
+                          onClick={() => copyPrompt(activePromptText, promptTab)}
+                          className="absolute top-2.5 right-2.5 px-2 py-1 bg-white/90 hover:bg-white border border-slate-200 rounded-md text-[10px] font-bold text-slate-700 opacity-80 group-hover:opacity-100 transition shadow-xs flex items-center gap-1"
                         >
-                          <span>{creditSaverMode ? "🟢 10 Credits (Saver)" : "🟣 25+ Credits (Pro)"}</span>
-                        </button>
-
-                        <button
-                          onClick={handleAutoEnhance}
-                          disabled={isAutoEnhancing}
-                          className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-300 rounded-lg transition disabled:opacity-50 shadow-2xs"
-                          title="Audit and automatically fortify this shot's kinematics and physical invariants"
-                        >
-                          {isAutoEnhancing ? (
-                            <>
-                              <RefreshCw className="h-3 w-3 animate-spin text-emerald-600" />
-                              <span>Auditing Physics...</span>
-                            </>
-                          ) : enhanceSuccess ? (
-                            <>
-                              <CheckCircle2 className="h-3 w-3 text-emerald-600" />
-                              <span>Physics Fortified!</span>
-                            </>
-                          ) : (
-                            <>
-                              <Zap className="h-3 w-3 text-emerald-600" />
-                              <span>⚡ Auto-Enhance</span>
-                            </>
-                          )}
+                          {copied === promptTab ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                          <span>{copied === promptTab ? "Copied" : "Copy"}</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Content: Google Flow vs General Engine Tabs */}
-                    {promptTab === "flow" ? (
-                      <div className="space-y-2.5 pt-1">
-                        <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-100">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
-                              <Sparkles className="h-3 w-3 text-amber-600" /> Shot Video Prompt
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-mono">Omni Flash / Veo 2</span>
-                          </div>
-
-                          {/* Tagged characters pill list */}
-                          {characterAssets.length > 0 && (
-                            <div className="flex items-center gap-1.5 text-[11px]">
-                              <span className="text-slate-500 text-[10px] font-medium">Tagged:</span>
-                              {characterAssets.map(ca => {
-                                const bTag = `[@${ca.name.replace(/[^a-zA-Z0-9]/g, "")}]`;
-                                const isMentioned = googleFlowPrompt.includes(bTag) || activeCharAsset?.id === ca.id;
-                                return (
-                                  <button
-                                    key={ca.id}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedCharacterId(ca.id);
-                                      setIsCharModalOpen(true);
-                                    }}
-                                    className={`px-2 py-0.5 rounded-md font-mono text-[10px] font-bold transition flex items-center gap-1 ${
-                                      isMentioned
-                                        ? "bg-blue-50 text-blue-700 border border-blue-300 hover:bg-blue-100"
-                                        : "bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200"
-                                    }`}
-                                    title={`Click to view/edit ${ca.name}'s character prompt & voice profile`}
-                                  >
-                                    <span>{bTag}</span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-
-                        <pre className="whitespace-pre-wrap font-mono text-xs text-slate-900 bg-slate-50 border border-slate-200 rounded-xl p-3.5 min-h-[220px] max-h-[380px] overflow-y-auto leading-relaxed shadow-inner">
-                          {googleFlowPrompt}
-                        </pre>
+                    {/* 5. Physics Health & Optimizer Footer Strip */}
+                    <div className="px-4 py-2.5 bg-slate-50/60 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-1.5 text-emerald-800 text-[11px] font-bold">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                        <span>Physics Verified</span>
+                        {detectedEntities?.hasVehicleOrMount && (
+                          <span className="text-[10px] font-mono bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded border border-amber-200">
+                            Front-Harness
+                          </span>
+                        )}
+                        {detectedEntities?.hasLocomotion && (
+                          <span className="text-[10px] font-mono bg-blue-100 text-blue-900 px-1.5 py-0.2 rounded border border-blue-200">
+                            Skeletal Aligned
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      /* Standard Single-Step Prompt Box for Other Engines */
-                      <pre className="whitespace-pre-wrap font-mono text-xs text-slate-900 bg-slate-50 border border-slate-200 rounded-xl p-3.5 min-h-[220px] max-h-[380px] overflow-y-auto leading-relaxed shadow-inner">
-                        {activePromptText}
-                      </pre>
-                    )}
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setCreditSaverMode(!creditSaverMode)}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold border transition shadow-2xs ${
+                            creditSaverMode
+                              ? "bg-emerald-600 text-white border-emerald-700"
+                              : "bg-purple-600 text-white border-purple-700"
+                          }`}
+                          title="Toggle Kling credit profile"
+                        >
+                          {creditSaverMode ? "🟢 10 Cr (Saver)" : "🟣 25+ Cr (Pro)"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleAutoEnhance}
+                          disabled={isAutoEnhancing}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-300 rounded-md transition shadow-2xs disabled:opacity-50"
+                          title="Auto-enhance physics"
+                        >
+                          {isAutoEnhancing ? (
+                            <RefreshCw className="h-2.5 w-2.5 animate-spin text-emerald-600" />
+                          ) : enhanceSuccess ? (
+                            <CheckCircle2 className="h-2.5 w-2.5 text-emerald-600" />
+                          ) : (
+                            <Zap className="h-2.5 w-2.5 text-emerald-600" />
+                          )}
+                          <span>{isAutoEnhancing ? "Auditing…" : enhanceSuccess ? "Fortified!" : "⚡ Auto-Enhance"}</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Screenplay & Audio Card (BELOW PROMPT) */}
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3.5 shadow-xs">
-                    <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                        <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  {/* 6. Screenplay & Audio Card (Clean, Compact & Structured) */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                           Screenplay &amp; Audio
-                        </h3>
-                        <span className="text-[11px] text-slate-500 font-mono">S{selected.shotNumber}</span>
+                        </span>
+                        <span className="text-[10px] font-mono text-slate-400">Shot {selected.shotNumber}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/projects/${projectId}/story`}
                           className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-slate-800 transition font-medium"
-                          title="Open full scene-by-scene script editor"
                         >
-                          <span>Full Script Studio</span>
+                          <span>Full Script</span>
                           <ExternalLink className="h-2.5 w-2.5" />
                         </Link>
                         <button
                           type="button"
                           onClick={() => startEditingShotScript()}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold transition shadow-2xs"
+                          className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-bold transition shadow-2xs"
                         >
-                          <Edit2 className="h-3 w-3 text-amber-600" />
-                          <span>Edit Script</span>
+                          <Edit2 className="h-2.5 w-2.5 text-amber-600" />
+                          <span>Edit</span>
                         </button>
                       </div>
                     </div>
 
-                    {/* Action Description */}
+                    {/* Visual Action */}
                     <div>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Visual Action</span>
-                      <p className="text-slate-800 text-xs leading-relaxed mt-1 font-medium">{selected.actionDescription}</p>
+                      <p className="text-slate-800 text-xs leading-relaxed mt-0.5 font-medium">{selected.actionDescription}</p>
                     </div>
 
-                    {/* Spoken Dialogue (takes precedence when character is speaking) */}
-                    {selected.dialogue && (
-                      <div className="rounded-xl bg-sky-50/50 border border-sky-200 p-3.5 space-y-2">
+                    {/* Dialogue or Voiceover */}
+                    {selected.dialogue ? (
+                      <div className="rounded-xl bg-sky-50/50 border border-sky-200 p-3 space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-sky-800 uppercase tracking-wider flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-sky-800 uppercase tracking-wider flex items-center gap-1">
                             <MessageSquare className="h-3 w-3 text-sky-600" /> Character Dialogue
                           </span>
                           <button
                             type="button"
                             onClick={() => playSpeechBrowser(selected.dialogue ?? "")}
-                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 font-bold transition shadow-2xs"
+                            className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-white hover:bg-sky-50 text-sky-700 border border-sky-300 font-bold transition shadow-2xs"
                           >
                             <Volume2 className="h-2.5 w-2.5" /> Speak
                           </button>
                         </div>
-                        <p className="text-slate-900 text-xs font-mono leading-relaxed bg-white p-2.5 rounded-lg border border-sky-200 shadow-2xs">
+                        <p className="text-slate-900 text-xs font-mono leading-relaxed bg-white p-2 rounded-lg border border-sky-200 shadow-2xs">
                           {selected.dialogue}
                         </p>
                       </div>
-                    )}
-
-                    {/* Narrator Voice-Over (Only rendered when no character dialogue is speaking) */}
-                    {!selected.dialogue && selected.voiceover && (
-                      <div className="rounded-xl bg-amber-50/50 border border-amber-200 p-3.5 space-y-2">
+                    ) : selected.voiceover ? (
+                      <div className="rounded-xl bg-amber-50/50 border border-amber-200 p-3 space-y-1.5">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                          <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
                             <Mic className="h-3 w-3 text-amber-600" /> Voice-Over (Narrator)
                           </span>
                           <button
                             type="button"
                             onClick={() => playSpeechBrowser(selected.voiceover ?? "")}
-                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold transition shadow-2xs"
+                            className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-md bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold transition shadow-2xs"
                           >
                             <Volume2 className="h-2.5 w-2.5" /> Speak Aloud
                           </button>
                         </div>
-                        <p className="text-slate-800 text-xs italic font-serif leading-relaxed border-l-2 border-amber-400 pl-2.5">
+                        <p className="text-slate-800 text-xs italic font-serif leading-relaxed border-l-2 border-amber-400 pl-2">
                           “{selected.voiceover}”
                         </p>
                       </div>
-                    )}
+                    ) : null}
 
-                    {/* Foley & Sound Design */}
+                    {/* Atmosphere */}
                     {selected.audioPrompt && (
-                      <div className="text-[11px] text-slate-500 flex items-start gap-1.5 pt-1">
+                      <div className="text-[11px] text-slate-500 flex items-start gap-1.5 pt-0.5">
                         <span className="font-bold text-emerald-700 uppercase text-[10px] tracking-wider shrink-0 mt-0.5">Atmosphere:</span>
                         <span className="italic">{selected.audioPrompt}</span>
                       </div>
@@ -1895,6 +1923,59 @@ export default function StoryboardPage() {
                       {/* Card Content: View vs Edit */}
                       {!isEditing ? (
                         <div className="space-y-3">
+                          {/* Visual Portrait Strip */}
+                          {(() => {
+                            const canonicalMedia = ca.mediaAssets?.find((m: any) => m.isCanonical) || ca.mediaAssets?.[0];
+                            const isGeneratingPortrait = genPortraitCharId === ca.id;
+
+                            return (
+                              <div className="flex flex-wrap items-center gap-4 p-3 rounded-xl bg-amber-50/60 border border-amber-200">
+                                {canonicalMedia ? (
+                                  <img
+                                    src={`/api/media/file?path=${encodeURIComponent(canonicalMedia.storagePath)}&v=${canonicalMedia.id}`}
+                                    alt={ca.name}
+                                    className="w-16 h-16 rounded-xl object-cover border border-amber-300 shadow-sm"
+                                  />
+                                ) : (
+                                  <div className="w-16 h-16 rounded-xl border border-dashed border-amber-300 bg-white flex flex-col items-center justify-center text-amber-500">
+                                    <User className="h-6 w-6" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-[200px]">
+                                  <p className="text-xs font-bold text-slate-800">
+                                    {canonicalMedia ? "Locked Character Portrait Reference" : "No Character Portrait Yet"}
+                                  </p>
+                                  <p className="text-[11px] text-slate-500 mt-0.5">
+                                    {canonicalMedia ? "Consistent master face, wardrobe & lighting" : "Generate 1080p face & wardrobe reference with FLUX.1"}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => generateModalCharacterPortrait(ca.id)}
+                                  disabled={isGeneratingPortrait}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition shadow-2xs disabled:opacity-50"
+                                >
+                                  {isGeneratingPortrait ? (
+                                    <>
+                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                      <span>Generating…</span>
+                                    </>
+                                  ) : canonicalMedia ? (
+                                    <>
+                                      <RefreshCw className="h-3.5 w-3.5" />
+                                      <span>Regenerate (FLUX.1)</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3.5 w-3.5" />
+                                      <span>Generate Portrait (Free FLUX.1)</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            );
+                          })()}
+
                           <div>
                             <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">
                               Character Creation Prompt (for Google Flow &ldquo;Characters&rdquo; Menu)

@@ -6,9 +6,27 @@ import { AppShell } from "@/components/nav/AppShell";
 import { ProjectWorkflowNav } from "@/components/nav/ProjectWorkflowNav";
 import { Button } from "@/components/ui/button";
 import { Badge, artifactStatusBadge } from "@/components/ui/badge";
-import { ChevronRight, Sparkles, User, MapPin, Package, Copy, CheckCheck, ExternalLink, Mic, Volume2, Edit2, Save, X, ArrowRight } from "lucide-react";
+import { ChevronRight, Sparkles, User, MapPin, Package, Copy, CheckCheck, ExternalLink, Mic, Volume2, Edit2, Save, X, ArrowRight, RefreshCw, Download, Image as ImageIcon } from "lucide-react";
 
-interface Asset { id: string; assetType: string; name: string; description: string; approvalStatus: string; attributes: string; }
+interface AssetMediaItem {
+  id: string;
+  storagePath: string;
+  filename: string;
+  isCanonical: boolean;
+  mimeType: string;
+  prompt?: string;
+}
+
+interface Asset {
+  id: string;
+  assetType: string;
+  name: string;
+  description: string;
+  approvalStatus: string;
+  attributes: string;
+  canonicalMediaId?: string | null;
+  mediaAssets?: AssetMediaItem[];
+}
 
 const TYPE_ICON: Record<string, React.ReactNode> = {
   CHARACTER: <User className="h-3.5 w-3.5" />,
@@ -35,6 +53,37 @@ export default function BiblePage() {
   const [editPersonality, setEditPersonality] = useState("");
   const [editAnchor, setEditAnchor]         = useState("");
   const [savingAsset, setSavingAsset]       = useState(false);
+  const [generatingPortraitAssetId, setGeneratingPortraitAssetId] = useState<string | null>(null);
+
+  async function generateCharacterPortrait(assetId: string) {
+    setGeneratingPortraitAssetId(assetId);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/assets/${assetId}/generate-image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        alert(d.error?.message || "Failed to generate character portrait");
+      } else {
+        await load();
+      }
+    } catch (e: any) {
+      alert(e.message || "Failed to generate character portrait");
+    } finally {
+      setGeneratingPortraitAssetId(null);
+    }
+  }
+
+  function downloadPortrait(storagePath: string, charName: string) {
+    const link = document.createElement("a");
+    link.href = `/api/media/file?path=${encodeURIComponent(storagePath)}`;
+    link.download = `character_${charName.toLowerCase().replace(/[^a-z0-9]/g, "_")}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   function startEditing(a: Asset) {
     setIsEditing(true);
@@ -90,7 +139,12 @@ export default function BiblePage() {
       fetch(`/api/projects/${projectId}/bible`).then(r => r.json()),
       fetch(`/api/projects/${projectId}`).then(r => r.json()).catch(() => null),
     ]);
-    setAssets(bRes.data?.assets ?? []);
+    const loadedAssets = bRes.data?.assets ?? [];
+    setAssets(loadedAssets);
+    if (selected) {
+      const fresh = loadedAssets.find((a: Asset) => a.id === selected.id);
+      if (fresh) setSelected(fresh);
+    }
     if (pRes?.data?.project) setProject(pRes.data.project);
   }
 
@@ -353,47 +407,142 @@ export default function BiblePage() {
 
                 return (
                   <div className="space-y-4">
+                    {/* Character Casting & Visual Portrait Station */}
+                    {selected.assetType === "CHARACTER" && (() => {
+                      const canonicalMedia = selected.mediaAssets?.find(m => m.isCanonical) || selected.mediaAssets?.[0];
+                      const isGeneratingPortrait = generatingPortraitAssetId === selected.id;
+
+                      return (
+                        <div className="rounded-2xl border border-amber-300 bg-gradient-to-br from-amber-50/70 to-orange-50/40 p-5 space-y-4 shadow-xs">
+                          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-amber-200">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                                Stage 1: Character Casting
+                              </span>
+                              <span className="text-xs font-bold text-slate-900">
+                                Master Visual Portrait ({charTag})
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-semibold text-amber-800 bg-amber-100/80 px-2.5 py-0.5 rounded-full border border-amber-200">
+                              Free FLUX.1 · 100% Zero Cost
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                            {/* Portrait Image Frame */}
+                            <div className="md:col-span-4 flex flex-col items-center">
+                              {canonicalMedia ? (
+                                <div className="relative group w-44 h-44 rounded-2xl overflow-hidden border-2 border-amber-300 shadow-md bg-slate-900">
+                                  <img
+                                    src={`/api/media/file?path=${encodeURIComponent(canonicalMedia.storagePath)}&v=${canonicalMedia.id}`}
+                                    alt={selected.name}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2.5 justify-between">
+                                    <span className="text-[10px] text-white font-medium truncate">{selected.name}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => downloadPortrait(canonicalMedia.storagePath, selected.name)}
+                                      className="p-1 bg-white/90 hover:bg-white text-slate-900 rounded-md shadow"
+                                      title="Download portrait"
+                                    >
+                                      <Download className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="w-44 h-44 rounded-2xl border-2 border-dashed border-amber-300/80 bg-white/70 flex flex-col items-center justify-center p-3 text-center shadow-inner">
+                                  <User className="h-10 w-10 text-amber-400 mb-1" />
+                                  <span className="text-xs font-bold text-slate-700">No Portrait Yet</span>
+                                  <span className="text-[10px] text-slate-500 mt-0.5">Click below to generate locked face</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Portrait Actions & Explainer */}
+                            <div className="md:col-span-8 space-y-3">
+                              <p className="text-xs text-slate-700 leading-relaxed">
+                                In professional cinematic filmmaking, generate your <strong>Character Visual Portrait</strong> first. This establishes the character&apos;s face, skin tone, hair, and costume. You can then download this image to upload as reference in Google Flow, Kling, or Midjourney!
+                              </p>
+
+                              <div className="flex flex-wrap items-center gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => generateCharacterPortrait(selected.id)}
+                                  disabled={isGeneratingPortrait}
+                                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 transition shadow-xs disabled:opacity-50"
+                                >
+                                  {isGeneratingPortrait ? (
+                                    <>
+                                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                                      <span>Generating Portrait…</span>
+                                    </>
+                                  ) : canonicalMedia ? (
+                                    <>
+                                      <RefreshCw className="h-3.5 w-3.5" />
+                                      <span>🔄 Regenerate Portrait (FLUX.1)</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Sparkles className="h-3.5 w-3.5" />
+                                      <span>🎨 Generate Character Portrait (Free FLUX.1)</span>
+                                    </>
+                                  )}
+                                </button>
+
+                                {canonicalMedia && (
+                                  <button
+                                    type="button"
+                                    onClick={() => downloadPortrait(canonicalMedia.storagePath, selected.name)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 transition shadow-2xs"
+                                  >
+                                    <Download className="h-3.5 w-3.5 text-amber-600" />
+                                    <span>Download Portrait</span>
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => window.open("https://aitestkitchen.withgoogle.com/tools/video-fx", "_blank")}
+                                  className="inline-flex items-center gap-1 text-xs font-bold px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition shadow-xs"
+                                >
+                                  <span>Open Google Flow ↗</span>
+                                  <ExternalLink className="h-3 w-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {/* Google Flow "Characters" Setup Guide (Crucial for VideoFX / Veo consistency) */}
                     {selected.assetType === "CHARACTER" && (
                       <div className="rounded-2xl border border-blue-200 bg-blue-50/40 p-5 space-y-3.5 shadow-xs">
                         <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-blue-200">
                           <div className="flex items-center gap-2">
                             <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-300">
-                              Google Flow Workflow
+                              Character Image Prompt
                             </span>
                             <span className="text-xs font-bold text-slate-900">
-                              1. Create Character Model ({charTag})
+                              For Google Flow / Midjourney / FLUX / Kling
                             </span>
                           </div>
                           <button
                             type="button"
-                            onClick={() => window.open("https://aitestkitchen.withgoogle.com/tools/video-fx", "_blank")}
-                            className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-xs"
+                            onClick={() => copyText(flowPrompt, "charPrompt")}
+                            className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 font-bold transition shadow-2xs"
                           >
-                            <span>Open Google Flow ↗</span>
-                            <ExternalLink className="h-3 w-3" />
+                            {copiedField === "charPrompt" ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                            <span>{copiedField === "charPrompt" ? "Copied Prompt!" : "Copy Character Image Prompt"}</span>
                           </button>
                         </div>
 
                         <p className="text-xs text-slate-600 leading-relaxed">
-                          In Google Flow, characters are created first in the left sidebar under <strong className="text-blue-800">"Characters"</strong>. Name this character <strong className="text-amber-800">{selected.name}</strong> and set their voice. Once saved, every scene video prompt tags <strong className="text-blue-800">{charTag}</strong> to lock their face and voice!
+                          In Google Flow, navigate to the left sidebar under <strong className="text-blue-800">&ldquo;Characters&rdquo;</strong>. Name this character <strong className="text-amber-800">{selected.name}</strong>, paste this image prompt (or upload the generated portrait above), and set their voice. Once saved, every scene video prompt tags <strong className="text-blue-800">{charTag}</strong> to lock their face and voice!
                         </p>
 
-                        {/* Character Generation Prompt */}
                         <div className="space-y-1.5 pt-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center gap-1">
-                              <Sparkles className="h-3 w-3 text-amber-600" /> Character Creation Prompt (Paste in "Characters" Menu)
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => copyText(flowPrompt, "charPrompt")}
-                              className="inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-lg bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 font-bold transition shadow-2xs"
-                            >
-                              {copiedField === "charPrompt" ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                              <span>{copiedField === "charPrompt" ? "Copied Prompt!" : "Copy Character Prompt"}</span>
-                            </button>
-                          </div>
                           <pre className="text-xs text-slate-900 bg-white p-3.5 rounded-xl border border-blue-200 font-mono whitespace-pre-wrap leading-relaxed shadow-2xs">
                             {flowPrompt}
                           </pre>

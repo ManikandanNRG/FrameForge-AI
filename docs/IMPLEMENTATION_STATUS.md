@@ -7,6 +7,21 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Full 3-Stage Image-to-Video Generation Sequence (Character Portrait -> Scene Keyframe Still -> I2V Video Motion)** (`src/app/api/projects/[projectId]/assets/[assetId]/generate-image/route.ts`, `src/app/projects/[projectId]/bible/page.tsx`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/story/prompt-compiler.ts`):
+  - **Stage 1A (Master Character Portrait & Casting)**:
+    - Added dedicated `POST /api/projects/[projectId]/assets/[assetId]/generate-image` endpoint generating high-resolution 1:1 character portrait images using free FLUX.1 (Pollinations, zero cost).
+    - Integrated Visual Character Casting station in Step 2: Assets (Bible) with live portrait preview, 1-click `🎨 Generate Character Portrait (Free FLUX.1)`, `🔄 Regenerate Portrait`, and `⬇️ Download Portrait` for direct upload into Google Flow "Characters" or Kling.
+    - Clear **Character Image Generation Prompt** copyable for Midjourney, FLUX.1, Google Flow, and Kling.
+    - Synchronized character portrait generation and preview inside the Storyboard Character Library modal (`isCharModalOpen`).
+  - **Stage 1B (Scene Keyframe Still Image Generation)**:
+    - Reordered Storyboard prompt hub tabs so **`🖼️ Stage 1: Scene Still Image (FLUX / Midjourney)`** is the primary default tab.
+    - Provides photorealistic, style-locked 1080p still prompt + 1-click **`🎨 Generate AI Still (Free FLUX.1)`** button in cinema viewport.
+    - Download still button for instant use as reference start frame.
+  - **Stage 2 (Universal Image-to-Video Motion Prompts)**:
+    - **`🎬 Stage 2: Video Motion Prompt (Google Flow / Kling / Runway / Luma / Wan 2.1)`**: Formats physics-grounded motion prompts designed specifically to animate the uploaded still image with 100% facial and workstation consistency without hallucinations.
+    - Direct tool launcher pills for Google Flow (Veo I2V), Kling I2V, Runway Gen-3, Luma Dream Machine, and Wan 2.1.
+  - **Stage 3 (Direct Video Alternative)**:
+    - Retained **`⚡ Direct Video Prompt (Google Flow Veo @Mention)`** for single-step text-to-video generation.
 - **Culinary ASMR & Dynamic Multi-Angle Camera Studio Engine** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/shots/service.ts`, `src/lib/bible/service.ts`, `src/app/api/projects/[projectId]/story/generate-options/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/api/projects/analyze-idea/route.ts`, `src/app/projects/new/page.tsx`, `src/app/projects/[projectId]/page.tsx`, `tests/unit/culinary-asmr.test.ts`):
   - **Dynamic Multi-Angle Camera Rotation**: Rhythmic, cinematic alternating shot coverage across sequential shots:
     1. *Wide / Medium Workstation Establishing*: Establishes kitchen space, cutting board, and fresh whole ingredients.

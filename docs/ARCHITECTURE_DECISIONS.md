@@ -160,3 +160,22 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Added `PURE_ASMR_FOLEY` dialogue mode that strictly excludes spoken dialogue, voice-over, and background music, compiling rich close-mic Foley sound effects.
   5. **UI Presets & Detection**:
      - Added `CULINARY_MACRO_ASMR` visual style, `PURE_ASMR_FOLEY` dialogue mode, "Culinary & Cooking ASMR" genre, and "Satisfying, Crisp & Hypnotic" tone to project creation, idea analysis, and project specifications.
+
+## ADR-012: 3-Stage Generation Sequence (Character Portrait -> Scene Keyframe Still -> I2V Video Motion)
+- **Date**: 2026-11-11 · **Status**: Approved & Implemented
+- **Context**: Users generating videos in modern AI video models (Google Flow / Veo, Kling, Runway Gen-3, Luma Dream Machine, Wan 2.1) require a clear, structured generation pipeline:
+  1. **Stage 1 (Character Casting)**: Must be able to generate and preview the character portrait image first (or copy its image generation prompt) to lock character facial identity and costume.
+  2. **Stage 2 (Scene Keyframe Still)**: Must be able to generate and preview the scene still image (or copy the scene still prompt) locking lighting, environment, and composition.
+  3. **Stage 3 (Video Motion Prompt)**: Once the still image exists, provide an Image-to-Video (I2V) motion prompt designed specifically to animate the still image with 100% continuity and zero hallucinations.
+- **Decision**:
+  1. **Character Portrait Generation API & UI** (`POST /api/projects/[projectId]/assets/[assetId]/generate-image`, `src/app/projects/[projectId]/bible/page.tsx`):
+     - Added endpoint generating 1:1 photorealistic portraits using free FLUX.1.
+     - Added Visual Casting Station in Step 2: Assets (Bible) with portrait preview, 1-click `🎨 Generate Character Portrait (Free FLUX.1)`, `🔄 Regenerate Portrait`, `⬇️ Download Portrait`, and `Copy Character Image Prompt` for Midjourney/FLUX/Google Flow.
+     - Integrated portrait generation & preview inside the Storyboard Character Library modal (`isCharModalOpen`).
+  2. **Storyboard 2-Stage I2V Default Sequence** (`src/app/projects/[projectId]/storyboard/page.tsx`):
+     - Re-ordered Storyboard prompt hub tabs:
+       1. `🖼️ Stage 1: Scene Still Image (FLUX / Midjourney)` (default active tab)
+       2. `🎬 Stage 2: Video Motion Prompt (Google Flow / Kling / Runway / Luma / Wan 2.1)`
+       3. `⚡ Direct Video Prompt (Google Flow Veo @Mention)`
+     - Clear distinction between Still Image Prompts and I2V Video Motion Prompts.
+  3. **Zero Cost**: Character portraits and scene stills generate 100% free with local media storage and zero API keys required.

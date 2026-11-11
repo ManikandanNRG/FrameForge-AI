@@ -599,15 +599,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? (() => {
           const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
           if (station === "STOVE_COOK") {
-            return `Culinary Foley Dynamics: Ingredients cook in hot skillet with rising aromatic steam and foaming butter bubbles; skillet stays firmly anchored to stove; chef remains at the stove; zero morphing food.`;
+            return `Culinary Dynamics: Ingredients cook steadily in the hot skillet with rising aromatic steam and bubbling butter. The cookware remains firmly anchored to the stovetop burner.`;
           }
           if (station === "PLATING_SERVE") {
-            return `Culinary Foley Dynamics: Precision garnishing and plating; food rests stably on dish; zero morphing food.`;
+            return `Culinary Dynamics: Precision garnishing and plating. The finished dish rests stably on the serving dish.`;
           }
           if (station === "COUNTER_REVEAL") {
-            return `Culinary Foley Dynamics: Gentle ambient kitchen atmosphere; camera executes a smooth reveal across fresh unblemished ingredients resting on the countertop; strictly NO stove, NO frying pan, NO cooking; ingredients remain stationary.`;
+            return `Culinary Dynamics: The camera glides smoothly across the countertop, showcasing the fresh ingredients. All ingredients remain completely stationary in their natural state.`;
           }
-          return `Culinary Foley Dynamics: Knife cuts cleanly and steadily on the wooden cutting board; chef remains entirely anchored at the cutting board workstation; strictly no stove, no frying pan, no dropping herbs into oil; zero morphing food.`;
+          return `Culinary Dynamics: The knife cuts steadily through the ingredients on the wooden cutting board. The chef remains anchored at the cutting board workstation throughout the movement.`;
         })()
       : hasDialogue
       ? `Facial & Dialogue Dynamics: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${lang} lip movements and emotional expression.`
@@ -616,21 +616,20 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? (() => {
           const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
           if (station === "STOVE_COOK") {
-            return `Kinematic Invariant: Max two hands in frame. Station Lock: Chef is firmly anchored at the stove/skillet station. Cookware is permanently anchored to the burner with rising steam and sizzling oil. Strictly NO cutting board, NO prep slicing. Chef strictly holds cooking utensil or tongs; knife is put away. Zero morphing food.`;
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner. Chef manipulates cooking utensil with steady grip.`;
           }
           if (station === "PLATING_SERVE") {
-            return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station. Food rests stably on serving plate. Strictly NO active cooking or chopping. Clean presentation.`;
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Clean presentation.`;
           }
           if (station === "COUNTER_REVEAL") {
-            return `Kinematic Invariant: Countertop showcase. Fresh ingredients rest stationary on the clean countertop under natural kitchen illumination. Strictly NO stove, NO frying pan, NO cooking, NO picking up meat or putting meat in pan. Camera executes a smooth gliding motion.`;
+            return `Kinematic Invariant: Countertop showcase. Fresh ingredients remain stationary. Camera executes a smooth gliding motion.`;
           }
-          return `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing. Station Lock: Chef remains 100% anchored at the wooden cutting board workstation performing a single steady slicing/prep action. Strictly NO stove, NO frying pan, NO skillet, NO dropping herbs into oil, NO putting meat into pan. Knife blade remains a rigid metallic kitchen knife firmly held in chef's hand throughout the entire shot; strictly zero morphing of knife into herbs or foliage; zero morphing ingredients.`;
+          return `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing. Tool Invariant: The solid stainless steel kitchen knife in chef's hand maintains rigid metallic geometry throughout the motion as a solid steel tool. Station Lock: Cutting board workstation only.`;
         })()
       : entities.hasVehicleOrMount
       ? `Vehicular Invariant: Draft animals move strictly forward at the front yoke only.`
       : null,
     `Start Frame Consistency: Animate directly from the uploaded reference start-frame image (Google Flow / Kling / Runway / Luma), preserving 100% of character appearance, kitchen workstation, lighting, and textures.`,
-    `--mode std --negative "${universalNegativePrompt}"`,
   ]
     .filter(Boolean)
     .join(" ")

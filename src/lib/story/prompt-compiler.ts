@@ -288,6 +288,19 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "unnatural slicing",
       "disappearing food"
     );
+
+    const fullActionText = (actionCleaned + " " + (actionDescription || "")).toLowerCase();
+    const isPanStation = fullActionText.includes("pan") || fullActionText.includes("skillet") || fullActionText.includes("sear") || fullActionText.includes("sizzle") || fullActionText.includes("fry") || fullActionText.includes("baste") || fullActionText.includes("simmer") || fullActionText.includes("stove");
+    const isPlateStation = fullActionText.includes("plate") || fullActionText.includes("plating") || fullActionText.includes("garnish") || fullActionText.includes("serve");
+
+    if (isPanStation) {
+      negativeList.push("cutting board", "wooden chopping board", "chopping knife", "slicing raw meat", "raw ingredient prep", "walking away from stove");
+    } else if (isPlateStation) {
+      negativeList.push("stove", "open flame", "frying pan", "sizzling skillet", "raw meat", "chopping knife");
+    } else {
+      // Cutting board / Prep Station
+      negativeList.push("stove", "frying pan", "skillet", "hot oil", "dropping herbs into pan", "curry leaf in pan", "burner flame", "cooking on stove", "teleporting", "walking away from board");
+    }
   }
 
   // Pure ASMR negatives to enforce zero speech or loud tracks
@@ -551,12 +564,34 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Action & Dynamics: ${actionCleaned}.`,
     `Camera Movement: ${naturalCameraMotion}.`,
     isPureAsmr
-      ? `Culinary Foley Dynamics: Knife chops cleanly through produce on wooden board; hot oil sizzles and steam rises naturally in pan; zero morphing food.`
+      ? (() => {
+          const text = (actionCleaned + " " + (actionDescription || "")).toLowerCase();
+          const isPan = text.includes("pan") || text.includes("skillet") || text.includes("sear") || text.includes("sizzle") || text.includes("fry") || text.includes("baste") || text.includes("simmer") || text.includes("stove");
+          const isPlate = text.includes("plate") || text.includes("plating") || text.includes("garnish") || text.includes("serve");
+          if (isPan) {
+            return `Culinary Foley Dynamics: Ingredients cook in hot skillet with rising aromatic steam and foaming butter bubbles; skillet stays firmly anchored to stove; chef remains at the stove; zero morphing food.`;
+          }
+          if (isPlate) {
+            return `Culinary Foley Dynamics: Precision garnishing and plating; food rests stably on dish; zero morphing food.`;
+          }
+          return `Culinary Foley Dynamics: Knife cuts cleanly and steadily on the wooden cutting board; chef remains entirely anchored at the cutting board workstation; strictly no stove, no frying pan, no dropping herbs into oil; zero morphing food.`;
+        })()
       : hasDialogue
       ? `Facial & Dialogue Dynamics: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${lang} lip movements and emotional expression.`
       : null,
     isCulinary
-      ? `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing.`
+      ? (() => {
+          const text = (actionCleaned + " " + (actionDescription || "")).toLowerCase();
+          const isPan = text.includes("pan") || text.includes("skillet") || text.includes("sear") || text.includes("sizzle") || text.includes("fry") || text.includes("baste") || text.includes("simmer") || text.includes("stove");
+          const isPlate = text.includes("plate") || text.includes("plating") || text.includes("garnish") || text.includes("serve");
+          if (isPan) {
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Chef is firmly anchored at the stove/skillet station. Cookware is permanently anchored to the burner with rising steam and sizzling oil. Strictly NO cutting board, NO prep slicing. Zero morphing food.`;
+          }
+          if (isPlate) {
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station. Food rests stably on serving plate. Strictly NO active cooking or chopping. Clean presentation.`;
+          }
+          return `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing. Station Lock: Chef remains 100% anchored at the wooden cutting board workstation performing a single steady slicing/prep action. Strictly NO stove, NO frying pan, NO skillet, NO dropping herbs into oil. Rigid knife blade geometry and zero morphing ingredients.`;
+        })()
       : entities.hasVehicleOrMount
       ? `Vehicular Invariant: Draft animals move strictly forward at the front yoke only.`
       : null,

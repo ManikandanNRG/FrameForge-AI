@@ -56,7 +56,13 @@ export function systemPrompt(brief: ProjectBrief): string {
    - The cooking workstation (countertop, wooden cutting board, cast-iron skillet, background kitchen lighting) MUST remain 100% consistent throughout all scenes.
    - Pacing structure follows the satisfying culinary preparation arc: mise en place & ingredient reveal -> rhythmic knife slicing/chopping -> searing skillet contact & sizzle -> sauce reduction & simmering -> artful plating.
    - Focus on tactile sensory cues: rising steam, oil glistening on fresh herbs, bubbling sauces, and knife edge precision.
-   - STRICTLY zero spoken dialogue, zero voice-over, and zero background music; populate 'audioScript' with rich binaural ASMR Foley descriptions.` : "";
+   - STRICTLY zero spoken dialogue, zero voice-over, and zero background music; populate 'audioScript' with rich binaural ASMR Foley descriptions.
+5. STRICT SINGLE-ACTION ATOMIC WORKSTATION LOCK (CRITICAL FOR 100% HALLUCINATION-FREE VIDEO):
+   - Every single shot must portray EXACTLY ONE atomic action at ONE physical station.
+   - Cutting board / prep shots (slicing, trimming, seasoning on board) MUST be 100% confined to the cutting board. Strictly DO NOT mention or describe stoves, frying pans, sizzling oil, or dropping herbs into a pan in a cutting board shot.
+   - Stove / skillet shots (searing, frying, basting) MUST be 100% confined to the stove. Strictly DO NOT mention cutting boards or chopping.
+   - Plating / serving shots MUST be 100% confined to the serving dish.
+   - NEVER combine multiple stations in one shot. AI video generators (Veo, Kling, Runway, Wan 2.1) generate only 4-8 seconds: combining two stations guarantees hallucination and bizarre teleportation jumps.` : "";
 
   return `You are a world-class screenwriter and narrative director specialising in ${styleNote(brief.visualStyle)} cinema.
 Film Idea: "${brief.sourceIdea}"

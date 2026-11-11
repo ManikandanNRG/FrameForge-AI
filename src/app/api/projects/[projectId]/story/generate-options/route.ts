@@ -68,6 +68,12 @@ CULINARY ASMR & WORKSTATION CONTINUITY RULES:
    - Scene 6: Artful plating & crispy slice / crunch reveal (45° Close-Up)
 3. PURE BINAURAL ASMR AUDIO: dialogue and voiceover MUST BE EMPTY STRINGS (""). Every scene's audioScript MUST describe vivid, close-mic culinary Foley (knife chop clicks on wood, oil crackle, butter foaming, water pouring, steam hiss) with ZERO speech and ZERO music.
 4. CULINARY KINEMATICS: Maximum 2 hands in frame, rigid knife grip, grounded cutting board and pans, zero morphing food.
+5. STRICT SINGLE-ACTION ATOMIC WORKSTATION LOCK (CRITICAL FOR 100% HALLUCINATION-FREE VIDEO):
+   - Every single scene/shot must portray EXACTLY ONE atomic action at ONE physical station.
+   - Prep/cutting board scenes (slicing, trimming, seasoning) MUST be 100% confined to the cutting board. Strictly DO NOT describe stoves, frying pans, hot oil sizzles, or dropping herbs into a pan in a cutting board scene.
+   - Searing/pan scenes MUST be 100% confined to the stove. Strictly DO NOT describe cutting boards or raw slicing.
+   - Plating scenes MUST be 100% confined to the plate/dish.
+   - NEVER combine multiple stations in one shot. AI video generators (Veo, Kling, Runway, Wan 2.1) generate only 4-8 seconds: combining two stations guarantees hallucination and teleportation.
 ` : "";
 
   const systemPrompt = `You are a visionary film director, master screenwriter, and social media viral storytelling architect.

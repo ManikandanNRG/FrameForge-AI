@@ -10,7 +10,7 @@ import {
   ChevronRight, Sparkles, Upload, Check, Image as ImageIcon, Video,
   AlertCircle, Mic, MessageSquare, Volume2, Copy, CheckCheck, Download,
   ExternalLink, FileCode, User, ChevronDown, ChevronUp, X, Edit2, Save, RefreshCw,
-  ShieldCheck, Zap, CheckCircle2,
+  ShieldCheck, Zap, CheckCircle2, Wrench,
 } from "lucide-react";
 import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
 
@@ -98,6 +98,20 @@ export default function StoryboardPage() {
   const [isAutoEnhancing, setIsAutoEnhancing] = useState(false);
   const [enhanceSuccess, setEnhanceSuccess] = useState(false);
   const [creditSaverMode, setCreditSaverMode] = useState<boolean>(true);
+
+  // Prompt Doctor (Issue Diagnostic & Repair) State
+  const [isPromptDoctorOpen, setIsPromptDoctorOpen] = useState(false);
+  const [doctorIssue, setDoctorIssue] = useState("");
+  const [doctorTargetTab, setDoctorTargetTab] = useState<"flux" | "video" | "flow">("video");
+  const [doctorDiagnosing, setDoctorDiagnosing] = useState(false);
+  const [doctorResult, setDoctorResult] = useState<{
+    diagnosis: string;
+    correction: string;
+    addedNegative: string;
+    fixedPrompt: string;
+  } | null>(null);
+  const [doctorSuccess, setDoctorSuccess] = useState(false);
+  const [doctorCopied, setDoctorCopied] = useState(false);
 
   useEffect(() => {
     if (selected) {
@@ -504,6 +518,55 @@ export default function StoryboardPage() {
       console.error("Auto-enhance failed", e);
     } finally {
       setIsAutoEnhancing(false);
+    }
+  }
+
+  async function runPromptDoctor(customIssue?: string) {
+    if (!selected) return;
+    const issueToFix = (customIssue || doctorIssue || "").trim();
+    if (!issueToFix) {
+      alert("Please select a quick issue chip or describe what went wrong.");
+      return;
+    }
+
+    setDoctorDiagnosing(true);
+    setDoctorResult(null);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/shots/${selected.id}/fix-issue`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issue: issueToFix,
+          targetTab: doctorTargetTab,
+          apply: true,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setDoctorResult({
+          diagnosis: data.diagnosis,
+          correction: data.correction,
+          addedNegative: data.addedNegative,
+          fixedPrompt: data.fixedPrompt,
+        });
+        setDoctorSuccess(true);
+        setTimeout(() => setDoctorSuccess(false), 3000);
+        await load();
+        if (data.fixedPrompt) {
+          setSelected(prev => prev ? {
+            ...prev,
+            videoPrompt: data.fixedPrompt,
+            imagePrompt: data.bundle?.fluxStillPrompt || prev.imagePrompt,
+            actionDescription: data.bundle?.actionDescription || prev.actionDescription,
+          } : null);
+        }
+      } else {
+        alert(data.error?.message || "Failed to fix prompt issue");
+      }
+    } catch (e: any) {
+      alert(e.message || "Failed to fix prompt issue");
+    } finally {
+      setDoctorDiagnosing(false);
     }
   }
 
@@ -1510,14 +1573,29 @@ export default function StoryboardPage() {
                         <pre className="whitespace-pre-wrap font-mono text-xs text-slate-800 bg-slate-50 border border-slate-200 rounded-xl p-3.5 h-44 overflow-y-auto leading-relaxed shadow-inner focus:outline-none">
                           {activePromptText}
                         </pre>
-                        <button
-                          type="button"
-                          onClick={() => copyPrompt(activePromptText, promptTab)}
-                          className="absolute top-2.5 right-2.5 px-2 py-1 bg-white/90 hover:bg-white border border-slate-200 rounded-md text-[10px] font-bold text-slate-700 opacity-80 group-hover:opacity-100 transition shadow-xs flex items-center gap-1"
-                        >
-                          {copied === promptTab ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                          <span>{copied === promptTab ? "Copied" : "Copy"}</span>
-                        </button>
+                        <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDoctorTargetTab(promptTab === "flux" ? "flux" : promptTab === "flow" ? "flow" : "video");
+                              setDoctorResult(null);
+                              setIsPromptDoctorOpen(true);
+                            }}
+                            className="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-md text-[10px] font-bold shadow-xs flex items-center gap-1 transition"
+                            title="Diagnose & Repair Hallucinations / Station Jumps"
+                          >
+                            <Wrench className="h-3 w-3" />
+                            <span>Fix Issue (Doctor)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => copyPrompt(activePromptText, promptTab)}
+                            className="px-2 py-1 bg-white hover:bg-slate-50 border border-slate-200 rounded-md text-[10px] font-bold text-slate-700 transition shadow-xs flex items-center gap-1"
+                          >
+                            {copied === promptTab ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                            <span>{copied === promptTab ? "Copied" : "Copy"}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -1539,6 +1617,20 @@ export default function StoryboardPage() {
                       </div>
 
                       <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDoctorTargetTab(promptTab === "flux" ? "flux" : promptTab === "flow" ? "flow" : "video");
+                            setDoctorResult(null);
+                            setIsPromptDoctorOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-amber-100 hover:bg-amber-200 text-amber-950 border border-amber-300 rounded-md transition shadow-2xs"
+                          title="Diagnose & Repair Hallucinations / Station Jumps"
+                        >
+                          <Wrench className="h-2.5 w-2.5 text-amber-700" />
+                          <span>🩺 Prompt Doctor</span>
+                        </button>
+
                         <button
                           type="button"
                           onClick={() => setCreditSaverMode(!creditSaverMode)}
@@ -1757,6 +1849,222 @@ export default function StoryboardPage() {
                 className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold shadow-xs"
               >
                 <Save className="h-3.5 w-3.5 mr-1" /> Save Shot Script
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prompt Doctor & Hallucination Repair Modal */}
+      {isPromptDoctorOpen && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="relative w-full max-w-2xl max-h-[92vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl flex flex-col">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50/80">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-100 border border-amber-200 text-amber-700">
+                  <Wrench className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Prompt Doctor · Diagnose &amp; Repair Hallucination
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Shot {selected.shotNumber} (Scene {selectedScene?.sceneNumber ?? 1}) · Instantly diagnose visual anomalies and lock physical constraints
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPromptDoctorOpen(false);
+                  setDoctorResult(null);
+                }}
+                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs">
+              {/* Quick Issue Chips */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-2">
+                  Select Observed Issue (or type below):
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {[
+                    {
+                      label: "🌿 Workstation Jump: Dropped herbs/curry leaves into hot pan",
+                      issue: "Chef was cutting meat on cutting board, but teleported to stove or dropped curry leaves / herbs into a frying pan",
+                    },
+                    {
+                      label: "🥩 Object Morphing: Ingredients warped or dissolved",
+                      issue: "Food, meat, or vegetables morphed, warped, or dissolved shape unnaturally during motion",
+                    },
+                    {
+                      label: "✋ Anatomy Defect: Extra hand, phantom arm, floating knife",
+                      issue: "Extra hand, phantom arm, detached knife blade, or distorted fingers appeared",
+                    },
+                    {
+                      label: "🎥 Camera Drift: Shaky, jittery, or erratic motion",
+                      issue: "Camera moved too fast, jittery, shaky cam, or sudden unexpected zoom",
+                    },
+                    {
+                      label: "👤 Identity Drift: Face or clothing changed mid-video",
+                      issue: "Character face, skin, or clothes morphed and lost consistency from the start frame",
+                    },
+                  ].map((chip, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setDoctorIssue(chip.issue);
+                        runPromptDoctor(chip.issue);
+                      }}
+                      className="text-left p-2.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/60 bg-white transition shadow-2xs group"
+                    >
+                      <span className="font-semibold text-slate-800 text-[11px] group-hover:text-amber-950 block">
+                        {chip.label}
+                      </span>
+                      <span className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
+                        {chip.issue}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Custom Issue Description */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">
+                  Describe the Issue in Detail:
+                </label>
+                <textarea
+                  rows={2}
+                  value={doctorIssue}
+                  onChange={e => setDoctorIssue(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-slate-900 focus:border-amber-500 focus:outline-none leading-relaxed font-sans shadow-xs text-xs"
+                  placeholder="e.g. In second 2 the chef left the cutting board and threw curry leaves into hot oil in a frying pan..."
+                />
+              </div>
+
+              {/* Target Prompt Selection */}
+              <div>
+                <label className="block font-bold text-slate-700 mb-1.5">
+                  Target Prompt to Fortify:
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "video", label: "🎬 Stage 2: I2V Motion Prompt (Google Flow / Kling / Runway / Luma / Wan 2.1)" },
+                    { id: "flux", label: "🖼️ Stage 1: Scene Still Prompt (FLUX.1)" },
+                    { id: "flow", label: "⚡ Direct Video Prompt (Google Flow Veo)" },
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setDoctorTargetTab(tab.id as any)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
+                        doctorTargetTab === tab.id
+                          ? "bg-amber-500 text-slate-950 border-amber-600 shadow-2xs font-bold"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-1">
+                <Button
+                  size="sm"
+                  loading={doctorDiagnosing}
+                  onClick={() => runPromptDoctor()}
+                  className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold shadow-sm text-xs rounded-xl"
+                >
+                  <Zap className="h-3.5 w-3.5 mr-1" /> Diagnose &amp; Fortify Prompt with AI
+                </Button>
+              </div>
+
+              {/* Result Box */}
+              {doctorResult && (
+                <div className="p-4 rounded-xl border border-emerald-300 bg-emerald-50/70 space-y-3 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Diagnosis &amp; Repair Complete!
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                      Saved in Database
+                    </span>
+                  </div>
+
+                  <div className="text-xs space-y-1.5 text-slate-800">
+                    <div>
+                      <span className="font-bold text-emerald-950 uppercase text-[10px] tracking-wider block">
+                        Root Cause:
+                      </span>
+                      <p className="font-medium text-slate-900">{doctorResult.diagnosis}</p>
+                    </div>
+
+                    <div>
+                      <span className="font-bold text-emerald-950 uppercase text-[10px] tracking-wider block">
+                        Prescribed Physical Invariant:
+                      </span>
+                      <p className="font-medium text-slate-900">{doctorResult.correction}</p>
+                    </div>
+
+                    {doctorResult.addedNegative && (
+                      <div>
+                        <span className="font-bold text-rose-900 uppercase text-[10px] tracking-wider block">
+                          Targeted Negative Filters Added:
+                        </span>
+                        <p className="font-mono text-[11px] text-rose-800 bg-white/80 p-1.5 rounded-lg border border-rose-200">
+                          {doctorResult.addedNegative}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Fortified Prompt Preview */}
+                  <div className="space-y-1 pt-1">
+                    <div className="flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-slate-700">Updated Fortified Prompt:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard.writeText(doctorResult.fixedPrompt);
+                          setDoctorCopied(true);
+                          setTimeout(() => setDoctorCopied(false), 2000);
+                        }}
+                        className="px-2 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded text-[10px] font-bold text-slate-700 transition flex items-center gap-1 shadow-2xs"
+                      >
+                        {doctorCopied ? <CheckCheck className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                        <span>{doctorCopied ? "Copied" : "Copy Prompt"}</span>
+                      </button>
+                    </div>
+                    <pre className="whitespace-pre-wrap font-mono text-[11px] text-slate-800 bg-white border border-slate-200 rounded-xl p-3 max-h-36 overflow-y-auto leading-relaxed shadow-inner">
+                      {doctorResult.fixedPrompt}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-3 border-t border-slate-200 bg-slate-50/80">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsPromptDoctorOpen(false);
+                  setDoctorResult(null);
+                }}
+                className="text-slate-600 hover:text-slate-900"
+              >
+                Close
               </Button>
             </div>
           </div>

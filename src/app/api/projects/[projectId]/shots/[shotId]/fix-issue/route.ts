@@ -41,7 +41,22 @@ export const POST = apiHandler(async (req, ctx) => {
 
   const isCulinary = project.visualStyle === "CULINARY_MACRO_ASMR" || /cooking|culinary|chef|steak|food|pan/i.test(project.genre || "" + project.sourceIdea);
 
-  if (isCulinary && (/jump|teleport|curry leaf|herb|rosemary|leaf|leaves|threw|throw|put|putting|pan|stove|skillet|oil|sizzle|fry/i.test(lowerIssue))) {
+  if (isCulinary && (/knife.*(?:leaf|herb|curry|currey|plant)|(?:leaf|herb|curry|currey).*knife|knife changed|knife morph/i.test(lowerIssue))) {
+    diagnosis = "Tool Morphing Anomaly: AI diffusion hallucinated the knife in the chef's hand transforming into herbs or foliage mid-motion.";
+    correction = "Rigid metallic knife locked permanently to chef's grip; strictly banned knife transforming into herbs or leaves; banned stove & pan.";
+    addedNegative = "knife turning into herbs, knife turning into leaf, blade morphing into plant, knife changing into food, curry leaf in hand, transforming knife, stove, frying pan, skillet, hot oil, putting meat in pan";
+    fortifiedAction = `${shot.actionDescription.replace(/\.\s*$/, "")}. The chef holds only the rigid metal kitchen knife in hand and remains strictly anchored at the cutting board; the knife never transforms into herbs or leaves.`;
+  } else if (isCulinary && (/put.*(?:pan|skillet)|meat.*(?:pan|skillet)|whole.*(?:piece|meat).*pan|full.*meat/i.test(lowerIssue))) {
+    diagnosis = "Premature Cooking Station Jump: AI attempted to put the whole uncut meat piece into the frying pan prematurely.";
+    correction = "Meat locked stationary to cutting board; prohibited putting meat in pan or walking to stove.";
+    addedNegative = "putting meat in pan, dropping meat into pan, whole meat in skillet, moving to stove, frying pan, hot oil";
+    fortifiedAction = `${shot.actionDescription.replace(/\.\s*$/, "")}. The meat rests completely stationary on the cutting board and is never picked up or placed into a pan or skillet.`;
+  } else if (isCulinary && /reveal|countertop|ingredients like|mise en place/i.test(shot.actionDescription)) {
+    diagnosis = "Station Bleed into Showcase Shot: AI attempted active cooking or cutting during what is strictly an ingredient showcase pan.";
+    correction = "Enforced static ingredient showcase on countertop; strictly zero chef intervention, zero cooking, and zero pans.";
+    addedNegative = "cooking, cutting, slicing, stove, frying pan, skillet, hot oil, picking up meat, throwing in pan, dropping in pan, knife in hand, teleporting";
+    fortifiedAction = `${shot.actionDescription.replace(/\.\s*$/, "")}. All ingredients rest completely still on the countertop while the camera glides smoothly past; zero chef hands touching or picking up ingredients.`;
+  } else if (isCulinary && (/jump|teleport|curry leaf|herb|rosemary|leaf|leaves|threw|throw|put|putting|pan|stove|skillet|oil|sizzle|fry/i.test(lowerIssue))) {
     diagnosis = "Workstation Conflict & Jump-Cut: The prep shot lacked explicit stove/pan exclusion, causing AI to hallucinate a mid-video jump into oil frying.";
     correction = "Locked chef strictly to cutting board workstation; banned stove, skillets, oil sizzle, and dropping herbs.";
     addedNegative = "stove, frying pan, skillet, hot oil, dropping herbs into pan, curry leaf in pan, burner flame, teleporting, walking away";

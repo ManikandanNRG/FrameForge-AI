@@ -47,6 +47,38 @@ export interface CompiledPromptBundle {
   creditCostEstimate: string;
 }
 
+export type CulinaryStation = "COUNTER_REVEAL" | "BOARD_PREP" | "STOVE_COOK" | "PLATING_SERVE";
+
+export function detectCulinaryStation(actionText: string, cameraMotionText?: string | null): CulinaryStation {
+  const lower = `${actionText || ""} ${cameraMotionText || ""}`.toLowerCase();
+
+  // 1. Plating / Serving station
+  if (/\b(plate|plating|garnish|serve|serving|platter|dining table)\b/.test(lower) && !/\b(cutting board|chopping|prep)\b/.test(lower)) {
+    return "PLATING_SERVE";
+  }
+
+  // 2. Stove / Cookware station
+  // Crucial: Distinguish cookware (frying pan, skillet, hot pan, in pan) from camera movements (camera pans, slow pan, panning across)!
+  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet)\b/.test(lower);
+  const hasCookwarePan = /(?:frying pan|saucepan|saut[eé] pan|cast-iron pan|hot pan|into the pan|in the pan|into pan|in pan|pan sear|pan-sear)\b/.test(lower) ||
+    (/\bpan\b/.test(lower) && !/\b(?:camera|slowly|smooth|horizontal|lateral)\s+pans?\b/.test(lower) && !/\bpanning\b/.test(lower));
+
+  const isStove = (hasStoveKeywords || hasCookwarePan) && !/\b(cutting board|chopping board|deftly chop|slices? seasoned|raw meat|reveal|ingredients like)\b/.test(lower);
+  if (isStove) {
+    return "STOVE_COOK";
+  }
+
+  // 3. Countertop / Ingredient Reveal station (Mise En Place)
+  const isReveal = /\b(reveal|revealing|countertop|fresh ingredients|mise en place|showcase|ingredients like|table setting|overview)\b/.test(lower) &&
+    !/\b(chopping|slicing|cutting|dicing|sear|sizzle|skillet|baste)\b/.test(lower);
+  if (isReveal) {
+    return "COUNTER_REVEAL";
+  }
+
+  // 4. Default: Cutting board / prep station
+  return "BOARD_PREP";
+}
+
 export function compileCinematicPrompt(options: CompilePromptOptions): CompiledPromptBundle {
   const {
     actionDescription,
@@ -289,17 +321,17 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "disappearing food"
     );
 
-    const fullActionText = (actionCleaned + " " + (actionDescription || "")).toLowerCase();
-    const isPanStation = fullActionText.includes("pan") || fullActionText.includes("skillet") || fullActionText.includes("sear") || fullActionText.includes("sizzle") || fullActionText.includes("fry") || fullActionText.includes("baste") || fullActionText.includes("simmer") || fullActionText.includes("stove");
-    const isPlateStation = fullActionText.includes("plate") || fullActionText.includes("plating") || fullActionText.includes("garnish") || fullActionText.includes("serve");
+    const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
 
-    if (isPanStation) {
-      negativeList.push("cutting board", "wooden chopping board", "chopping knife", "slicing raw meat", "raw ingredient prep", "walking away from stove");
-    } else if (isPlateStation) {
+    if (station === "STOVE_COOK") {
+      negativeList.push("cutting board", "wooden chopping board", "chopping knife", "slicing raw meat", "raw ingredient prep", "knife in hand", "cutting knife", "walking away from stove");
+    } else if (station === "PLATING_SERVE") {
       negativeList.push("stove", "open flame", "frying pan", "sizzling skillet", "raw meat", "chopping knife");
+    } else if (station === "COUNTER_REVEAL") {
+      negativeList.push("stove", "frying pan", "skillet", "hot oil", "sizzle", "cooking", "flame", "boiling", "chopping knife", "picking up meat", "putting meat in pan", "throwing in pan", "dropping in pan", "teleporting");
     } else {
-      // Cutting board / Prep Station
-      negativeList.push("stove", "frying pan", "skillet", "hot oil", "dropping herbs into pan", "curry leaf in pan", "burner flame", "cooking on stove", "teleporting", "walking away from board");
+      // BOARD_PREP
+      negativeList.push("stove", "frying pan", "skillet", "hot oil", "dropping herbs into pan", "curry leaf in pan", "burner flame", "cooking on stove", "knife turning into herbs", "knife turning into leaf", "blade morphing into plant", "transforming knife", "knife changing shape", "picking up raw steak", "putting meat in pan", "teleporting", "walking away from board");
     }
   }
 
@@ -565,14 +597,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Camera Movement: ${naturalCameraMotion}.`,
     isPureAsmr
       ? (() => {
-          const text = (actionCleaned + " " + (actionDescription || "")).toLowerCase();
-          const isPan = text.includes("pan") || text.includes("skillet") || text.includes("sear") || text.includes("sizzle") || text.includes("fry") || text.includes("baste") || text.includes("simmer") || text.includes("stove");
-          const isPlate = text.includes("plate") || text.includes("plating") || text.includes("garnish") || text.includes("serve");
-          if (isPan) {
+          const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
+          if (station === "STOVE_COOK") {
             return `Culinary Foley Dynamics: Ingredients cook in hot skillet with rising aromatic steam and foaming butter bubbles; skillet stays firmly anchored to stove; chef remains at the stove; zero morphing food.`;
           }
-          if (isPlate) {
+          if (station === "PLATING_SERVE") {
             return `Culinary Foley Dynamics: Precision garnishing and plating; food rests stably on dish; zero morphing food.`;
+          }
+          if (station === "COUNTER_REVEAL") {
+            return `Culinary Foley Dynamics: Gentle ambient kitchen atmosphere; camera executes a smooth reveal across fresh unblemished ingredients resting on the countertop; strictly NO stove, NO frying pan, NO cooking; ingredients remain stationary.`;
           }
           return `Culinary Foley Dynamics: Knife cuts cleanly and steadily on the wooden cutting board; chef remains entirely anchored at the cutting board workstation; strictly no stove, no frying pan, no dropping herbs into oil; zero morphing food.`;
         })()
@@ -581,16 +614,17 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : null,
     isCulinary
       ? (() => {
-          const text = (actionCleaned + " " + (actionDescription || "")).toLowerCase();
-          const isPan = text.includes("pan") || text.includes("skillet") || text.includes("sear") || text.includes("sizzle") || text.includes("fry") || text.includes("baste") || text.includes("simmer") || text.includes("stove");
-          const isPlate = text.includes("plate") || text.includes("plating") || text.includes("garnish") || text.includes("serve");
-          if (isPan) {
-            return `Kinematic Invariant: Max two hands in frame. Station Lock: Chef is firmly anchored at the stove/skillet station. Cookware is permanently anchored to the burner with rising steam and sizzling oil. Strictly NO cutting board, NO prep slicing. Zero morphing food.`;
+          const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
+          if (station === "STOVE_COOK") {
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Chef is firmly anchored at the stove/skillet station. Cookware is permanently anchored to the burner with rising steam and sizzling oil. Strictly NO cutting board, NO prep slicing. Chef strictly holds cooking utensil or tongs; knife is put away. Zero morphing food.`;
           }
-          if (isPlate) {
+          if (station === "PLATING_SERVE") {
             return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station. Food rests stably on serving plate. Strictly NO active cooking or chopping. Clean presentation.`;
           }
-          return `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing. Station Lock: Chef remains 100% anchored at the wooden cutting board workstation performing a single steady slicing/prep action. Strictly NO stove, NO frying pan, NO skillet, NO dropping herbs into oil. Rigid knife blade geometry and zero morphing ingredients.`;
+          if (station === "COUNTER_REVEAL") {
+            return `Kinematic Invariant: Countertop showcase. Fresh ingredients rest stationary on the clean countertop under natural kitchen illumination. Strictly NO stove, NO frying pan, NO cooking, NO picking up meat or putting meat in pan. Camera executes a smooth gliding motion.`;
+          }
+          return `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing. Station Lock: Chef remains 100% anchored at the wooden cutting board workstation performing a single steady slicing/prep action. Strictly NO stove, NO frying pan, NO skillet, NO dropping herbs into oil, NO putting meat into pan. Knife blade remains a rigid metallic kitchen knife firmly held in chef's hand throughout the entire shot; strictly zero morphing of knife into herbs or foliage; zero morphing ingredients.`;
         })()
       : entities.hasVehicleOrMount
       ? `Vehicular Invariant: Draft animals move strictly forward at the front yoke only.`

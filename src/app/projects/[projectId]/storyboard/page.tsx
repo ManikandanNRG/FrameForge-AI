@@ -541,27 +541,28 @@ export default function StoryboardPage() {
           apply: true,
         }),
       });
-      const data = await res.json();
-      if (data.ok) {
+      const json = await res.json();
+      const payload = json.data || json;
+      if (res.ok && (payload.ok || payload.fixedPrompt)) {
         setDoctorResult({
-          diagnosis: data.diagnosis,
-          correction: data.correction,
-          addedNegative: data.addedNegative,
-          fixedPrompt: data.fixedPrompt,
+          diagnosis: payload.diagnosis,
+          correction: payload.correction,
+          addedNegative: payload.addedNegative,
+          fixedPrompt: payload.fixedPrompt,
         });
         setDoctorSuccess(true);
         setTimeout(() => setDoctorSuccess(false), 3000);
         await load();
-        if (data.fixedPrompt) {
+        if (payload.fixedPrompt) {
           setSelected(prev => prev ? {
             ...prev,
-            videoPrompt: data.fixedPrompt,
-            imagePrompt: data.bundle?.fluxStillPrompt || prev.imagePrompt,
-            actionDescription: data.bundle?.actionDescription || prev.actionDescription,
+            videoPrompt: payload.fixedPrompt,
+            imagePrompt: payload.bundle?.fluxStillPrompt || prev.imagePrompt,
+            actionDescription: payload.bundle?.actionDescription || prev.actionDescription,
           } : null);
         }
       } else {
-        alert(data.error?.message || "Failed to fix prompt issue");
+        alert(json.error?.message || payload.error?.message || "Failed to fix prompt issue");
       }
     } catch (e: any) {
       alert(e.message || "Failed to fix prompt issue");

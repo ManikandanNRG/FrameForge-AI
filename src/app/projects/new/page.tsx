@@ -8,6 +8,7 @@ import { Sparkles } from "lucide-react";
 const GENRES = [
   "Rural Village Drama / Realistic",
   "Sports / Motivational Drama",
+  "Culinary & Cooking ASMR",
   "Friendship / Buddy Comedy",
   "Emotional Family Drama",
   "Action & Adventure / Thriller",
@@ -21,6 +22,7 @@ const GENRES = [
 ];
 
 const TONES = [
+  "Satisfying, Crisp & Hypnotic",
   "Playful, Authentic & Energetic",
   "Grounded, Heartfelt & Emotional",
   "Suspenseful, Tense & Thrilling",
@@ -52,6 +54,7 @@ const RUNTIME_PRESETS = [
 
 const VISUAL_STYLES = [
   ["PHOTOREALISTIC_CINEMATIC", "Photorealistic Cinematic"],
+  ["CULINARY_MACRO_ASMR",      "Culinary ASMR & Cooking (Macro Food Realism)"],
   ["DOCUMENTARY",              "Documentary Realism"],
   ["LIVE_ACTION_AD",           "Live-action Commercial"],
   ["ANIME",                    "Anime"],
@@ -250,6 +253,7 @@ export default function NewProjectPage() {
             <Field label="Dialogue mode">
               <select value={form.dialogueMode} onChange={e => set("dialogueMode", e.target.value)} className={inputCls}>
                 <option value="DIALOGUE">Spoken dialogue</option>
+                <option value="PURE_ASMR_FOLEY">Pure ASMR Foley (Zero Dialogue / Ultra-Crisp Foley)</option>
                 <option value="VOICEOVER">Voice-over narration</option>
                 <option value="NO_DIALOGUE">No dialogue (visual only)</option>
               </select>

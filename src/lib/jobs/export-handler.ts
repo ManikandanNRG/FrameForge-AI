@@ -34,9 +34,11 @@ export async function exportHandler(job: GenerationJob): Promise<{ ok: true; out
 
   await prisma.exportJob.update({ where: { id: exportJobId }, data: { status: "RENDERING" } });
 
-  // Output path
-  const rootRecord = await prisma.mediaRoot.findFirst({ where: { ownerId: exportJob.projectId } })
-    ?? { path: normalizeRoot("./media") };
+  // Output path (resolve owner user id from project)
+  const project = await prisma.project.findUnique({ where: { id: exportJob.projectId } });
+  const rootRecord = (project?.ownerId
+    ? await prisma.mediaRoot.findFirst({ where: { ownerId: project.ownerId } })
+    : null) ?? { path: normalizeRoot("./media") };
 
   const outputDir = path.join(rootRecord.path, "exports", exportJob.projectId);
   await mkdir(outputDir, { recursive: true });

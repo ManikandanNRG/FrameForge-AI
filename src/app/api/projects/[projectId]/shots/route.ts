@@ -45,6 +45,7 @@ export const GET = apiHandler(async (_req, ctx) => {
     project: {
       id: project.id,
       title: project.title,
+      sourceIdea: project.sourceIdea,
       aspectRatio: project.aspectRatio,
       storyLanguage: project.storyLanguage,
       visualStyle: project.visualStyle,

@@ -243,17 +243,48 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
   });
 
   // Auto-create character assets in Production Bible so Step 2 (Assets) is immediately populated!
+  const isCulinary =
+    project.visualStyle === "CULINARY_MACRO_ASMR" ||
+    (project.sourceIdea || "").toLowerCase().includes("cook") ||
+    (project.sourceIdea || "").toLowerCase().includes("cooking") ||
+    (project.sourceIdea || "").toLowerCase().includes("asmr") ||
+    (project.sourceIdea || "").toLowerCase().includes("culinary") ||
+    (project.sourceIdea || "").toLowerCase().includes("recipe") ||
+    (project.genre || "").toLowerCase().includes("cooking") ||
+    (project.genre || "").toLowerCase().includes("culinary");
+
+  const isVintage =
+    !isCulinary &&
+    (project.visualStyle === "VINTAGE_FILM" ||
+      (project.sourceIdea || "").toLowerCase().includes("1900") ||
+      (project.sourceIdea || "").toLowerCase().includes("vintage") ||
+      (project.sourceIdea || "").toLowerCase().includes("old years") ||
+      (project.genre || "").toLowerCase().includes("historical") ||
+      (project.genre || "").toLowerCase().includes("period"));
+
   for (const [name, info] of Array.from(charMap.entries())) {
     const existingAsset = await prisma.productionAsset.findFirst({
       where: { projectId: projectId as string, name },
     });
     if (!existingAsset) {
+      const wardrobeDesc = isCulinary
+        ? "Clean professional chef attire, natural linen rolled-up sleeves, trimmed clean nails, precise knife grip."
+        : isVintage
+        ? "Authentic 1900s traditional hand-spun unbleached khadi attire (strictly no modern machine-stitched collared shirts, t-shirts, or synthetic fabrics)."
+        : "Authentic traditional regional attire matching the story era and culture.";
+
+      const charPrompt = isCulinary
+        ? `Ultra-photorealistic portrait of ${name} (Chef hands preparing ingredients, rolled-up linen shirt sleeves, precise confident grip, warm directional kitchen lighting).`
+        : isVintage
+        ? `Authentic 1900s vintage 35mm archival photographic portrait of ${name}, natural sepia and muted earth tones, period-accurate hand-spun khadi garments, soft vintage depth of field.`
+        : `Photorealistic cinematic character portrait of ${name}, authentic cultural features, detailed skin texture, natural expressive eyes, high production value 35mm film still.`;
+
       const attributes = {
         role: info.role,
-        age: name.toLowerCase().includes("boy") || name.toLowerCase().includes("karthi") ? 10 : 35,
-        wardrobe: "Authentic traditional regional attire matching the story era and culture.",
-        googleFlowCharacterPrompt: `8k photorealistic cinematic character portrait of ${name}, authentic cultural features, detailed skin texture, natural expressive eyes, high production value 35mm film still.`,
-        voiceProfile: `Authentic ${project.storyLanguage} native speaker, natural conversational cadence, expressive emotional range.`,
+        age: name.toLowerCase().includes("boy") || name.toLowerCase().includes("karthi") || name.toLowerCase().includes("kavin") ? 10 : 35,
+        wardrobe: wardrobeDesc,
+        googleFlowCharacterPrompt: charPrompt,
+        voiceProfile: isCulinary ? "Pure ambient culinary Foley (no spoken dialogue)." : `Authentic ${project.storyLanguage} native speaker, natural conversational cadence, expressive emotional range.`,
       };
       await prisma.productionAsset.create({
         data: {
@@ -268,8 +299,30 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
     }
   }
 
-  // 7. Synchronize Database Scenes and Shots
+  // 7. Synchronize Database Scenes and Shots with Dynamic Multi-Angle Camera Coverage
   await prisma.scene.deleteMany({ where: { projectId: projectId as string } });
+
+  const CULINARY_CAMERA_ROTATION = [
+    { shotSize: "Wide Shot", cameraAngle: "Eye-Level", cameraMovement: "Slow cinematic establishing push-in across kitchen workstation, showcasing mise en place" },
+    { shotSize: "Top-Down (Bird's Eye Flat Lay)", cameraAngle: "90° Overhead", cameraMovement: "Overhead static framing with subtle floating drift over cutting board" },
+    { shotSize: "Macro Extreme Close-Up (ECU)", cameraAngle: "Low 45-Degree", cameraMovement: "Macro 85mm probe lens tracking knife edge slicing cleanly through fresh ingredient, f/1.8 shallow DOF" },
+    { shotSize: "Close-Up", cameraAngle: "Low-Angle Pan", cameraMovement: "Low-angle dynamic slide as sizzling oil shimmers and aromatic steam billows in hot pan" },
+    { shotSize: "Medium Shot (Chef POV)", cameraAngle: "Over-the-Shoulder First-Person", cameraMovement: "First-person chef hands perspective actively cooking, tossing, and basting with spoon" },
+    { shotSize: "Macro Extreme Close-Up (ECU)", cameraAngle: "High 45-Degree", cameraMovement: "Macro close-up on simmering reduction with glistening bubbles bursting at 60fps" },
+    { shotSize: "Close-Up (Plating)", cameraAngle: "30-Degree Orbit", cameraMovement: "Smooth orbital pan around completed dish on dark slate, delicate garnish placement" },
+    { shotSize: "Macro Extreme Close-Up (ECU)", cameraAngle: "Low 45-Degree", cameraMovement: "Macro slow-motion cross-section cut revealing tender juicy interior and crispy crust" },
+  ];
+
+  const STANDARD_DYNAMIC_ROTATION = [
+    { shotSize: "Wide Shot", cameraAngle: "Eye-Level", cameraMovement: "Smooth cinematic establishing tracking shot forward at 24fps" },
+    { shotSize: "Medium Shot", cameraAngle: "Eye-Level", cameraMovement: "Dynamic lateral tracking shot moving alongside character at 24fps" },
+    { shotSize: "Close-Up", cameraAngle: "Low-Angle", cameraMovement: "Low-angle backward tracking shot facing character torso and facial emotion" },
+    { shotSize: "Extreme Close-Up", cameraAngle: "Dutch Angle", cameraMovement: "Intense focal push-in on character eyes and active physical prop" },
+    { shotSize: "Medium-Close Shot", cameraAngle: "Over-the-Shoulder", cameraMovement: "Over-the-shoulder handheld floating camera motion at 24fps" },
+    { shotSize: "Wide Panoramic Shot", cameraAngle: "High-Angle Crane", cameraMovement: "High-angle slow jib tilt-down revealing atmospheric environment" },
+  ];
+
+  const cameraRotation = isCulinary ? CULINARY_CAMERA_ROTATION : STANDARD_DYNAMIC_ROTATION;
 
   for (const sc of option.scenes) {
     const scene = await prisma.scene.create({
@@ -284,7 +337,7 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
       },
     });
 
-    // Create primary shot for the scene
+    // Create primary shot for the scene with dynamic camera framing
     let charTag = "";
     let charName = "";
     const tagMatch = sc.action.match(/\[@([A-Za-z0-9_-]+)\]/) || (sc.dialogue && sc.dialogue.match(/\[@([A-Za-z0-9_-]+)\]/));
@@ -294,12 +347,14 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
     }
 
     const audioPayload = {
-      dialogue: sc.dialogue || "",
-      voiceover: sc.voiceover || "",
+      dialogue: isCulinary ? "" : (sc.dialogue || ""),
+      voiceover: isCulinary ? "" : (sc.voiceover || ""),
       audioPrompt: sc.audioScript || "",
       characterTag: charTag,
       characterName: charName,
     };
+
+    const camPreset = cameraRotation[(sc.sceneNumber - 1) % cameraRotation.length];
 
     await prisma.shot.create({
       data: {
@@ -307,9 +362,14 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
         sceneId: scene.id,
         shotNumber: sc.sceneNumber,
         actionDescription: sc.action,
-        shotSize: "Medium Shot",
-        cameraMovement: "35mm prime lens dynamic camera movement at 24fps",
-        lighting: "Warm cinematic natural lighting, soft shadows",
+        shotSize: camPreset.shotSize,
+        cameraAngle: camPreset.cameraAngle,
+        cameraMovement: camPreset.cameraMovement,
+        lighting: isCulinary
+          ? "Warm culinary studio lighting, soft key illumination on workstation, appetizing natural food glistening"
+          : isVintage
+          ? "Warm natural historical lighting, soft dust motes, period ambience"
+          : "Warm cinematic natural lighting, soft shadows",
         targetDurationSeconds: sc.estimatedDurationSeconds || 8,
         negativeConstraints: JSON.stringify(audioPayload),
       },

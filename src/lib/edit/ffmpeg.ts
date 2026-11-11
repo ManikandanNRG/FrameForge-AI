@@ -20,12 +20,16 @@ export function findFfmpeg(): string | null {
     "C:\\ffmpeg-9.0.2-essentials_build\\bin\\ffmpeg.exe",
     "C:\\ffmpeg\\bin\\ffmpeg.exe",
     "C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe",
-    "ffmpeg",
   ];
   for (const c of candidates) {
-    if (!c) continue;
-    if (c !== "ffmpeg" && existsSync(c)) return c;
+    if (c && existsSync(c)) return c;
   }
+  // Check if global 'ffmpeg' is accessible in system PATH
+  try {
+    const { spawnSync } = require("node:child_process");
+    const res = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" });
+    if (res.status === 0) return "ffmpeg";
+  } catch {}
   return null;
 }
 
@@ -35,12 +39,16 @@ export function findFfprobe(): string | null {
     "C:\\ffmpeg-9.0.2-essentials_build\\bin\\ffprobe.exe",
     "C:\\ffmpeg\\bin\\ffprobe.exe",
     "C:\\Program Files\\ffmpeg\\bin\\ffprobe.exe",
-    "ffprobe",
   ];
   for (const c of candidates) {
-    if (!c) continue;
-    if (c !== "ffprobe" && existsSync(c)) return c;
+    if (c && existsSync(c)) return c;
   }
+  // Check if global 'ffprobe' is accessible in system PATH
+  try {
+    const { spawnSync } = require("node:child_process");
+    const res = spawnSync("ffprobe", ["-version"], { stdio: "ignore" });
+    if (res.status === 0) return "ffprobe";
+  } catch {}
   return null;
 }
 

@@ -134,3 +134,29 @@ Ensures characters have authentic voices and narrative sound without paid API de
   3. **YouTube Competitor Video Cloner**:
      - Built a competitor URL importer in the Director Pitch modal to clone viral retention pacing and adapt proven concepts into original 5-scene screenplays in native dialogue.
   4. **Zero-Cost Advantage**: All features operate completely free using local resources, free FLUX.1, and the free Gemini tier, eliminating the need for ₹35,000–₹88,000/year subscriptions.
+
+## ADR-011: Culinary ASMR & Dynamic Multi-Angle Camera Studio Engine
+- **Date**: 2026-11-11 · **Status**: Approved & Implemented
+- **Context**: High-retention culinary ASMR videos (e.g. Tasty, Almazan Kitchen, Peaceful Cuisine, Nino's Home) require:
+  1. Workstation & cookware consistency across the entire video (same countertop, cutting board, and pan).
+  2. Realistic food physics with zero hallucinations (no phantom 3rd hands, no floating knives, no morphing ingredients).
+  3. Pristine binaural ASMR sound design (ultra-crisp close-mic Foley with zero dialogue or music).
+  4. Dynamic multi-angle camera coverage (rapid, rhythmic alternation across Top-Down flat lay, 45° Macro ECU, Chef hands POV, low-angle sizzle, and wide establishing shots).
+- **Decision**:
+  1. **Culinary Kinematic Invariants & Anti-Hallucination Guardrails** (`src/lib/story/world-engine.ts`):
+     - Added `CULINARY_ASMR_PHYSICS` to `UNIVERSAL_PHYSICAL_LAWS`:
+       - Strict 2-hand limit (knife grip + claw grip); bans phantom third hands or floating limbs.
+       - Rigid knife grip; cutting board anchored to counter; cookware anchored to stove flame.
+       - Slicing direction preserves mass: cut pieces stay on cutting board, zero morphing food.
+     - Extended `detectPhysicalEntities` to detect culinary actions (`chop`, `slice`, `sear`, `sizzle`, `simmer`, `pour`, `skillet`, `cutting board`).
+     - Added `CULINARY_MACRO_ASMR` rendering integrity in `getRenderingIntegrity` (macro 50mm/85mm probe lens, f/1.8 shallow DOF, 60fps fluid & steam dynamics).
+  2. **Dynamic Multi-Angle Camera Rotation** (`src/lib/shots/service.ts`, `src/lib/story/prompt-compiler.ts`, `select-option/route.ts`):
+     - Implemented dynamic alternating camera angle cycling:
+       - Wide / Medium Workstation Establishing -> Top-Down (Bird's Eye 90° Flat Lay) -> Macro Extreme Close-Up (ECU 45°) -> Low-Angle Skillet Sizzle -> Chef Hands First-Person POV -> Macro Simmering Reduction -> Plating & Garnishing -> Macro Crunchy Bite Reveal.
+       - Enforced across screenplay development, shot planning, and prompt compilation.
+  3. **Master Workstation & Cookware Lock**:
+     - Locks kitchen countertop material, walnut cutting board grain, and cast-iron cookware style into Production Bible locations and props, maintaining 100% spatial consistency across all scenes.
+  4. **Pristine Binaural ASMR Sound Foley**:
+     - Added `PURE_ASMR_FOLEY` dialogue mode that strictly excludes spoken dialogue, voice-over, and background music, compiling rich close-mic Foley sound effects.
+  5. **UI Presets & Detection**:
+     - Added `CULINARY_MACRO_ASMR` visual style, `PURE_ASMR_FOLEY` dialogue mode, "Culinary & Cooking ASMR" genre, and "Satisfying, Crisp & Hypnotic" tone to project creation, idea analysis, and project specifications.

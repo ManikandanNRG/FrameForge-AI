@@ -4,6 +4,7 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
+import { isWithinRoot } from "@/lib/media/paths";
 
 /**
  * GET /api/media/file?path=<absolute-path>
@@ -24,9 +25,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     const defaultRoot = path.resolve("./media");
     const allRoots = [defaultRoot, ...roots.map((r) => r.path)];
 
-    const allowed = allRoots.some(
-      (root) => normalized.startsWith(path.normalize(root) + path.sep) || normalized.startsWith(path.normalize(root)),
-    );
+    const allowed = allRoots.some((root) => isWithinRoot(root, normalized));
     if (!allowed) return new Response("Forbidden", { status: 403 });
 
     if (!existsSync(normalized)) return new Response("File not found", { status: 404 });

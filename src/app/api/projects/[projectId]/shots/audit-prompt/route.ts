@@ -50,7 +50,7 @@ export const POST = apiHandler(async (req, ctx) => {
   } = parsed.data;
 
   // 1. Detect physical entities
-  const entities = detectPhysicalEntities(actionDescription);
+  const entities = detectPhysicalEntities(actionDescription, project.sourceIdea);
   const issues: string[] = [];
   let score = 100;
 
@@ -116,6 +116,10 @@ export const POST = apiHandler(async (req, ctx) => {
     locationDescription: locationAsset?.description || "Authentic setting",
     aspectRatio: project.aspectRatio,
     storyLanguage: project.storyLanguage,
+    visualStyle: project.visualStyle,
+    sourceIdea: project.sourceIdea,
+    genre: project.genre,
+    tone: project.tone,
   });
 
   // 4. If applyFix is true and shotId is provided, persist to database

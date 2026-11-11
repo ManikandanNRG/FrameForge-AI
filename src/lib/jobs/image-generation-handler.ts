@@ -87,6 +87,10 @@ export async function imageGenerationHandler(
     locationDescription: locationEnv,
     aspectRatio: project.aspectRatio,
     storyLanguage: project.storyLanguage,
+    visualStyle: project.visualStyle,
+    sourceIdea: project.sourceIdea,
+    genre: project.genre,
+    tone: project.tone,
   });
 
   const promptToUse = bundle.fluxStillPrompt;

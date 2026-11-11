@@ -49,6 +49,23 @@ export const POST = apiHandler(async (req, ctx) => {
     projectId: seq.projectId,
   });
 
+  // Execute immediately in Next.js runtime so export renders reliably even if external worker is not started
+  setImmediate(async () => {
+    const { exportHandler } = await import("@/lib/jobs/export-handler");
+    const { markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
+    try {
+      const fresh = await prisma.generationJob.findUnique({ where: { id: job.id } });
+      if (fresh && (fresh.status === "QUEUED" || fresh.status === "SUBMITTING")) {
+        await markRunning(job.id);
+        const result = await exportHandler(job);
+        await markSucceeded(job.id, result);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await markFailed(job.id, { code: "EXPORT_FAILED", message: msg, retryable: false }).catch(() => {});
+    }
+  });
+
   return { exportJobId: exportJob.id, jobId: job.id, status: "QUEUED" };
 });
 

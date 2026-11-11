@@ -7,6 +7,23 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Culinary ASMR & Dynamic Multi-Angle Camera Studio Engine** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/shots/service.ts`, `src/lib/bible/service.ts`, `src/app/api/projects/[projectId]/story/generate-options/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/api/projects/analyze-idea/route.ts`, `src/app/projects/new/page.tsx`, `src/app/projects/[projectId]/page.tsx`, `tests/unit/culinary-asmr.test.ts`):
+  - **Dynamic Multi-Angle Camera Rotation**: Rhythmic, cinematic alternating shot coverage across sequential shots:
+    1. *Wide / Medium Workstation Establishing*: Establishes kitchen space, cutting board, and fresh whole ingredients.
+    2. *Top-Down Flat Lay (90° Bird's Eye)*: Overhead geometric alignment of ingredients on cutting board.
+    3. *Macro Extreme Close-Up (ECU 45°)*: 85mm probe macro lens with f/1.8 shallow depth of field tracking knife edge slicing cleanly through produce.
+    4. *Low-Angle Skillet Pan*: Dynamic sliding angle as hot oil shimmers, butter foams, and aromatic steam billows on pan contact.
+    5. *Chef Hands First-Person POV*: Over-the-shoulder perspective showing two hands actively basting, tossing, or stirring with utensil.
+    6. *Macro Simmering Reduction*: Glistening sauce bubbles bursting at 60fps.
+    7. *Plating & Garnishing*: 30° orbital pan around completed dish on dark slate.
+    8. *Macro Crunchy Slice / Bite Reveal*: Slow-motion cross-section cut revealing tender juicy interior and crispy crust.
+  - **Master Workstation & Cookware Continuity**: Strictly locks the kitchen countertop material, walnut cutting board grain, and cast-iron cookware style across every shot to maintain 100% spatial consistency.
+  - **Culinary Kinematic Invariants & Anti-Hallucination Guardrails**:
+    - Max 2 hands in frame (knife grip + claw grip); strictly prohibits phantom 3rd hands, floating arms, or deformed fingers.
+    - Rigid knife grip; cutting board resting firmly on counter; cookware anchored to stove flame.
+    - Slicing direction preserves mass: cut pieces remain separated on cutting board, zero morphing food.
+  - **Pristine Binaural ASMR Sound Foley**: Dedicated `PURE_ASMR_FOLEY` dialogue mode that strictly excludes spoken dialogue, voice-over, and background music, compiling rich close-mic Foley sound effects (crisp knife chops on wood, oil sizzle, liquid pouring, steam hissing).
+  - **New Visual Style & Presets**: Added `CULINARY_MACRO_ASMR` ("Culinary ASMR & Cooking (Macro Food Realism)"), `PURE_ASMR_FOLEY` dialogue mode, "Culinary & Cooking ASMR" genre, and "Satisfying, Crisp & Hypnotic" tone across project creation, idea analysis, and project settings.
 - **High-CTR YouTube Thumbnail Studio & Cash-Cow Creator Tools (Zero-Cost Alternative to Sabarkaro)** (`src/app/api/projects/[projectId]/thumbnail/route.ts`, `src/components/nav/ProjectWorkflowNav.tsx`, `src/app/projects/[projectId]/story/page.tsx`):
   - **High-CTR YouTube Thumbnail Studio in Step 5 Launch Kit**:
     - Dedicated 1280x720 16:9 thumbnail generator powered by FLUX.1 (Free, zero API key required).

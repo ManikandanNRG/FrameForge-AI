@@ -46,11 +46,35 @@ export const POST = apiHandler(async (req, ctx) => {
     return `- ${c.name} (${attr.role || "Character"}, Age ${attr.age || "unknown"}): ${c.description}. Wardrobe: ${attr.wardrobe || "traditional"}.`;
   }).join("\n");
 
+  const isCulinary =
+    project.visualStyle === "CULINARY_MACRO_ASMR" ||
+    storyIdea.toLowerCase().includes("cook") ||
+    storyIdea.toLowerCase().includes("cooking") ||
+    storyIdea.toLowerCase().includes("asmr") ||
+    storyIdea.toLowerCase().includes("culinary") ||
+    storyIdea.toLowerCase().includes("recipe") ||
+    (project.genre || "").toLowerCase().includes("cooking") ||
+    (project.genre || "").toLowerCase().includes("culinary");
+
+  const culinaryDirectives = isCulinary ? `
+CULINARY ASMR & WORKSTATION CONTINUITY RULES:
+1. WORKSTATION CONTINUITY: The cooking area (countertop, cutting board, cookware, background kitchen shelves) MUST remain 100% consistent throughout all scenes.
+2. DYNAMIC MULTI-ANGLE CAMERA PACING: Scenes must rhythmically alternate camera angles:
+   - Scene 1: Mise en place & whole ingredients reveal (Wide / Eye-Level)
+   - Scene 2: Geometric knife prep & slicing on cutting board (Top-Down 90° Bird's Eye Flat Lay)
+   - Scene 3: Sizzling pan contact / sear with rising steam (Macro 45° Extreme Close-Up)
+   - Scene 4: Active cooking & basting with spoon (First-Person Chef Hands POV)
+   - Scene 5: Bubbling sauce reduction / simmering (Macro Extreme Close-Up)
+   - Scene 6: Artful plating & crispy slice / crunch reveal (45° Close-Up)
+3. PURE BINAURAL ASMR AUDIO: dialogue and voiceover MUST BE EMPTY STRINGS (""). Every scene's audioScript MUST describe vivid, close-mic culinary Foley (knife chop clicks on wood, oil crackle, butter foaming, water pouring, steam hiss) with ZERO speech and ZERO music.
+4. CULINARY KINEMATICS: Maximum 2 hands in frame, rigid knife grip, grounded cutting board and pans, zero morphing food.
+` : "";
+
   const systemPrompt = `You are a visionary film director, master screenwriter, and social media viral storytelling architect.
 Film Visual Style: ${project.visualStyle.replace(/_/g, " ")}.
 Dialogue & Voice-Over Language: "${project.storyLanguage}".
 Film Orientation: ${project.aspectRatio === "PORTRAIT_9_16" ? "9:16 Vertical Mobile (Shorts / Reels / TikTok)" : "16:9 Widescreen"}.
-
+${culinaryDirectives}
 CORE DIRECTIVE — VIRAL SOCIAL MEDIA STORYTELLING & DYNAMIC ANALYSIS:
 Do NOT impose fixed pre-set genres or categories.
 Carefully ANALYZE the user's specific idea, its historical context, cultural world, emotional stakes, and viral visual potential.

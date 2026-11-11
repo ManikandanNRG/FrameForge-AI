@@ -44,16 +44,70 @@ export async function generateShotPlan(
     ? "1:1 Square (1080x1080) framing"
     : "16:9 Landscape (1920x1080) cinematic widescreen framing";
 
+  const isCulinary =
+    project.visualStyle === "CULINARY_MACRO_ASMR" ||
+    (project.sourceIdea || "").toLowerCase().includes("cook") ||
+    (project.sourceIdea || "").toLowerCase().includes("cooking") ||
+    (project.sourceIdea || "").toLowerCase().includes("asmr") ||
+    (project.sourceIdea || "").toLowerCase().includes("culinary") ||
+    (project.sourceIdea || "").toLowerCase().includes("recipe") ||
+    (project.genre || "").toLowerCase().includes("cooking") ||
+    (project.genre || "").toLowerCase().includes("culinary");
+
+  const isVintage =
+    !isCulinary &&
+    (project.visualStyle === "VINTAGE_FILM" ||
+      (project.sourceIdea || "").toLowerCase().includes("1900") ||
+      (project.sourceIdea || "").toLowerCase().includes("vintage") ||
+      (project.sourceIdea || "").toLowerCase().includes("old years") ||
+      (project.genre || "").toLowerCase().includes("historical") ||
+      (project.genre || "").toLowerCase().includes("period"));
+
+  const dynamicShotStyleDirective = isCulinary
+    ? "ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening natural oils, crisp fresh ingredient textures, natural warm kitchen directional lighting, 60fps high-speed fluid and rising steam physics"
+    : isVintage
+    ? "authentic 1900s vintage 35mm archival film aesthetic, natural cellulose grain, soft warm sepia and muted earth tones, period-accurate hand-spun khadi garments, no modern clothing"
+    : `${project.visualStyle.toLowerCase().replace(/_/g, " ")}, natural cinematic lighting`;
+
   const charNamesList = characters.map(c => `[@${c.name}]`).join(", ") || "[@CharacterName]";
   const totalTargetSeconds = project.targetRuntime || 60;
   const targetShotCount = Math.max(3, Math.round(totalTargetSeconds / 6));
 
+  const culinaryDirectives = isCulinary ? `
+CRITICAL CULINARY ASMR & DYNAMIC MULTI-ANGLE CAMERA RULES:
+1. DYNAMIC MULTI-ANGLE CAMERA SEQUENCING (MANDATORY):
+   - High-retention cooking ASMR relies on a fast, rhythmic rotation of distinct camera angles and shot sizes!
+   - Rhythmically cycle camera angles and shot framing across sequential shots:
+     * Shot 1: Wide / Medium Workstation Establishing (showing kitchen space, cutting board, and fresh whole ingredients)
+     * Shot 2: Top-Down Flat Lay (90° Bird's Eye view centered on cutting board, geometric ingredient placement)
+     * Shot 3: Macro Extreme Close-Up (ECU at 45° angle, razor-sharp shallow DOF on knife blade slicing through crisp produce)
+     * Shot 4: Low-Angle Skillet Close-Up (Hot oil shimmering, butter foaming, intense sizzle as food hits pan)
+     * Shot 5: First-Person Chef Hands POV (Over-the-shoulder, two hands basting, tossing, or stirring with utensil)
+     * Shot 6: Macro Extreme Close-Up (Bubbling sauce reduction, steam rising in slow motion)
+     * Shot 7: 45° Close-Up Plating (Tongs arranging food, vibrant garnishing)
+     * Shot 8: Macro ECU (Bite / slice cut revealing juicy interior texture and crunch)
+   - NEVER repeat the same camera angle or shot size in two consecutive shots!
+2. MASTER WORKSTATION & COOKWARE CONTINUITY:
+   - Maintain the exact same kitchen countertop, wooden cutting board grain, and cookware style across every shot.
+3. CULINARY KINEMATICS & ANTI-HALLUCINATION INVARIANTS:
+   - Max two hands in frame (knife grip + claw grip). Strictly PROHIBIT phantom 3rd hands, floating arms, or deformed fingers.
+   - Rigid knife grip; cutting board resting firmly on counter; cookware anchored to stove flame.
+   - Slicing direction preserves mass: cut pieces remain separated on cutting board, zero morphing food.
+4. PURE BINAURAL ASMR AUDIO:
+   - 'dialogue' MUST BE EMPTY STRING ("").
+   - 'voiceover' MUST BE EMPTY STRING ("").
+   - 'audioPrompt' MUST describe ultra-crisp close-mic Foley (crisp wood chop click, sizzling oil crackle, butter foaming, water pouring, steam hiss - NO dialogue, NO voiceover, NO loud music).
+` : "";
+
   const result = await provider.generateStructured({
     modelId,
     systemPrompt: `You are an elite film director, master cinematographer, and AI prompt engineer creating a complete Shot List with DIRECT-TO-VIDEO generation prompts (optimized for Google Flow / Omni 1.1 Flash / Veo 2, Kling v3, Sora, and Runway) for a ${project.visualStyle.replace(/_/g, " ")} film.
+Film Title: "${project.title}"
+Source Idea & Era: "${project.sourceIdea}"
 Target Film Total Runtime: ${totalTargetSeconds} seconds (~${targetShotCount} shots total).
 Target Story Language for Voice-over and Dialogue: "${project.storyLanguage}".
 Film Framing & Orientation: ${orientationDesc}.
+${culinaryDirectives}
 
 CRITICAL RULES FOR GOOGLE FLOW VIDEO GENERATION:
 1. QUANTIZED DURATIONS (MINIMUM 8 SECONDS STANDARD):
@@ -109,15 +163,15 @@ ${screenplayText.slice(0, 7000)}
 For EACH shot provide:
 1. shotNumber: sequential shot number (1, 2, 3...)
 2. actionDescription: 1-2 sentences clearly describing the physical visual action happening in this shot.
-3. shotSize: Framing size (e.g. "Close-Up", "Medium Shot", "Wide Shot", "Extreme Close-Up").
-4. cameraMovement: Specific camera motion (e.g. "Low-angle backward tracking shot forward at 24fps", "Smooth lateral pan", "Dynamic handheld tracking").
-5. lighting: Lighting direction and mood (e.g. "Golden hour backlight with warm dust motes", "Diffused midday sunlight").
+3. shotSize: Framing size (e.g. "Close-Up", "Medium Shot", "Wide Shot", "Extreme Close-Up", "Top-Down Flat Lay"). ${isCulinary ? "MANDATORY: Frequently alternate shotSize across shots (Wide -> Top-Down -> Macro ECU -> Close-Up -> Chef POV) - never repeat consecutive shot sizes!" : ""}
+4. cameraMovement: Specific camera motion (e.g. "Low-angle backward tracking shot forward at 24fps", "Smooth lateral pan", "Dynamic handheld tracking", "Overhead static drift", "Macro 85mm probe lens rack focus").
+5. lighting: Lighting direction and mood (e.g. "Golden hour backlight with warm dust motes", "Warm culinary spotlight with soft background blur").
 6. characterTag: The primary character placeholder tag featured (e.g. ${characters[0] ? `[@${characters[0].name}]` : "[@Character]"}, or "" if none).
 7. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
 8. videoPrompt: A complete DIRECT VIDEO GENERATION PROMPT formatted for Google Flow (Omni 1.1 Flash / Veo 2).
    Format:
-   "[@CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. [Dialogue OR Voice-Over according to mutual exclusivity rule]. Atmosphere: [ambient Foley cues]. 4k cinematic documentary photorealism, natural daylight, ${orientationDesc}."
-9. imagePrompt: Photorealistic visual still prompt matching ${orientationDesc}.
+   "[@CharacterName] [action and movement across the shot]. Camera: [framing, 35mm lens, smooth camera movement at 24fps]. [Dialogue OR Voice-Over according to mutual exclusivity rule]. Atmosphere: [ambient Foley cues]. ${dynamicShotStyleDirective}, ${orientationDesc}."
+9. imagePrompt: Period-authentic visual still prompt matching ${dynamicShotStyleDirective}, ${orientationDesc}.
 10. voiceover: Compelling voice-over narration line in "${project.storyLanguage}" (ONLY when NO character is speaking; otherwise leave empty string "").
 11. dialogue: Spoken character speech in "${project.storyLanguage}" (formatted as '[@CHARACTER] speaks: "..."'; leave empty string "" if no character speaks).
 12. audioPrompt: Sound effects, ambient Foley, and music score mood.

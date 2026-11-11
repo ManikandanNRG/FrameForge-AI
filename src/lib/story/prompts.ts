@@ -20,6 +20,7 @@ export interface ProjectBrief {
 function styleNote(style: string): string {
   const map: Record<string, string> = {
     PHOTOREALISTIC_CINEMATIC: "photorealistic cinematic style",
+    CULINARY_MACRO_ASMR: "culinary macro ASMR & hyper-realistic cooking style",
     ANIME: "anime style",
     CARTOON_2D: "2D cartoon style",
     ANIMATION_3D: "3D animated film style",
@@ -35,12 +36,28 @@ function styleNote(style: string): string {
 }
 
 function dialogueNote(mode: string): string {
+  if (mode === "PURE_ASMR_FOLEY") return "Pure binaural ASMR sound design & culinary Foley — strictly NO spoken dialogue and NO voiceover narration. Focus entirely on visceral, close-mic culinary Foley: crisp knife chopping on wood, intense butter/oil sizzle, liquid pouring, steam hissing, and crunching textures.";
   if (mode === "NO_DIALOGUE") return "The film has no dialogue — convey story through action and visuals only.";
   if (mode === "VOICEOVER")   return "Use voice-over narration instead of on-screen dialogue.";
   return "The film may include spoken dialogue.";
 }
 
 export function systemPrompt(brief: ProjectBrief): string {
+  const isCulinary =
+    brief.visualStyle === "CULINARY_MACRO_ASMR" ||
+    brief.dialogueMode === "PURE_ASMR_FOLEY" ||
+    (brief.sourceIdea || "").toLowerCase().includes("cook") ||
+    (brief.sourceIdea || "").toLowerCase().includes("cooking") ||
+    (brief.sourceIdea || "").toLowerCase().includes("asmr") ||
+    (brief.sourceIdea || "").toLowerCase().includes("culinary");
+
+  const culinaryRules = isCulinary ? `
+4. CULINARY ASMR & WORKSTATION CONTINUITY:
+   - The cooking workstation (countertop, wooden cutting board, cast-iron skillet, background kitchen lighting) MUST remain 100% consistent throughout all scenes.
+   - Pacing structure follows the satisfying culinary preparation arc: mise en place & ingredient reveal -> rhythmic knife slicing/chopping -> searing skillet contact & sizzle -> sauce reduction & simmering -> artful plating.
+   - Focus on tactile sensory cues: rising steam, oil glistening on fresh herbs, bubbling sauces, and knife edge precision.
+   - STRICTLY zero spoken dialogue, zero voice-over, and zero background music; populate 'audioScript' with rich binaural ASMR Foley descriptions.` : "";
+
   return `You are a world-class screenwriter and narrative director specialising in ${styleNote(brief.visualStyle)} cinema.
 Film Idea: "${brief.sourceIdea}"
 Genre: ${brief.genre ?? "unspecified"} | Tone: ${brief.tone ?? "unspecified"}
@@ -49,9 +66,9 @@ Target Story Language: "${brief.storyLanguage}" | Dialogue policy: ${dialogueNot
 Visual style: ${styleNote(brief.visualStyle)} — keep all visual elements consistent with this aesthetic.
 
 CRITICAL MULTI-LINGUAL & SCRIPT RULES:
-1. DIALOGUE & VOICEOVER NARRATION: MUST be written in the specified target language: "${brief.storyLanguage}" (e.g., if Tamil, write authentic Tamil lines in Tamil script; if Hindi, write in Devanagari script; if English, write in English).
+1. DIALOGUE & VOICEOVER NARRATION: MUST be written in the specified target language: "${brief.storyLanguage}" (e.g., if Tamil, write authentic Tamil lines in Tamil script; if Hindi, write in Devanagari script; if English, write in English). For PURE_ASMR_FOLEY, dialogue and voiceover must be empty strings.
 2. VISUAL ACTION LINES & CAMERA CONTEXT: Keep visual descriptions in clear, vivid cinematic English so downstream AI video generators (Google Flow / Veo, Kling, Sora) understand the visuals, character actions, and camera movements with 100% precision.
-3. Return valid JSON only. No prose outside JSON.`;
+3. Return valid JSON only. No prose outside JSON.${culinaryRules}`;
 }
 
 export function loglinePrompt(): string {

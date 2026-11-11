@@ -52,8 +52,15 @@ export const POST = apiHandler(async (_req, ctx) => {
   }
 
   const fps = 24;
-  const width = project.aspectRatio === "PORTRAIT_9_16" ? 1080 : 1920;
-  const height = project.aspectRatio === "PORTRAIT_9_16" ? 1920 : 1080;
+  let width = 1920;
+  let height = 1080;
+  if (project.aspectRatio === "PORTRAIT_9_16") {
+    width = 1080;
+    height = 1920;
+  } else if (project.aspectRatio === "SQUARE_1_1") {
+    width = 1080;
+    height = 1080;
+  }
 
   const timeline = emptyTimeline(fps, width, height);
 

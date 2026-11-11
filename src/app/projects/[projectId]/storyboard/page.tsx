@@ -126,7 +126,7 @@ export default function StoryboardPage() {
     if (imageJobIds.length === 0) return;
     const t = setInterval(async () => {
       const results = await Promise.all(
-        imageJobIds.map(id => fetch(`/api/jobs/${id}`).then(r => r.json())),
+        imageJobIds.map(id => fetch(`/api/jobs/${id}`).then(r => r.json()).catch(() => ({}))),
       );
       const statuses = results.map(d => d.data?.job?.status as string);
       const done = statuses.filter(s => s === "SUCCEEDED" || s === "FAILED").length;
@@ -149,7 +149,7 @@ export default function StoryboardPage() {
     if (videoJobIds.length === 0) return;
     const t = setInterval(async () => {
       const results = await Promise.all(
-        videoJobIds.map(id => fetch(`/api/jobs/${id}`).then(r => r.json())),
+        videoJobIds.map(id => fetch(`/api/jobs/${id}`).then(r => r.json()).catch(() => ({}))),
       );
       const statuses = results.map(d => d.data?.job?.status as string);
       const done = statuses.filter(s => s === "SUCCEEDED" || s === "FAILED").length;
@@ -538,7 +538,11 @@ export default function StoryboardPage() {
     const wardrobe = charAttrs.wardrobe || "traditional regional clothing";
     const demeanor = charAttrs.personality || "calm, grounded demeanor";
     const ageText = charAttrs.age ? `${charAttrs.age}-year-old ` : "";
-    charPrompt = `Full portrait of ${charName}, a ${ageText}${desc}, wearing ${wardrobe}. Demeanor: ${demeanor}. 8k photorealistic documentary film still, soft natural daylight, neutral background.`;
+    const isVintageProject = projectData?.visualStyle === "VINTAGE_FILM" || (projectData?.sourceIdea || "").toLowerCase().includes("1900") || (projectData?.sourceIdea || "").toLowerCase().includes("vintage") || (projectData?.sourceIdea || "").toLowerCase().includes("old years");
+    const styleEnding = isVintageProject
+      ? "Authentic 1900s vintage 35mm archival photographic portrait, natural sepia and earth tones, period-accurate hand-spun khadi garments, soft vintage depth of field."
+      : "Photorealistic cinematic portrait, soft natural daylight, neutral background.";
+    charPrompt = `Full portrait of ${charName}, a ${ageText}${desc}, wearing ${wardrobe}. Demeanor: ${demeanor}. ${styleEnding}`;
   }
 
   if (!charVoiceProfile) {
@@ -706,6 +710,10 @@ export default function StoryboardPage() {
     storyLanguage: projectData?.storyLanguage,
     targetDurationSeconds: selected.targetDurationSeconds,
     creditSaverMode,
+    visualStyle: projectData?.visualStyle,
+    sourceIdea: projectData?.sourceIdea,
+    genre: projectData?.genre,
+    tone: projectData?.tone,
   }) : null;
 
   const googleFlowPrompt = compiledBundle?.googleFlowPrompt || "";

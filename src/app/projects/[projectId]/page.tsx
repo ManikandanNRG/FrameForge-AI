@@ -73,6 +73,7 @@ const ASPECT_RATIO_OPTIONS = [
 
 const VISUAL_STYLES = [
   { value: "PHOTOREALISTIC_CINEMATIC", label: "Photorealistic Cinematic (35mm Film)" },
+  { value: "CULINARY_MACRO_ASMR", label: "Culinary ASMR & Cooking (Macro Food Realism)" },
   { value: "HYPERREALISTIC_FILM", label: "8K Hyperrealistic Live Action" },
   { value: "DOCUMENTARY", label: "Documentary Realism" },
   { value: "ANIMATION_3D", label: "3D Animated Film (Pixar / Disney)" },
@@ -95,6 +96,7 @@ const STORY_LANGUAGES = [
 
 const DIALOGUE_MODES = [
   { value: "DIALOGUE", label: "Native Character Dialogue + Voiceover (Full Audio)" },
+  { value: "PURE_ASMR_FOLEY", label: "Pure ASMR Sound Effects (Zero Dialogue / Ultra-Crisp Foley)" },
   { value: "VOICEOVER", label: "Narrator Voiceover Only (No lip sync)" },
   { value: "NO_DIALOGUE", label: "Silent Cinematic Story (Foley / Atmosphere only)" },
 ];

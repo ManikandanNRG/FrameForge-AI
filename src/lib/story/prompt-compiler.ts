@@ -545,19 +545,28 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     .filter(Boolean)
     .join("\n\n");
 
-  // 12. Video Motion & Script Display Cards
+  // 12. Video Motion & Script Display Cards (Universal Image-to-Video I2V for Google Flow, Kling, Runway, Luma, Wan 2.1)
   const videoMotionPrompt = [
-    actionCleaned,
-    `Camera: ${naturalCameraMotion}`,
-    hasDialogue
-      ? `[Character Dialogue]: ${dialogue}`
-      : voiceover
-      ? `[Voice-Over Beat]: "${voiceover}"`
-      : "",
-    audioPrompt ? `[Soundscape / Foley]: ${audioPrompt}` : "",
+    characterName ? `Subject: [@${charName.replace(/[^a-zA-Z0-9]/g, "")}].` : null,
+    `Action & Dynamics: ${actionCleaned}.`,
+    `Camera Movement: ${naturalCameraMotion}.`,
+    isPureAsmr
+      ? `Culinary Foley Dynamics: Knife chops cleanly through produce on wooden board; hot oil sizzles and steam rises naturally in pan; zero morphing food.`
+      : hasDialogue
+      ? `Facial & Dialogue Dynamics: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${lang} lip movements and emotional expression.`
+      : null,
+    isCulinary
+      ? `Kinematic Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; clean slicing.`
+      : entities.hasVehicleOrMount
+      ? `Vehicular Invariant: Draft animals move strictly forward at the front yoke only.`
+      : null,
+    `Start Frame Consistency: Animate directly from the uploaded reference start-frame image (Google Flow / Kling / Runway / Luma), preserving 100% of character appearance, kitchen workstation, lighting, and textures.`,
+    `--mode std --negative "${universalNegativePrompt}"`,
   ]
     .filter(Boolean)
-    .join("\n\n");
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\.{2,}/g, ".");
 
   const scriptPrompt = [
     `🎬 SHOT DURATION: ${normalizedDuration}s | FRAMING: ${shotFraming} | ORIENTATION: ${arParam}`,

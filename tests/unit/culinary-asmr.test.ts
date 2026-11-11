@@ -54,6 +54,12 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     // 4. FLUX still verification
     expect(bundle.fluxStillPrompt).toContain("macro culinary food photography");
     expect(bundle.fluxStillPrompt).toContain("Master food photography award winner");
+
+    // 5. I2V Motion prompt verification (Google Flow, Kling, Runway, Luma)
+    expect(bundle.videoMotionPrompt).toContain("Start Frame Consistency");
+    expect(bundle.videoMotionPrompt).toContain("Google Flow");
+    expect(bundle.videoMotionPrompt).toContain("Kling");
+    expect(bundle.videoMotionPrompt).toContain("Kinematic Invariant: Max two hands in frame");
   });
 
   it("handles dynamic top-down flat lay camera framing", () => {

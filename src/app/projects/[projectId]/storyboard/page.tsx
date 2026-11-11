@@ -60,7 +60,7 @@ export default function StoryboardPage() {
   const [importing, setImporting]         = useState<string | null>(null);
   const [imgProgress, setImgProgress]     = useState<{ done: number; total: number } | null>(null);
   const [vidProgress, setVidProgress]     = useState<{ done: number; total: number } | null>(null);
-  const [promptTab, setPromptTab]         = useState<"flow" | "kling" | "chatgpt" | "gemini" | "video" | "script" | "json">("flow");
+  const [promptTab, setPromptTab]         = useState<"flow" | "kling" | "video" | "flux" | "chatgpt" | "gemini" | "script" | "json">("flow");
   const [activeMediaView, setActiveMediaView] = useState<"video" | "still">("video");
   const [copied, setCopied]               = useState<string | null>(null);
   const [isDragging, setIsDragging]       = useState(false);
@@ -718,6 +718,7 @@ export default function StoryboardPage() {
 
   const googleFlowPrompt = compiledBundle?.googleFlowPrompt || "";
   const klingPrompt = compiledBundle?.klingPrompt || "";
+  const fluxStillPrompt = compiledBundle?.fluxStillPrompt || "";
   const chatgptPrompt = compiledBundle?.chatgptPrompt || "";
   const geminiPrompt = compiledBundle?.geminiPrompt || "";
   const videoMotionPrompt = compiledBundle?.videoMotionPrompt || "";
@@ -780,6 +781,8 @@ export default function StoryboardPage() {
 
   const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {
     flow: { label: "Open Google Flow ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    video: { label: "Open Google Flow / Kling I2V ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    flux: { label: "Open Midjourney / Web ↗", url: "https://midjourney.com", color: "bg-pink-950/70 text-pink-300 border-pink-800 hover:bg-pink-900/50" },
     kling: { label: "Open Kling (10 Cr / video) ↗", url: "https://klingai.com", color: "bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/50" },
     chatgpt: { label: "Open ChatGPT ↗", url: "https://chatgpt.com", color: "bg-emerald-950/70 text-emerald-300 border-emerald-800 hover:bg-emerald-900/50" },
     gemini: { label: "Open Gemini ↗", url: "https://gemini.google.com/app", color: "bg-sky-950/70 text-sky-300 border-sky-800 hover:bg-sky-900/50" },
@@ -788,11 +791,12 @@ export default function StoryboardPage() {
 
   const activePromptText =
     promptTab === "flow" ? googleFlowPrompt :
+    promptTab === "video" ? videoMotionPrompt :
+    promptTab === "flux" ? fluxStillPrompt :
     promptTab === "kling" ? klingPrompt :
     promptTab === "script" ? scriptPrompt :
     promptTab === "chatgpt" ? chatgptPrompt :
     promptTab === "gemini" ? geminiPrompt :
-    promptTab === "video" ? videoMotionPrompt :
     rawJsonPrompt;
 
   return (
@@ -1316,7 +1320,7 @@ export default function StoryboardPage() {
                           ) : (
                             <>
                               <Copy className="h-3.5 w-3.5" />
-                              <span>{promptTab === "flow" ? "Copy @Mention Prompt" : "Copy Prompt"}</span>
+                              <span>{promptTab === "flow" ? "Copy @Mention Prompt" : promptTab === "video" ? "Copy I2V Motion Prompt" : promptTab === "flux" ? "Copy Still Prompt" : "Copy Prompt"}</span>
                             </>
                           )}
                         </button>
@@ -1326,7 +1330,9 @@ export default function StoryboardPage() {
                     {/* Segmented Pill Tabs */}
                     <div className="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
                       {[
-                        { id: "flow", label: "Google Flow (Veo)" },
+                        { id: "flow", label: "Google Flow (Direct Video)" },
+                        { id: "video", label: "🎬 I2V Motion (Google Flow / Kling / Runway)" },
+                        { id: "flux", label: "🖼️ Still Image (Stage 1)" },
                         { id: "kling", label: "Kling Direct Video" },
                         { id: "chatgpt", label: "ChatGPT" },
                         { id: "gemini", label: "Gemini" },
@@ -1338,7 +1344,7 @@ export default function StoryboardPage() {
                           onClick={() => setPromptTab(tab.id as any)}
                           className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition ${
                             promptTab === tab.id
-                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
+                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500 font-bold"
                               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                           }`}
                         >
@@ -1346,6 +1352,67 @@ export default function StoryboardPage() {
                         </button>
                       ))}
                     </div>
+
+                    {/* 2-Stage I2V Pro Workflow Banner */}
+                    {(promptTab === "video" || promptTab === "flux") && (
+                      <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-900 space-y-2">
+                        <div className="flex items-start gap-2">
+                          <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="font-bold text-amber-950">2-Stage Image-to-Video Workflow (Zero Hallucination &amp; 100% Continuity)</p>
+                            <p className="text-[11px] text-amber-900/90 mt-0.5 leading-relaxed">
+                              <strong>Stage 1:</strong> Click <em>&quot;Generate Still (FLUX.1)&quot;</em> above to lock your 1080p keyframe reference. <br />
+                              <strong>Stage 2:</strong> In <strong>Google Flow (Veo)</strong>, <strong>Kling I2V</strong>, <strong>Runway Gen-3</strong>, <strong>Luma Dream Machine</strong>, or <strong>Wan 2.1</strong>, upload the still as your <strong>Start Frame / Reference Image</strong>, and paste this <strong>I2V Motion Prompt</strong> to animate the scene with zero face or kitchen morphing!
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Direct Launch Badges */}
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-amber-200/60 text-[10px]">
+                          <span className="font-bold text-amber-800 uppercase tracking-wider mr-1">Launch I2V Tool:</span>
+                          <a
+                            href="https://aitestkitchen.withgoogle.com/tools/video-fx"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 font-bold rounded-md bg-blue-100 text-blue-900 border border-blue-300 hover:bg-blue-200 transition"
+                          >
+                            Google Flow (Veo I2V) ↗
+                          </a>
+                          <a
+                            href="https://klingai.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 font-bold rounded-md bg-purple-100 text-purple-900 border border-purple-300 hover:bg-purple-200 transition"
+                          >
+                            Kling I2V ↗
+                          </a>
+                          <a
+                            href="https://runwayml.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 font-bold rounded-md bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-200 transition"
+                          >
+                            Runway Gen-3 ↗
+                          </a>
+                          <a
+                            href="https://lumalabs.ai/dream-machine"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 font-bold rounded-md bg-pink-100 text-pink-900 border border-pink-300 hover:bg-pink-200 transition"
+                          >
+                            Luma Dream Machine ↗
+                          </a>
+                          <a
+                            href="https://huggingface.co/spaces/Wan-AI/Wan2.1"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 font-bold rounded-md bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 transition"
+                          >
+                            Wan 2.1 ↗
+                          </a>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Universal Physics Health Bar & Auto-Enhance Button */}
                     <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs">

@@ -95,13 +95,23 @@ CRITICAL QUALITY RULES FOR VIRAL ENGAGEMENT:
      - Precise camera framing: Low-angle tracking shot, 35mm shallow depth of field, anamorphic golden hour flare, 24fps motion blur, intense close-up on wide eyes.
      - Rich period & cultural atmosphere: For vintage / period settings (e.g., 1900s Pudukkottai, Chettinad, ancient kingdoms), weave in authentic tactile textures: ornate teakwood pillars, brass oil lamps casting dancing shadows on sepia lime-plastered walls, bullock carts with heavy wooden wheels kicking up red dust, steam locomotives billowing white smoke, weavers pulling crimson silk threads on handlooms, brass temple bells resounding, antique copper coins.
      - Physical micro-actions: gasping, sprinting barefoot, dust flying, clutching hands, sweat dripping, gasps of astonishment.
-3. AUTHENTIC COLLOQUIAL SPOKEN DIALOGUE (STRICTLY NO BOOKISH / TRANSLATE-STYLE TAMIL!):
-   - Dialogue MUST sound like real, natural human speech in Tamil cinema (like Madrasapattinam, Asuran, Ponniyin Selvan, Captain Miller).
-   - NEVER write formal, literal or bookish Tamil like "நான் பதிவு செய்யும்" or "இது எங்கள் அடையாளம்".
-   - Use punchy, emotional, colloquial Tamil:
-     - Excitement/Wonder: '[@Character] speaks: "(கண்களில் பிரம்மிப்புடன், கையை நீட்டி) அடேய் தம்பி! அங்கே பாருடா... புதுக்கோட்டை சமஸ்தானத்து எல்லைக்குள்ள முதல் முதலா ரயிலு வண்டி புகை விட்டுட்டு வருது!"'
-     - Urgency/Fear: '[@Character] speaks: "(மூச்சிரைக்க, பயத்தில் அலறி) அம்மா! ஓடி வாம்மா... நம்ம கரும்பு காட்டுக்குள்ள காட்டு யானை நிக்குது!"'
-     - Pride/Nostalgia: '[@Character] speaks: "(பெருமித புன்னகையுடன்) இந்த அரண்மனை வாசலில் நின்னாலே நூறு வருஷத்து தங்கக் காசு சத்தம் இன்னும் இந்த மண்ணுல கேட்கும்!"'
+3. AUTHENTIC COLLOQUIAL SPOKEN DIALOGUE & VOICEOVER (STRICT NATIVE TAMIL / REGIONAL LANGUAGE RULES):
+   - Dialogue & voiceover MUST sound like real, natural human speech — NEVER literal machine translation!
+   - STRICT BAN ON IDIOM MISTRANSLATIONS:
+     - NEVER translate "in our blood" / "blood in our veins" into "குருதி" / "குருதியில்"! In Tamil, "குருதி" means literal blood and wounds, which sounds bizarre and horrifying in sports or kids stories!
+     - NEVER translate "the time has come" into "வெல்லக்கூடிய நேரம் இது".
+     - NEVER address characters that do not exist in the scene (e.g. DO NOT shout to "குருவி" (sparrow) unless a sparrow is an established hero character!).
+   - FOR KIDS / ANIMATION / FAMILY ENTERTAINMENT:
+     - Use sweet, joyful, lively spoken Tamil that children and families speak:
+       - Cheering: '[@Boy] speaks: "(கண்களில் உற்சாகத்துடன், கையை உயர்த்தி) அக்கா! வேகமாக ஓடு அக்கா! நாம்தான் இன்னைக்கு சாம்பியன்!"'
+       - Teamwork: '[@Girl] speaks: "(சிரித்துக்கொண்டே) இந்தா முயல் குட்டி, பேட்டனை பிடி! மின்னல் வேகத்துல ஓடு!"'
+       - Excitement: '[@Boy] speaks: "(ஆரவாரத்துடன்) அதோ பினிஷ் லைன் தெரியுது! இன்னும் கொஞ்சம் வேகம்!"'
+       - Victory: '[@Girl] speaks: "(துள்ளி குதித்து) நாம்தான் முதல் இடம்! எல்லாரும் கை தட்டுங்க!"'
+     - If Voiceover mode: simple, musical rhyming Tamil narration:
+       - "கையில பேட்டன்... கால்ல வேகம்! குட்டி முயல் தம்பி மின்னல் மாதிரி பாயுது!"
+   - FOR PERIOD / HISTORICAL DRAMA (Vintage, Pudukkottai, 1900s):
+     - Use rich, evocative cinematic Tamil:
+       - '[@Character] speaks: "(கண்களில் பிரம்மிப்புடன்) அடேய் தம்பி! அங்கே பாருடா... புதுக்கோட்டை சமஸ்தானத்து எல்லைக்குள்ள முதல் முதலா ரயிலு வண்டி புகை விட்டுட்டு வருது!"'
 4. AUDIO EXCLUSIVITY:
    - When a character speaks dialogue, narrator voiceover MUST be empty string (""). Only provide voiceover when characters are silent.
 7. AIRTIGHT DRAMATIC CAUSALITY & PACING:

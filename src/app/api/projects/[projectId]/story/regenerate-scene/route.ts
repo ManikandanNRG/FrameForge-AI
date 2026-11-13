@@ -104,7 +104,9 @@ CRITICAL SCREENPLAY QUALITY & CONTINUITY DIRECTIVES:
    - Dynamic camera movement (low-angle tracking, sweeping cranes, anamorphic push-ins, shallow depth of field).
    - Period & cultural sensory textures (e.g. swirling red dust, handwoven textiles, brass lanterns, weathered teakwood, smoke, warm golden lighting).
    - Micro-expressions, tension, and visceral character physical action.
-3. Spoken Dialogue: Write authentic, natural colloquial "${project.storyLanguage}" (e.g. natural Tamil dialogue, NOT translated textbook Tamil). The dialogue must sound like a real person from this culture and era speaking naturally.
+3. Spoken Dialogue & Voiceover: Write authentic, natural colloquial "${project.storyLanguage}" (STRICTLY NO literal translation).
+   - If Tamil: NEVER translate English idioms like "in our blood" into "குருதி" / "குருதியில்" (which literally means blood and wounds)! Use natural spoken expressions like "மின்னல் வேகத்துல", "துள்ளி ஓடு".
+   - If Kids: Use sweet, energetic, joyful spoken Tamil matching real children and family conversations. Only address characters who are actually present in the scene.
 4. Format dialogue strictly as: '[@CharacterName] speaks: "..."'. If a character speaks, leave voiceover empty ("").
 5. Audio Design: Provide detailed ambient Foley, period acoustic cues, and sound textures.
 6. Character continuity: Respect established characters, relationships, and wardrobes.

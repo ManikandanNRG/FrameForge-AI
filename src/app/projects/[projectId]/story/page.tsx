@@ -28,7 +28,14 @@ import {
   SplitSquareVertical,
   Zap,
   Link as LinkIcon,
+  ShieldCheck,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle2,
+  Flame,
+  ThumbsUp,
 } from "lucide-react";
+import type { ScriptAuditReport, SceneAuditResult } from "@/lib/story/script-doctor";
 
 interface ArtifactVersion {
   id: string;
@@ -173,6 +180,15 @@ export default function StoryStudioPage() {
   const [savingRaw, setSavingRaw] = useState<boolean>(false);
   const [approving, setApproving] = useState<boolean>(false);
 
+  // Senior Director QC / Script Doctor State
+  const [isScriptDoctorOpen, setIsScriptDoctorOpen] = useState<boolean>(false);
+  const [isAuditingScript, setIsAuditingScript] = useState<boolean>(false);
+  const [isPolishingScript, setIsPolishingScript] = useState<boolean>(false);
+  const [scriptAuditReport, setScriptAuditReport] = useState<ScriptAuditReport | null>(null);
+  const [scriptDoctorError, setScriptDoctorError] = useState<string | null>(null);
+  const [scriptDoctorSuccessMsg, setScriptDoctorSuccessMsg] = useState<string | null>(null);
+  const lastAuditedVersionRef = useRef<string | null>(null);
+
   async function loadData() {
     setLoading(true);
     try {
@@ -255,6 +271,85 @@ export default function StoryStudioPage() {
   // If screenplay artifact had plain text or was empty, use DB scenes fallback so Scene Cards ALWAYS render!
   if (screenplayScenes.length === 0 && dbScenesFallback.length > 0) {
     screenplayScenes = dbScenesFallback;
+  }
+
+  // Auto-run Senior Director quick audit when screenplay scenes are loaded or changed
+  useEffect(() => {
+    const versionKey = currentVersion?.id || (screenplayScenes.length > 0 ? `scenes-${screenplayScenes.length}` : null);
+    if (screenplayScenes.length > 0 && versionKey && lastAuditedVersionRef.current !== versionKey) {
+      lastAuditedVersionRef.current = versionKey;
+      handleRunScriptAudit(screenplayScenes);
+    }
+  }, [screenplayScenes.length, currentVersion?.id]);
+
+  // Run Quick Audit
+  async function handleRunScriptAudit(scenesToAudit?: SceneData[]) {
+    const targetScenes = scenesToAudit || screenplayScenes;
+    if (targetScenes.length === 0) return;
+    setIsAuditingScript(true);
+    setScriptDoctorError(null);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/story/script-doctor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "audit",
+          scenes: targetScenes,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Failed to audit script");
+      }
+      if (data.data?.report) {
+        setScriptAuditReport(data.data.report);
+      }
+    } catch (err: any) {
+      console.error("Audit script failed", err);
+      setScriptDoctorError(err.message || "Failed to audit script");
+    } finally {
+      setIsAuditingScript(false);
+    }
+  }
+
+  function handleOpenScriptDoctor() {
+    setIsScriptDoctorOpen(true);
+    setScriptDoctorSuccessMsg(null);
+    if (!scriptAuditReport && screenplayScenes.length > 0) {
+      handleRunScriptAudit(screenplayScenes);
+    }
+  }
+
+  // Polish & Auto-Fix Script with Senior Director AI
+  async function handlePolishScriptWithAI() {
+    if (screenplayScenes.length === 0) return;
+    setIsPolishingScript(true);
+    setScriptDoctorError(null);
+    setScriptDoctorSuccessMsg(null);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/story/script-doctor`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "polish",
+          scenes: screenplayScenes,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || "Failed to polish script");
+      }
+      if (data.data?.report) {
+        setScriptAuditReport(data.data.report);
+      }
+      setScriptDoctorSuccessMsg("✨ Screenplay fortified! Pacing, dialogue, and viral retention upgraded.");
+      await loadData();
+    } catch (err: any) {
+      console.error("Polish script failed", err);
+      setScriptDoctorError(err.message || "Failed to polish script");
+    } finally {
+      setIsPolishingScript(false);
+    }
   }
 
   // Handle Edit Scene Save
@@ -546,6 +641,29 @@ export default function StoryStudioPage() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={handleOpenScriptDoctor}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/15 via-orange-500/15 to-purple-500/15 hover:from-amber-500/25 hover:to-orange-500/25 text-amber-900 border border-amber-300/80 text-xs font-bold transition shadow-xs"
+                    title="Senior Director QC: Audit retention, viral hook, Tamil/English dialogue flow, and single-station video feasibility"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                    <span>🩺 Senior Director QC</span>
+                    {scriptAuditReport ? (
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                        scriptAuditReport.overallScore >= 85
+                          ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                          : scriptAuditReport.overallScore >= 70
+                          ? "bg-amber-100 text-amber-800 border border-amber-300"
+                          : "bg-rose-100 text-rose-800 border border-rose-300"
+                      }`}>
+                        {scriptAuditReport.overallScore}/100
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-amber-100 text-amber-700 font-mono">QC</span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => {
                       setShowOptionsModal(true);
                       if (!storyOptions) handleGenerateStoryOptions();
@@ -564,6 +682,99 @@ export default function StoryStudioPage() {
                     <span>Proceed to Step 2: Assets</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
+                </div>
+              </div>
+
+              {/* Senior Director QC & Viral Retention Quality Banner */}
+              <div className="rounded-2xl border border-amber-200/90 bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-purple-500/10 p-4 md:p-5 shadow-xs">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="p-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shadow-xs shrink-0 mt-0.5">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                          <span>Senior Director QC &amp; Viral Retention Doctor</span>
+                          <span className="text-[11px] font-normal text-slate-500 font-sans">
+                            (YouTube Shorts · Instagram Reels · Viral Pacing)
+                          </span>
+                        </h3>
+                        {scriptAuditReport ? (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold font-mono border ${
+                            scriptAuditReport.overallScore >= 90
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                              : scriptAuditReport.overallScore >= 75
+                              ? "bg-amber-100 text-amber-800 border-amber-300"
+                              : "bg-rose-100 text-rose-800 border-rose-300"
+                          }`}>
+                            {scriptAuditReport.overallScore}/100 · {scriptAuditReport.retentionRating.replace(/_/g, " ")}
+                          </span>
+                        ) : isAuditingScript ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-mono bg-amber-100 text-amber-700 animate-pulse">
+                            Auditing Screenplay…
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <p className="text-xs text-slate-600 max-w-3xl leading-relaxed">
+                        {scriptAuditReport?.executiveDirectorSummary ||
+                          "Audits first 3s visual scroll-stop, narrative causality between scenes, natural Tamil/English colloquial dialogue, and AI single-action video feasibility for YouTube Shorts and Instagram Reels."}
+                      </p>
+
+                      {/* 5-Pillar Score Badges */}
+                      {scriptAuditReport && (
+                        <div className="flex flex-wrap items-center gap-2 pt-1 font-mono text-[11px]">
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                            🪝 3s Hook: <strong className="text-amber-700">{scriptAuditReport.breakdown.hookStrength}%</strong>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                            🔗 Causality: <strong className="text-blue-700">{scriptAuditReport.breakdown.narrativeCausality}%</strong>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                            💬 Dialogue: <strong className="text-purple-700">{scriptAuditReport.breakdown.dialogueNaturalness}%</strong>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                            🔥 Viral Payoff: <strong className="text-rose-700">{scriptAuditReport.breakdown.viralPayoff}%</strong>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700">
+                            🎬 AI Feasibility: <strong className="text-emerald-700">{scriptAuditReport.breakdown.aiVisualFeasibility}%</strong>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 self-end lg:self-center">
+                    <button
+                      type="button"
+                      onClick={handleOpenScriptDoctor}
+                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+                    >
+                      <TrendingUp className="h-3.5 w-3.5 text-amber-600" />
+                      <span>View Full QC Audit</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isPolishingScript}
+                      onClick={handlePolishScriptWithAI}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 text-xs font-extrabold transition shadow-xs flex items-center gap-1.5 disabled:opacity-60"
+                      title="Rewrites and fortifies all scenes to achieve 90%+ viral retention, fixing pacing and dialogue"
+                    >
+                      {isPolishingScript ? (
+                        <>
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                          <span>Director Polishing…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="h-3.5 w-3.5 fill-slate-950" />
+                          <span>⚡ 1-Click Auto-Fix Script</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1469,6 +1680,282 @@ export default function StoryStudioPage() {
                     </p>
                   </div>
                 )}
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* 4. Modal: Senior Director QC & Viral Retention Script Doctor */}
+        {isScriptDoctorOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+            <div className="relative w-full max-w-5xl max-h-[92vh] overflow-hidden rounded-2xl border border-amber-300 bg-white shadow-2xl flex flex-col">
+              
+              {/* Modal Header */}
+              <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-4 border-b border-amber-200 bg-gradient-to-r from-amber-50 via-orange-50/40 to-amber-50/20">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shadow-xs">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      Senior Director QC &amp; Social Media Script Doctor
+                      {scriptAuditReport && (
+                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold font-mono border ${
+                          scriptAuditReport.overallScore >= 90
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                            : scriptAuditReport.overallScore >= 75
+                            ? "bg-amber-100 text-amber-800 border-amber-300"
+                            : "bg-rose-100 text-rose-800 border-rose-300"
+                        }`}>
+                          {scriptAuditReport.overallScore}/100 · {scriptAuditReport.retentionRating.replace(/_/g, " ")}
+                        </span>
+                      )}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Audits 3s scroll-stopping hooks, scene-to-scene causality, natural Tamil/English dialogue, and AI single-action feasibility.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={isAuditingScript}
+                    onClick={() => handleRunScriptAudit()}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition text-xs font-semibold flex items-center gap-1"
+                    title="Re-run Quick Audit"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isAuditingScript ? "animate-spin text-amber-600" : ""}`} />
+                    <span className="hidden sm:inline">Re-Audit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsScriptDoctorOpen(false)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                
+                {scriptDoctorSuccessMsg && (
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-2xs">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{scriptDoctorSuccessMsg}</span>
+                  </div>
+                )}
+
+                {scriptDoctorError && (
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex items-center gap-2 shadow-2xs">
+                    <AlertTriangle className="h-4 w-4 text-rose-600 shrink-0" />
+                    <span>{scriptDoctorError}</span>
+                  </div>
+                )}
+
+                {isAuditingScript && !scriptAuditReport ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-slate-400 space-y-3">
+                    <RefreshCw className="h-8 w-8 animate-spin text-amber-500" />
+                    <p className="text-sm font-semibold text-slate-700">Senior Director is auditing your screenplay…</p>
+                    <p className="text-xs text-slate-500">Checking hook velocity, dialogue cadence, and generator stability</p>
+                  </div>
+                ) : scriptAuditReport ? (
+                  <>
+                    {/* Score Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Overall Retention</span>
+                        <div className="my-2">
+                          <span className="text-3xl font-extrabold text-slate-900 font-mono">
+                            {scriptAuditReport.overallScore}
+                          </span>
+                          <span className="text-sm text-slate-400 font-mono">/100</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-700 uppercase">
+                          {scriptAuditReport.retentionRating.replace(/_/g, " ")}
+                        </span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">🪝 3s Scroll Hook</span>
+                        <div className="my-2">
+                          <span className="text-3xl font-extrabold text-amber-700 font-mono">
+                            {scriptAuditReport.breakdown.hookStrength}
+                          </span>
+                          <span className="text-sm text-slate-400 font-mono">%</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500">First 3 seconds stop</span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">🔗 Pacing &amp; Causality</span>
+                        <div className="my-2">
+                          <span className="text-3xl font-extrabold text-blue-700 font-mono">
+                            {scriptAuditReport.breakdown.narrativeCausality}
+                          </span>
+                          <span className="text-sm text-slate-400 font-mono">%</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500">Cause-and-effect flow</span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">💬 Dialogue Authenticity</span>
+                        <div className="my-2">
+                          <span className="text-3xl font-extrabold text-purple-700 font-mono">
+                            {scriptAuditReport.breakdown.dialogueNaturalness}
+                          </span>
+                          <span className="text-sm text-slate-400 font-mono">%</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500">Natural spoken tone</span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">🎬 AI Feasibility</span>
+                        <div className="my-2">
+                          <span className="text-3xl font-extrabold text-emerald-700 font-mono">
+                            {scriptAuditReport.breakdown.aiVisualFeasibility}
+                          </span>
+                          <span className="text-sm text-slate-400 font-mono">%</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500">Single-action clip lock</span>
+                      </div>
+                    </div>
+
+                    {/* Social Strategy & Retention Tips */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      <div className="p-4 rounded-xl bg-red-50/60 border border-red-200 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-red-900">
+                          <span>🔴 YouTube Shorts Retention Rule</span>
+                        </div>
+                        <p className="text-xs text-red-800 leading-relaxed">
+                          {scriptAuditReport.viralSocialStrategy.youtubeShortsTip}
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-pink-50/60 border border-pink-200 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-pink-900">
+                          <span>🟣 Instagram Reels Viral Rule</span>
+                        </div>
+                        <p className="text-xs text-pink-800 leading-relaxed">
+                          {scriptAuditReport.viralSocialStrategy.instagramReelsTip}
+                        </p>
+                      </div>
+                    </div>
+
+                    {scriptAuditReport.viralSocialStrategy.retentionTrapWarning && (
+                      <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                        <span className="font-semibold">{scriptAuditReport.viralSocialStrategy.retentionTrapWarning}</span>
+                      </div>
+                    )}
+
+                    {/* Scene-by-Scene Director Notes */}
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                        <span>Scene-by-Scene QC Audit Breakdown ({scriptAuditReport.sceneAudits.length} Scenes)</span>
+                        <span className="text-[11px] font-normal text-slate-500">
+                          Click &ldquo;1-Click Auto-Fix&rdquo; below to apply all director fixes automatically
+                        </span>
+                      </h3>
+
+                      <div className="space-y-3">
+                        {scriptAuditReport.sceneAudits.map((audit) => (
+                          <div
+                            key={audit.sceneNumber}
+                            className={`p-4 rounded-xl border transition ${
+                              audit.issues.length > 0
+                                ? "bg-amber-50/40 border-amber-200"
+                                : "bg-white border-slate-200"
+                            }`}
+                          >
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs font-bold text-slate-900">
+                                  SCENE {audit.sceneNumber}: {audit.heading}
+                                </span>
+                                {audit.issues.length === 0 ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    ✅ QC PASSED
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                    ⚠️ {audit.issues.length} ISSUE{audit.issues.length > 1 ? "S" : ""}
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2 text-xs font-mono">
+                                <span className="text-slate-500">
+                                  Hook: <strong className={audit.hookScore >= 80 ? "text-emerald-700" : "text-amber-700"}>{audit.hookScore}%</strong>
+                                </span>
+                                <span className="text-slate-300">·</span>
+                                <span className="text-slate-500">
+                                  Dialogue: <strong className={audit.dialogueScore >= 80 ? "text-emerald-700" : "text-amber-700"}>{audit.dialogueScore}%</strong>
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Issues list */}
+                            {audit.issues.length > 0 && (
+                              <div className="pt-2.5 space-y-1">
+                                {audit.issues.map((iss, idx) => (
+                                  <div key={idx} className="flex items-start gap-1.5 text-xs text-amber-900">
+                                    <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0 mt-0.5" />
+                                    <span>{iss}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Director Recommendation */}
+                            <div className="mt-2.5 pt-2 border-t border-slate-100/80 flex items-start gap-2 text-xs text-slate-700">
+                              <span className="font-bold text-slate-500 shrink-0">🎬 Director Fix:</span>
+                              <span className="italic">{audit.directorRecommendation}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsScriptDoctorOpen(false)}
+                  className="text-slate-600 hover:text-slate-900"
+                >
+                  Close
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    loading={isAuditingScript}
+                    onClick={() => handleRunScriptAudit()}
+                    className="border-slate-300 text-slate-700 font-semibold"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 mr-1" />
+                    Re-Audit
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    loading={isPolishingScript}
+                    onClick={handlePolishScriptWithAI}
+                    className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold shadow-xs px-5"
+                  >
+                    <Zap className="h-4 w-4 mr-1.5 fill-slate-950" />
+                    <span>⚡ 1-Click Auto-Fix &amp; Polish Script with AI</span>
+                  </Button>
+                </div>
               </div>
 
             </div>

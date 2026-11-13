@@ -50,6 +50,21 @@
     - Clicking any pill auto-fills a curated, high-retention viral concept with instant 1-click option development.
   - **YouTube Competitor Video Cloner**:
     - Added a competitor URL cloner bar in the Director Pitch modal allowing creators to paste any viral YouTube link to extract narrative hooks and generate an original 5-scene cinematic screenplay in native dialogue.
+- **Senior Director QC & Social Media Viral Script Doctor Engine** (`src/lib/story/script-doctor.ts`, `src/app/api/projects/[projectId]/story/script-doctor/route.ts`, `src/app/projects/[projectId]/story/page.tsx`, `tests/unit/script-doctor.test.ts`):
+  - **5-Pillar Viral Retention Audit Engine**:
+    - *3s Scroll-Stopping Hook*: Ensures Scene 1 starts in media res with kinetic action or high intrigue to halt viewer scroll on YouTube Shorts and Instagram Reels.
+    - *Narrative Causality*: Validates that every scene is the direct consequence of the previous scene (Cause & Effect vs. disjointed random events).
+    - *Colloquial Linguistic Naturalness*: Detects machine-translated or bookish phrasing in Tamil/English and recommends spoken colloquial cadence suitable for the selected genre and tone.
+    - *Viral Payoff & Shareability*: Scores climax strength and loopability.
+    - *AI Video Feasibility*: Guards against station teleportation (e.g. cutting board prep + stove cook in a single clip) that triggers morphing artifacts.
+  - **Script Doctor Backend API**:
+    - `POST /api/projects/[projectId]/story/script-doctor` supporting `action: "audit"` (instant score breakdown and director tips) and `action: "polish"` (invokes TextGenerationProvider with Senior Director Hollywood screenplay doctor prompt to rewrite and fortify the screenplay, saving an approved new SCREENPLAY version in Prisma).
+  - **Script Stage UI Integration**:
+    - Added persistent Senior Director QC banner displaying 5-pillar scores and executive director summary.
+    - Added top navigation button with live score badge.
+    - Added full Senior Director QC Modal showing breakdown progress meters, YouTube Shorts & Instagram Reels director tips, scene-by-scene audit checklist with specific director remedies, and 1-click `⚡ Polish & Auto-Fix Script with Senior Director AI`.
+  - **Unit Test Suite**:
+    - Added `tests/unit/script-doctor.test.ts` (100% pass across 33 tests in total test suite).
 - **Universal Cinematic World & Physics Compiler (Systemic Hallucination Prevention)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/app/api/projects/[projectId]/shots/audit-prompt/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`):
   - **Universal Physics Laws**: Automatically enforces 4 core physical invariants on every shot and prompt across any concept or genre (Mechanical/Draft Kinematics, Skeletal/Locomotion Forward Alignment, 3-Plane Spatial Depth Separation, and Rigid Prop Grip).
   - **Automated Anti-Hallucination Guardrails**: Eliminates dual-sided vehicles (e.g. draft animals tied to both front and back ends of carts), 180° backward neck twists, rubber spines, and spatial fusion of background objects into foreground heroes.

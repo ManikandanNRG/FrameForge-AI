@@ -203,3 +203,24 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - `analyze-idea` accurately parses ideas and pre-fills optimal visual styles, runtime, tone, and dialogue modes.
   5. **Unit Test Verification**:
      - Added `tests/unit/multi-style.test.ts` (all 27 tests passing across the suite).
+
+## ADR-014: Senior Director QC & Social Media Viral Script Doctor
+- **Date**: 2026-11-13 · **Status**: Approved & Implemented
+- **Context**: Content creators publishing to YouTube (Longform & Shorts) and Instagram (Reels) need their scripts and scenes vetted prior to storyboard generation to avoid viewer drop-off within the first 3 seconds and ensure viral engagement. Common failure modes include passive exposition openings, disjointed scene jumping without cause-and-effect causality, stiff or machine-translated dialogue, and single-shot station collisions that cause AI video models to hallucinate.
+- **Decision**:
+  1. **5-Pillar Viral Retention Audit Engine (`src/lib/story/script-doctor.ts`)**:
+     - Evaluates screenplays across 5 core dimensions:
+       1. *3s Scroll-Stopping Hook*: Ensures Scene 1 starts in media res with kinetic action or high intrigue.
+       2. *Narrative Causality*: Validates that each scene is the direct consequence of the previous scene.
+       3. *Colloquial Linguistic Naturalness*: Detects machine-translated or bookish phrasing in Tamil/English and recommends spoken colloquial cadence.
+       4. *Viral Payoff & Shareability*: Scores climax strength and loopability.
+       5. *AI Video Feasibility*: Guards against station teleportation (e.g. cutting board prep + stove cook in a single clip) that triggers morphing artifacts.
+  2. **Script Doctor API Endpoint (`src/app/api/projects/[projectId]/story/script-doctor/route.ts`)**:
+     - Supports `action: "audit"` (instant heuristic and structured score report).
+     - Supports `action: "polish"` (invokes TextGenerationProvider with Senior Director Hollywood screenplay doctor prompt to rewrite and fortify the screenplay, saving an approved new SCREENPLAY version in Prisma).
+  3. **Studio Script Stage Integration (`src/app/projects/[projectId]/story/page.tsx`)**:
+     - Persistent Senior Director QC audit quality banner above the scene cards.
+     - Top navigation button displaying current retention score badge (e.g. `85/100`).
+     - Full Senior Director QC Modal showing breakdown progress meters, YouTube Shorts & Instagram Reels director tips, scene-by-scene audit checklist with specific director remedies, and 1-click `⚡ Polish & Auto-Fix Script with Senior Director AI`.
+  4. **Unit Test Suite (`tests/unit/script-doctor.test.ts`)**:
+     - Verified hook velocity, bookish Tamil detection without Unicode boundary errors, station collision detection, and AI polish structured generation (33/33 tests passing).

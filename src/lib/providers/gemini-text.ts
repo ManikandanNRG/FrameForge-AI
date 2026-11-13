@@ -12,13 +12,13 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash ✓ (recommended, high speed & accuracy)" },
-  { id: "gemini-1.5-flash", displayName: "Gemini 1.5 Flash ✓ (ultra-stable free tier)" },
-  { id: "gemini-3.1-pro-preview", displayName: "Gemini 3.1 Pro Preview (Latest generation)" },
-  { id: "gemini-1.5-pro", displayName: "Gemini 1.5 Pro ✓" },
+  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash ✓ (Latest, ultra-fast & native regional language fluency)" },
+  { id: "gemini-3.8-flash", displayName: "Gemini 3.8 Flash (Preview)" },
+  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash (Fallback)" },
+  { id: "gemini-1.5-flash", displayName: "Gemini 1.5 Flash (Legacy)" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-2.0-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash";
 
 export class GeminiTextProvider implements TextGenerationProvider {
   readonly id = "gemini";
@@ -42,10 +42,10 @@ export class GeminiTextProvider implements TextGenerationProvider {
   ): Promise<GenerationResult<z.infer<S>>> {
     const candidateModels = [
       input.modelId,
+      "gemini-3.5-flash",
+      "gemini-3.8-flash",
       "gemini-2.0-flash",
       "gemini-1.5-flash",
-      "gemini-3.1-pro-preview",
-      "gemini-1.5-pro",
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: string | null = null;

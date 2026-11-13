@@ -179,15 +179,27 @@ Ensures characters have authentic voices and narrative sound without paid API de
        3. `⚡ Direct Video Prompt (Google Flow Veo @Mention)`
      - Clear distinction between Still Image Prompts and I2V Video Motion Prompts.
 
-## ADR-013: Studio Ghibli, 2D Cartoon & Whimsical Kids Animation Studio Engine
+## ADR-013: Universal Multi-Style Engine (YouTube Multi-Channel Architecture)
 - **Date**: 2026-11-13 · **Status**: Approved & Implemented
-- **Context**: The studio is expanding to support kids entertainment, nursery rhymes, and sports day animations with hand-painted Studio Ghibli, classic 2D cartoon, and 3D animated feature styles. Previous configurations had a severe bug where `"cartoon"` and `"anime"` were hardcoded into the global negative prompt list, preventing animation projects from generating correctly. Additionally, Google Flow (Veo) video motion prompts were failing when injected with CLI parameters like `--mode std` and `--negative "..."`.
+- **Context**: The studio is expanding to support creators running multiple specialized YouTube channels (e.g. Cooking ASMR, Kids Ghibli Rhymes, Historical Documentaries, 2D Storybook Cartoons, Stop-Motion Claymation, and Comic Books). Each format requires distinct rendering integrity laws, optical lenses, and mutually exclusive negative prompt matrices.
 - **Decision**:
-  1. **New Visual Styles**: Added `GHIBLI_ANIME` and `CARTOON_2D` to `getRenderingIntegrity`, `prompt-compiler.ts`, and project forms.
-  2. **Dynamic Negative Prompt Inversion (`isAnimated`)**:
-     - When an animated style (`GHIBLI_ANIME`, `CARTOON_2D`, `ANIMATION_3D`) is active, `prompt-compiler.ts` removes `"cartoon"` and `"anime"` from the negative prompt and instead bans `photorealistic live action, real human photograph, dark gritty horror, grotesque, deformed hands`.
-     - When live-action styles are active, standard CGI/cartoon negative prompts remain in effect.
+  1. **Visual Style Taxonomy**: Built full rendering integrity, cinematography directives, and FLUX/Google Flow prompt definitions for:
+     - `GHIBLI_ANIME` (Studio Ghibli Watercolor Animation)
+     - `CARTOON_2D` (Classic 2D Storybook Cartoon)
+     - `ANIMATION_3D` (Pixar/Disney 3D Animated Feature)
+     - `CULINARY_MACRO_ASMR` (Macro Food Cinematography & Binaural Foley)
+     - `VINTAGE_FILM` (Authentic 1900s Vintage 35mm Archival)
+     - `STOP_MOTION` (Handcrafted Miniature Claymation & Puppet Armatures)
+     - `COMIC_BOOK` (Graphic Novel Halftone Inks & Comic Framing)
+     - `WATERCOLOR` (Traditional Fine-Art Watercolor Washes)
+     - `FANTASY_CONCEPT_ART` (Epic Digital Matte Painting & Volumetric Lighting)
+     - `DOCUMENTARY` (Grounded 35mm Realism & Ambient Daylight)
+     - `LIVE_ACTION_AD` (Arri Alexa 65mm Commercial Advertising)
+  2. **Dynamic Negative Prompt Inversion (`isStylizedArt`)**:
+     - Automatically routes negative prompts based on style: stylized media bans photorealism and live action; live action bans cartoons, anime, and CGI.
   3. **Google Flow (Veo) Flag Sanitization**:
-     - Stripped `--mode std` and `--negative "..."` flags from I2V motion prompts to prevent Google Flow's attention mechanism from reading negative tokens as positive elements.
-  4. **Kids Rhyme & Sports Dynamics**:
-     - Auto-configures cheerful child voice profiles (`en-US-Journey-F`, `en-US-Standard-A`), rhythmic nursery rhyme pacing, lush meadow scenery, and dynamic meadow tracking camera rotations.
+     - Stripped `--mode std` and `--negative "..."` flags from I2V motion prompts to avoid model hallucinations.
+  4. **Automated Multi-Channel Idea Heuristics**:
+     - `analyze-idea` accurately parses ideas and pre-fills optimal visual styles, runtime, tone, and dialogue modes.
+  5. **Unit Test Verification**:
+     - Added `tests/unit/multi-style.test.ts` (all 27 tests passing across the suite).

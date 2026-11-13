@@ -65,14 +65,24 @@
   - **Context-Aware Progression**: Each stage features active step gradient highlighting and a contextual "Next Step" button (`Next: Assets (Bible) →`, `Next: Storyboard →`, `Next: Video Studio →`, `5. YouTube Launch 🚀`).
   - **YouTube Launch & Export Kit Modal**: Built directly into the workflow nav so creators can preview the master film, copy YouTube-ready metadata (title, bilingual synopsis, production tags), and download the final video file with one click.
   - **Project Overview Pipeline Grid**: Replaced the previous 3-link list on `/projects/[id]` with an interactive 5-step pipeline command center.
-- **Studio Ghibli & Kids Whimsical Animation Engine (Second YouTube Channel Extension)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/app/api/projects/analyze-idea/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/projects/new/page.tsx`, `src/app/projects/[projectId]/page.tsx`):
-  - **New Visual Styles**: Added `GHIBLI_ANIME` ("Studio Ghibli & Whimsical Animation (Lush Scenery)") and `CARTOON_2D` ("Classic 2D Cartoon & Storybook Animation") alongside `ANIMATION_3D`.
-  - **Style-Specific Directives & Scenery**: Injects signature Hayao Miyazaki / Joe Hisaishi aesthetic cues (lush rolling green countryside meadows, hand-painted watercolor textures, fluffy cumulus clouds, vibrant pastoral sunlight, playful wind ripples).
-  - **Dynamic Negative Prompt Inversion (`isAnimated`)**:
-    - Previously, negative prompts unconditionally banned `"cartoon"`, `"anime"`, and `"3D render"`, which caused animated visual styles to self-destruct or hallucinate.
-    - Added smart `isAnimated` routing: animated styles now explicitly ban `photorealistic live action, real human photograph, dark gritty horror, grotesque, deformed hands`, while live-action styles continue banning CGI and cartoons.
-  - **Google Flow (Veo) Prompt Sanitization**: Stripped CLI parameters (`--mode std`, `--negative "..."`) from generated Image-to-Video prompts to prevent diffusion attention models from interpreting negative strings as positive generation targets.
-  - **Kids Rhymes & Sports Pacing**: Added automated archetype recognition for children's entertainment, nursery rhymes, and sports day relay events with cheerful child voice profiles (`en-US-Journey-F`, `en-US-Standard-A`) and playful high-angle meadow jib tracking rotations.
+- **Studio Ghibli, Kids Animation & Universal Multi-Style Engine (YouTube Multi-Channel Architecture)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/app/api/projects/analyze-idea/route.ts`, `src/app/api/projects/[projectId]/story/select-option/route.ts`, `src/app/projects/new/page.tsx`, `src/app/projects/[projectId]/page.tsx`, `tests/unit/multi-style.test.ts`):
+  - **Comprehensive Multi-Style Visual Support**:
+    1. *Studio Ghibli Animation* (`GHIBLI_ANIME`): Hand-painted watercolor nature, Hayao Miyazaki pastoral landscapes, fluffy cumulus clouds, and expressive character animation.
+    2. *2D Storybook Cartoon* (`CARTOON_2D`): Crisp expressive line art, vibrant storybook colors, playful kinematics.
+    3. *3D Kids Animation* (`ANIMATION_3D`): Pixar/Disney-quality 3D models, soft global illumination, and bouncy child-friendly physics.
+    4. *Culinary ASMR & Cooking* (`CULINARY_MACRO_ASMR`): Station-locked prep/stovetop isolation, 50mm/85mm probe macro lenses, and rigid steel knife invariants.
+    5. *Vintage / Historical 35mm* (`VINTAGE_FILM`): Authentic early 20th-century cellulose grain, sepia earth tones, and period-accurate khadi wardrobe locking.
+    6. *Stop-Motion Claymation* (`STOP_MOTION`): Handcrafted clay and miniature puppet armature textures, 12fps tactile cadence, and miniature studio macro lighting.
+    7. *Comic-Book / Graphic Novel* (`COMIC_BOOK`): Halftone dot printing patterns, dynamic ink cross-hatching, and high-contrast comic framing.
+    8. *Watercolor Illustration* (`WATERCOLOR`): Luminous pigments on cold-press cotton paper with transparent bleeding washes.
+    9. *Fantasy Concept Art* (`FANTASY_CONCEPT_ART`): Epic digital matte painting with volumetric god-rays and grand scale.
+    10. *Documentary Realism* (`DOCUMENTARY`): Grounded 35mm cinema realism with true-to-life skin pores and natural daylight.
+    11. *High-End Commercial* (`LIVE_ACTION_AD`): Arri Alexa 65mm clarity, glamorous lighting, and vibrant commercial color grading.
+  - **Dynamic Negative Prompt Inversion (`isStylizedArt`)**:
+    - Stylized/animated media dynamically bans photorealistic live-action, real human photographs, dark horror, and grotesque elements without ever banning their own art medium.
+    - Live-action media dynamically bans CGI, cartoons, 3D renders, and plastic skin.
+  - **Automated Idea Analysis Recognition**: Detects keywords across all 6+ channels to auto-recommend optimal genre, tone, dialogue mode, runtime, and aspect ratio.
+  - **Unit Test Coverage**: Added `tests/unit/multi-style.test.ts` (27/27 total test cases passing) validating prompt generation and negative prompt safety across all styles.
 - **Dev Server Webpack Stability & Route Params Hook Refactor (Resolved Flickering Reload Loop)** (`package.json`, `src/app/projects/[projectId]/*`):
   - **Turbopack HMR Loop Resolution**: Next.js 16.4.3 Turbopack on Windows was caught in an endless file-lock / cache mismatch loop in `.next/dev/cache/turbopack/` (generating 34,281 HMR reload events at 10 requests/sec). Cleared the corrupted `.next` cache and switched `dev` and `dev:web` scripts to `next dev --webpack` for rock-solid dev server stability.
   - **Synchronous `useParams()` Migration**: Replaced asynchronous `React.use(params)` across all dynamic client pages (`story`, `storyboard`, `bible`, `edit`, `page.tsx`) with Next.js official synchronous `useParams()` hook, preventing client Suspense re-mounting and screen flashing.

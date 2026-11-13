@@ -100,6 +100,26 @@ export const UNIVERSAL_PHYSICAL_LAWS = {
       return "Aesthetic Realism: Grounded documentary cinema realism, natural ambient lighting, true-to-life color grading, authentic human skin pores, natural textile cloth physics, 24fps motion blur. Strictly NO CGI, NO 3D animation, NO plastic skin.";
     }
 
+    if (styleUpper === "STOP_MOTION" || styleUpper === "CLAYMATION") {
+      return "Aesthetic Realism: Handcrafted tactile stop-motion animation, physical clay and miniature articulated puppet textures, subtle 12fps tactile frame cadence, miniature studio set lighting with shallow macro depth of field. Strictly NO smooth CGI, NO 3D digital gloss, NO live-action photorealism.";
+    }
+
+    if (styleUpper === "COMIC_BOOK" || styleUpper === "GRAPHIC_NOVEL") {
+      return "Aesthetic Realism: Bold graphic novel and comic-book illustration aesthetic, rich halftone dot printing patterns, dramatic ink cross-hatching, high-contrast dynamic line work, vibrant superhero palette, expressive comic framing. Strictly NO photographic realism, NO bland lighting.";
+    }
+
+    if (styleUpper === "WATERCOLOR") {
+      return "Aesthetic Realism: Expressive hand-painted watercolor illustration, soft pigment washes on textured cold-press cotton paper, luminous bleeding edges, gentle pastel and luminous color palette, fluid artistic movement. Strictly NO harsh digital lines, NO glossy 3D plastic, NO live-action film.";
+    }
+
+    if (styleUpper === "FANTASY_CONCEPT_ART" || styleUpper === "FANTASY") {
+      return "Aesthetic Realism: Epic digital matte painting and fantasy concept art, sweeping atmospheric volumetric lighting, ethereal god-rays, grand cinematic scale, rich mystical detailing, legendary heroic atmosphere. Strictly NO mundane modern elements, NO digital compression artifacts.";
+    }
+
+    if (styleUpper === "LIVE_ACTION_AD" || styleUpper === "COMMERCIAL") {
+      return "Aesthetic Realism: Premium high-end commercial advertising cinematography, vibrant pristine color grading, Arri Alexa 65mm sensor clarity, glamorous commercial studio lighting, razor-sharp product and talent focus. Strictly NO amateur home-video grain, NO washed-out lighting, NO deformed hands.";
+    }
+
     return "Aesthetic Realism: Ultra-cinematic film masterpiece, authentic human skin pores, natural textile cloth physics, grounded physical weight, 24fps motion blur, realistic optical depth of field. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs.";
   },
 

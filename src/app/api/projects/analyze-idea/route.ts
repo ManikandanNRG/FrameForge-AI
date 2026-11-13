@@ -54,11 +54,25 @@ export const POST = apiHandler(async (req) => {
     lower.includes("sports day") ||
     lower.includes("fun race");
 
+  const isVintage = lower.includes("vintage") || lower.includes("1900") || lower.includes("history") || lower.includes("historical") || lower.includes("ancient") || lower.includes("period");
+  const isDocumentary = lower.includes("documentary") || lower.includes("wildlife") || lower.includes("nature") || lower.includes("real story") || lower.includes("planet");
+  const isStopMotion = lower.includes("stop motion") || lower.includes("stop-motion") || lower.includes("clay") || lower.includes("claymation") || lower.includes("puppet");
+  const isComic = lower.includes("comic") || lower.includes("superhero") || lower.includes("graphic novel") || lower.includes("manga");
+  const isFantasy = lower.includes("fantasy") || lower.includes("dragon") || lower.includes("magic") || lower.includes("myth") || lower.includes("sci-fi") || lower.includes("space");
+
   const fallbackResult = {
     suggestedTitle: isCulinaryAsmr
       ? "The Art of Sizzle (Culinary ASMR)"
       : isKidsAnimation
       ? (lower.includes("sport") ? "The Meadow Sports Day (Kids Ghibli Rhyme)" : "Little Wonders of the Forest (Kids Animated Rhyme)")
+      : isStopMotion
+      ? "The Clay Workshop Adventure"
+      : isComic
+      ? "The Masked Guardian: Issue #1"
+      : isVintage
+      ? "Chronicles of Time (Vintage 1900s)"
+      : isDocumentary
+      ? "Untamed Horizons: Wildlife Chronicle"
       : isElephantVillage
       ? "யானை வரும் பின்னே (The Sugarcane Guardian)"
       : isCricket
@@ -68,6 +82,14 @@ export const POST = apiHandler(async (req) => {
       ? "Culinary & Cooking ASMR"
       : isKidsAnimation
       ? "Kids & Children Entertainment"
+      : isStopMotion
+      ? "Children & Animation"
+      : isComic
+      ? "Action / Superhero"
+      : isVintage
+      ? "Historical / Period Drama"
+      : isDocumentary
+      ? "Documentary Realism"
       : isElephantVillage
       ? "Rural Village Drama / Adventure"
       : isCricket
@@ -77,6 +99,14 @@ export const POST = apiHandler(async (req) => {
       ? "Satisfying, Crisp & Hypnotic"
       : isKidsAnimation
       ? "Joyful, Whimsical & Playful"
+      : isStopMotion
+      ? "Playful, Authentic & Energetic"
+      : isComic
+      ? "Suspenseful, Tense & Thrilling"
+      : isVintage
+      ? "Poetic & Nostalgic"
+      : isDocumentary
+      ? "Grounded, Heartfelt & Emotional"
       : isElephantVillage
       ? "Suspenseful, Tense & Thrilling"
       : isCricket
@@ -84,7 +114,7 @@ export const POST = apiHandler(async (req) => {
       : "Grounded, Heartfelt & Emotional",
     targetAudience: isCulinaryAsmr
       ? "Social Media & Short-form Viewers (Reels / Shorts)"
-      : isKidsAnimation
+      : isKidsAnimation || isStopMotion
       ? "Kids & Toddlers (Preschool & Young Children)"
       : "Universal / Family Audience",
     targetRuntimeSeconds: isShorts ? 45 : (isElephantVillage || isCricket || isCulinaryAsmr || isKidsAnimation) ? 60 : 90,
@@ -92,8 +122,18 @@ export const POST = apiHandler(async (req) => {
       ? "CULINARY_MACRO_ASMR"
       : isKidsAnimation
       ? ((lower.includes("ghibli") || lower.includes("zibly") || lower.includes("anime") || lower.includes("scenery")) ? "GHIBLI_ANIME" : lower.includes("3d") ? "ANIMATION_3D" : "CARTOON_2D")
+      : isStopMotion
+      ? "STOP_MOTION"
+      : isComic
+      ? "COMIC_BOOK"
+      : isVintage
+      ? "VINTAGE_FILM"
+      : isDocumentary
+      ? "DOCUMENTARY"
+      : isFantasy
+      ? "FANTASY_CONCEPT_ART"
       : "PHOTOREALISTIC_CINEMATIC",
-    dialogueMode: isCulinaryAsmr ? ("PURE_ASMR_FOLEY" as const) : isKidsAnimation ? ("VOICEOVER" as const) : ("DIALOGUE" as const),
+    dialogueMode: isCulinaryAsmr ? ("PURE_ASMR_FOLEY" as const) : (isKidsAnimation || isDocumentary) ? ("VOICEOVER" as const) : ("DIALOGUE" as const),
     storyLanguage: lower.includes("english") ? "English" : lower.includes("hindi") ? "Hindi" : "Tamil",
     aspectRatio: (isShorts || isCulinaryAsmr) ? ("PORTRAIT_9_16" as const) : ("LANDSCAPE_16_9" as const),
   };

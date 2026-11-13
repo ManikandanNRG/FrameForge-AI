@@ -153,6 +153,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const is3DAnim = styleUpper === "ANIMATION_3D" || styleUpper === "KIDS_3D_ANIMATION" || styleUpper === "3D_ANIMATION";
   const isAnime = styleUpper === "ANIME" || isGhibli;
   const isAnimated = isAnime || isGhibli || isCartoon || is3DAnim;
+  const isStopMotion = styleUpper === "STOP_MOTION" || styleUpper === "CLAYMATION";
+  const isComic = styleUpper === "COMIC_BOOK" || styleUpper === "GRAPHIC_NOVEL";
+  const isWatercolor = styleUpper === "WATERCOLOR";
+  const isFantasy = styleUpper === "FANTASY_CONCEPT_ART" || styleUpper === "FANTASY";
+  const isCommercial = styleUpper === "LIVE_ACTION_AD" || styleUpper === "COMMERCIAL";
   const isKids = isGhibli || isCartoon || is3DAnim || ideaLower.includes("rhyme") || ideaLower.includes("nursery") || ideaLower.includes("kid");
   const isDocumentary = styleUpper === "DOCUMENTARY";
   const isBlackAndWhite = styleUpper === "BLACK_AND_WHITE" || styleUpper === "FILM_NOIR";
@@ -176,6 +181,21 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   } else if (is3DAnim) {
     dynamicStyleDirective = "Vibrant Pixar/Disney-quality 3D kids animation, soft warm global illumination, expressive stylized character models, bouncy playful physics, saturated child-friendly color grading";
     dynamicPeriodDirective = "- 3D Kids Animation Integrity: Friendly stylized characters, soft warm lighting, joyful atmosphere.";
+  } else if (isStopMotion) {
+    dynamicStyleDirective = "Handcrafted tactile stop-motion animation, physical clay and miniature articulated puppet textures, subtle 12fps tactile frame cadence, miniature studio set lighting with shallow macro depth of field";
+    dynamicPeriodDirective = "- Stop-Motion Integrity: Tactile handcrafted clay and miniature aesthetic. Strictly NO smooth digital CGI, NO live-action photorealism.";
+  } else if (isComic) {
+    dynamicStyleDirective = "Bold graphic novel comic-book illustration art, rich halftone dot printing patterns, expressive ink cross-hatching, high-contrast dynamic line work, cinematic comic panel composition";
+    dynamicPeriodDirective = "- Comic-Book Integrity: Stylized graphic novel illustrations with dramatic ink lines and bold colors. Strictly NO photorealism.";
+  } else if (isWatercolor) {
+    dynamicStyleDirective = "Luminous hand-painted watercolor illustration, soft pigment washes on textured cotton paper, delicate expressive line work, luminous gentle natural lighting";
+    dynamicPeriodDirective = "- Watercolor Integrity: Fine-art watercolor washes and gentle color gradients. Strictly NO harsh 3D plastic or live-action realism.";
+  } else if (isFantasy) {
+    dynamicStyleDirective = "Epic digital matte painting and fantasy concept art, sweeping atmospheric volumetric lighting, ethereal god-rays, grand cinematic scale, rich mystical detailing";
+    dynamicPeriodDirective = "- Fantasy Art Direction: Mythical high-fantasy production design with grand atmospheric depth.";
+  } else if (isCommercial) {
+    dynamicStyleDirective = "Premium high-end commercial advertising cinematography, vibrant pristine color grading, Arri Alexa 65mm clarity, glamorous commercial studio lighting, 60fps high-definition fluid motion";
+    dynamicPeriodDirective = "- Commercial Integrity: Clean commercial gloss, vibrant colors, premium studio lighting.";
   } else if (isAnime) {
     dynamicStyleDirective = "High-end Japanese anime cinematic feature style, rich expressive dynamic lighting, painterly hand-crafted backgrounds, 24fps animation pace";
   } else if (isBlackAndWhite) {
@@ -304,9 +324,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     "text",
   ];
 
-  if (!isAnimated) {
-    negativeList.push("CGI", "3D render", "cartoon", "anime");
-  } else {
+  const isStylizedArt = isAnimated || isStopMotion || isComic || isWatercolor;
+
+  if (isStylizedArt) {
     negativeList.push(
       "photorealistic live action",
       "real human photograph",
@@ -315,6 +335,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "scary",
       "dull drab colors"
     );
+    if (isStopMotion) {
+      negativeList.push("smooth digital CGI", "glossy 3D animation", "photorealism");
+    }
+  } else if (!isFantasy) {
+    negativeList.push("CGI", "3D render", "cartoon", "anime");
   }
 
   // Skeletal negatives
@@ -537,6 +562,16 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `A charming colorful 2D children's storybook cartoon illustration still, ${shotFraming}.`
     : is3DAnim
     ? `A stunning Pixar-quality 3D animated film still, ${shotFraming}.`
+    : isStopMotion
+    ? `A breathtaking handcrafted stop-motion clay animation still, ${shotFraming}.`
+    : isComic
+    ? `A striking graphic novel comic-book illustration still, ${shotFraming}.`
+    : isWatercolor
+    ? `A delicate luminous hand-painted watercolor illustration still, ${shotFraming}.`
+    : isFantasy
+    ? `An epic cinematic fantasy concept art still, ${shotFraming}.`
+    : isCommercial
+    ? `A crisp high-end commercial advertising film still, ${shotFraming}.`
     : isAnime
     ? `A stunning cinematic anime film still, ${shotFraming}.`
     : `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`;
@@ -551,12 +586,28 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Art Direction: Vibrant storybook illustration, playful character expression, bright saturated colors, cheerful sunny outdoor environment.`
     : is3DAnim
     ? `Art Direction: 3D feature animation render, soft ambient occlusion, warm golden sunlight, playful stylized character textures.`
+    : isStopMotion
+    ? `Art Direction: Handcrafted clay animation armature, subtle physical thumbprints and tactile clay textures, miniature studio spotlighting, shallow macro depth of field.`
+    : isComic
+    ? `Art Direction: High-contrast ink line art, rich halftone dot printing patterns, dynamic dramatic cross-hatching, vibrant primary comic palette.`
+    : isWatercolor
+    ? `Art Direction: Luminous watercolor on cold-press textured cotton paper, soft bleeding washes, transparent pigment layers, delicate pencil outlines.`
+    : isFantasy
+    ? `Art Direction: Epic fantasy matte painting, sweeping volumetric atmospheric lighting, majestic scale, ethereal god-rays, mythical production design.`
+    : isCommercial
+    ? `Cinematography: Shot on Arri Alexa 65mm sensor, pristine studio lighting, vibrant commercial color grade, razor-sharp focus.`
     : `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, authentic human skin pores, Kodak Portra 400 film grain, 24fps motion blur, realistic cloth textile folds.`;
 
   const fluxAesthetics = isCulinary
     ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural meat marbling and sear, glistening olive oil. Strictly NO plastic or artificial food, NO CGI, NO 3D render, NO extra limbs, NO floating knives, NO morphing ingredients.`
     : isVintage
     ? `Strict Aesthetics: Authentic 1900s historical time-capsule realism. Strictly NO modern 4K digital crispness, NO modern collared shirts, NO modern buttoned clothing, NO modern western fashion, NO modern buildings or concrete, NO CGI, NO 3D animation.`
+    : isStopMotion
+    ? `Strict Aesthetics: Physical miniature tactile craftsmanship. Strictly NO smooth digital CGI, NO glossy 3D animation, NO live-action photorealism.`
+    : isComic
+    ? `Strict Aesthetics: Graphic novel printed page aesthetic. Strictly NO photographic realism, NO bland lighting, NO 3D plastic.`
+    : isWatercolor
+    ? `Strict Aesthetics: Fine art traditional watercolor painting. Strictly NO harsh digital lines, NO 3D CGI gloss, NO photographic realism.`
     : isAnimated
     ? `Strict Aesthetics: Child-friendly, joyful, and wholesome animated masterpiece. Strictly NO live-action photography, NO dark horror, NO grotesque elements, NO realistic human skin, NO text overlays.`
     : `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs, NO modern western clothing.`;

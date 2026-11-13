@@ -144,7 +144,16 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       (genre || "").toLowerCase().includes("historical") ||
       (genre || "").toLowerCase().includes("period"));
 
-  const isAnime = styleUpper === "ANIME";
+  const isGhibli =
+    styleUpper === "GHIBLI_ANIME" ||
+    styleUpper === "GHIBLI" ||
+    ideaLower.includes("ghibli") ||
+    ideaLower.includes("zibly");
+  const isCartoon = styleUpper === "CARTOON_2D" || styleUpper === "CARTOON";
+  const is3DAnim = styleUpper === "ANIMATION_3D" || styleUpper === "KIDS_3D_ANIMATION" || styleUpper === "3D_ANIMATION";
+  const isAnime = styleUpper === "ANIME" || isGhibli;
+  const isAnimated = isAnime || isGhibli || isCartoon || is3DAnim;
+  const isKids = isGhibli || isCartoon || is3DAnim || ideaLower.includes("rhyme") || ideaLower.includes("nursery") || ideaLower.includes("kid");
   const isDocumentary = styleUpper === "DOCUMENTARY";
   const isBlackAndWhite = styleUpper === "BLACK_AND_WHITE" || styleUpper === "FILM_NOIR";
 
@@ -158,6 +167,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   } else if (isVintage) {
     dynamicStyleDirective = "Authentic 1900s vintage 35mm archival film aesthetic, natural cellulose film grain, soft warm sepia and muted earth-tone palette, period-accurate historical lighting, gentle optical lens bloom, organic 24fps motion blur";
     dynamicPeriodDirective = "- Period & Wardrobe Integrity: Strictly authentic 1900s early 20th-century historical era. Characters strictly wear period-accurate hand-spun unbleached khadi attire, traditional dhotis, veshti, angavastram. Strictly PROHIBIT modern machine-stitched collared shirts, modern t-shirts, modern synthetic fabrics, sneakers, modern wristwatches, or contemporary buildings.";
+  } else if (isGhibli) {
+    dynamicStyleDirective = "Enchanting Studio Ghibli hand-painted feature animation aesthetic, lush watercolor landscapes, vibrant rolling green hills, fluffy clouds in azure skies, warm whimsical character design with expressive eyes and fluid hand-drawn 24fps motion, Hayao Miyazaki pastoral nature";
+    dynamicPeriodDirective = "- Ghibli & Nature Scenery Integrity: Vibrant pastoral scenery, soft watercolor meadows, sparkling clear daylight, joyful wholesome atmosphere. Strictly NO live-action, NO realistic human skin, NO dark or gritty themes.";
+  } else if (isCartoon) {
+    dynamicStyleDirective = "Charming 2D storybook kids cartoon animation, bright playful colors, bold expressive line art, cheerful character animation, joyful sunny atmosphere at 24fps";
+    dynamicPeriodDirective = "- Kids Cartoon Integrity: Fun, vibrant, colorful storybook aesthetics. Child-friendly joyful expressions.";
+  } else if (is3DAnim) {
+    dynamicStyleDirective = "Vibrant Pixar/Disney-quality 3D kids animation, soft warm global illumination, expressive stylized character models, bouncy playful physics, saturated child-friendly color grading";
+    dynamicPeriodDirective = "- 3D Kids Animation Integrity: Friendly stylized characters, soft warm lighting, joyful atmosphere.";
   } else if (isAnime) {
     dynamicStyleDirective = "High-end Japanese anime cinematic feature style, rich expressive dynamic lighting, painterly hand-crafted backgrounds, 24fps animation pace";
   } else if (isBlackAndWhite) {
@@ -276,10 +294,6 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   // 7. Assemble Universal Negative Constraints Matrix
   const negativeList: string[] = [
-    "CGI",
-    "3D render",
-    "cartoon",
-    "anime",
     "plastic skin",
     "distorted anatomy",
     "extra limbs",
@@ -289,6 +303,19 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     "watermark",
     "text",
   ];
+
+  if (!isAnimated) {
+    negativeList.push("CGI", "3D render", "cartoon", "anime");
+  } else {
+    negativeList.push(
+      "photorealistic live action",
+      "real human photograph",
+      "dark gritty horror",
+      "grotesque",
+      "scary",
+      "dull drab colors"
+    );
+  }
 
   // Skeletal negatives
   negativeList.push(
@@ -401,6 +428,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const flowRules: string[] = [
     isPureAsmr
       ? `- Constraints & Audio: Pure visual culinary cinema & pristine binaural ASMR sound design. Strictly NO spoken words, NO voiceover, NO lip movement, and NO background music.`
+      : isAnimated
+      ? `- Constraints & Audio: High quality animated feature film visual style; expressive lively animation; natural lip synchronization; maintain exact locked character design, wardrobe, and clothing; avoid live-action realism, photorealistic humans, dark gritty tones, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`
       : `- Constraints & Negative Directives: Only the active speaking character moves their lips; accurate natural ${lang} lip synchronization; maintain exact locked character face, wardrobe, and clothing; avoid 3D render, CGI, cartoon, anime, plastic skin, morphing, multiple limbs, distorted hands, modern western faces, jittery camera motion, blur; no generated subtitles or on-screen text overlays.`,
     `- ${UNIVERSAL_PHYSICAL_LAWS.SKELETAL_ALIGNMENT}`,
     `- ${UNIVERSAL_PHYSICAL_LAWS.SPATIAL_DEPTH_SEPARATION}`,
@@ -446,6 +475,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `An ultra-photorealistic macro culinary ASMR ${framingDesc} cooking scene.`
     : isVintage
     ? `An authentic 1900s vintage 35mm archival ${framingDesc} film scene.`
+    : isGhibli
+    ? `An enchanting Studio Ghibli hand-painted anime ${framingDesc} animation scene.`
+    : isCartoon
+    ? `A playful, colorful 2D cartoon ${framingDesc} animation scene.`
+    : is3DAnim
+    ? `A vibrant 3D animated ${framingDesc} feature scene.`
     : isAnime
     ? `A cinematic anime ${framingDesc} scene.`
     : `A cinematic ${qualityDescriptor} ${framingDesc} film scene.`;
@@ -454,6 +489,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Aesthetics: Ultra-high-definition macro food cinema, 85mm probe lens, f/1.8 shallow depth of field, glistening natural oils, 60fps fluid dynamics, appetizing sizzling textures.`
     : isVintage
     ? `Aesthetics: Authentic 1900s archival 35mm film aesthetic, subtle cellulose film grain, warm sepia and muted earth tones, soft optical lens halation, natural textile cloth physics, historical period authenticity.`
+    : isGhibli
+    ? `Aesthetics: Studio Ghibli hand-painted aesthetic, lush watercolor nature backgrounds, Hayao Miyazaki visual magic, expressive hand-drawn 24fps keyframe animation, warm joyful atmosphere.`
+    : isCartoon
+    ? `Aesthetics: Playful 2D cartoon animation, bright child-friendly colors, bouncy cheerful physics.`
+    : is3DAnim
+    ? `Aesthetics: 3D feature animation render, soft global illumination, vibrant playful character animation.`
     : isAnime
     ? `Aesthetics: Japanese anime feature animation aesthetic, expressive keyframe motion, cinematic lighting.`
     : `Aesthetics: Photorealistic 1080p cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`;
@@ -461,11 +502,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const klingPrompt = [
     klingSceneType,
     characterName
-      ? `Subject: ${characterName}, an authentic character with ${(characterDescription || (isCulinary ? "experienced chef hands, rolled-up linen shirt sleeves" : "authentic regional traits")).replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : "traditional clothing")}.`
+      ? `Subject: ${characterName}, an authentic character with ${(characterDescription || (isCulinary ? "experienced chef hands, rolled-up linen shirt sleeves" : isAnimated ? "charming expressive animated features" : "authentic regional traits")).replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Action & Dynamics: ${actionCleaned}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
-    `Environment & Atmosphere: ${(locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast-iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : "Authentic film location")).replace(/\.+$/, "")}. Lighting: ${(lighting || (isCulinary ? "warm directional spotlight with soft background blur" : isVintage ? "soft warm historical golden hour sunlight" : "warm golden hour natural afternoon sunlight")).replace(/\.+$/, "")}.${audioPrompt ? ` Foley ambience: ${audioPrompt.replace(/\.+$/, "")}.` : ""}`,
+    `Environment & Atmosphere: ${(locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast-iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : "Authentic film location")).replace(/\.+$/, "")}. Lighting: ${(lighting || (isCulinary ? "warm directional spotlight with soft background blur" : isVintage ? "soft warm historical golden hour sunlight" : isAnimated ? "bright joyful sunny daylight" : "warm golden hour natural afternoon sunlight")).replace(/\.+$/, "")}.${audioPrompt ? ` Foley ambience: ${audioPrompt.replace(/\.+$/, "")}.` : ""}`,
     isPureAsmr
       ? `Audio Pace: Pure binaural ASMR culinary Foley (crisp knife chops, oil sizzle, liquid pour, steam hiss), strictly no dialogue or background music.`
       : hasDialogue
@@ -490,6 +531,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `A breathtaking macro culinary food photography still, ${shotFraming}.`
     : isVintage
     ? `An authentic 1900s vintage 35mm archival film still, ${shotFraming}.`
+    : isGhibli
+    ? `A breathtaking Studio Ghibli style hand-painted anime still, ${shotFraming}.`
+    : isCartoon
+    ? `A charming colorful 2D children's storybook cartoon illustration still, ${shotFraming}.`
+    : is3DAnim
+    ? `A stunning Pixar-quality 3D animated film still, ${shotFraming}.`
     : isAnime
     ? `A stunning cinematic anime film still, ${shotFraming}.`
     : `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`;
@@ -498,12 +545,20 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, creamy background bokeh, warm kitchen directional spotlight, appetizing natural food glistening.`
     : isVintage
     ? `Cinematography: Shot on early 20th-century vintage 35mm prime lens, authentic cellulose film grain, soft warm sepia and muted earth tones, period-accurate natural daylight, gentle optical bloom, authentic hand-spun khadi textile weave.`
+    : isGhibli
+    ? `Art Direction: Hand-painted Studio Ghibli background art, lush watercolor meadows, vibrant painted skies, whimsical soft lighting, Hayao Miyazaki aesthetic, warm nostalgic colors.`
+    : isCartoon
+    ? `Art Direction: Vibrant storybook illustration, playful character expression, bright saturated colors, cheerful sunny outdoor environment.`
+    : is3DAnim
+    ? `Art Direction: 3D feature animation render, soft ambient occlusion, warm golden sunlight, playful stylized character textures.`
     : `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, authentic human skin pores, Kodak Portra 400 film grain, 24fps motion blur, realistic cloth textile folds.`;
 
   const fluxAesthetics = isCulinary
     ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural meat marbling and sear, glistening olive oil. Strictly NO plastic or artificial food, NO CGI, NO 3D render, NO extra limbs, NO floating knives, NO morphing ingredients.`
     : isVintage
     ? `Strict Aesthetics: Authentic 1900s historical time-capsule realism. Strictly NO modern 4K digital crispness, NO modern collared shirts, NO modern buttoned clothing, NO modern western fashion, NO modern buildings or concrete, NO CGI, NO 3D animation.`
+    : isAnimated
+    ? `Strict Aesthetics: Child-friendly, joyful, and wholesome animated masterpiece. Strictly NO live-action photography, NO dark horror, NO grotesque elements, NO realistic human skin, NO text overlays.`
     : `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs, NO modern western clothing.`;
 
   const fluxStillPrompt = [

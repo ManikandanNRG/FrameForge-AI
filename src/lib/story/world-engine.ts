@@ -68,6 +68,26 @@ export const UNIVERSAL_PHYSICAL_LAWS = {
       return "Aesthetic & Period Realism: Authentic vintage 35mm archival film aesthetic, natural cellulose film grain, soft warm sepia and muted earth-tone palette, period-accurate historical atmosphere, gentle optical bloom and organic 24fps motion blur. Strictly NO modern 4K digital crispness, NO synthetic bright modern dyes, NO modern machine-stitched collared shirts, NO modern trousers or sneakers, NO modern concrete buildings or asphalt roads, NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin.";
     }
 
+    const isGhibli =
+      styleUpper === "GHIBLI_ANIME" ||
+      styleUpper === "GHIBLI" ||
+      ideaLower.includes("ghibli") ||
+      ideaLower.includes("zibly");
+
+    if (isGhibli) {
+      return "Aesthetic & Animation Realism: Enchanting Studio Ghibli hand-painted feature animation aesthetic, lush watercolor landscapes, vibrant rolling green hills, fluffy clouds in azure skies, warm whimsical character design with expressive eyes and fluid hand-drawn motion, nostalgic and uplifting atmosphere, rich pastoral details. Strictly NO live-action film, NO photorealistic live humans, NO sterile CGI, NO uncanny 3D plastics.";
+    }
+
+    const isCartoon = styleUpper === "CARTOON_2D" || styleUpper === "CARTOON";
+    if (isCartoon) {
+      return "Aesthetic Realism: Classic whimsical 2D storybook cartoon animation, crisp expressive outlines, playful bouncy character animation, charming colorful scenery, joyful children's picture-book illustration style. Strictly NO photorealism, NO live-action.";
+    }
+
+    const is3DAnim = styleUpper === "ANIMATION_3D" || styleUpper === "KIDS_3D_ANIMATION" || styleUpper === "3D_ANIMATION";
+    if (is3DAnim) {
+      return "Aesthetic Realism: Vibrant Pixar/Disney-quality 3D kids animation, soft warm global illumination, expressive stylized character models, bouncy playful physics, vibrant saturated color palette, clean child-friendly aesthetics. Strictly NO dark horror, NO uncanny valley, NO photorealistic live-action.";
+    }
+
     if (styleUpper === "ANIME") {
       return "Aesthetic Realism: High-end Japanese anime cinematic feature style, hand-drawn keyframe animation feel, expressive dynamic lighting, painterly background art, 24fps cinema pace. Strictly NO CGI 3D uncanny plastic, NO live-action film artifacts.";
     }

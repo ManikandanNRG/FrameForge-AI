@@ -53,13 +53,14 @@ const RUNTIME_PRESETS = [
 ];
 
 const VISUAL_STYLES = [
+  ["GHIBLI_ANIME",             "Studio Ghibli & Whimsical Animation (Lush Scenery)"],
+  ["CARTOON_2D",               "2D Kids Cartoon (Storybook Whimsical)"],
+  ["ANIMATION_3D",             "3D Kids Animation (Pixar / Disney Style)"],
+  ["ANIME",                    "Anime (Japanese Cinematic)"],
   ["PHOTOREALISTIC_CINEMATIC", "Photorealistic Cinematic"],
   ["CULINARY_MACRO_ASMR",      "Culinary ASMR & Cooking (Macro Food Realism)"],
   ["DOCUMENTARY",              "Documentary Realism"],
   ["LIVE_ACTION_AD",           "Live-action Commercial"],
-  ["ANIME",                    "Anime"],
-  ["CARTOON_2D",               "2D Cartoon"],
-  ["ANIMATION_3D",             "3D Animated Film"],
   ["STOP_MOTION",              "Stop-motion"],
   ["VINTAGE_FILM",             "Vintage Film / Retro"],
   ["COMIC_BOOK",               "Comic-book / Graphic Novel"],

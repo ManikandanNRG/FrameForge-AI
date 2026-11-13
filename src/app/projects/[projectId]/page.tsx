@@ -72,12 +72,14 @@ const ASPECT_RATIO_OPTIONS = [
 ];
 
 const VISUAL_STYLES = [
+  { value: "GHIBLI_ANIME", label: "Studio Ghibli & Whimsical Animation (Lush Scenery)" },
+  { value: "CARTOON_2D", label: "2D Kids Cartoon (Storybook Whimsical)" },
+  { value: "ANIMATION_3D", label: "3D Animated Film (Pixar / Disney)" },
+  { value: "ANIME", label: "Anime / Japanese Feature Animation" },
   { value: "PHOTOREALISTIC_CINEMATIC", label: "Photorealistic Cinematic (35mm Film)" },
   { value: "CULINARY_MACRO_ASMR", label: "Culinary ASMR & Cooking (Macro Food Realism)" },
   { value: "HYPERREALISTIC_FILM", label: "8K Hyperrealistic Live Action" },
   { value: "DOCUMENTARY", label: "Documentary Realism" },
-  { value: "ANIMATION_3D", label: "3D Animated Film (Pixar / Disney)" },
-  { value: "ANIME", label: "Anime / Studio Ghibli" },
   { value: "VINTAGE_FILM", label: "Vintage 1970s Film Grain" },
   { value: "COMIC_BOOK", label: "Comic Book / Graphic Novel" },
   { value: "LIVE_ACTION_AD", label: "Live-action Commercial" },

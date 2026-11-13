@@ -178,4 +178,16 @@ Ensures characters have authentic voices and narrative sound without paid API de
        2. `🎬 Stage 2: Video Motion Prompt (Google Flow / Kling / Runway / Luma / Wan 2.1)`
        3. `⚡ Direct Video Prompt (Google Flow Veo @Mention)`
      - Clear distinction between Still Image Prompts and I2V Video Motion Prompts.
-  3. **Zero Cost**: Character portraits and scene stills generate 100% free with local media storage and zero API keys required.
+
+## ADR-013: Studio Ghibli, 2D Cartoon & Whimsical Kids Animation Studio Engine
+- **Date**: 2026-11-13 · **Status**: Approved & Implemented
+- **Context**: The studio is expanding to support kids entertainment, nursery rhymes, and sports day animations with hand-painted Studio Ghibli, classic 2D cartoon, and 3D animated feature styles. Previous configurations had a severe bug where `"cartoon"` and `"anime"` were hardcoded into the global negative prompt list, preventing animation projects from generating correctly. Additionally, Google Flow (Veo) video motion prompts were failing when injected with CLI parameters like `--mode std` and `--negative "..."`.
+- **Decision**:
+  1. **New Visual Styles**: Added `GHIBLI_ANIME` and `CARTOON_2D` to `getRenderingIntegrity`, `prompt-compiler.ts`, and project forms.
+  2. **Dynamic Negative Prompt Inversion (`isAnimated`)**:
+     - When an animated style (`GHIBLI_ANIME`, `CARTOON_2D`, `ANIMATION_3D`) is active, `prompt-compiler.ts` removes `"cartoon"` and `"anime"` from the negative prompt and instead bans `photorealistic live action, real human photograph, dark gritty horror, grotesque, deformed hands`.
+     - When live-action styles are active, standard CGI/cartoon negative prompts remain in effect.
+  3. **Google Flow (Veo) Flag Sanitization**:
+     - Stripped `--mode std` and `--negative "..."` flags from I2V motion prompts to prevent Google Flow's attention mechanism from reading negative tokens as positive elements.
+  4. **Kids Rhyme & Sports Dynamics**:
+     - Auto-configures cheerful child voice profiles (`en-US-Journey-F`, `en-US-Standard-A`), rhythmic nursery rhyme pacing, lush meadow scenery, and dynamic meadow tracking camera rotations.

@@ -262,6 +262,15 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
       (project.genre || "").toLowerCase().includes("historical") ||
       (project.genre || "").toLowerCase().includes("period"));
 
+  const isGhibli =
+    project.visualStyle === "GHIBLI_ANIME" ||
+    project.visualStyle === "GHIBLI" ||
+    (project.sourceIdea || "").toLowerCase().includes("ghibli") ||
+    (project.sourceIdea || "").toLowerCase().includes("zibly");
+
+  const isCartoon = project.visualStyle === "CARTOON_2D";
+  const is3DAnim = project.visualStyle === "ANIMATION_3D" || project.visualStyle === "KIDS_3D_ANIMATION";
+
   for (const [name, info] of Array.from(charMap.entries())) {
     const existingAsset = await prisma.productionAsset.findFirst({
       where: { projectId: projectId as string, name },
@@ -271,20 +280,34 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
         ? "Clean professional chef attire, natural linen rolled-up sleeves, trimmed clean nails, precise knife grip."
         : isVintage
         ? "Authentic 1900s traditional hand-spun unbleached khadi attire (strictly no modern machine-stitched collared shirts, t-shirts, or synthetic fabrics)."
+        : isGhibli
+        ? "Charming whimsical attire with soft natural textures, colorful playful suspenders or sweater, comfortable sports shoes or barefoot in grass."
+        : isCartoon
+        ? "Bright colorful cartoon clothing with clean graphic shapes and cheerful friendly colors."
         : "Authentic traditional regional attire matching the story era and culture.";
 
       const charPrompt = isCulinary
         ? `Ultra-photorealistic portrait of ${name} (Chef hands preparing ingredients, rolled-up linen shirt sleeves, precise confident grip, warm directional kitchen lighting).`
         : isVintage
         ? `Authentic 1900s vintage 35mm archival photographic portrait of ${name}, natural sepia and muted earth tones, period-accurate hand-spun khadi garments, soft vintage depth of field.`
+        : isGhibli
+        ? `Charming Studio Ghibli style anime portrait of ${name}, expressive lively eyes, warm friendly smile, soft watercolor textures, lush pastoral green meadow and blue sky background, Hayao Miyazaki aesthetic.`
+        : isCartoon
+        ? `Cute and colorful 2D children's storybook cartoon character portrait of ${name}, bright bold outlines, cheerful expressive eyes, vibrant sunny background.`
+        : is3DAnim
+        ? `Vibrant Pixar-quality 3D animated character portrait of ${name}, soft warm studio lighting, playful stylized features, bouncy cheerful expression.`
         : `Photorealistic cinematic character portrait of ${name}, authentic cultural features, detailed skin texture, natural expressive eyes, high production value 35mm film still.`;
 
       const attributes = {
         role: info.role,
-        age: name.toLowerCase().includes("boy") || name.toLowerCase().includes("karthi") || name.toLowerCase().includes("kavin") ? 10 : 35,
+        age: name.toLowerCase().includes("boy") || name.toLowerCase().includes("karthi") || name.toLowerCase().includes("kavin") || isGhibli || isCartoon ? 8 : 35,
         wardrobe: wardrobeDesc,
         googleFlowCharacterPrompt: charPrompt,
-        voiceProfile: isCulinary ? "Pure ambient culinary Foley (no spoken dialogue)." : `Authentic ${project.storyLanguage} native speaker, natural conversational cadence, expressive emotional range.`,
+        voiceProfile: isCulinary
+          ? "Pure ambient culinary Foley (no spoken dialogue)."
+          : isGhibli || isCartoon || is3DAnim
+          ? `Bright, cheerful, and energetic voice for young children (warm melodic tone, joyful pacing).`
+          : `Authentic ${project.storyLanguage} native speaker, natural conversational cadence, expressive emotional range.`,
       };
       await prisma.productionAsset.create({
         data: {
@@ -313,6 +336,14 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
     { shotSize: "Macro Extreme Close-Up (ECU)", cameraAngle: "Low 45-Degree", cameraMovement: "Macro slow-motion cross-section cut revealing tender juicy interior and crispy crust" },
   ];
 
+  const KIDS_ANIMATION_CAMERA_ROTATION = [
+    { shotSize: "Wide Establishing Shot", cameraAngle: "High-Angle Jib", cameraMovement: "Slow majestic jib descent revealing lush vibrant green meadow, blooming wildflowers, and children's sports arena under bright sunny skies" },
+    { shotSize: "Dynamic Medium Tracking", cameraAngle: "Low-Angle Track", cameraMovement: "Energetic low-angle camera tracking alongside character in joyful motion, 24fps fluid animation" },
+    { shotSize: "Close-Up", cameraAngle: "Eye-Level", cameraMovement: "Warm intimate close-up on character's beaming joyful expression and sparkling eyes with soft golden sunlight rim" },
+    { shotSize: "Extreme Action Close-Up", cameraAngle: "Dynamic Tilt", cameraMovement: "Playful focal push-in on sports equipment and action in motion with whimsical wind swirls" },
+    { shotSize: "Wide Panoramic Shot", cameraAngle: "Low-Angle Pan", cameraMovement: "Sweeping upward pan toward azure sky with billowy white clouds and cheering friends" },
+  ];
+
   const STANDARD_DYNAMIC_ROTATION = [
     { shotSize: "Wide Shot", cameraAngle: "Eye-Level", cameraMovement: "Smooth cinematic establishing tracking shot forward at 24fps" },
     { shotSize: "Medium Shot", cameraAngle: "Eye-Level", cameraMovement: "Dynamic lateral tracking shot moving alongside character at 24fps" },
@@ -322,7 +353,11 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
     { shotSize: "Wide Panoramic Shot", cameraAngle: "High-Angle Crane", cameraMovement: "High-angle slow jib tilt-down revealing atmospheric environment" },
   ];
 
-  const cameraRotation = isCulinary ? CULINARY_CAMERA_ROTATION : STANDARD_DYNAMIC_ROTATION;
+  const cameraRotation = isCulinary
+    ? CULINARY_CAMERA_ROTATION
+    : isGhibli || isCartoon || is3DAnim
+    ? KIDS_ANIMATION_CAMERA_ROTATION
+    : STANDARD_DYNAMIC_ROTATION;
 
   for (const sc of option.scenes) {
     const scene = await prisma.scene.create({

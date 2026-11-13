@@ -112,18 +112,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const styleUpper = (visualStyle || "").toUpperCase();
   const ideaLower = (sourceIdea || "").toLowerCase();
 
-  const isCulinary =
-    styleUpper === "CULINARY_MACRO_ASMR" ||
-    entities.hasCulinaryAction ||
-    ideaLower.includes("cook") ||
-    ideaLower.includes("cooking") ||
-    ideaLower.includes("asmr") ||
-    ideaLower.includes("culinary") ||
-    ideaLower.includes("recipe") ||
-    ideaLower.includes("kitchen") ||
+  const isCulinaryGenreOrIdea =
     (genre || "").toLowerCase().includes("cooking") ||
     (genre || "").toLowerCase().includes("culinary") ||
-    (genre || "").toLowerCase().includes("asmr");
+    (genre || "").toLowerCase().includes("recipe") ||
+    (genre || "").toLowerCase().includes("food") ||
+    ideaLower.includes("cooking") ||
+    ideaLower.includes("recipe") ||
+    ideaLower.includes("culinary");
+
+  const isCulinary =
+    styleUpper === "CULINARY_MACRO_ASMR" ||
+    (isCulinaryGenreOrIdea && entities.hasCulinaryAction);
 
   const isPureAsmr =
     (genre || "").toLowerCase().includes("asmr") ||
@@ -631,19 +631,35 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     .filter(Boolean)
     .join(" ");
 
-  // 11. Build ChatGPT / Gemini Prompts (Period-Aware & Culinary-Aware)
+  // 11. Build ChatGPT / Gemini Prompts (Period-Aware, Culinary-Aware, Multi-Style)
   const chatgptPrompt = [
     isCulinary
       ? `Create an ultra-photorealistic macro culinary food photography still in ${framingDesc}.`
       : isVintage
       ? `Create an authentic 1900s vintage 35mm archival ${framingDesc} film still.`
+      : isGhibli
+      ? `Create an enchanting Studio Ghibli style hand-painted watercolor ${framingDesc} anime still.`
+      : isCartoon
+      ? `Create a charming 2D children's storybook cartoon ${framingDesc} still.`
+      : is3DAnim
+      ? `Create a vibrant Pixar-quality 3D animated ${framingDesc} feature film still.`
+      : isStopMotion
+      ? `Create a handcrafted tactile stop-motion clay animation ${framingDesc} still.`
+      : isComic
+      ? `Create a striking graphic novel comic-book illustration ${framingDesc} still.`
+      : isWatercolor
+      ? `Create a luminous hand-painted watercolor illustration ${framingDesc} still.`
+      : isFantasy
+      ? `Create an epic cinematic fantasy concept art ${framingDesc} still.`
+      : isAnime
+      ? `Create a stunning cinematic anime feature ${framingDesc} still.`
       : `Create a highly detailed, photorealistic ${framingDesc} film still from a cinematic film.`,
     characterName
-      ? `Subject: ${characterName}, ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : "traditional clothing")}.`
+      ? `Subject: ${characterName}, ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : isAnimated ? "charming expressive animated features" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Scene Action: ${actionCleaned}.`,
-    `Environment: ${locationDescription || (isCulinary ? "Master culinary kitchen, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : "Cinematic setting")}.`,
-    `Lighting & Mood: ${lighting || (isCulinary ? "Warm culinary studio lighting, soft key illumination, appetizing natural highlights" : isVintage ? "Soft warm historical natural daylight, dusty atmosphere" : "Natural golden hour daylight, soft shadows, warm highlights")}.`,
+    `Environment: ${locationDescription || (isCulinary ? "Master culinary kitchen, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny meadow playground" : "Cinematic setting")}.`,
+    `Lighting & Mood: ${lighting || (isCulinary ? "Warm culinary studio lighting, soft key illumination, appetizing natural highlights" : isVintage ? "Soft warm historical natural daylight, dusty atmosphere" : isAnimated ? "Bright joyful sunny daylight, warm glowing atmosphere" : "Natural golden hour daylight, soft shadows, warm highlights")}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     isPureAsmr
       ? `Soundscape & Audio Foley: Pure binaural ASMR culinary Foley (crisp knife chops on wood, oil sizzle, liquid pouring, steam hissing). Strictly no spoken dialogue, no voiceover, no background music.`
@@ -656,10 +672,22 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Style & Realism: Ultra-high-definition macro culinary cinema, 85mm probe macro lens optics, razor-sharp focus on ingredient textures, glistening natural oil sheens, 60fps high-speed fluid and rising steam physics, vibrant fresh food colors. Max two hands in frame (knife grip + claw grip); strictly NO extra arms, NO floating knives, NO morphing food.`
       : isVintage
       ? `Style & Realism: Authentic 1900s vintage 35mm film aesthetic, subtle cellulose grain, soft warm sepia and muted earth tones, gentle optical lens halation, authentic hand-spun khadi textile weave. Strictly NO modern collared shirts, NO modern clothing, NO modern buildings.`
+      : isGhibli
+      ? `Style & Realism: Enchanting Studio Ghibli watercolor animation aesthetic, lush green rolling meadows, fluffy cumulus clouds, whimsical character design, fluid hand-drawn 24fps motion.`
+      : isCartoon
+      ? `Style & Realism: Charming 2D storybook cartoon animation, playful bouncy character physics, bright cheerful saturated colors.`
+      : is3DAnim
+      ? `Style & Realism: Pixar/Disney-quality 3D character animation, soft warm global illumination, expressive stylized character models.`
+      : isStopMotion
+      ? `Style & Realism: Handcrafted tactile stop-motion clay animation, miniature puppet armature textures, subtle 12fps tactile frame cadence.`
+      : isComic
+      ? `Style & Realism: Graphic novel comic-book illustration, bold ink outlines, rich halftone dot printing patterns, dynamic high-contrast framing.`
       : `Style & Realism: Authentic documentary realism, true-to-life skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 1080p Full HD resolution.`,
     isCulinary
       ? `Physical Invariants: Rigid knife grip; cutting board resting firmly on counter; cookware anchored to stove; ingredients divide cleanly without morphing.`
-      : `Physical Invariants: Strict forward skeletal alignment; no backward head rotation; draft animals hitched exclusively at the front yoke of vehicles; no animals behind carts or on both ends.`,
+      : entities.hasVehicleOrMount
+      ? `Physical Invariants: Strict forward skeletal alignment; no backward head rotation; draft animals hitched exclusively at the front yoke of vehicles; no animals behind carts or on both ends.`
+      : null,
     `Negative Constraints: ${universalNegativePrompt}.`,
   ]
     .filter(Boolean)
@@ -670,12 +698,28 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Ultra-photorealistic macro culinary ASMR ${framingDesc} food still.`
       : isVintage
       ? `Authentic 1900s vintage 35mm archival ${framingDesc} film still.`
+      : isGhibli
+      ? `Enchanting Studio Ghibli style hand-painted watercolor ${framingDesc} anime still.`
+      : isCartoon
+      ? `Charming 2D children's storybook cartoon ${framingDesc} still.`
+      : is3DAnim
+      ? `Vibrant Pixar-quality 3D animated ${framingDesc} feature film still.`
+      : isStopMotion
+      ? `Handcrafted tactile stop-motion clay animation ${framingDesc} still.`
+      : isComic
+      ? `Striking graphic novel comic-book illustration ${framingDesc} still.`
+      : isWatercolor
+      ? `Luminous hand-painted watercolor illustration ${framingDesc} still.`
+      : isFantasy
+      ? `Epic cinematic fantasy concept art ${framingDesc} still.`
+      : isAnime
+      ? `Stunning cinematic anime feature ${framingDesc} still.`
       : `Cinematic ${framingDesc} photorealistic film still.`,
     characterName
-      ? `Character: ${characterName}, ${characterDescription || (isCulinary ? "chef hands with precise knife grip" : "authentic appearance")}. Attire: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : "traditional clothing")}.`
+      ? `Character: ${characterName}, ${characterDescription || (isCulinary ? "chef hands with precise knife grip" : isAnimated ? "expressive animated features" : "authentic appearance")}. Attire: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Visual Action: ${actionCleaned}.`,
-    `Setting & Background: ${locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai setting" : "Cinematic setting")}.`,
+    `Setting & Background: ${locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai setting" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny playground and meadow" : "Cinematic setting")}.`,
     `Cinematography: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     isPureAsmr
       ? `Audio Foley Context: Pristine binaural ASMR culinary sound effects (chop, sizzle, pour, hiss) with zero dialogue.`
@@ -688,10 +732,30 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Film Aesthetics: Ultra-high-definition macro food cinema, 85mm probe macro lens optics, appetizing oil sheen, rising steam, zero phantom limbs, zero floating knives.`
       : isVintage
       ? `Film Aesthetics: Authentic 1900s archival 35mm cellulose grain, muted period palette, soft sepia highlights, period-authentic hand-spun khadi, strictly no modern clothing or contemporary artifacts.`
+      : isGhibli
+      ? `Film Aesthetics: Studio Ghibli hand-painted aesthetic, vibrant watercolor meadows, azure skies with fluffy cumulus clouds, warm whimsical character designs.`
+      : isCartoon
+      ? `Film Aesthetics: Colorful 2D storybook cartoon, expressive outlines, joyful children's book illustrations.`
+      : is3DAnim
+      ? `Film Aesthetics: High-end 3D character animation, warm soft lighting, expressive stylized textures.`
+      : isStopMotion
+      ? `Film Aesthetics: Physical tactile clay/puppet textures, subtle 12fps tactile shutter cadence, miniature studio lighting.`
+      : isComic
+      ? `Film Aesthetics: Graphic novel art, halftone print textures, dynamic ink lines, high-contrast comic framing.`
       : `Film Aesthetics: 1080p Full HD, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
     isCulinary
       ? `Culinary Integrity: Rigid knife grip, stable workstation, clean slicing, no morphing food.`
-      : `Vehicular Integrity: Any draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward; no animals behind carts or on both sides.`,
+      : entities.hasVehicleOrMount
+      ? `Vehicular Integrity: Any draft animals (bullocks/oxen) must be hitched strictly and exclusively to the front wooden yoke pole facing forward; no animals behind carts or on both sides.`
+      : isGhibli
+      ? `Animation Integrity: Studio Ghibli watercolor aesthetic, lush pastoral scenery, wholesome character expressions, fluid 24fps hand-drawn motion.`
+      : isCartoon
+      ? `Animation Integrity: 2D storybook cartoon animation, playful expressions, bright cheerful colors.`
+      : is3DAnim
+      ? `Animation Integrity: 3D Pixar-style animation, soft global illumination, stylized child-friendly physics.`
+      : isVintage
+      ? `Period Integrity: Authentic historical setting and wardrobe, no modern clothing or contemporary artifacts.`
+      : null,
   ]
     .filter(Boolean)
     .join("\n\n");

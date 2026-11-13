@@ -82,7 +82,12 @@
     - Stylized/animated media dynamically bans photorealistic live-action, real human photographs, dark horror, and grotesque elements without ever banning their own art medium.
     - Live-action media dynamically bans CGI, cartoons, 3D renders, and plastic skin.
   - **Automated Idea Analysis Recognition**: Detects keywords across all 6+ channels to auto-recommend optimal genre, tone, dialogue mode, runtime, and aspect ratio.
-  - **Unit Test Coverage**: Added `tests/unit/multi-style.test.ts` (27/27 total test cases passing) validating prompt generation and negative prompt safety across all styles.
+  - **Unit Test Coverage**: Added `tests/unit/multi-style.test.ts` (28/28 total test cases passing) validating prompt generation, negative prompt safety, and zero cross-contamination across all styles.
+  - **Eliminated Hardcoded Legacy Artifacts**:
+    - Removed hardcoded "Sugarcane plantation" default fallbacks across `storyboard/page.tsx`, `image-generation-handler.ts`, and `schemas.ts` in favor of dynamic style-aware environment defaults.
+    - Fixed binary vehicular/culinary integrity ternary in `prompt-compiler.ts` so draft animals and knives are never erroneously assigned to animated/kids projects.
+    - Eliminated false culinary triggers (e.g. "pour into finish line") in `world-engine.ts`.
+    - Made `generate-options` dialogue directives genre-aware and language-bound, preventing out-of-context period Tamil drama from contaminating cheerful kids animations.
 - **Dev Server Webpack Stability & Route Params Hook Refactor (Resolved Flickering Reload Loop)** (`package.json`, `src/app/projects/[projectId]/*`):
   - **Turbopack HMR Loop Resolution**: Next.js 16.4.3 Turbopack on Windows was caught in an endless file-lock / cache mismatch loop in `.next/dev/cache/turbopack/` (generating 34,281 HMR reload events at 10 requests/sec). Cleared the corrupted `.next` cache and switched `dev` and `dev:web` scripts to `next dev --webpack` for rock-solid dev server stability.
   - **Synchronous `useParams()` Migration**: Replaced asynchronous `React.use(params)` across all dynamic client pages (`story`, `storyboard`, `bible`, `edit`, `page.tsx`) with Next.js official synchronous `useParams()` hook, preventing client Suspense re-mounting and screen flashing.

@@ -156,7 +156,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
   const hasPeriodSetting = has1900s || hasGeneralPeriod;
   const periodEra = has1900s ? "1900s" : hasGeneralPeriod ? "historical_vintage" : undefined;
 
-  const hasCulinaryAction = /\b(chop|chopping|slice|slicing|dice|dicing|sear|searing|sizzle|sizzling|fry|frying|boil|boiling|simmer|simmering|saut[eé]|pour|pouring|whisk|whisking|knead|kneading|knife|cutting board|skillet|pan|pot|stove|burner|ingredient|ingredients|garlic|steak|onion|butter|oil|asmr|recipe|dish|culinary|cook|cooking|plate|plating|garnish)\b/i.test(combined);
+  const hasCulinaryAction = /\b(chop|chopping|slice|slicing|dice|dicing|sear|searing|sizzle|sizzling|pan-fry|stir-fry|simmer|simmering|saut[eé]|whisk|whisking|knead|kneading|cutting board|chopping board|skillet|saucepan|stovetop burner|raw meat|ribeye|garlic clove|olive oil drizzle)\b/i.test(combined);
   let culinaryFocus: string | undefined = undefined;
   if (hasCulinaryAction) {
     if (/\b(chop|slice|dice|knife|cutting board)\b/i.test(combined)) culinaryFocus = "knife_prep";

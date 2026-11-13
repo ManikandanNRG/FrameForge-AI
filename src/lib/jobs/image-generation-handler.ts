@@ -72,9 +72,19 @@ export async function imageGenerationHandler(
     .trim();
 
   // Location environment
+  const defaultLocation = (() => {
+    const style = (project.visualStyle || "").toUpperCase();
+    if (style === "GHIBLI_ANIME") return "Lush green countryside meadow, rolling hills, blooming wildflowers under sunny blue sky";
+    if (style === "CARTOON_2D" || style === "ANIMATION_3D") return "Bright cheerful animated storybook landscape";
+    if (style === "CULINARY_MACRO_ASMR") return "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron cookware";
+    if (style === "VINTAGE_FILM") return "Authentic 1900s historical village setting, dusty rustic pathway";
+    if (style === "DOCUMENTARY") return "Authentic natural documentary environment";
+    return "Authentic cinematic story environment";
+  })();
+
   const locationEnv =
     locationAssets[0]?.description ||
-    "dense rural South Indian sugarcane plantation with narrow dusty red dirt pathway";
+    ((shot as any).scene?.location && (shot as any).scene.location !== "Location" && (shot as any).scene.location !== "Main Story World" ? (shot as any).scene.location : defaultLocation);
 
   // Synthesize master cinematic photographic prompt using Universal Prompt Compiler
   const bundle = compileCinematicPrompt({

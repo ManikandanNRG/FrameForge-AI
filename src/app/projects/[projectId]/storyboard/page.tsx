@@ -744,18 +744,29 @@ export default function StoryboardPage() {
     audioScriptLines.push(`- Audio Atmosphere & Foley: ${selected.audioPrompt}`);
   }
 
-  // Resolve authentic location description from Production Bible (never fallback to "SCENE 1")
+  // Resolve authentic location description from Production Bible
   const locationAssets = bibleAssets.filter(a => a.assetType === "LOCATION");
   const matchedLocation = locationAssets.find(l => {
     const locLower = l.name.toLowerCase();
     const txtLower = shotText.toLowerCase();
-    return txtLower.includes(locLower) ||
-      (locLower.includes("sugarcane") && (txtLower.includes("sugarcane") || txtLower.includes("cane") || txtLower.includes("stalk"))) ||
-      (locLower.includes("village") && (txtLower.includes("village") || txtLower.includes("courtyard") || txtLower.includes("house") || txtLower.includes("crowd")));
+    return txtLower.includes(locLower);
   }) || locationAssets[0];
+
+  const defaultLocationByStyle = (() => {
+    const style = (projectData?.visualStyle || "").toUpperCase();
+    if (style === "GHIBLI_ANIME") return "Lush green countryside meadow, rolling hills, blooming wildflowers under sunny blue sky";
+    if (style === "CARTOON_2D" || style === "ANIMATION_3D") return "Bright cheerful animated storybook landscape";
+    if (style === "CULINARY_MACRO_ASMR") return "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron cookware";
+    if (style === "VINTAGE_FILM") return "Authentic 1900s historical village setting, dusty rustic pathway";
+    if (style === "DOCUMENTARY") return "Authentic natural documentary environment";
+    return "Authentic cinematic story environment";
+  })();
+
   const locationEnvironment = matchedLocation?.description
     ? matchedLocation.description.replace(/\.+$/, "")
-    : "Vast dense South Indian sugarcane plantation on narrow dusty red dirt pathway";
+    : ((selected as any)?.scene?.location && (selected as any).scene.location !== "Location" && (selected as any).scene.location !== "Main Story World")
+    ? (selected as any).scene.location
+    : defaultLocationByStyle;
 
   const isPortrait = projectData?.aspectRatio === "PORTRAIT_9_16";
   const arParam = isPortrait ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9";

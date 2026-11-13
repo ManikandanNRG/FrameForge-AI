@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
 
 describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
-  it("compiles Studio Ghibli prompts without banning anime or cartoon", () => {
+  it("compiles Studio Ghibli prompts without banning anime or cartoon, and keeps gemini prompt in Ghibli style", () => {
     const bundle = compileCinematicPrompt({
       actionDescription: "Children and animal friends sprint across a blooming meadow",
       shotSize: "Wide Shot",
@@ -14,6 +14,10 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
     // Positive directives must include Ghibli cues
     expect(bundle.googleFlowPrompt).toContain("Studio Ghibli");
     expect(bundle.fluxStillPrompt).toContain("Studio Ghibli");
+    expect(bundle.geminiPrompt).toContain("Studio Ghibli");
+    expect(bundle.geminiPrompt).not.toContain("draft animals");
+    expect(bundle.geminiPrompt).not.toContain("bullocks");
+    expect(bundle.geminiPrompt).not.toContain("sugarcane");
 
     // Negative prompt must NOT ban anime or cartoon
     expect(bundle.universalNegativePrompt).not.toContain("cartoon");
@@ -21,6 +25,23 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
 
     // Must ban live action
     expect(bundle.universalNegativePrompt).toContain("photorealistic live action");
+  });
+
+  it("does not falsely trigger culinary ASMR when the word 'pour' is used in a sports finish line scene", () => {
+    const bundle = compileCinematicPrompt({
+      actionDescription: "As the finish line comes into view, children and animals pour into the celebration area waving flags",
+      shotSize: "Wide Shot",
+      cameraMovement: "Sweeping aerial shot",
+      visualStyle: "GHIBLI_ANIME",
+      sourceIdea: "A cheerful kids sports day race in a whimsical Studio Ghibli countryside meadow",
+    });
+
+    // Must stay Studio Ghibli, never Culinary ASMR
+    expect(bundle.geminiPrompt).toContain("Studio Ghibli");
+    expect(bundle.geminiPrompt).not.toContain("culinary");
+    expect(bundle.geminiPrompt).not.toContain("probe macro");
+    expect(bundle.geminiPrompt).not.toContain("knife");
+    expect(bundle.fluxStillPrompt).toContain("Studio Ghibli");
   });
 
   it("compiles 2D Storybook Cartoon prompts safely", () => {
@@ -32,6 +53,7 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
     });
 
     expect(bundle.googleFlowPrompt).toContain("2D storybook kids cartoon");
+    expect(bundle.geminiPrompt).toContain("2D children's storybook cartoon");
     expect(bundle.universalNegativePrompt).not.toContain("cartoon");
     expect(bundle.universalNegativePrompt).toContain("photorealistic live action");
   });
@@ -45,6 +67,7 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
     });
 
     expect(bundle.googleFlowPrompt).toContain("macro culinary cinema");
+    expect(bundle.geminiPrompt).toContain("macro culinary ASMR");
     expect(bundle.universalNegativePrompt).toContain("cartoon");
     expect(bundle.universalNegativePrompt).toContain("CGI");
     expect(bundle.universalNegativePrompt).toContain("phantom hand");
@@ -58,6 +81,7 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
     });
 
     expect(bundle.googleFlowPrompt).toContain("stop-motion");
+    expect(bundle.geminiPrompt).toContain("stop-motion clay animation");
     expect(bundle.universalNegativePrompt).not.toContain("cartoon");
     expect(bundle.universalNegativePrompt).toContain("photorealistic live action");
     expect(bundle.universalNegativePrompt).toContain("smooth digital CGI");
@@ -72,6 +96,7 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
     });
 
     expect(bundle.googleFlowPrompt).toContain("1900s vintage 35mm archival");
+    expect(bundle.geminiPrompt).toContain("1900s vintage 35mm archival");
     expect(bundle.universalNegativePrompt).toContain("modern collared shirt");
     expect(bundle.universalNegativePrompt).toContain("t-shirt");
     expect(bundle.universalNegativePrompt).toContain("sneakers");
@@ -85,6 +110,7 @@ describe("Multi-Style Visual Integrity & Negative Prompt Safety", () => {
     });
 
     expect(bundle.googleFlowPrompt).toContain("graphic novel");
+    expect(bundle.geminiPrompt).toContain("graphic novel comic-book illustration");
     expect(bundle.universalNegativePrompt).not.toContain("cartoon");
     expect(bundle.universalNegativePrompt).toContain("photorealistic live action");
   });

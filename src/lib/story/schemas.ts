@@ -63,7 +63,7 @@ export const StorySceneItemSchema = z.preprocess((val: any) => {
   return {
     sceneNumber: val.sceneNumber ?? val.scene_number ?? val.number ?? val.scene ?? 1,
     heading: val.heading ?? val.scene_heading ?? val.title ?? "EXT. SCENE - DAY",
-    location: val.location ?? "Sugarcane Fields",
+    location: val.location ?? "Main Story World",
     timeOfDay: val.timeOfDay ?? val.time_of_day ?? "AFTERNOON",
     action: val.action ?? val.visualAction ?? val.visual_action ?? val.description ?? "",
     voiceover: val.voiceover ?? val.voice_over ?? "",
@@ -105,7 +105,7 @@ export const StoryOptionSchema = z.preprocess((val: any) => {
     scenes: scenesRaw.map((s: any, idx: number) => ({
       sceneNumber: s?.sceneNumber ?? s?.scene_number ?? idx + 1,
       heading: s?.heading ?? s?.scene_heading ?? `SCENE ${idx + 1}`,
-      location: s?.location ?? "Sugarcane Fields",
+      location: s?.location ?? "Main Story World",
       timeOfDay: s?.timeOfDay ?? s?.time_of_day ?? "AFTERNOON",
       action: s?.action ?? s?.visualAction ?? s?.visual_action ?? s?.description ?? "",
       voiceover: s?.voiceover ?? s?.voice_over ?? "",

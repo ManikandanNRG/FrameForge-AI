@@ -616,7 +616,7 @@ export default function StoryboardPage() {
     } catch {}
   }
 
-  const wardrobeLock = charAttrs.wardrobe ? charAttrs.wardrobe.replace(/\.+$/, "") : "";
+  const wardrobeLock = charAttrs.wardrobe ? String(charAttrs.wardrobe).replace(/\.+$/, "") : "";
 
   // Construct prompt strictly from the character's genuine identity — NEVER use generic male farmer fallback!
   if (!charPrompt) {
@@ -632,21 +632,29 @@ export default function StoryboardPage() {
   }
 
   if (!charVoiceProfile) {
-    const textToScan = `${charName} ${charAttrs.role || ""} ${charAttrs.age || ""} ${activeCharAsset?.description || ""}`.toLowerCase();
-    const isChild = charAttrs.age && (parseInt(charAttrs.age, 10) < 16 || charAttrs.age.includes("child") || charAttrs.age.includes("10") || textToScan.includes("granddaughter") || textToScan.includes("girl") || textToScan.includes("daughter"));
+    const ageStr = String(charAttrs.age || "");
+    const ageNum = parseInt(ageStr, 10);
+    const textToScan = `${charName} ${charAttrs.role || ""} ${ageStr} ${activeCharAsset?.description || ""}`.toLowerCase();
+    const isChild = !!charAttrs.age && ((!isNaN(ageNum) && ageNum < 16) || ageStr.includes("child") || ageStr.includes("10") || textToScan.includes("granddaughter") || textToScan.includes("girl") || textToScan.includes("daughter"));
     const isFemale = textToScan.includes("girl") || textToScan.includes("woman") || textToScan.includes("female") || textToScan.includes("daughter") || textToScan.includes("granddaughter") || textToScan.includes("mother") || textToScan.includes("yazhini") || textToScan.includes("selvi");
     const isElder = textToScan.includes("elder") || textToScan.includes("aging") || textToScan.includes("70") || textToScan.includes("grandfather") || textToScan.includes("ayyanar") || textToScan.includes("old");
 
-    if (isChild && isFemale) {
-      charVoiceProfile = `Tamil Female Child (age ${charAttrs.age || "10"}), authentic rural South Indian Tamil accent, bright, energetic, and curious cadence.`;
+    const isTamilProject = (projectData?.sourceIdea || "").toLowerCase().includes("tamil") || (projectData?.title || "").toLowerCase().includes("tamil") || (projectData?.visualStyle || "").toLowerCase().includes("tamil");
+    const langPrefix = isTamilProject ? "Tamil " : "";
+    const accentDesc = isTamilProject ? ", authentic rural South Indian Tamil accent" : ", clear expressive vocal tone";
+
+    if (projectData?.dialogueMode === "NO_DIALOGUE") {
+      charVoiceProfile = "No Dialogue / Pure ASMR sound design - Foley, physical textures, and mechanical interaction clicks.";
+    } else if (isChild && isFemale) {
+      charVoiceProfile = `${langPrefix}Female Child (age ${charAttrs.age || "10"})${accentDesc}, bright, energetic, and curious cadence.`;
     } else if (isChild && !isFemale) {
-      charVoiceProfile = `Tamil Male Child (age ${charAttrs.age || "10"}), authentic rural South Indian Tamil accent, natural energetic youthful tone.`;
+      charVoiceProfile = `${langPrefix}Male Child (age ${charAttrs.age || "10"})${accentDesc}, natural energetic youthful tone.`;
     } else if (isElder && !isFemale) {
-      charVoiceProfile = `Elderly Tamil Male (age ${charAttrs.age || "70s"}), authentic rural South Indian Tamil accent, deep weathered baritone, calm, spiritual, and grandfatherly tone.`;
+      charVoiceProfile = `Elderly ${langPrefix}Male (age ${charAttrs.age || "70s"})${accentDesc}, deep weathered baritone, calm, spiritual tone.`;
     } else if (isFemale) {
-      charVoiceProfile = `Tamil Female (age ${charAttrs.age || "30s"}), authentic rural South Indian Tamil accent, warm, expressive, and grounded tone.`;
+      charVoiceProfile = `${langPrefix}Female (age ${charAttrs.age || "30s"})${accentDesc}, warm, expressive, and grounded tone.`;
     } else {
-      charVoiceProfile = `Tamil Male (age ${charAttrs.age || "40s"}), authentic rural South Indian Tamil accent, warm grounded tone, natural cadence.`;
+      charVoiceProfile = `${langPrefix}Male (age ${charAttrs.age || "40s"})${accentDesc}, warm grounded tone, natural cadence.`;
     }
   }
 

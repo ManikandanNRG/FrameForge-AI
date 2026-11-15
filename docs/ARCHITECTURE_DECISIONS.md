@@ -246,4 +246,28 @@ Ensures characters have authentic voices and narrative sound without paid API de
   4. **Canonical Prop DNA Lock (`heroPropLock`)**:
      - Injects standardized, modern, relatable prop definitions (e.g. Modern Matte-Black Mechanical Keyboard with doubleshot PBT keycaps and Cherry MX switches) across all scene prompts to guarantee frame-to-frame prop continuity.
   5. **Unit Test Verification**:
-     - Verified in `tests/unit/culinary-asmr.test.ts` (all 35 tests passing across the suite).
+     - Verified in `tests/unit/culinary-asmr.test.ts` (all 37 tests passing across the suite).
+
+## ADR-016: Fine-Grained Craft Action Stages & Mass Conservation for I2V Video Diffusion
+- **Date**: 2026-11-15 · **Status**: Approved & Implemented
+- **Context**: Video diffusion models (Google Flow, Kling 1.5, Runway Gen-3, Luma Dream Machine) hallucinate severely when given Image-to-Video prompts that contain conflicting actions or coarse fallback stations (e.g. falling back to "knife cuts steadily on wooden cutting board" during shelf-sourcing or disassembly). Specifically:
+  1. *Premature Tool & Debris Spawning*: In shelf-retrieval (Scene 2), defaulting to `BOARD_PREP` injected cutting board, knife in hand, gas stoves, and pre-scattered loose keys/switches.
+  2. *Disappearing Geometry during Cutting*: In culinary chopping (Scene 6), AI models deleted or morphed the uncut half of the keyboard into thin air instead of keeping it rigidly anchored on the board.
+- **Decision**:
+  1. **8 Precise Craft Action Stages (`src/lib/story/prompt-compiler.ts`)**:
+     - Expanded `detectCulinaryStation` from 4 crude stations to 8 fine-grained stages: `OBJECT_SOURCING`, `TOOL_DISASSEMBLY`, `MANUAL_FRACTURE`, `CULINARY_CUTTING`, `LIQUID_MARINADE`, `STOVE_COOK`, `PLATING_SERVE`, `HERO_REACTION`.
+  2. **Dedicated Kinematic Invariant & Station Lock per Stage**:
+     - `OBJECT_SOURCING`: `Station Lock: Industrial shelving only. Zero cutting boards, zero kitchen knives, zero stovetops, zero fire. Zero loose keys, zero switches on surfaces prior to harvest.`
+     - `TOOL_DISASSEMBLY`: `Components ONLY detach when tool pulls them; NO pre-scattered loose parts on table. Zero kitchen knives.`
+     - `MANUAL_FRACTURE`: `Both fractured halves remain visible and physically accounted for on the wooden surface.`
+     - `CULINARY_CUTTING`: `Conservation of Mass & Rigid Body Persistence: As the blade cuts through the object, the uncut remaining portion remains solidly anchored and fully visible without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade.`
+     - `LIQUID_MARINADE`: `Continuous golden stream pours into bowl. Bowl stationary, zero knives, zero flames.`
+     - `HERO_REACTION`: `Chef lowers tools and looks into camera. Plated dish steams gently. Zero knives, zero chopping.`
+  3. **Stage-Aware Negative Constraint Matrix**:
+     - `OBJECT_SOURCING` strictly bans: `cutting board, wooden chopping board, chef knife, knife in hand, slicing, loose keys on table, loose switches on table, stove, open flame, wok, raw meat`.
+     - `CULINARY_CUTTING` strictly bans: `disappearing object, vanishing chassis, morphing into food, generic cubes, tofu`.
+  4. **Start Frame & Temporal Continuity Invariant**:
+     - Injected across all I2V prompts: `Start Frame Consistency & Temporal Continuity: Animate directly from the uploaded reference start-frame image, preserving 100% of character appearance, workstation, lighting, and textures. The video motion MUST begin strictly from the visible state of the start-frame without introducing unprompted tools, unprompted stovetops, or phantom debris.`
+  5. **Verification**:
+     - Verified with 37/37 unit tests passing in `tests/unit/culinary-asmr.test.ts`.
+     - Recompiled all 12 scenes for project `cmwg5nczz0001u88sld5gnrmd` in PostgreSQL DB.

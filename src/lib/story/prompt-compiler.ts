@@ -49,35 +49,80 @@ export interface CompiledPromptBundle {
   creditCostEstimate: string;
 }
 
-export type CulinaryStation = "COUNTER_REVEAL" | "BOARD_PREP" | "STOVE_COOK" | "PLATING_SERVE";
+export type CulinaryStation = 
+  | "OBJECT_SOURCING"
+  | "TOOL_DISASSEMBLY"
+  | "MANUAL_FRACTURE"
+  | "CULINARY_CUTTING"
+  | "LIQUID_MARINADE"
+  | "STOVE_COOK"
+  | "PLATING_SERVE"
+  | "HERO_REACTION"
+  | "COUNTER_REVEAL"
+  | "BOARD_PREP";
 
 export function detectCulinaryStation(actionText: string, cameraMotionText?: string | null): CulinaryStation {
   const lower = `${actionText || ""} ${cameraMotionText || ""}`.toLowerCase();
 
-  // 1. Plating / Serving station
-  if (/\b(plate|plating|garnish|serve|serving|platter|dining table)\b/.test(lower) && !/\b(cutting board|chopping|prep)\b/.test(lower)) {
+  // 1. Hero Reaction / Smirk / Reveal (End shot)
+  if (/\b(smirk|look(?:s)? (?:straight )?into (?:the )?camera|lock(?:s)? eyes|tilt(?:s)? head|whisps? of steam curl|hero reveal|rogue smirk|quiet mastery)\b/i.test(lower) &&
+      !/\b(toss|chopping|cleaver|pan|wok|skillet|knife)\b/i.test(lower)) {
+    return "HERO_REACTION";
+  }
+
+  // 2. Plating / Serving station (Final touch, tweezers, garnish)
+  if (/\b(plate|plating|garnish|serving|platter|dining table|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(lower) &&
+      !/\b(chopping|cleaver|dicing|toss(?:ing)?|skillet|wok)\b/i.test(lower)) {
     return "PLATING_SERVE";
   }
 
-  // 2. Stove / Cookware station
-  // Crucial: Distinguish cookware (frying pan, skillet, hot pan, in pan) from camera movements (camera pans, slow pan, panning across)!
-  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet)\b/.test(lower);
-  const hasCookwarePan = /(?:frying pan|saucepan|saut[eé] pan|cast-iron pan|hot pan|into the pan|in the pan|into pan|in pan|pan sear|pan-sear)\b/.test(lower) ||
-    (/\bpan\b/.test(lower) && !/\b(?:camera|slowly|smooth|horizontal|lateral)\s+pans?\b/.test(lower) && !/\bpanning\b/.test(lower));
+  // 3. Stove / Cookware station (Active heat, fire, wok toss, boiling, searing)
+  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet|gas flame|flames?|ignit(?:e|ion)|toss(?:ing)?|smoking oil|high-heat|pan sear)\b/i.test(lower);
+  const hasCookwarePan = /(?:frying pan|saucepan|saut[eé] pan|cast-iron pan|hot pan|into the pan|in the pan|into pan|in pan|pan sear|pan-sear)\b/i.test(lower) ||
+    (/\bpan\b/i.test(lower) && !/\b(?:camera|slowly|smooth|horizontal|lateral)\s+pans?\b/i.test(lower) && !/\bpanning\b/i.test(lower));
 
-  const isStove = (hasStoveKeywords || hasCookwarePan) && !/\b(cutting board|chopping board|deftly chop|slices? seasoned|raw meat|reveal|ingredients like)\b/.test(lower);
+  const isStove = (hasStoveKeywords || hasCookwarePan) && !/\b(cutting board|chopping board|deftly chop|slices? seasoned|raw meat|reveal|ingredients like)\b/i.test(lower);
   if (isStove) {
     return "STOVE_COOK";
   }
 
-  // 3. Countertop / Ingredient Reveal station (Mise En Place)
-  const isReveal = /\b(reveal|revealing|countertop|fresh ingredients|mise en place|showcase|ingredients like|table setting|overview)\b/.test(lower) &&
-    !/\b(chopping|slicing|cutting|dicing|sear|sizzle|skillet|baste)\b/.test(lower);
+  // 4. Liquid Pour / Marinade (Rosin flux, oil drizzle, sauce dropper, glaze)
+  if (/\b(pour(?:s|ing)?|marinade|marinating|flux|dropper|drizzl(?:e|ing)|glaz(?:e|ing)|bottle of)\b/i.test(lower) &&
+      !/\b(chopping|cleaver|dicing|toss(?:ing)?|wok|flame)\b/i.test(lower)) {
+    return "LIQUID_MARINADE";
+  }
+
+  // 5. Object Sourcing / Salvage (Shelf, rack, e-waste, unboxing, cable snap, grabbing raw object)
+  if (/\b(shelf|shelves|scrapyard|storage|reach(?:es)? up|rip(?:s|ping)? free|salvage|salvaging|unboxing|unplugs?|disconnect|retriev(?:e|ing)|grab(?:s|bing)? from|cable snaps?)\b/i.test(lower) &&
+      !/\b(chopping|cleaver|dicing|knife|wok|burner|flame|sear)\b/i.test(lower)) {
+    return "OBJECT_SOURCING";
+  }
+
+  // 6. Tool Disassembly / Harvest (Keycap puller, switch extractor, screwdriver, pliers, popping keys)
+  if (/\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch)\b/i.test(lower) &&
+      !/\b(cleaver|chef knife|chop(?:s|ping)?|dicing)\b/i.test(lower)) {
+    return "TOOL_DISASSEMBLY";
+  }
+
+  // 7. Manual Structural Fracture (Snapping board/frame with hands/palm across edge)
+  if (/\b(snap(?:s|ping)? (?:the )?(?:board|chassis|frame|body)|fractur(?:e|ing)|crack(?:s|ing)? in two|breaks? in half|palm strike|bends? and snaps?)\b/i.test(lower) &&
+      !/\b(knife|cleaver|blade|chop|dicing)\b/i.test(lower)) {
+    return "MANUAL_FRACTURE";
+  }
+
+  // 8. Culinary Cutting / Dicing / Slicing (Damascus cleaver, chef knife, chiffonade, dicing)
+  if (/\b(cleaver|chef knife|blade|chop(?:s|ping)?|dicing|dice|julienne|chiffonade|slic(?:e|ing)|cut(?:s|ting)? into|knife)\b/i.test(lower)) {
+    return "CULINARY_CUTTING";
+  }
+
+  // 9. Countertop / Ingredient Reveal station (Mise En Place)
+  const isReveal = /\b(reveal|revealing|countertop|fresh ingredients|mise en place|showcase|ingredients like|table setting|overview)\b/i.test(lower) &&
+    !/\b(chopping|slicing|cutting|dicing|sear|sizzle|skillet|baste)\b/i.test(lower);
   if (isReveal) {
     return "COUNTER_REVEAL";
   }
 
-  // 4. Default: Cutting board / prep station
+  // 10. Default: Cutting board / prep station
   return "BOARD_PREP";
 }
 
@@ -405,10 +450,89 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
     const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
 
-    if (station === "STOVE_COOK") {
+    if (station === "OBJECT_SOURCING") {
+      negativeList.push(
+        "cutting board",
+        "wooden chopping board",
+        "chopping knife",
+        "chef knife",
+        "cleaver",
+        "knife in hand",
+        "slicing",
+        "chopping",
+        "dicing",
+        "loose keys on table",
+        "loose switches on table",
+        "scattered keys",
+        "stove",
+        "open flame",
+        "wok",
+        "frying pan",
+        "raw meat",
+        "steak",
+        "food",
+        "onions",
+        "vegetables",
+        "cooking on stove"
+      );
+    } else if (station === "TOOL_DISASSEMBLY") {
+      negativeList.push(
+        "kitchen knife",
+        "chef knife",
+        "cleaver",
+        "slicing",
+        "chopping",
+        "stove",
+        "open flame",
+        "wok",
+        "pre-scattered keys",
+        "loose switches on table before extraction",
+        "raw meat",
+        "food"
+      );
+    } else if (station === "MANUAL_FRACTURE") {
+      negativeList.push(
+        "kitchen knife",
+        "chef knife",
+        "cleaver",
+        "slicing",
+        "chopping",
+        "stove",
+        "open flame",
+        "wok",
+        "raw meat",
+        "food",
+        "vanishing pieces"
+      );
+    } else if (station === "CULINARY_CUTTING") {
+      negativeList.push(
+        "disappearing object",
+        "vanishing chassis",
+        "morphing into food",
+        "generic cubes",
+        "tofu",
+        "stove",
+        "open flame",
+        "wok",
+        "raw meat",
+        "steak"
+      );
+    } else if (station === "LIQUID_MARINADE") {
+      negativeList.push(
+        "chopping knife",
+        "cleaver",
+        "stove",
+        "open flame",
+        "wok",
+        "raw meat",
+        "food"
+      );
+    } else if (station === "STOVE_COOK") {
       negativeList.push("cutting board", "wooden chopping board", "chopping knife", "slicing raw meat", "raw ingredient prep", "knife in hand", "cutting knife", "walking away from stove");
     } else if (station === "PLATING_SERVE") {
       negativeList.push("stove", "open flame", "frying pan", "sizzling skillet", "raw meat", "chopping knife");
+    } else if (station === "HERO_REACTION") {
+      negativeList.push("chopping knife", "cleaver", "chopping", "slicing", "stove", "open flame", "raw meat", "food");
     } else if (station === "COUNTER_REVEAL") {
       negativeList.push("stove", "frying pan", "skillet", "hot oil", "sizzle", "cooking", "flame", "boiling", "chopping knife", "picking up meat", "putting meat in pan", "throwing in pan", "dropping in pan", "teleporting", "roaring flame", "wok", "gas burner", "burning stove", "cooking in background");
     } else {
@@ -832,16 +956,28 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     isPureAsmr
       ? (() => {
           const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
-          if (station === "STOVE_COOK") {
-            return `Culinary Dynamics: Ingredients cook steadily in the hot skillet with rising aromatic steam and bubbling butter. The cookware remains firmly anchored to the stovetop burner.`;
+          switch (station) {
+            case "OBJECT_SOURCING":
+              return `Action Dynamics: Intact retrieval motion. The chef reaches up and firmly grasps the object. No kitchen knives, no cutting boards, no cooking stoves, no loose debris.`;
+            case "TOOL_DISASSEMBLY":
+              return `Action Dynamics: Specialized disassembly tool hooks onto components with crisp mechanical leverage. Components detach ONLY when the tool physically extracts them. No kitchen knives, no premature loose parts on table.`;
+            case "MANUAL_FRACTURE":
+              return `Action Dynamics: Clean structural snap across the edge. Both fractured halves remain visibly accounted for on the wooden surface. No kitchen knives, no fire.`;
+            case "CULINARY_CUTTING":
+              return `Action Dynamics: Rhythmic, steady cutting with heavy blade. The knife cuts cleanly through the material.`;
+            case "LIQUID_MARINADE":
+              return `Action Dynamics: Viscous liquid pours in a continuous golden stream from dropper bottle onto components in bowl. Fluid dynamics realistic, bowl stationary.`;
+            case "STOVE_COOK":
+              return `Action Dynamics: Cookware tosses steadily over blue burner flame with rising aromatic steam and sparks. Cookware remains firmly anchored in hand or on burner.`;
+            case "PLATING_SERVE":
+              return `Action Dynamics: Precision garnishing and plating. Titanium tweezers delicately place final elements on the gourmet mound.`;
+            case "HERO_REACTION":
+              return `Action Dynamics: Chef lowers tools and holds quiet eye contact with the camera. Subtle, confident expression. Plated dish steams gently.`;
+            case "COUNTER_REVEAL":
+              return `Action Dynamics: The camera glides smoothly across the workbench showcasing the materials. All items remain stationary in their natural state.`;
+            default:
+              return `Action Dynamics: Measured craft motions. Hands manipulate the object with artisanal focus.`;
           }
-          if (station === "PLATING_SERVE") {
-            return `Culinary Dynamics: Precision garnishing and plating. The finished dish rests stably on the serving dish.`;
-          }
-          if (station === "COUNTER_REVEAL") {
-            return `Culinary Dynamics: The camera glides smoothly across the countertop, showcasing the fresh ingredients. All ingredients remain completely stationary in their natural state.`;
-          }
-          return `Culinary Dynamics: The knife cuts steadily through the ingredients on the wooden cutting board. The chef remains anchored at the cutting board workstation throughout the movement.`;
         })()
       : hasDialogue
       ? `Facial & Dialogue Dynamics: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${lang} lip movements and emotional expression.`
@@ -849,16 +985,28 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     isInedibleCooking
       ? (() => {
           const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
-          if (station === "STOVE_COOK") {
-            return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner. Authentic components of ${heroTargetName} retain rigid shape and physical textures in the pan; zero generic cubes, zero tofu, zero morphing into grocery food.`;
+          switch (station) {
+            case "OBJECT_SOURCING":
+              return `Prop Integrity Lock: ${heroTargetName} starts and remains 100% intact and fully assembled. Zero loose keys, zero loose switches, zero debris on table prior to harvest. Station Lock: Industrial shelving only. Zero cutting boards, zero kitchen knives, zero stovetops, zero fire.`;
+            case "TOOL_DISASSEMBLY":
+              return `Prop Integrity Lock: ${heroTargetName} remains anchored on butcher block. Zero knives in hands. Components ONLY detach at the exact moment the extraction tool pulls them; NO pre-scattered loose parts or keys on the table.`;
+            case "MANUAL_FRACTURE":
+              return `Prop Integrity Lock: Clean mechanical fracture. Both fractured halves remain visible and physically accounted for on the wooden surface. No parts vanish, melt, or morph into food.`;
+            case "CULINARY_CUTTING":
+              return `Kinematic Invariant: Max two hands in frame. Conservation of Mass & Rigid Body Persistence: As the blade cuts through the ${heroTargetName}, the uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade. Zero generic cubes, zero food transformation.`;
+            case "LIQUID_MARINADE":
+              return `Prop Integrity Lock: Components of ${heroTargetName} inside bowl glisten with glossy glaze. Bowl remains stationary on workbench. Zero knives, zero flames.`;
+            case "STOVE_COOK":
+              return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner or held firmly by handle. Authentic components of ${heroTargetName} leap in realistic ballistic trajectory, retaining rigid shape and physical textures; zero generic cubes, zero tofu, zero morphing into grocery food.`;
+            case "PLATING_SERVE":
+              return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
+            case "HERO_REACTION":
+              return `Kinematic Invariant: Mask, goggles, and character wardrobe remain locked. Completed dish steams gently on table. Camera executes smooth pull-back. Zero knives, zero cooking.`;
+            case "COUNTER_REVEAL":
+              return `Kinematic Invariant: Cold salvage & prep showcase only. Zero cooking on stove, zero flames. ${heroTargetName} remains stationary and intact.`;
+            default:
+              return `Kinematic Invariant: Max two hands in frame. Specialized tools maintain rigid metallic geometry. Authentic components of ${heroTargetName} divide cleanly without melting or becoming generic cubes.`;
           }
-          if (station === "PLATING_SERVE") {
-            return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
-          }
-          if (station === "COUNTER_REVEAL") {
-            return `Kinematic Invariant: Cold salvage & prep showcase only. Zero cooking on stove, zero flames. ${heroTargetName} remains stationary and intact.`;
-          }
-          return `Kinematic Invariant: Max two hands in frame. Specialized tools maintain rigid metallic geometry. Authentic components of ${heroTargetName} divide cleanly without melting or becoming generic cubes. Station Lock: Workbench cutting board only.`;
         })()
       : isCulinary
       ? (() => {
@@ -877,7 +1025,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : entities.hasVehicleOrMount
       ? `Vehicular Invariant: Draft animals move strictly forward at the front yoke only.`
       : null,
-    `Start Frame Consistency: Animate directly from the uploaded reference start-frame image (Google Flow / Kling / Runway / Luma), preserving 100% of character appearance, kitchen workstation, lighting, and textures.`,
+    `Start Frame Consistency & Temporal Continuity: Animate directly from the uploaded reference start-frame image (Google Flow / Kling / Runway / Luma), preserving 100% of character appearance, workstation, lighting, and textures. The video motion MUST begin strictly from the visible state of the start-frame without introducing unprompted tools, unprompted stovetops, or phantom debris.`,
   ]
     .filter(Boolean)
     .join(" ")

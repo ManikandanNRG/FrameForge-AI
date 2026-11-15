@@ -156,5 +156,37 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     expect(sneakerBundle.googleFlowPrompt).toContain("Nike Air Max 90 with vibrant infrared heel tab");
     expect(sneakerBundle.googleFlowPrompt).toContain("Inedible Object Cooking & Material Invariants");
   });
+
+  it("strictly prevents I2V hallucinations with precision stage detection & mass conservation", () => {
+    // 1. Scene 2 Stage: OBJECT_SOURCING (Shelf retrieval)
+    const shelfBundle = compileCinematicPrompt({
+      actionDescription: "The chef reaches up with black-gloved hands and firmly rips a sleek, modern matte-black mechanical keyboard free from an industrial shelf. The thick black coiled braided aviator cable with chrome coupler snaps free with an echoing crack. He catches the black keyboard cleanly by its aluminum bezel.",
+      heroObject: "Mechanical Keyboard",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      genre: "ASMR",
+      dialogue: "",
+    });
+
+    expect(shelfBundle.videoMotionPrompt).toContain("Station Lock: Industrial shelving only");
+    expect(shelfBundle.videoMotionPrompt).toContain("Zero cutting boards, zero kitchen knives, zero stovetops, zero fire");
+    expect(shelfBundle.videoMotionPrompt).toContain("Zero loose keys, zero loose switches, zero debris on table prior to harvest");
+    expect(shelfBundle.videoMotionPrompt).not.toContain("The knife cuts steadily through the ingredients");
+    expect(shelfBundle.universalNegativePrompt).toContain("cutting board");
+    expect(shelfBundle.universalNegativePrompt).toContain("loose keys on table");
+
+    // 2. Scene 6 Stage: CULINARY_CUTTING (Cleaver dicing)
+    const cuttingBundle = compileCinematicPrompt({
+      actionDescription: "Chef wields a heavy Damascus steel cleaver: THWACK! In rapid culinary rhythm, he dices the circuit board into 1-inch squares.",
+      heroObject: "Mechanical Keyboard",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      genre: "ASMR",
+      dialogue: "",
+    });
+
+    expect(cuttingBundle.videoMotionPrompt).toContain("Conservation of Mass & Rigid Body Persistence");
+    expect(cuttingBundle.videoMotionPrompt).toContain("uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing");
+    expect(cuttingBundle.universalNegativePrompt).toContain("vanishing chassis");
+    expect(cuttingBundle.universalNegativePrompt).toContain("disappearing object");
+  });
 });
 

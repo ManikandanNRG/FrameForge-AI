@@ -24,6 +24,8 @@ export interface CompilePromptOptions {
   characterDescription?: string | null;
   wardrobeLock?: string | null;
   locationDescription?: string | null;
+  heroPropLock?: string | null;
+  heroObject?: string | null;
   aspectRatio?: string | null; // PORTRAIT_9_16 | LANDSCAPE_16_9 | SQUARE_1_1
   storyLanguage?: string | null;
   targetDurationSeconds?: number | null;

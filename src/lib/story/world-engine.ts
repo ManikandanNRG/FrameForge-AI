@@ -22,6 +22,8 @@ export interface DetectedEntities {
   periodEra?: string;
   hasCulinaryAction: boolean;
   culinaryFocus?: string;
+  isInedibleCooking?: boolean;
+  inedibleHeroObject?: string;
 }
 
 export const UNIVERSAL_PHYSICAL_LAWS = {
@@ -45,10 +47,36 @@ export const UNIVERSAL_PHYSICAL_LAWS = {
   CULINARY_ASMR_PHYSICS:
     "Culinary Kinematics & Food Invariants: Hand Anatomical Rigidity: Strictly maximum two hands visible in frame at any moment (one designated hand gripping knife handle with fingers wrapped firmly around the grip, one hand in curled protective claw-grip holding the ingredient). Strictly PROHIBIT phantom third hands, extra floating arms entering from edges, or hands protruding from unnatural angles. Knife & Tool Anchor: Knife blade must be rigidly continuous with its handle; fingers wrapped securely around handle. Strictly PROHIBIT floating knives, knives cutting without a gripping hand, or detached blades. Rigid Workstation Stability: Cutting board must rest flat and immovable on the countertop. Cookware (skillet, pot, pan) must remain firmly seated on the induction burner or stovetop flame; strictly PROHIBIT cookware tilting or floating into mid-air without being held. Mass Conservation & Clean Slicing: When a knife slices an ingredient, the ingredient divides cleanly into geometrically sound slices that remain on the cutting board. Strictly PROHIBIT food morphing into different ingredients, vegetables liquifying before contact, or spontaneous material transformations. Fluid & Heat Dynamics: Hot oil must sizzle with realistic micro-droplets confined to pan; steam and smoke must rise naturally upward; boiling liquids must stay contained within cookware.",
 
+  // Law 6: Inedible Object Cooking & Technical Hardware Physics
+  INEDIBLE_OBJECT_PHYSICS:
+    "Inedible Object Cooking & Hardware Invariants: Handled technical objects (keyboards, keycaps, switches, circuit boards, earbuds, phone glass, screws, wires) maintain rigid physical geometry as real technical components. Distinct mechanical keycaps must maintain authentic square shape, concave finger rest profile, and legible laser-etched letters (WASD, ESC). Mechanical switches must display crisp cross-stems and metallic contact pins. Strictly PROHIBIT inedible objects dissolving into generic cubes, plain plastic blocks, dice, tofu cubes, or morphing into grocery food/meat/dough. Plated dishes and stir-fries must be composed 80% of the authentic hero object components glistening under translucent culinary flux/glaze. Macro camera distance is mandatory during small component manipulation to preserve fine mechanical detail.",
+
   // Dynamic Rendering Integrity Generator based on User Visual Style & Era
   getRenderingIntegrity: (visualStyle?: string | null, sourceIdea?: string | null, isPeriod = false): string => {
     const styleUpper = (visualStyle || "").toUpperCase();
     const ideaLower = (sourceIdea || "").toLowerCase();
+
+    const isInedible =
+      ideaLower.includes("keyboard") ||
+      ideaLower.includes("keycap") ||
+      ideaLower.includes("airpod") ||
+      ideaLower.includes("airbud") ||
+      ideaLower.includes("phone") ||
+      ideaLower.includes("smartphone") ||
+      ideaLower.includes("circuit board") ||
+      ideaLower.includes("motherboard") ||
+      ideaLower.includes("pcb") ||
+      ideaLower.includes("stone") ||
+      ideaLower.includes("rock") ||
+      ideaLower.includes("hardware") ||
+      ideaLower.includes("e-waste") ||
+      ideaLower.includes("inedible") ||
+      ideaLower.includes("non-food");
+
+    if (isInedible) {
+      return "Aesthetic Realism: Ultra-high-definition macro technical-culinary cinema, 50mm and 85mm probe macro optics, razor-sharp focus on authentic technical hardware textures (mechanical keycaps with legible white legends, Cherry switches with crisp cross-stems, metallic copper ribbons, glistening translucent amber rosin flux glaze), f/1.8 creamy bokeh background, 60fps high-speed fluid and spark physics. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render, NO cartoon.";
+    }
+
     const isCulinary =
       styleUpper === "CULINARY_MACRO_ASMR" ||
       ideaLower.includes("cooking") ||
@@ -166,6 +194,19 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
     else culinaryFocus = "general_cooking";
   }
 
+  // Detect Inedible / Technical Object Cooking
+  const isInedibleCooking = /\b(keyboard|keycaps?|cherry mx|circuit board|motherboard|pcb|resistors?|capacitors?|airbuds?|airpods?|earphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|wires?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible)\b/i.test(combined);
+
+  let inedibleHeroObject: string | undefined = undefined;
+  if (isInedibleCooking) {
+    if (/\b(keyboard|keycaps?|cherry mx)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard & Keycaps";
+    else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
+    else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
+    else if (/\b(circuit board|motherboard|pcb)\b/i.test(combined)) inedibleHeroObject = "Circuit Board & Microchips";
+    else if (/\b(stones?|granite|rocks?)\b/i.test(combined)) inedibleHeroObject = "Granite River Stones";
+    else inedibleHeroObject = "Hardware Component";
+  }
+
   return {
     hasVehicleOrMount,
     vehicleType,
@@ -175,6 +216,10 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
     hasPeriodSetting,
     periodEra,
     hasCulinaryAction,
+    culinaryFocus,
+    isInedibleCooking,
+    inedibleHeroObject,
+  };
     culinaryFocus,
   };
 }

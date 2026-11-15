@@ -558,7 +558,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "chicken",
       "broccoli",
       "blurry keys",
-      "deformed components"
+      "deformed components",
+      "eating",
+      "biting",
+      "chewing",
+      "tasting",
+      "putting in mouth",
+      "swallowing",
+      "open mouth",
+      "licking"
     );
   }
 
@@ -1024,7 +1032,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             case "PLATING_SERVE":
               return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
             case "HERO_REACTION":
-              return `Kinematic Invariant: Mask, goggles, and character wardrobe remain locked. Completed dish steams gently on table. Camera executes smooth pull-back.`;
+              return `Art Presentation & Safety Lock: Mask, goggles, and character wardrobe remain locked. Chef gently slides the finished masterpiece forward as a Michelin-star artwork presentation, holding a knowing rogue smirk. Camera executes smooth pull-back. Zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
             case "COUNTER_REVEAL":
               return `Kinematic Invariant: Cold salvage & prep showcase only. ${heroTargetName} remains stationary and intact.`;
             default:

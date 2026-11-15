@@ -272,3 +272,17 @@ Ensures characters have authentic voices and narrative sound without paid API de
   5. **Verification**:
      - Verified with 37/37 unit tests passing in `tests/unit/culinary-asmr.test.ts`.
      - Recompiled all 12 scenes for project `cmwg5nczz0001u88sld5gnrmd` in PostgreSQL DB.
+
+## ADR-017: Zero-Ingestion Content Policy & Conceptual Artwork Presentation for Inedible Cooking
+- **Date**: 2026-11-15 · **Status**: Approved & Implemented
+- **Context**: Inedible object cooking channels (cooking keyboards, smartphones, electronics, stones, hardware) must NEVER portray human eating, biting, chewing, or ingestion:
+  1. *Platform Content Safety Policies*: YouTube, Instagram, and TikTok enforce strict policies against self-harm, eating non-food items, or dangerous ingestion of toxic materials (lithium, lead, plastics). Portraying eating risks immediate strike, age-restriction, or shadowban.
+  2. *Artistic Theme*: The channel's value proposition is hypnotic ASMR alchemy, Michelin-star culinary craft technique, and conceptual art that challenges imagination—not eating junk.
+- **Decision**:
+  1. **Zero Ingestion Invariant (`src/lib/story/world-engine.ts`, `src/lib/story/prompts.ts`, `src/lib/story/prompt-compiler.ts`)**:
+     - Explicitly bans: `eating, biting, chewing, tasting, mouth open, putting in mouth, swallowing, licking` across all prompts for `isInedibleCooking`.
+  2. **Master Artwork Presentation Ending (Scene 12)**:
+     - The climax ends on an artistic presentation: the chef gently slides the motherboard platter forward toward the camera like a Michelin-star offering, locking eyes with a secretive rogue smirk as golden dust motes float through the warm spotlight.
+  3. **Mandatory Content Safety Disclaimer**:
+     - Automatically injects on-screen safety disclaimer directives into the screenplay, storyboard, and export metadata:
+       `"CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT ATTEMPT OR INGEST."`

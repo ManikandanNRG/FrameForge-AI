@@ -71,6 +71,10 @@
     - Eliminates conflicting station prompts by expanding detection into 8 distinct craft stages: `OBJECT_SOURCING` (shelving retrieval), `TOOL_DISASSEMBLY` (wire pullers/switch extractors), `MANUAL_FRACTURE` (palm strikes), `CULINARY_CUTTING` (cleaver chopping), `LIQUID_MARINADE` (rosin flux pour), `STOVE_COOK` (wok tossing), `PLATING_SERVE` (tweezers), and `HERO_REACTION` (smirk/pull-back).
     - Prevents premature tool/debris spawning: Scene 2 (shelf retrieval) strictly locks to industrial shelving with zero cutting boards, zero kitchen knives, zero stovetops, and zero pre-scattered loose keys/switches.
     - Prevents geometry disappearance during cutting: Enforces Conservation of Mass and Rigid Body Persistence so uncut chassis sections remain firmly anchored on the board without vanishing into thin air.
+  - **Zero-Ingestion Safety Policy & Conceptual Art Ending (ADR-017)**:
+    - Eliminates dangerous eating/tasting actions: strictly bans `eating, biting, chewing, tasting, mouth open, putting in mouth` across all prompts for inedible object cooking.
+    - Upgrades Scene 12 to a Master Artwork Presentation where the chef slides the plated motherboard platter forward like a Michelin-star offering, locking eyes with a rogue smirk.
+    - Injects mandatory Content Safety Disclaimer into prompts and export metadata: `"CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT ATTEMPT OR INGEST."`
   - **Automated Anti-Hallucination Guardrails**: Eliminates dual-sided vehicles (e.g. draft animals tied to both front and back ends of carts), 180° backward neck twists, rubber spines, and spatial fusion of background objects into foreground heroes.
   - **Universal Multi-Engine Prompt Compiler**: Generates engine-specific, physically grounded prompts and negative matrices for Google Flow (Veo), Kling Direct Video, Sora, FLUX.1 Stills, and ChatGPT/Gemini.
   - **Storyboard UI Physics Health Inspector & Auto-Enhance API**: Integrated a live `Universal Physics Engine: Verified` status bar in the Prompt Hub with a 1-click `⚡ Auto-Enhance Physics` action that audits, repairs, and fortifies any prompt in real time.

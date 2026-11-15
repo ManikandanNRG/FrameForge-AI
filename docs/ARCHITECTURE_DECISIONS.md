@@ -286,3 +286,21 @@ Ensures characters have authentic voices and narrative sound without paid API de
   3. **Mandatory Content Safety Disclaimer**:
      - Automatically injects on-screen safety disclaimer directives into the screenplay, storyboard, and export metadata:
        `"CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT ATTEMPT OR INGEST."`
+
+
+## ADR-018: Multi-Platform Social Launch Kit & High-CTR AI Thumbnail Engine (YouTube & Instagram)
+- **Date**: 2026-11-15 · **Status**: Approved & Implemented
+- **Context**: Creators launching viral Inedible Object Cooking ASMR and cinematic AI shorts require complete, platform-specific launch packages with high-converting titles, descriptions, hashtags, audio recommendations, pinned comments, safety disclaimers, and validated high-CTR AI thumbnail prompts (16:9 and 9:16).
+- **Decision**:
+  1. **Launch Kit Compiler (`src/lib/story/launch-kit.ts`)**:
+     - Produces platform-tailored publishing suites for YouTube (3 viral title variants, full SEO description with timestamps, foley sound credits, safety disclaimer, search tags) and Instagram Reels (hook-driven caption, trending audio track recommendation, 25+ viral hashtags, engagement pinned comment poll).
+     - Generates verified, dual-handed AI thumbnail prompts (16:9 Landscape & 9:16 Vertical) featuring `@TheShadowAlchemist` character consistency, cleanly severed cleaver-cut keyboard half in one hand, spatula overflowing with stir-fried keycaps & crimson switches dripping with amber glaze in the other, sizzling carbon-steel pan filling the lower foreground, and deep shadowed charcoal studio vignette background.
+     - Enforces strict constraints: zero teeth/bite marks, zero username rendered on screen, zero text watermarks, zero eating/ingestion.
+  2. **Enhanced API Endpoint (`src/app/api/projects/[projectId]/thumbnail/route.ts`)**:
+     - GET returns saved thumbnail artifact along with dynamic `launchKit` payload.
+     - POST supports `OBJECT_COOKING_HOOK` alongside `CURIOSITY_SHOCK`, `EPIC_CINEMATIC`, and `DRAMATIC_CONFLICT`, with support for both `16:9` (1280x720) and `9:16` (720x1280) dimensions via FLUX.1.
+  3. **Universal Studio UI (`src/components/nav/ProjectWorkflowNav.tsx`)**:
+     - Integrated a 3-tab Social Launch Suite (YouTube Launch, Instagram Reels, AI Thumbnail Studio) into Step 5 of the studio workflow navigation bar.
+     - Includes 1-click copy buttons for all titles, descriptions, captions, hashtags, comments, and AI prompts.
+  4. **Verification**:
+     - 40/40 unit tests passing (`tests/unit/launch-kit.test.ts`), `tsc --noEmit` clean with 0 errors.

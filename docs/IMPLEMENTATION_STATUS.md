@@ -216,3 +216,14 @@
 ### Next Recommended Step
 - Run an end-to-end test with a real prompt using Gemini (free text generation) and OpenAI (DALL-E 3 storyboard generation) or Kling video generation.
 - Install FFmpeg on the host machine to test final MP4 timeline rendering.
+
+
+### 2026-11-15 — ADR-018: Social Launch Kit & AI Thumbnail Studio Integrated
+- **Features Implemented**:
+  1. `src/lib/story/launch-kit.ts`: Authoritative multi-platform publishing engine generating tailored YouTube packages (3 viral title variants, SEO description with safety disclaimer and timestamps, tags), Instagram Reels packages (high-retention caption, trending audio recommendation, 25+ viral hashtags, engagement pinned comment poll), and high-CTR thumbnail prompts (16:9 & 9:16).
+  2. `src/app/api/projects/[projectId]/thumbnail/route.ts`: Updated GET and POST endpoints to support `OBJECT_COOKING_HOOK`, returning `launchKit` and rendering 16:9 (1280x720) or 9:16 (720x1280) via FLUX.1.
+  3. `src/components/nav/ProjectWorkflowNav.tsx`: 3-tab Social Launch Suite (YouTube Launch, Instagram Reels, AI Thumbnail Studio) with 1-click copy for all fields, aspect ratio selector, and AI prompt viewer.
+  4. `tests/unit/launch-kit.test.ts`: Automated test suite covering prompt constraints, YouTube package, and Instagram Reels package.
+- **Verification**:
+  - `pnpm test`: 40/40 tests passing across 8 test suites.
+  - `tsc --noEmit`: 0 errors.

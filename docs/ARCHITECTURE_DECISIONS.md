@@ -257,17 +257,18 @@ Ensures characters have authentic voices and narrative sound without paid API de
   1. **8 Precise Craft Action Stages (`src/lib/story/prompt-compiler.ts`)**:
      - Expanded `detectCulinaryStation` from 4 crude stations to 8 fine-grained stages: `OBJECT_SOURCING`, `TOOL_DISASSEMBLY`, `MANUAL_FRACTURE`, `CULINARY_CUTTING`, `LIQUID_MARINADE`, `STOVE_COOK`, `PLATING_SERVE`, `HERO_REACTION`.
   2. **Dedicated Kinematic Invariant & Station Lock per Stage**:
-     - `OBJECT_SOURCING`: `Station Lock: Industrial shelving only. Zero cutting boards, zero kitchen knives, zero stovetops, zero fire. Zero loose keys, zero switches on surfaces prior to harvest.`
-     - `TOOL_DISASSEMBLY`: `Components ONLY detach when tool pulls them; NO pre-scattered loose parts on table. Zero kitchen knives.`
-     - `MANUAL_FRACTURE`: `Both fractured halves remain visible and physically accounted for on the wooden surface.`
+     - `OBJECT_SOURCING`: `Station Lock: Industrial shelving only. Prop Integrity: The object starts and remains 100% whole, rigid, and fully assembled throughout the movement.`
+     - `TOOL_DISASSEMBLY`: `Components detach exclusively when engaged by the extraction tool. Body remains anchored to the block.`
+     - `MANUAL_FRACTURE`: `Both fractured halves remain visible and physically accounted for on the wooden surface after the break.`
      - `CULINARY_CUTTING`: `Conservation of Mass & Rigid Body Persistence: As the blade cuts through the object, the uncut remaining portion remains solidly anchored and fully visible without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade.`
-     - `LIQUID_MARINADE`: `Continuous golden stream pours into bowl. Bowl stationary, zero knives, zero flames.`
-     - `HERO_REACTION`: `Chef lowers tools and looks into camera. Plated dish steams gently. Zero knives, zero chopping.`
-  3. **Stage-Aware Negative Constraint Matrix**:
-     - `OBJECT_SOURCING` strictly bans: `cutting board, wooden chopping board, chef knife, knife in hand, slicing, loose keys on table, loose switches on table, stove, open flame, wok, raw meat`.
-     - `CULINARY_CUTTING` strictly bans: `disappearing object, vanishing chassis, morphing into food, generic cubes, tofu`.
-  4. **Start Frame & Temporal Continuity Invariant**:
-     - Injected across all I2V prompts: `Start Frame Consistency & Temporal Continuity: Animate directly from the uploaded reference start-frame image, preserving 100% of character appearance, workstation, lighting, and textures. The video motion MUST begin strictly from the visible state of the start-frame without introducing unprompted tools, unprompted stovetops, or phantom debris.`
+     - `LIQUID_MARINADE`: `Continuous golden stream pours into bowl. Bowl stationary.`
+     - `HERO_REACTION`: `Chef lowers tools and looks into camera. Plated dish steams gently.`
+  3. **Pure Positive Kinematics (Zero Negative Noun Triggers in Motion Prompts)**:
+     - Eliminated the "negative noun trap" where video diffusion text encoders (T5/CLIP) attend to forbidden nouns ("no knives, zero stoves") as positive prompt triggers.
+     - Video motion prompts now contain strictly positive physical commands ("Hands only", "pulls upward from shelf", "holds intact object").
+     - Forbidden nouns are isolated exclusively to the `universalNegativePrompt` field where diffusion models properly suppress them.
+  4. **Leak-Free Environment & Aesthetics Isolation**:
+     - `OBJECT_SOURCING` scenes strip any butcher block or wok burner mentions from the environment and eliminate premature "80% plated dish" rules from still prompts.
   5. **Verification**:
      - Verified with 37/37 unit tests passing in `tests/unit/culinary-asmr.test.ts`.
      - Recompiled all 12 scenes for project `cmwg5nczz0001u88sld5gnrmd` in PostgreSQL DB.

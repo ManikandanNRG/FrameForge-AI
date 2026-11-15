@@ -784,8 +784,33 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Cinematography: Shot on Arri Alexa 65mm sensor, pristine studio lighting, vibrant commercial color grade, razor-sharp focus.`
     : `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, authentic human skin pores, Kodak Portra 400 film grain, 24fps motion blur, realistic cloth textile folds.`;
 
+  const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
+
+  const resolvedEnvironment = (() => {
+    if (isInedibleCooking && station === "OBJECT_SOURCING") {
+      if (locationDescription) {
+        const cleaned = locationDescription
+          .replace(/In the center is a heavy industrial steel workbench.*?wok burner\.?/gi, "")
+          .replace(/dark walnut end-grain butcher block.*?wok burner\.?/gi, "")
+          .replace(/roaring blue-flame gas wok burner\.?/gi, "")
+          .trim();
+        return cleaned || "Atmospheric electronics scrapyard with industrial steel shelving units, stacked retro CRT monitors, green motherboard racks, copper wire spools, and cool cyan neon fog";
+      }
+      return "Atmospheric electronics scrapyard with industrial steel shelving units, stacked retro CRT monitors, green motherboard racks, copper wire spools, and cool cyan neon fog";
+    }
+    return locationDescription || (isCulinary ? "Master culinary kitchen, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny meadow playground" : "Cinematic setting");
+  })();
+
   const fluxAesthetics = isInedibleCooking
-    ? `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`
+    ? (() => {
+        if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
+          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`;
+        }
+        if (station === "OBJECT_SOURCING") {
+          return `Strict Aesthetics: Authentic intact hardware of ${heroTargetName} in original manufactured state with genuine metallic and matte textures. Strictly NO cooking stoves, NO cutting boards, NO pans, NO generic cubes, NO food, NO meat, NO CGI, NO 3D render.`;
+        }
+        return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`;
+      })()
     : isCulinary
     ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural meat marbling and sear, glistening olive oil. Strictly NO plastic or artificial food, NO CGI, NO 3D render, NO extra limbs, NO floating knives, NO morphing ingredients.`
     : isVintage
@@ -806,7 +831,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Subject: ${characterName}, ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
       : null,
     `Scene Action: ${actionCleaned}.`,
-    `Environment: ${(locationDescription || (isVintage ? "Authentic 1900s historical Pudukkottai architectural setting" : "Authentic cinematic setting")).replace(/\.+$/, "")}.`,
+    `Environment: ${(resolvedEnvironment || (isVintage ? "Authentic 1900s historical Pudukkottai architectural setting" : "Authentic cinematic setting")).replace(/\.+$/, "")}.`,
     fluxCinematography,
     fluxAesthetics,
     entities.hasVehicleOrMount
@@ -846,7 +871,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Subject: ${characterName}, ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : isAnimated ? "charming expressive animated features" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Scene Action: ${actionCleaned}.`,
-    `Environment: ${locationDescription || (isCulinary ? "Master culinary kitchen, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny meadow playground" : "Cinematic setting")}.`,
+    `Environment: ${resolvedEnvironment}.`,
     `Lighting & Mood: ${lighting || (isCulinary ? "Warm culinary studio lighting, soft key illumination, appetizing natural highlights" : isVintage ? "Soft warm historical natural daylight, dusty atmosphere" : isAnimated ? "Bright joyful sunny daylight, warm glowing atmosphere" : "Natural golden hour daylight, soft shadows, warm highlights")}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     isPureAsmr
@@ -907,7 +932,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Character: ${characterName}, ${characterDescription || (isCulinary ? "chef hands with precise knife grip" : isAnimated ? "expressive animated features" : "authentic appearance")}. Attire: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Visual Action: ${actionCleaned}.`,
-    `Setting & Background: ${locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai setting" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny playground and meadow" : "Cinematic setting")}.`,
+    `Setting & Background: ${resolvedEnvironment}.`,
     `Cinematography: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     isPureAsmr
       ? `Audio Foley Context: Pristine binaural ASMR culinary sound effects (chop, sizzle, pour, hiss) with zero dialogue.`
@@ -955,24 +980,23 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Camera Movement: ${naturalCameraMotion}.`,
     isPureAsmr
       ? (() => {
-          const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
           switch (station) {
             case "OBJECT_SOURCING":
-              return `Action Dynamics: Intact retrieval motion. The chef reaches up and firmly grasps the object. No kitchen knives, no cutting boards, no cooking stoves, no loose debris.`;
+              return `Action Dynamics: Focused retrieval motion. Both hands reach upward and firmly grip the intact ${heroTargetName} on the industrial shelving rack. Coiled cable disconnects cleanly with sudden tension release. The chef secures and displays the fully assembled, intact object to the camera. Hands only.`;
             case "TOOL_DISASSEMBLY":
-              return `Action Dynamics: Specialized disassembly tool hooks onto components with crisp mechanical leverage. Components detach ONLY when the tool physically extracts them. No kitchen knives, no premature loose parts on table.`;
+              return `Action Dynamics: Rhythmic mechanical extraction. Specialized tool clips onto authentic components of ${heroTargetName} with crisp leverage, lifting each part smoothly. Hands only, operating the extraction tool.`;
             case "MANUAL_FRACTURE":
-              return `Action Dynamics: Clean structural snap across the edge. Both fractured halves remain visibly accounted for on the wooden surface. No kitchen knives, no fire.`;
+              return `Action Dynamics: High-energy downward palm strike. Hands leverage the chassis across the wooden block edge with sudden force, splitting the board cleanly along the fracture line.`;
             case "CULINARY_CUTTING":
-              return `Action Dynamics: Rhythmic, steady cutting with heavy blade. The knife cuts cleanly through the material.`;
+              return `Action Dynamics: Rhythmic, precise chopping cadence. Heavy steel blade descends in steady vertical strokes through the components on the wooden butcher block.`;
             case "LIQUID_MARINADE":
-              return `Action Dynamics: Viscous liquid pours in a continuous golden stream from dropper bottle onto components in bowl. Fluid dynamics realistic, bowl stationary.`;
+              return `Action Dynamics: Steady fluid pour. Luminous golden glaze flows in a smooth continuous ribbon from the glass dropper down into the bowl, coating the components with a glossy sheen. Bowl remains stationary.`;
             case "STOVE_COOK":
-              return `Action Dynamics: Cookware tosses steadily over blue burner flame with rising aromatic steam and sparks. Cookware remains firmly anchored in hand or on burner.`;
+              return `Action Dynamics: High-heat culinary tossing. Hands firmly grip the cookware handle, tossing the sizzling hardware components in a smooth, high arc over the intense blue burner flame.`;
             case "PLATING_SERVE":
-              return `Action Dynamics: Precision garnishing and plating. Titanium tweezers delicately place final elements on the gourmet mound.`;
+              return `Action Dynamics: Precision plating glide. Titanium tweezers held in gloved hands delicately lower the final component onto the apex of the plated mound with surgical accuracy.`;
             case "HERO_REACTION":
-              return `Action Dynamics: Chef lowers tools and holds quiet eye contact with the camera. Subtle, confident expression. Plated dish steams gently.`;
+              return `Action Dynamics: Hero stillness and camera pull-back. Chef slowly lowers tools, resting hands beside the steaming dish, and looks directly into the camera lens with a subtle, confident smirk.`;
             case "COUNTER_REVEAL":
               return `Action Dynamics: The camera glides smoothly across the workbench showcasing the materials. All items remain stationary in their natural state.`;
             default:
@@ -984,28 +1008,27 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : null,
     isInedibleCooking
       ? (() => {
-          const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
           switch (station) {
             case "OBJECT_SOURCING":
-              return `Prop Integrity Lock: ${heroTargetName} starts and remains 100% intact and fully assembled. Zero loose keys, zero loose switches, zero debris on table prior to harvest. Station Lock: Industrial shelving only. Zero cutting boards, zero kitchen knives, zero stovetops, zero fire.`;
+              return `Prop Integrity: The ${heroTargetName} starts and remains 100% whole, rigid, and fully assembled throughout the movement. Station Lock: Industrial shelving only.`;
             case "TOOL_DISASSEMBLY":
-              return `Prop Integrity Lock: ${heroTargetName} remains anchored on butcher block. Zero knives in hands. Components ONLY detach at the exact moment the extraction tool pulls them; NO pre-scattered loose parts or keys on the table.`;
+              return `Prop Integrity: The ${heroTargetName} remains anchored on butcher block. Components detach exclusively when engaged by the extraction tool.`;
             case "MANUAL_FRACTURE":
-              return `Prop Integrity Lock: Clean mechanical fracture. Both fractured halves remain visible and physically accounted for on the wooden surface. No parts vanish, melt, or morph into food.`;
+              return `Prop Integrity: Clean mechanical fracture. Both fractured halves remain visibly accounted for on the wooden surface after the break.`;
             case "CULINARY_CUTTING":
-              return `Kinematic Invariant: Max two hands in frame. Conservation of Mass & Rigid Body Persistence: As the blade cuts through the ${heroTargetName}, the uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade. Zero generic cubes, zero food transformation.`;
+              return `Kinematic Invariant: Max two hands in frame. Conservation of Mass & Rigid Body Persistence: As the blade cuts through the ${heroTargetName}, the uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade.`;
             case "LIQUID_MARINADE":
-              return `Prop Integrity Lock: Components of ${heroTargetName} inside bowl glisten with glossy glaze. Bowl remains stationary on workbench. Zero knives, zero flames.`;
+              return `Prop Integrity: Components of ${heroTargetName} inside bowl glisten with glossy glaze. Bowl remains stationary on workbench.`;
             case "STOVE_COOK":
-              return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner or held firmly by handle. Authentic components of ${heroTargetName} leap in realistic ballistic trajectory, retaining rigid shape and physical textures; zero generic cubes, zero tofu, zero morphing into grocery food.`;
+              return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner or held firmly by handle. Authentic components of ${heroTargetName} leap in realistic ballistic trajectory, retaining rigid shape and physical textures without deforming or melting.`;
             case "PLATING_SERVE":
               return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
             case "HERO_REACTION":
-              return `Kinematic Invariant: Mask, goggles, and character wardrobe remain locked. Completed dish steams gently on table. Camera executes smooth pull-back. Zero knives, zero cooking.`;
+              return `Kinematic Invariant: Mask, goggles, and character wardrobe remain locked. Completed dish steams gently on table. Camera executes smooth pull-back.`;
             case "COUNTER_REVEAL":
-              return `Kinematic Invariant: Cold salvage & prep showcase only. Zero cooking on stove, zero flames. ${heroTargetName} remains stationary and intact.`;
+              return `Kinematic Invariant: Cold salvage & prep showcase only. ${heroTargetName} remains stationary and intact.`;
             default:
-              return `Kinematic Invariant: Max two hands in frame. Specialized tools maintain rigid metallic geometry. Authentic components of ${heroTargetName} divide cleanly without melting or becoming generic cubes.`;
+              return `Kinematic Invariant: Max two hands in frame. Specialized tools maintain rigid metallic geometry. Authentic components of ${heroTargetName} divide cleanly.`;
           }
         })()
       : isCulinary
@@ -1025,7 +1048,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : entities.hasVehicleOrMount
       ? `Vehicular Invariant: Draft animals move strictly forward at the front yoke only.`
       : null,
-    `Start Frame Consistency & Temporal Continuity: Animate directly from the uploaded reference start-frame image (Google Flow / Kling / Runway / Luma), preserving 100% of character appearance, workstation, lighting, and textures. The video motion MUST begin strictly from the visible state of the start-frame without introducing unprompted tools, unprompted stovetops, or phantom debris.`,
+    `Start Frame Consistency & Temporal Continuity: Animate directly from the uploaded reference start-frame image (Google Flow / Kling / Runway / Luma), preserving 100% of character appearance, workstation, lighting, and textures. The video motion MUST begin strictly from the visible state of the start-frame.`,
   ]
     .filter(Boolean)
     .join(" ")

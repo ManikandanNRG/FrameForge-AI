@@ -168,9 +168,12 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     });
 
     expect(shelfBundle.videoMotionPrompt).toContain("Station Lock: Industrial shelving only");
-    expect(shelfBundle.videoMotionPrompt).toContain("Zero cutting boards, zero kitchen knives, zero stovetops, zero fire");
-    expect(shelfBundle.videoMotionPrompt).toContain("Zero loose keys, zero loose switches, zero debris on table prior to harvest");
-    expect(shelfBundle.videoMotionPrompt).not.toContain("The knife cuts steadily through the ingredients");
+    expect(shelfBundle.videoMotionPrompt).toContain("Focused retrieval motion");
+    expect(shelfBundle.videoMotionPrompt).toContain("remains 100% whole, rigid, and fully assembled");
+    expect(shelfBundle.videoMotionPrompt).not.toContain("kitchen knives");
+    expect(shelfBundle.videoMotionPrompt).not.toContain("cutting boards");
+    expect(shelfBundle.videoMotionPrompt).not.toContain("stovetops");
+    expect(shelfBundle.googleFlowPrompt).not.toContain("Plated dish must be 80%");
     expect(shelfBundle.universalNegativePrompt).toContain("cutting board");
     expect(shelfBundle.universalNegativePrompt).toContain("loose keys on table");
 

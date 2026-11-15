@@ -51,6 +51,23 @@ export function systemPrompt(brief: ProjectBrief): string {
     (brief.sourceIdea || "").toLowerCase().includes("asmr") ||
     (brief.sourceIdea || "").toLowerCase().includes("culinary");
 
+  const isInedibleCooking =
+    isCulinary ||
+    (brief.sourceIdea || "").toLowerCase().includes("keyboard") ||
+    (brief.sourceIdea || "").toLowerCase().includes("keycap") ||
+    (brief.sourceIdea || "").toLowerCase().includes("airpod") ||
+    (brief.sourceIdea || "").toLowerCase().includes("airbud") ||
+    (brief.sourceIdea || "").toLowerCase().includes("phone") ||
+    (brief.sourceIdea || "").toLowerCase().includes("smartphone") ||
+    (brief.sourceIdea || "").toLowerCase().includes("stone") ||
+    (brief.sourceIdea || "").toLowerCase().includes("rock") ||
+    (brief.sourceIdea || "").toLowerCase().includes("circuit board") ||
+    (brief.sourceIdea || "").toLowerCase().includes("pcb") ||
+    (brief.sourceIdea || "").toLowerCase().includes("hardware") ||
+    (brief.sourceIdea || "").toLowerCase().includes("e-waste") ||
+    (brief.sourceIdea || "").toLowerCase().includes("inedible") ||
+    (brief.sourceIdea || "").toLowerCase().includes("non-food");
+
   const culinaryRules = isCulinary ? `
 4. CULINARY ASMR & WORKSTATION CONTINUITY:
    - The cooking workstation (countertop, wooden cutting board, cast-iron skillet, background kitchen lighting) MUST remain 100% consistent throughout all scenes.
@@ -62,7 +79,15 @@ export function systemPrompt(brief: ProjectBrief): string {
    - Cutting board / prep shots (slicing, trimming, seasoning on board) MUST be 100% confined to the cutting board. Strictly DO NOT mention or describe stoves, frying pans, sizzling oil, or dropping herbs into a pan in a cutting board shot.
    - Stove / skillet shots (searing, frying, basting) MUST be 100% confined to the stove. Strictly DO NOT mention cutting boards or chopping.
    - Plating / serving shots MUST be 100% confined to the serving dish.
-   - NEVER combine multiple stations in one shot. AI video generators (Veo, Kling, Runway, Wan 2.1) generate only 4-8 seconds: combining two stations guarantees hallucination and bizarre teleportation jumps.` : "";
+   - NEVER combine multiple stations in one shot. AI video generators (Veo, Kling, Runway, Wan 2.1) generate only 4-8 seconds: combining two stations guarantees hallucination and bizarre teleportation jumps.
+6. INEDIBLE OBJECT / HARDWARE COOKING RULES (MANDATORY FOR ALL TECH/OBJECT ASMR EPISODES):
+   - MODERN RELATABLE OBJECT SELECTION: Always select modern, familiar objects that today's audiences immediately recognize from their everyday life (e.g., sleek matte-black gaming mechanical keyboard with RGB/color accent keys; modern wireless earbuds in charging case; modern glass-backed smartphone). NEVER default to obscure vintage 1980s office relics unless explicitly requested.
+   - 4-ACT VIRAL HOOK NARRATIVE STRUCTURE:
+     * Scene 1 (0:00 - 0:05): THE 4-BEAT VIRAL RETENTION HOOK. Must be an explosive, high-energy teaser showing: Beat 1 Slam object on board -> Beat 2 Pop/extract key components toward camera -> Beat 3 Heavy cleaver chop through board -> Beat 4 Sizzle & fireburst in pan, ending on the chef's confident rogue smirk. NEVER open with a slow walk or passive observation!
+     * Scene 2 (0:05 - 0:15): COLD SALVAGE / ORIGIN. The journey begins: unplugging cable, harvesting the object, placing it on the bench. STRICTLY NO STOVES, PANS, OR COOKING ACTIVE IN SCENE 2!
+     * Middle Scenes: RHYTHMIC TACTILE DISASSEMBLY & PREP. Macro close-ups of specialized tools (wire pullers, screwdrivers, cleavers), clean mechanical slicing, and golden flux marinades.
+     * Climax Scenes: HIGH-HEAT WOK TOSS & GOURMET HERO PLATING. The dish MUST be 80% composed of recognizable authentic components (keycaps, switches, copper spirals) glistening under translucent culinary glaze. NEVER describe the dish as wheat noodles, pasta, or grocery food!
+   - MACRO FRAMING MANDATE: All actions involving small components (keycaps, switches, screws, microchips) MUST be framed as MACRO CLOSE-UPS so video diffusion models clearly render sharp rectangular keys and embossed legends without blurring into generic cubes, plastic blocks, or tofu dice.` : "";
 
   return `You are a world-class screenwriter and narrative director specialising in ${styleNote(brief.visualStyle)} cinema.
 Film Idea: "${brief.sourceIdea}"

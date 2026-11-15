@@ -68,6 +68,10 @@ export function quickAuditScript(
     (projectMeta.visualStyle || "").toUpperCase().includes("CULINARY") ||
     (projectMeta.genre || "").toLowerCase().includes("cooking");
 
+  const isInedibleCooking =
+    isCulinary ||
+    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|hardware|e-waste|tech scrap|non-food|inedible)\b/i.test((projectMeta.sourceIdea || "") + " " + (projectMeta.genre || ""));
+
   const sceneAudits: SceneAuditResult[] = [];
   let totalHook = 0;
   let totalDialogue = 0;
@@ -87,16 +91,37 @@ export function quickAuditScript(
     // Scene 1 Hook Inspection
     if (i === 0) {
       const lowerAct = sc.action.toLowerCase();
-      const hasHookAction = /\b(sprint|dash|swoop|explosive|race|zoom|gasp|screams?|reveal|burst|plunge|shout|leaps?)\b/i.test(lowerAct);
+      const hasHookAction = /\b(sprint|dash|swoop|explosive|race|zoom|gasp|screams?|reveal|burst|plunge|shout|leaps?|slam|slams?|cleaver|shatter|sparks?|flames?|whoosh|erupts?|shower of)\b/i.test(lowerAct);
       const isPassive = /\b(standing|looking at|observes|walks slowly|pondering|sits|rests)\b/i.test(lowerAct);
 
-      if (isPassive && !hasHookAction) {
+      if (isInedibleCooking) {
+        const has4BeatElements = /\b(slam|pull|pluck|chop|cleaver|sizzle|wok|pan|sparks?|burst|toss)\b/i.test(lowerAct);
+        if (!has4BeatElements || isPassive) {
+          hook = 55;
+          issues.push("Inedible ASMR Scene 1 must be an explosive 4-beat viral hook (Slam object -> Pluck keys -> Cleaver chop -> Pan sizzle/sparks). Slow observation causes immediate swipe away.");
+          recommendation = "Reframe Scene 1 as an explosive 4-beat viral hook teaser (Slam object on board -> Macro key/part pop -> Heavy cleaver chop -> Wok fireball sizzle) with chef rogue smirk.";
+        } else {
+          hook = 98;
+          recommendation = "High-velocity 4-beat viral hook. Maximizes short-form audience retention.";
+        }
+      } else if (isPassive && !hasHookAction) {
         hook = 60;
         issues.push("Opening is too passive for YouTube Shorts/Reels. Viewers may swipe away within 2 seconds.");
         recommendation = "Start immediately in media res with kinetic physical action, sensory reveal, or high curiosity gap.";
       } else if (hasHookAction) {
         hook = 96;
         recommendation = "Strong scroll-stopping visual hook. Immediately captures viewer curiosity.";
+      }
+    }
+
+    // Scene 2 Premature Stove Check for Inedible Harvest
+    if (i === 1 && isInedibleCooking) {
+      const lowerAct = sc.action.toLowerCase();
+      const hasPrematureStove = /\b(stove|pan|skillet|wok|burner|sizzle|flame|boiling)\b/i.test(lowerAct);
+      if (hasPrematureStove) {
+        feasibility = 60;
+        issues.push("Premature cooking in Harvest scene: Scene 2 should be the cold origin and harvest (unplugging, taking from rack). Mentioning stoves or flames will cause AI to render cooking before prep starts.");
+        recommendation = "Keep Scene 2 strictly to cold salvage and harvest (unplugging cable, carrying to workbench). No stoves or flames active.";
       }
     }
 
@@ -157,6 +182,14 @@ export function quickAuditScript(
         feasibility = 65;
         issues.push("Station collision: Combines cutting board prep and stove cooking in a single 8-second clip. AI generators will hallucinate.");
         recommendation = "Isolate into two separate shots: one for knife prep on board, one for hot skillet sear on stove.";
+      }
+
+      if (isInedibleCooking) {
+        if (lowerAct.includes("noodle") && !lowerAct.includes("copper") && !lowerAct.includes("wire") && !lowerAct.includes("ribbon")) {
+          feasibility -= 20;
+          issues.push("Ambiguous food term: Used 'noodles' without qualifying 'copper wire' or 'ribbon cable'. This causes AI diffusion models to draw wheat pasta/lo mein instead of technical hardware.");
+          recommendation = "Specify 'spiral raw copper wire noodles' or 'flat ribbon cables' to prevent pasta hallucinations.";
+        }
       }
     }
 

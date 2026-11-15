@@ -47,34 +47,50 @@ export const UNIVERSAL_PHYSICAL_LAWS = {
   CULINARY_ASMR_PHYSICS:
     "Culinary Kinematics & Food Invariants: Hand Anatomical Rigidity: Strictly maximum two hands visible in frame at any moment (one designated hand gripping knife handle with fingers wrapped firmly around the grip, one hand in curled protective claw-grip holding the ingredient). Strictly PROHIBIT phantom third hands, extra floating arms entering from edges, or hands protruding from unnatural angles. Knife & Tool Anchor: Knife blade must be rigidly continuous with its handle; fingers wrapped securely around handle. Strictly PROHIBIT floating knives, knives cutting without a gripping hand, or detached blades. Rigid Workstation Stability: Cutting board must rest flat and immovable on the countertop. Cookware (skillet, pot, pan) must remain firmly seated on the induction burner or stovetop flame; strictly PROHIBIT cookware tilting or floating into mid-air without being held. Mass Conservation & Clean Slicing: When a knife slices an ingredient, the ingredient divides cleanly into geometrically sound slices that remain on the cutting board. Strictly PROHIBIT food morphing into different ingredients, vegetables liquifying before contact, or spontaneous material transformations. Fluid & Heat Dynamics: Hot oil must sizzle with realistic micro-droplets confined to pan; steam and smoke must rise naturally upward; boiling liquids must stay contained within cookware.",
 
-  // Law 6: Inedible Object Cooking & Technical Hardware Physics
+  // Law 6: Inedible Object Cooking & Material Invariants (Universal for ANY physical object)
   INEDIBLE_OBJECT_PHYSICS:
-    "Inedible Object Cooking & Hardware Invariants: Handled technical objects (keyboards, keycaps, switches, circuit boards, earbuds, phone glass, screws, wires) maintain rigid physical geometry as real technical components. Distinct mechanical keycaps must maintain authentic square shape, concave finger rest profile, and legible laser-etched letters (WASD, ESC). Mechanical switches must display crisp cross-stems and metallic contact pins. Strictly PROHIBIT inedible objects dissolving into generic cubes, plain plastic blocks, dice, tofu cubes, or morphing into grocery food/meat/dough. Plated dishes and stir-fries must be composed 80% of the authentic hero object components glistening under translucent culinary flux/glaze. Macro camera distance is mandatory during small component manipulation to preserve fine mechanical detail.",
+    "Inedible Object Cooking & Material Invariants: Handled non-food items (technical hardware, luxury accessories, apparel, tools, stones, glass, mechanical parts, instruments, or raw materials) maintain rigid physical geometry as real authentic physical objects. Distinct components must preserve their true physical characteristics, material textures (brushed metal, polished glass, grain leather, vulcanized rubber, carved wood, mineral stone), and authentic labels. Strictly PROHIBIT dissolving into generic cubes, plain plastic blocks, dice, tofu cubes, or morphing into grocery food/meat/dough. Plated dishes and stir-fries must be composed 80% of the authentic hero object components glistening under translucent culinary glaze or sauce. Macro camera distance is mandatory during small component manipulation to preserve fine physical details.",
+
+  getInedibleObjectPhysics: (heroObjectName?: string | null): string => {
+    const target = heroObjectName || "the inedible physical hero object";
+    return `Inedible Object Cooking & Material Invariants: Handled non-food items (${target}) maintain rigid physical material geometry as real authentic physical objects (metal, glass, leather, rubber, wood, stone, plastic, or mechanical elements). Distinct components must retain their authentic physical characteristics, surface textures, labels, and contours; strictly PROHIBIT dissolving into generic cubes, plain plastic blocks, dice, tofu cubes, or morphing into grocery food/meat/dough. Plated dishes and stir-fries must be composed 80% of the authentic components of ${target} glistening under translucent culinary glaze. Macro camera distance is mandatory during small component manipulation to preserve fine physical details.`;
+  },
 
   // Dynamic Rendering Integrity Generator based on User Visual Style & Era
-  getRenderingIntegrity: (visualStyle?: string | null, sourceIdea?: string | null, isPeriod = false): string => {
+  getRenderingIntegrity: (visualStyle?: string | null, sourceIdea?: string | null, isPeriod = false, heroObjectName?: string | null): string => {
     const styleUpper = (visualStyle || "").toUpperCase();
     const ideaLower = (sourceIdea || "").toLowerCase();
 
-    const isInedible =
-      ideaLower.includes("keyboard") ||
-      ideaLower.includes("keycap") ||
-      ideaLower.includes("airpod") ||
-      ideaLower.includes("airbud") ||
-      ideaLower.includes("phone") ||
-      ideaLower.includes("smartphone") ||
-      ideaLower.includes("circuit board") ||
-      ideaLower.includes("motherboard") ||
-      ideaLower.includes("pcb") ||
-      ideaLower.includes("stone") ||
-      ideaLower.includes("rock") ||
-      ideaLower.includes("hardware") ||
-      ideaLower.includes("e-waste") ||
+    const isCookingAction =
+      styleUpper === "CULINARY_MACRO_ASMR" ||
+      ideaLower.includes("cooking") ||
+      ideaLower.includes("cook") ||
+      ideaLower.includes("asmr") ||
+      ideaLower.includes("culinary") ||
+      ideaLower.includes("recipe") ||
+      ideaLower.includes("kitchen") ||
+      ideaLower.includes("stir-fry") ||
+      ideaLower.includes("fry") ||
+      ideaLower.includes("fried") ||
+      ideaLower.includes("soup") ||
+      ideaLower.includes("stew") ||
+      ideaLower.includes("saute") ||
+      ideaLower.includes("sizzle");
+
+    // Dynamic non-food object detection: detect when ANY non-food object, tech, tool, mineral, or luxury item is being cooked
+    const hasNonFoodObject =
+      Boolean(heroObjectName) ||
       ideaLower.includes("inedible") ||
-      ideaLower.includes("non-food");
+      ideaLower.includes("non-food") ||
+      ideaLower.includes("odd object") ||
+      ideaLower.includes("unimaginable") ||
+      /\b(keyboard|keycap|airpod|airbud|earphone|headphone|phone|smartphone|circuit board|motherboard|pcb|resistor|hardware|e-waste|scrap|gadget|watch|clock|shoe|sneaker|boot|nike|leather|rubber|engine|spark plug|gear|bearing|battery|screw|bolt|nail|wire|cable|stone|granite|rock|pebble|glass|marble|crystal|gem|diamond|wood|chess|violin|guitar|camera|lens|bulb|coin|card|metal|plastic|carbon fiber)\b/i.test(ideaLower);
+
+    const isInedible = isCookingAction && hasNonFoodObject;
 
     if (isInedible) {
-      return "Aesthetic Realism: Ultra-high-definition macro technical-culinary cinema, 50mm and 85mm probe macro optics, razor-sharp focus on authentic technical hardware textures (mechanical keycaps with legible white legends, Cherry switches with crisp cross-stems, metallic copper ribbons, glistening translucent amber rosin flux glaze), f/1.8 creamy bokeh background, 60fps high-speed fluid and spark physics. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render, NO cartoon.";
+      const targetLabel = heroObjectName ? `authentic ${heroObjectName} textures` : "authentic physical object textures (brushed metal, polished glass, textured leather, rubber, mineral stone, mechanical elements)";
+      return `Aesthetic Realism: Ultra-high-definition macro craft-culinary cinema, 50mm and 85mm probe macro optics, razor-sharp focus on ${targetLabel} and glistening translucent culinary glaze, f/1.8 creamy bokeh background, 60fps high-speed fluid and spark physics. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render, NO cartoon.`;
     }
 
     const isCulinary =
@@ -194,17 +210,39 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
     else culinaryFocus = "general_cooking";
   }
 
-  // Detect Inedible / Technical Object Cooking
-  const isInedibleCooking = /\b(keyboard|keycaps?|cherry mx|circuit board|motherboard|pcb|resistors?|capacitors?|airbuds?|airpods?|earphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|wires?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible)\b/i.test(combined);
+  // Universal Inedible / Non-Food Object Discovery:
+  const isCookingContext =
+    hasCulinaryAction ||
+    /\b(chef|cook|cooking|stir-fry|fry|fried|deep-fry|sizzle|sear|recipe|soup|stew|saute|masala|curry|roast|bake|braise|butcher block|cutting board|chopping board|board|wok|skillet|pan|kitchen|marinade|marinate|marinating|plating|garnish|tweezers?|cleaver)\b/i.test(combined);
+
+  const hasExplicitNonFood =
+    /\b(inedible|non-food|hardware|scrap|e-waste|tech|gadget|odd object|unimaginable)\b/i.test(combined) ||
+    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch|watches?|clock|gears?|bearings?|spark plugs?|engine|motor|sneakers?|shoes?|boots?|rubber|leather|chess|violin|guitar|camera|lens|light bulb|coins?|cards?|billiard)\b/i.test(combined);
+
+  const isInedibleCooking = isCookingContext && hasExplicitNonFood;
 
   let inedibleHeroObject: string | undefined = undefined;
   if (isInedibleCooking) {
-    if (/\b(keyboard|keycaps?|cherry mx)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard & Keycaps";
-    else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
-    else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
-    else if (/\b(circuit board|motherboard|pcb)\b/i.test(combined)) inedibleHeroObject = "Circuit Board & Microchips";
-    else if (/\b(stones?|granite|rocks?)\b/i.test(combined)) inedibleHeroObject = "Granite River Stones";
-    else inedibleHeroObject = "Hardware Component";
+    // Dynamic extraction: Try to extract the direct object from phrases like "cooks a [object]" or "stir-fry [object]"
+    const verbObjMatch = combined.match(/\b(?:cook(?:s|ing)?|fr(?:y|ies|ying)|stir-fr(?:y|ies|ying)|prepar(?:e|es|ing)|sizzl(?:e|es|ing)|roast(?:s|ing)?)\s+(?:a|an|the|some)?\s*([a-z0-9\s-]+?)(?:\s+(?:in|with|on|into|for|dish|masala|stir-fry|soup|fry|sauce)|$)/i);
+    if (verbObjMatch && verbObjMatch[1] && verbObjMatch[1].trim().length > 2 && verbObjMatch[1].trim().length < 35) {
+      inedibleHeroObject = verbObjMatch[1].trim().replace(/^(a|an|the)\s+/i, "");
+      inedibleHeroObject = inedibleHeroObject.charAt(0).toUpperCase() + inedibleHeroObject.slice(1);
+    }
+
+    if (!inedibleHeroObject || inedibleHeroObject.toLowerCase().includes("gourmet")) {
+      if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
+      else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
+      else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
+      else if (/\b(sneakers?|shoes?|boots?)\b/i.test(combined)) inedibleHeroObject = "Sneaker";
+      else if (/\b(watch|watches?|clock)\b/i.test(combined)) inedibleHeroObject = "Mechanical Watch";
+      else if (/\b(stones?|granite|rocks?)\b/i.test(combined)) inedibleHeroObject = "Granite River Stones";
+      else if (/\b(circuit board|pcb)\b/i.test(combined)) inedibleHeroObject = "Circuit Board";
+      else if (/\b(camera|lens)\b/i.test(combined)) inedibleHeroObject = "Camera";
+      else if (/\b(violin|guitar)\b/i.test(combined)) inedibleHeroObject = "Musical Instrument";
+      else if (/\b(glass|marbles?|crystals?)\b/i.test(combined)) inedibleHeroObject = "Crystal Glass";
+      else inedibleHeroObject = "Physical Hero Object";
+    }
   }
 
   return {
@@ -219,8 +257,6 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
     culinaryFocus,
     isInedibleCooking,
     inedibleHeroObject,
-  };
-    culinaryFocus,
   };
 }
 

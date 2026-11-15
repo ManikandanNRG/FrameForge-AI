@@ -224,3 +224,26 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Full Senior Director QC Modal showing breakdown progress meters, YouTube Shorts & Instagram Reels director tips, scene-by-scene audit checklist with specific director remedies, and 1-click `⚡ Polish & Auto-Fix Script with Senior Director AI`.
   4. **Unit Test Suite (`tests/unit/script-doctor.test.ts`)**:
      - Verified hook velocity, bookish Tamil detection without Unicode boundary errors, station collision detection, and AI polish structured generation (33/33 tests passing).
+
+## ADR-015: Inedible Object Cooking ASMR Engine, 4-Beat Viral Hook & Macro Continuity System
+- **Date**: 2026-11-15 · **Status**: Approved & Implemented
+- **Context**: Inedible gourmet cooking channels (e.g., cooking mechanical keyboards, wireless earbuds, smartphones, stones, computer parts) suffer from 4 systemic AI generation failure modes if treated as normal food:
+  1. *Premature Cooking Hallucinations*: Harvest/unplugging scenes inadvertently placing lit stoves, smoking pans, or cooked dishes in background.
+  2. *Deformed Cubes / Tofu Blobs*: Video diffusion models shooting small objects in Medium/Wide shots compressing fine mechanical features into generic dice, cubes, or tofu blocks.
+  3. *Food Model Bias*: Generic terms like "noodles" triggering diffusion models to render wheat lo mein/pasta instead of technical coiled wires or hardware.
+  4. *Passive Openings / Slow Commercial Promo Loops*: Opening with slow walks or static b-roll loops causing immediate short-form viewer drop-off.
+- **Decision**:
+  1. **Universal Law 6 & Inedible Physical Invariants (`src/lib/story/world-engine.ts`)**:
+     - Added `UNIVERSAL_PHYSICAL_LAWS.INEDIBLE_OBJECT_PHYSICS`: Technical objects maintain rigid physical geometry as real technical components.
+     - Added entity detection `isInedibleCooking` and `inedibleHeroObject` (keyboards, earbuds, smartphones, circuit boards, stones, e-waste).
+  2. **4-Beat Rapid-Fire Viral Hook Architecture (`src/lib/story/prompts.ts`, `src/lib/story/script-doctor.ts`)**:
+     - *Scene 1 (0:00 - 0:05)*: Mandates 4-beat kinetic teaser: Beat 1 Slam object -> Beat 2 Pop components toward camera -> Beat 3 Heavy cleaver chop -> Beat 4 Wok fireball sizzle, ending on chef rogue smirk.
+     - *Scene 2 (0:05 - 0:15)*: Enforces cold harvest/origin with strict negative guards against active stoves, pans, or flames.
+  3. **The Macro Rule & Anti-Cube Negative Matrix (`src/lib/story/prompt-compiler.ts`)**:
+     - Upgrades small-component actions to 85mm probe macro optics, f/1.8 shallow depth of field.
+     - Permanently injects universal negative prompt matrix: `generic cubes, plain plastic blocks, tofu, dice, wheat noodles, pasta, flour spaghetti, lo mein, real grocery food, meat, chicken, broccoli`.
+     - Plated dish prompts enforce 80% authentic hero object prominence under translucent culinary flux/glaze.
+  4. **Canonical Prop DNA Lock (`heroPropLock`)**:
+     - Injects standardized, modern, relatable prop definitions (e.g. Modern Matte-Black Mechanical Keyboard with doubleshot PBT keycaps and Cherry MX switches) across all scene prompts to guarantee frame-to-frame prop continuity.
+  5. **Unit Test Verification**:
+     - Verified in `tests/unit/culinary-asmr.test.ts` (all 35 tests passing across the suite).

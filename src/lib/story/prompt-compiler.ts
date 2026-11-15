@@ -94,6 +94,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     characterDescription,
     wardrobeLock,
     locationDescription,
+    heroPropLock,
+    heroObject,
     aspectRatio,
     storyLanguage,
     targetDurationSeconds,
@@ -113,8 +115,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   // Visual Style & Era Detection: Checks user input premise + visualStyle setting
   const styleUpper = (visualStyle || "").toUpperCase();
   const ideaLower = (sourceIdea || "").toLowerCase();
+  const actionLower = (actionDescription || "").toLowerCase();
+
+  const isInedibleCooking =
+    Boolean(entities.isInedibleCooking) ||
+    Boolean(heroObject) ||
+    Boolean(heroPropLock) ||
+    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|watch|watches?|clock|sneakers?|shoes?|violin|guitar|camera|light bulb|marbles?|crystal)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""));
+
+  const heroTargetName = heroObject || entities.inedibleHeroObject || "Hero Object";
 
   const isCulinaryGenreOrIdea =
+    isInedibleCooking ||
     (genre || "").toLowerCase().includes("cooking") ||
     (genre || "").toLowerCase().includes("culinary") ||
     (genre || "").toLowerCase().includes("recipe") ||
@@ -125,9 +137,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const isCulinary =
     styleUpper === "CULINARY_MACRO_ASMR" ||
+    isInedibleCooking ||
     (isCulinaryGenreOrIdea && entities.hasCulinaryAction);
 
   const isPureAsmr =
+    isInedibleCooking ||
     (genre || "").toLowerCase().includes("asmr") ||
     (tone || "").toLowerCase().includes("asmr") ||
     ideaLower.includes("asmr") ||
@@ -168,7 +182,10 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   let dynamicStyleDirective = "Photorealistic cinematic film, 35mm lens, authentic cultural textures, shallow depth of field, 24fps";
   let dynamicPeriodDirective = "";
 
-  if (isCulinary) {
+  if (isInedibleCooking) {
+    dynamicStyleDirective = `Ultra-high-definition macro craft-culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening translucent culinary glaze, authentic physical textures of ${heroTargetName}, warm industrial directional spotlight, 60fps high-speed fluid and spark physics`;
+    dynamicPeriodDirective = `- Inedible Craft-Culinary Continuity: Maintain 100% physical material integrity of ${heroTargetName}. Components must retain their authentic material shape, contours, labels, and textures; strictly PROHIBIT dissolving into generic cubes or dice. Plated dish must be composed 80% of authentic components of ${heroTargetName}, strictly not disguised as wheat noodles or grocery food.${heroPropLock ? ` Locked Prop DNA: ${heroPropLock}.` : ""}`;
+  } else if (isCulinary) {
     dynamicStyleDirective = "Ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening natural oils, crisp fresh ingredient textures, natural warm kitchen directional lighting, 60fps high-speed fluid and rising steam physics";
     dynamicPeriodDirective = "- Master Workstation Continuity: Maintain exact same kitchen countertop material, wooden cutting board grain, and cookware style across every shot. Consistent warm kitchen background with soft creamy background bokeh.";
   } else if (isVintage) {
@@ -231,7 +248,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   // Dynamic lens framing tailored to shot size & culinary camera angle
   let dynamicLensFraming = `${shotFraming}, 35mm lens, 24fps motion blur`;
   const framingLower = (shotFraming + " " + (shotSize || "")).toLowerCase();
-  if (isCulinary) {
+  if (isInedibleCooking) {
+    const isSmallComponents = /\b(keycaps?|keys?|switches?|resistors?|diced|cubes?|chips?|screws?|wires?|ribbon|puller|springs?|earbuds?|tweezers?|plating)\b/i.test(actionLower);
+    if (isSmallComponents || framingLower.includes("macro") || framingLower.includes("close")) {
+      dynamicLensFraming = `${framingLower.includes("macro") ? shotFraming : "Macro Close-Up Shot"}, 85mm probe macro lens at 45° angle, f/1.8 shallow depth of field, razor-sharp focus on authentic components of ${heroTargetName}, surface textures, and culinary glaze`;
+    } else if (framingLower.includes("top-down") || framingLower.includes("overhead") || framingLower.includes("bird") || framingLower.includes("flat lay")) {
+      dynamicLensFraming = `${shotFraming}, 90-degree overhead bird's-eye flat lay perspective looking directly down at the workstation cutting board and ${heroTargetName} components`;
+    } else if (framingLower.includes("close-up") || framingLower.includes("cu")) {
+      dynamicLensFraming = `${shotFraming}, 50mm cinema prime lens, creamy background bokeh, appetizing lighting`;
+    } else if (framingLower.includes("wide")) {
+      dynamicLensFraming = `${shotFraming}, 24mm wide master lens, clean workshop background staging`;
+    }
+  } else if (isCulinary) {
     if (framingLower.includes("macro") || framingLower.includes("extreme close") || framingLower.includes("ecu")) {
       dynamicLensFraming = `${shotFraming}, 85mm probe macro lens at 45° angle, f/1.8 shallow depth of field, razor-sharp focus on active ingredient contact or bubbling oil`;
     } else if (framingLower.includes("top-down") || framingLower.includes("overhead") || framingLower.includes("bird") || framingLower.includes("flat lay")) {
@@ -382,11 +410,32 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     } else if (station === "PLATING_SERVE") {
       negativeList.push("stove", "open flame", "frying pan", "sizzling skillet", "raw meat", "chopping knife");
     } else if (station === "COUNTER_REVEAL") {
-      negativeList.push("stove", "frying pan", "skillet", "hot oil", "sizzle", "cooking", "flame", "boiling", "chopping knife", "picking up meat", "putting meat in pan", "throwing in pan", "dropping in pan", "teleporting");
+      negativeList.push("stove", "frying pan", "skillet", "hot oil", "sizzle", "cooking", "flame", "boiling", "chopping knife", "picking up meat", "putting meat in pan", "throwing in pan", "dropping in pan", "teleporting", "roaring flame", "wok", "gas burner", "burning stove", "cooking in background");
     } else {
       // BOARD_PREP
-      negativeList.push("stove", "frying pan", "skillet", "hot oil", "dropping herbs into pan", "curry leaf in pan", "burner flame", "cooking on stove", "knife turning into herbs", "knife turning into leaf", "blade morphing into plant", "transforming knife", "knife changing shape", "picking up raw steak", "putting meat in pan", "teleporting", "walking away from board");
+      negativeList.push("stove", "frying pan", "skillet", "hot oil", "dropping herbs into pan", "curry leaf in pan", "burner flame", "cooking on stove", "knife turning into herbs", "knife turning into leaf", "blade morphing into plant", "transforming knife", "knife changing shape", "picking up raw steak", "putting meat in pan", "teleporting", "walking away from board", "roaring flame", "wok", "gas burner", "burning stove", "cooking in background");
     }
+  }
+
+  // Inedible technical cooking negatives to eliminate generic cubes, dice, and food hallucinations
+  if (isInedibleCooking) {
+    negativeList.push(
+      "generic cubes",
+      "plain plastic blocks",
+      "tofu",
+      "dice",
+      "wheat noodles",
+      "pasta",
+      "flour spaghetti",
+      "lo mein",
+      "real food",
+      "grocery food",
+      "meat",
+      "chicken",
+      "broccoli",
+      "blurry keys",
+      "deformed components"
+    );
   }
 
   // Pure ASMR negatives to enforce zero speech or loud tracks
@@ -462,7 +511,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `- ${UNIVERSAL_PHYSICAL_LAWS.SPATIAL_DEPTH_SEPARATION}`,
   ];
 
-  if (isCulinary) {
+  if (isInedibleCooking) {
+    flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.getInedibleObjectPhysics(heroTargetName)}`);
+    if (heroPropLock) {
+      flowRules.push(`- Hero Prop DNA Lock: ${heroPropLock}`);
+    }
+  } else if (isCulinary) {
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.CULINARY_ASMR_PHYSICS}`);
   }
   if (entities.hasVehicleOrMount) {
@@ -498,7 +552,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     .replace(/\n{3,}/g, "\n\n");
 
   // 9. Build Kling / Sora Prompt (Credit-Optimized & Period-Aware)
-  const klingSceneType = isCulinary
+  const klingSceneType = isInedibleCooking
+    ? `An ultra-photorealistic macro technical-culinary ASMR ${framingDesc} scene.`
+    : isCulinary
     ? `An ultra-photorealistic macro culinary ASMR ${framingDesc} cooking scene.`
     : isVintage
     ? `An authentic 1900s vintage 35mm archival ${framingDesc} film scene.`
@@ -554,7 +610,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     .replace(/\.{2,}/g, ".");
 
   // 10. Build FLUX.1 Still Reference Prompt (Fast, clean 1080p, Period-Aware)
-  const fluxStillOpening = isCulinary
+  const fluxStillOpening = isInedibleCooking
+    ? `A breathtaking macro technical-culinary photography still, ${shotFraming}.`
+    : isCulinary
     ? `A breathtaking macro culinary food photography still, ${shotFraming}.`
     : isVintage
     ? `An authentic 1900s vintage 35mm archival film still, ${shotFraming}.`
@@ -578,7 +636,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `A stunning cinematic anime film still, ${shotFraming}.`
     : `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`;
 
-  const fluxCinematography = isCulinary
+  const fluxCinematography = isInedibleCooking
+    ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, creamy background bokeh, warm industrial directional spotlight, glistening translucent rosin flux glaze.`
+    : isCulinary
     ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, creamy background bokeh, warm kitchen directional spotlight, appetizing natural food glistening.`
     : isVintage
     ? `Cinematography: Shot on early 20th-century vintage 35mm prime lens, authentic cellulose film grain, soft warm sepia and muted earth tones, period-accurate natural daylight, gentle optical bloom, authentic hand-spun khadi textile weave.`
@@ -600,7 +660,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Cinematography: Shot on Arri Alexa 65mm sensor, pristine studio lighting, vibrant commercial color grade, razor-sharp focus.`
     : `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, authentic human skin pores, Kodak Portra 400 film grain, 24fps motion blur, realistic cloth textile folds.`;
 
-  const fluxAesthetics = isCulinary
+  const fluxAesthetics = isInedibleCooking
+    ? `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`
+    : isCulinary
     ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural meat marbling and sear, glistening olive oil. Strictly NO plastic or artificial food, NO CGI, NO 3D render, NO extra limbs, NO floating knives, NO morphing ingredients.`
     : isVintage
     ? `Strict Aesthetics: Authentic 1900s historical time-capsule realism. Strictly NO modern 4K digital crispness, NO modern collared shirts, NO modern buttoned clothing, NO modern western fashion, NO modern buildings or concrete, NO CGI, NO 3D animation.`
@@ -784,7 +846,21 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : hasDialogue
       ? `Facial & Dialogue Dynamics: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${lang} lip movements and emotional expression.`
       : null,
-    isCulinary
+    isInedibleCooking
+      ? (() => {
+          const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
+          if (station === "STOVE_COOK") {
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner. Authentic components of ${heroTargetName} retain rigid shape and physical textures in the pan; zero generic cubes, zero tofu, zero morphing into grocery food.`;
+          }
+          if (station === "PLATING_SERVE") {
+            return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
+          }
+          if (station === "COUNTER_REVEAL") {
+            return `Kinematic Invariant: Cold salvage & prep showcase only. Zero cooking on stove, zero flames. ${heroTargetName} remains stationary and intact.`;
+          }
+          return `Kinematic Invariant: Max two hands in frame. Specialized tools maintain rigid metallic geometry. Authentic components of ${heroTargetName} divide cleanly without melting or becoming generic cubes. Station Lock: Workbench cutting board only.`;
+        })()
+      : isCulinary
       ? (() => {
           const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
           if (station === "STOVE_COOK") {

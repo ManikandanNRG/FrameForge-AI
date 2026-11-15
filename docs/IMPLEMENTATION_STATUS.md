@@ -191,10 +191,19 @@
 - **Media Serving Route** (`src/app/api/media/file/route.ts`):
   - Path-traversal safe stream endpoint serving local generated images, clips, and exported films to the browser.
 
+- **Inedible Object Cooking ASMR Engine & 4-Beat Viral Hook System** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/story/prompts.ts`, `src/lib/story/script-doctor.ts`, `tests/unit/culinary-asmr.test.ts`):
+  - **Inedible Technical Hardware Physics (Law 6)**: Recognizes non-food objects (mechanical keyboards, keycaps, Cherry MX switches, circuit boards, earbuds, smartphones, stones, e-waste) and guarantees they retain rigid mechanical geometry with legible laser-etched legends and metallic contacts rather than dissolving into generic cubes, plastic blocks, or tofu dice.
+  - **4-Beat Rapid-Fire Viral Hook Architecture**: Short-form Scene 1 (0:00 - 0:05) enforces a 4-beat kinetic teaser (Slam object on board -> Pop components toward camera -> Heavy cleaver chop -> Wok fireball sizzle) with chef rogue smirk to prevent viewer swipe-away.
+  - **Cold Harvest / Origin Station Lock**: Scene 2 (0:05 - 0:15) strictly locks to cold salvage and harvest (unplugging cable, carrying to workbench) with negative prompt guards against active stoves, pans, or flames.
+  - **The Macro Rule**: All small-component actions (keycaps, switches, screws, microchips) are automatically upgraded to 85mm probe macro optics, f/1.8 shallow depth of field.
+  - **Universal Anti-Cube Negative Matrix**: Permanently injects `generic cubes, plain plastic blocks, tofu, dice, wheat noodles, pasta, flour spaghetti, lo mein, real grocery food, meat, chicken, broccoli`.
+  - **Inedible Gourmet Ratio (80% Object Prominence)**: Enforces that plated stir-fries are 80% composed of authentic technical components glistening under translucent culinary flux/glaze, strictly prohibiting ambiguous food terms that trigger wheat pasta hallucinations.
+  - **Canonical Prop DNA Lock**: Embeds modern, relatable prop definitions (e.g., modern matte-black mechanical keyboard with doubleshot PBT keycaps and Cherry MX switches) across all scene prompts to guarantee continuous prop consistency across every scene.
+
 ### Verified (not just claimed)
-- `npm run typecheck` → passes with 0 errors across all routes and providers.
-- `npm run test` → 17/17 vitest unit tests pass.
-- `npm run build` → Next.js production build passes with all 39 static and dynamic routes compiled.
+- `npm run typecheck` → passes with 0 errors across all routes, models, and providers.
+- `npm run test` → 35/35 vitest unit tests pass.
+- `npm run build` → Next.js production build passes with all static and dynamic routes compiled.
 
 ### Next Recommended Step
 - Run an end-to-end test with a real prompt using Gemini (free text generation) and OpenAI (DALL-E 3 storyboard generation) or Kling video generation.

@@ -80,5 +80,81 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     expect(integrity).toContain("NO floating knives");
     expect(integrity).toContain("NO morphing food");
   });
+
+  it("detects and compiles inedible technical object cooking with Macro lock and anti-cube negative matrix", () => {
+    const entities = detectPhysicalEntities("Chef uses keycap puller to pop mechanical keycaps off custom keyboard onto butcher block");
+    expect(entities.isInedibleCooking).toBe(true);
+    expect(entities.inedibleHeroObject).toBe("Mechanical Keyboard");
+
+    const bundle = compileCinematicPrompt({
+      actionDescription: "Chef uses wire keycap puller to pop matte-black keycaps off the keyboard plate into a stainless bowl.",
+      shotSize: "Medium Shot",
+      sourceIdea: "Rogue chef cooks a gourmet stir-fry from a custom mechanical keyboard",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      heroPropLock: "Custom Matte-Black Mechanical Keyboard with red ESC key",
+      aspectRatio: "PORTRAIT_9_16",
+    });
+
+    // 1. Inedible hardware continuity and Prop Lock
+    expect(bundle.googleFlowPrompt).toContain("Inedible Craft-Culinary Continuity");
+    expect(bundle.googleFlowPrompt).toContain("Custom Matte-Black Mechanical Keyboard with red ESC key");
+    expect(bundle.googleFlowPrompt).toContain("Inedible Object Cooking & Material Invariants");
+
+    // 2. Macro Framing upgrade for small components
+    expect(bundle.googleFlowPrompt).toContain("Macro Close-Up Shot");
+    expect(bundle.googleFlowPrompt).toContain("85mm probe macro lens");
+
+    // 3. Strict anti-cube, anti-tofu, anti-food negative matrix
+    expect(bundle.universalNegativePrompt).toContain("generic cubes");
+    expect(bundle.universalNegativePrompt).toContain("plain plastic blocks");
+    expect(bundle.universalNegativePrompt).toContain("tofu");
+    expect(bundle.universalNegativePrompt).toContain("dice");
+    expect(bundle.universalNegativePrompt).toContain("wheat noodles");
+    expect(bundle.universalNegativePrompt).toContain("pasta");
+
+    // 4. Inedible rendering integrity
+    const integrity = UNIVERSAL_PHYSICAL_LAWS.getRenderingIntegrity("CULINARY_MACRO_ASMR", "Mechanical keyboard cooking ASMR");
+    expect(integrity).toContain("Ultra-high-definition macro craft-culinary cinema");
+    expect(integrity).toContain("Strictly NO generic cubes");
+    expect(integrity).toContain("NO tofu");
+    expect(integrity).toContain("NO wheat noodles");
+  });
+
+  it("dynamically adapts to ANY arbitrary non-food object (e.g. Luxury Mechanical Watch, Sneaker, Stones)", () => {
+    // 1. Dynamic Watch Cooking
+    const watchEntities = detectPhysicalEntities("Chef unclasps a luxury mechanical watch, disassembles the brass gears and mainspring onto the board");
+    expect(watchEntities.isInedibleCooking).toBe(true);
+    expect(watchEntities.inedibleHeroObject).toBe("Mechanical Watch");
+
+    const watchBundle = compileCinematicPrompt({
+      actionDescription: "Chef uses precision watchmaker tweezers to arrange golden gears and rubies on the dark slate.",
+      heroObject: "Vintage Rolex Submariner Watch",
+      heroPropLock: "Vintage Rolex Submariner with gold balance wheel and exposed tourbillon",
+      visualStyle: "CULINARY_MACRO_ASMR",
+    });
+
+    expect(watchBundle.googleFlowPrompt).toContain("Vintage Rolex Submariner Watch");
+    expect(watchBundle.googleFlowPrompt).toContain("Vintage Rolex Submariner with gold balance wheel");
+    expect(watchBundle.googleFlowPrompt).toContain("Inedible Object Cooking & Material Invariants");
+    expect(watchBundle.googleFlowPrompt).toContain("Macro Close-Up Shot");
+    expect(watchBundle.universalNegativePrompt).toContain("generic cubes");
+    expect(watchBundle.universalNegativePrompt).toContain("tofu");
+
+    // 2. Dynamic Sneaker Cooking
+    const sneakerEntities = detectPhysicalEntities("Chef slices a Nike Air Max sneaker waffle sole into crispy cubes and marinates in hot chili oil");
+    expect(sneakerEntities.isInedibleCooking).toBe(true);
+    expect(sneakerEntities.inedibleHeroObject).toBe("Sneaker");
+
+    const sneakerBundle = compileCinematicPrompt({
+      actionDescription: "Chef cleaves the rubber waffle sole into bite-sized nuggets on the butcher block.",
+      heroObject: "Nike Air Max Sneaker",
+      heroPropLock: "Nike Air Max 90 with vibrant infrared heel tab and waffle rubber outsole",
+      visualStyle: "CULINARY_MACRO_ASMR",
+    });
+
+    expect(sneakerBundle.googleFlowPrompt).toContain("Nike Air Max Sneaker");
+    expect(sneakerBundle.googleFlowPrompt).toContain("Nike Air Max 90 with vibrant infrared heel tab");
+    expect(sneakerBundle.googleFlowPrompt).toContain("Inedible Object Cooking & Material Invariants");
+  });
 });
 

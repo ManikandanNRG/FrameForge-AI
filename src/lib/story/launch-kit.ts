@@ -191,7 +191,8 @@ What if everyday technology could be harvested, prepared, and stir-fried with th
 0:15 - Precision Component Extraction & Harvest
 0:35 - The Heavy Cleaver Chop (Fracture & Prep)
 0:50 - High-Heat Wok Stir-Fry & Glaze Sizzle
-1:10 - The 5-Star Plating Presentation
+1:10 - End of Cooking & Sauce Consistency (Pan Lift)
+1:20 - 3-Star Michelin White Plate Artwork Showcase
 
 ✨ PRODUCTION CREDITS:
 Created with CineFlow AI Studio · Visuals powered by Google Flow & Veo · Sound Design by CineFlow Audio Lab.

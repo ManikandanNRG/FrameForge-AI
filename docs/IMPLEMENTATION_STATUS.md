@@ -252,3 +252,20 @@
 - **Verification**:
   - `tsc --noEmit`: 0 errors.
   - `pnpm test`: 40/40 tests passing across 8 test suites.
+
+### 2026-11-16 — ADR-020: Scene 11 (Cooked Consistency) & Scene 12 (3-Star Michelin White Plate Artwork)
+- **Features Implemented**:
+  1. **Scene 11 (End of Cooking & Sauce Consistency in Pan)**:
+     - Updated database records (`Scene` 11 and `Shot` 11 in project `cmwg5nczz0001u88sld5gnrmd`).
+     - **Visual Prompt**: Macro eye-level shot inside the hot carbon-steel wok at the end of cooking. Thick, glistening amber reduction glaze bubbling. Chef lifts stainless spatula upward—sticky, glistening sauce stretches and drips in slow motion over glossy black keycaps and ruby Cherry MX switches, showcasing the caramelized cooked consistency.
+     - **ASMR Audio**: Thick bubbling simmer (*gloop-bubble-sizzle*), slow sticky saucy stretch sound (*shhhk-gloooop*), keycaps gently clicking in heavy glaze, wisps of steam. Strictly zero spoken words or voiceover.
+  2. **Scene 12 (3-Star Michelin White Plate Artwork Presentation)**:
+     - Updated database records (`Scene` 12 and `Shot` 12 in project `cmwg5nczz0001u88sld5gnrmd`).
+     - Replaced dull dark motherboard with a **pristine, high-contrast bright white ceramic coupe plate** for maximum visual pop on YouTube/Instagram feeds.
+     - **Visual Prompt**: Bold curved swoosh of dark amber chili glaze across gleaming white porcelain; central geometric gourmet mound of caramelized keycaps and ruby switches; delicate spiral copper wire ribbons; emerald PCB chips fanned along the side; golden sauce droplets piped in a curve; crowned with a single ruby-red ESC keycap under a focused warm spotlight.
+     - **ASMR Audio**: Soft steam whisper, subtle ceramic clink, ambient low hum.
+  3. **Screenplay Synchronization (`src/lib/story/prompts.ts`, `src/lib/story/launch-kit.ts`)**:
+     - Updated screenplay artifact version text, YouTube description timestamps, and system prompt guidelines for inedible cooking ASMR episodes.
+- **Verification**:
+  - `tsc --noEmit`: 0 errors.
+  - `pnpm test`: 40/40 tests passing across 8 test suites.

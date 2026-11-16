@@ -554,12 +554,23 @@ export default function StoryboardPage() {
         setTimeout(() => setDoctorSuccess(false), 3000);
         await load();
         if (payload.fixedPrompt) {
+          const isFlux = doctorTargetTab === "flux";
           setSelected(prev => prev ? {
             ...prev,
-            videoPrompt: payload.fixedPrompt,
-            imagePrompt: payload.bundle?.fluxStillPrompt || prev.imagePrompt,
-            actionDescription: payload.bundle?.actionDescription || prev.actionDescription,
+            videoPrompt: isFlux ? prev.videoPrompt : payload.fixedPrompt,
+            imagePrompt: isFlux ? payload.fixedPrompt : (payload.bundle?.fluxStillPrompt || prev.imagePrompt),
+            actionDescription: payload.fortifiedAction || payload.bundle?.actionDescription || prev.actionDescription,
           } : null);
+
+          setScenes(prev => prev.map(sc => ({
+            ...sc,
+            shots: sc.shots.map(sh => sh.id === selected.id ? {
+              ...sh,
+              videoPrompt: isFlux ? sh.videoPrompt : payload.fixedPrompt,
+              imagePrompt: isFlux ? payload.fixedPrompt : (payload.bundle?.fluxStillPrompt || sh.imagePrompt),
+              actionDescription: payload.fortifiedAction || payload.bundle?.actionDescription || sh.actionDescription,
+            } : sh),
+          })));
         }
       } else {
         alert(json.error?.message || payload.error?.message || "Failed to fix prompt issue");

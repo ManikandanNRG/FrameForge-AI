@@ -349,3 +349,17 @@
 - **Verification**:
   - Unit tests: 53/53 tests passing across 10 test suites (`tests/unit/culinary-asmr.test.ts`).
   - Typecheck: `tsc --noEmit` clean with 0 errors.
+
+### 2026-11-16 — ADR-024: Google Flow Character Anchor Consistency & Prompt Doctor Overhaul
+- **Defects Addressed**:
+  1. `fluxStillPrompt` omitted the `@` character handle in Stage 1 Still Prompts (`Subject: The Shadow Alchemist Chef` instead of `Subject: [@TheShadowAlchemistChef] (The Shadow Alchemist Chef)`), breaking Google Flow character profile binding.
+  2. The Prompt Doctor endpoint (`fix-issue/route.ts`) dumbly dumped creator issue descriptions into `--negative "<user sentence>"` and inverted tab persistence by saving still fixes into `videoPrompt` while leaving `imagePrompt` unmodified.
+- **Architectural Fixes**:
+  1. Updated `src/lib/story/prompt-compiler.ts` so `fluxStillPrompt`, `chatgptPrompt`, and `geminiPrompt` always embed `Subject: [@${charName}] (${characterName})`.
+  2. Overhauled `src/app/api/projects/[projectId]/shots/[shotId]/fix-issue/route.ts` with `resolveTextProvider` AI diagnosis, strict negative keyword sanitization (visual defects only, never raw user text), and explicit `@character` anchor injection.
+  3. Corrected tab persistence: `flux` writes to `Shot.imagePrompt`, `video`/`flow` writes to `Shot.videoPrompt`.
+  4. Updated `src/app/projects/[projectId]/storyboard/page.tsx` so frontend state immediately updates the active tab.
+  5. Cleaned all corrupted prompt strings across PostgreSQL DB shots.
+- **Verification**:
+  - Unit tests: 56/56 passing across 11 test suites (`tests/unit/prompt-doctor.test.ts`).
+  - Typecheck: `tsc --noEmit` clean with 0 errors.

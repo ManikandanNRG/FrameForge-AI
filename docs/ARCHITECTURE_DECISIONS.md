@@ -390,3 +390,24 @@ Ensures characters have authentic voices and narrative sound without paid API de
   7. **Verification**:
      - 53/53 unit tests passing across 10 test suites (`tests/unit/culinary-asmr.test.ts`), `tsc --noEmit` clean with 0 errors.
 
+## ADR-024: Google Flow Character Anchor Consistency & Prompt Doctor Overhaul
+- **Date**: 2026-11-16 · **Status**: Approved & Implemented
+- **Context**: Creator testing in Step 3 (Storyboard Prompt Hub) revealed two severe defects:
+  1. *Missing Character Tag in Still Prompts*: `fluxStillPrompt` (the Stage 1 Still Prompt) was formatting character subject anchors without the `@` handle (`Subject: The Shadow Alchemist Chef...` instead of `Subject: [@TheShadowAlchemistChef] (The Shadow Alchemist Chef)...`), preventing Google Flow / Veo / Kling from referencing the character asset profile.
+  2. *Defective Prompt Doctor Route*: When reporting the missing `@character` tag to the Prompt Doctor modal, the backend (`fix-issue/route.ts`) fell back to a brittle string-strip that dumped the creator's raw complaint text into `--negative "This prompt never use the charecter name with charecter for google flow consistency"`.
+  3. *Inverted Target Tab Persistence*: When fortifying a Stage 1 Still Prompt (`targetTab: "flux"`), the backend saved the fixed prompt to `videoPrompt` while leaving `imagePrompt` unmodified in the database, and the frontend state did not update the active Still tab.
+- **Decision**:
+  1. **Canonical Google Flow Character Tagging in Still Prompts (`src/lib/story/prompt-compiler.ts`)**:
+     - Updated `fluxStillPrompt`, `chatgptPrompt`, and `geminiPrompt` so that `Subject: [@${charName}] (${characterName})` is permanently included whenever a character is active.
+  2. **AI-Powered Prompt Doctor with Strict Negative Sanitization (`src/app/api/projects/[projectId]/shots/[shotId]/fix-issue/route.ts`)**:
+     - Integrated `resolveTextProvider` into Prompt Doctor for context-aware diagnosis, physical invariant prescription, and prompt fortification.
+     - Enforced strict negative sanitization: negative prompt filters MUST contain ONLY visual defect keywords (e.g. `inconsistent character, generic person, wrong actor, morphing face`), strictly barring raw user sentences or bug report text from ever being injected into `--negative`.
+     - Added dedicated character anchor branch for explicit `@character` / name binding.
+  3. **Correct Target Tab DB Persistence & UI State Binding**:
+     - `targetTab === "flux"` persists to `Shot.imagePrompt`; `targetTab === "video" | "flow"` persists to `Shot.videoPrompt`.
+     - Updated `runPromptDoctor` in `src/app/projects/[projectId]/storyboard/page.tsx` so `selected` and `scenes` state immediately reflect the fixed prompt in the correct tab.
+  4. **Verification**:
+     - Added test suite `tests/unit/prompt-doctor.test.ts` (3 tests). Total suite: 56/56 passing across 11 test suites.
+     - Cleaned and re-compiled all 5 shots of Project `cmwja2y3t0001u8qgfh5w3gtj` in PostgreSQL, verifying zero corrupted negative strings and 100% `@TheShadowAlchemistChef` presence.
+
+

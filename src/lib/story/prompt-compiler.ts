@@ -848,7 +848,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const fluxStillPrompt = [
     fluxStillOpening,
     characterName
-      ? `Subject: ${characterName}, ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
+      ? `Subject: ${bracketedCharTag} (${characterName}), ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
       : null,
     `Scene Action: ${actionCleaned}.`,
     `Environment: ${(resolvedEnvironment || (isVintage ? "Authentic 1900s historical Pudukkottai architectural setting" : "Authentic cinematic setting")).replace(/\.+$/, "")}.`,
@@ -888,7 +888,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Create a stunning cinematic anime feature ${framingDesc} still.`
       : `Create a highly detailed, photorealistic ${framingDesc} film still from a cinematic film.`,
     characterName
-      ? `Subject: ${characterName}, ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : isAnimated ? "charming expressive animated features" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
+      ? `Subject: ${bracketedCharTag} (${characterName}), ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : isAnimated ? "charming expressive animated features" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Scene Action: ${actionCleaned}.`,
     `Environment: ${resolvedEnvironment}.`,

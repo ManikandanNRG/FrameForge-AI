@@ -18,6 +18,8 @@ export interface SocialLaunchKit {
   thumbnailPrompts: {
     landscape16x9: string;
     portrait9x16: string;
+    landscape16x9WithHeadline?: string;
+    portrait9x16WithHeadline?: string;
   };
   youtube: {
     titles: string[];
@@ -99,7 +101,7 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   // MASTER TEMPLATE PROMPTS (Verified against media_1794762564764_ab5dc0ae.jpg)
   const thumbnailPortrait9x16 = `A viral vertical 9:16 YouTube Shorts and Reels thumbnail, medium close-up shot, straight eye-level frontal perspective, centered symmetrical composition.
 
-Subject: ${charHandle}, looking directly into the camera lens with intense, locked hazel eyes. Dark wavy hair with vintage brass dual-lens tinker goggles resting on crown. Wearing a sleek matte-black ergonomic tactical half-mask with vertical gold cheekline vents, dark rolled-sleeve work shirt, distressed leather artisan apron, and black textured grip gloves.
+Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, handsome masculine facial structure, looking directly into the camera lens with intense, locked hazel eyes. Dark wavy hair with vintage brass dual-lens tinker goggles resting on crown. Wearing a sleek matte-black ergonomic tactical half-mask with vertical gold cheekline vents, dark rolled-sleeve work shirt, distressed leather artisan apron, and black textured grip gloves.
 
 Dual-Handed Props & Invariant Composition:
 - Viewer's Left Hand: Grips ${rawObjectHalf} at chest height.
@@ -110,9 +112,24 @@ Lighting & Atmosphere: Deep solid dark charcoal studio background with heavy smo
 
 Strict Constraints: Character visually rendered only. Strictly NO username on image, NO text, NO typography, NO watermarks, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
 
+  const thumbnailPortrait9x16WithHeadline = `A viral vertical 9:16 YouTube Shorts and Reels thumbnail, medium close-up shot, straight eye-level frontal perspective, centered symmetrical composition.
+
+Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, handsome masculine facial structure, looking directly into the camera lens with intense, locked hazel eyes. Dark wavy hair with vintage brass dual-lens tinker goggles resting on crown. Wearing a sleek matte-black ergonomic tactical half-mask with vertical gold cheekline vents, dark rolled-sleeve work shirt, distressed leather artisan apron, and black textured grip gloves.
+
+Dual-Handed Props & Invariant Composition:
+- Viewer's Left Hand: Grips ${rawObjectHalf} at chest height.
+- Viewer's Right Hand: Thrusts forward a wide angled stainless steel chef's slotted spatula holding ${cookedSpatulaPile}.
+- Center Foreground: A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with ${wokContents}.
+
+Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing the character or props.
+
+Lighting & Atmosphere: Deep solid dark charcoal studio background with heavy smooth vignette, completely clean, zero clutter, zero tools. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.
+
+Strict Constraints: Character visually rendered only. Strictly NO username on image, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
+
   const thumbnailLandscape16x9 = `A viral high-contrast 16:9 YouTube video thumbnail, medium close-up framing, straight eye-level frontal perspective, centered composition.
 
-Subject: ${charHandle}, centered directly facing camera with an intense direct hazel-eyed gaze. Dark wavy hair, vintage brass tinker goggles on forehead, sleek matte-black tactical half-mask with gold vents, dark rolled-sleeve shirt, leather apron, black grip gloves.
+Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, centered directly facing camera with an intense direct hazel-eyed gaze. Handsome masculine facial features, dark wavy hair, vintage brass tinker goggles on forehead, sleek matte-black tactical half-mask with gold vents, dark rolled-sleeve shirt, leather apron, black grip gloves.
 
 Dual-Handed Props & Invariant Composition:
 - Viewer's Left Hand: Grips ${rawObjectHalf} horizontally at chest height.
@@ -122,6 +139,21 @@ Dual-Handed Props & Invariant Composition:
 Lighting & Environment: Seamless dark charcoal studio background with deep vignette, clean, zero clutter. High-key commercial food lighting on the dripping amber glaze and textures.
 
 Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO username on image, NO text, NO watermarks, NO letters, NO font overlay, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
+
+  const thumbnailLandscape16x9WithHeadline = `A viral high-contrast 16:9 YouTube video thumbnail, medium close-up framing, straight eye-level frontal perspective, centered composition.
+
+Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, centered directly facing camera with an intense direct hazel-eyed gaze. Handsome masculine facial features, dark wavy hair, vintage brass tinker goggles on forehead, sleek matte-black tactical half-mask with gold vents, dark rolled-sleeve shirt, leather apron, black grip gloves.
+
+Dual-Handed Props & Invariant Composition:
+- Viewer's Left Hand: Grips ${rawObjectHalf} horizontally at chest height.
+- Viewer's Right Hand: Extends a wide stainless steel chef's slotted spatula forward close to the lens, piled with ${cookedSpatulaPile}.
+- Center Foreground: A large round seasoned black carbon-steel wok filling the lower foreground, loaded with ${wokContents}.
+
+Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.
+
+Lighting & Environment: Seamless dark charcoal studio background with deep vignette, clean, zero clutter. High-key commercial food lighting on the dripping amber glaze and textures.
+
+Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO username on image, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
 
   // YouTube Titles
   const youtubeTitles = isCulinaryAsmr
@@ -209,6 +241,8 @@ Drop your vote below! 👇`;
     thumbnailPrompts: {
       landscape16x9: thumbnailLandscape16x9,
       portrait9x16: thumbnailPortrait9x16,
+      landscape16x9WithHeadline: thumbnailLandscape16x9WithHeadline,
+      portrait9x16WithHeadline: thumbnailPortrait9x16WithHeadline,
     },
     youtube: {
       titles: youtubeTitles,

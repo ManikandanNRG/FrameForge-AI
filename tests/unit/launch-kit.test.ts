@@ -29,9 +29,15 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
 
     // 9:16 Vertical
     expect(kit.thumbnailPrompts.portrait9x16).toContain("@TheShadowAlchemist");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("athletic male artisan culinary alchemist chef");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("fractured, severed rectangular chunk");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("seasoned black carbon-steel wok");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("crimson-red ESC keycap");
+
+    // Optional Headline Directives for Text-Capable AI Generators (Google Flow / Imagen 3)
+    expect(kit.thumbnailPrompts.portrait9x16WithHeadline).toContain("Viral Text Header Directive");
+    expect(kit.thumbnailPrompts.portrait9x16WithHeadline).toContain("DO NOT EAT THIS!");
+    expect(kit.thumbnailPrompts.landscape16x9WithHeadline).toContain("Viral Text Header Directive");
   });
 
   it("generates YouTube launch suite with high-CTR titles, safety disclaimer and foley notes", () => {

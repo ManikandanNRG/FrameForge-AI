@@ -298,6 +298,24 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Enforces strict constraints: zero teeth/bite marks, zero username rendered on screen, zero text watermarks, zero eating/ingestion.
   2. **Enhanced API Endpoint (`src/app/api/projects/[projectId]/thumbnail/route.ts`)**:
      - GET returns saved thumbnail artifact along with dynamic `launchKit` payload.
+
+## ADR-019: Viral YouTube Headline Engine & Thumbnail Studio Customizer
+- **Date**: 2026-11-16 · **Status**: Approved & Implemented
+- **Context**: Creators testing viral YouTube and Instagram thumbnails need the ability to easily customize, fine-tune, and preview bold viral headlines (e.g. "DO NOT EAT THIS!", "⚠️ DANGEROUS DISH!") directly on their approved master imagery without being locked into hardcoded presets or rigid styles. Furthermore, diffusion models like FLUX.1 occasionally hallucinate generic female faces if masculine chef character anchors are not strictly fortified.
+- **Decision**:
+  1. **Reinforced Masculine Chef Anchors (`src/lib/story/launch-kit.ts`)**:
+     - Explicitly define: `"@TheShadowAlchemist, an athletic male artisan culinary alchemist chef, handsome masculine facial structure, piercing hazel eyes locked directly onto the camera lens..."` across all 16:9 and 9:16 thumbnail prompts.
+  2. **Dual-Mode AI Prompts with Headline Directives**:
+     - Added optional `Viral Text Header Directive:` into thumbnail prompts when enabled by the creator, allowing Google Flow / Imagen 3 to generate the text natively if desired.
+  3. **Multi-Style Overlay Customizer (`src/components/nav/ProjectWorkflowNav.tsx`)**:
+     - Added 3 distinct overlay styles: `🔥 Viral YT Header` (huge gradient text with thick black outline and white glow), `⚠️ Caution Sticker` (angled box badge), and `⚪ Clean Impact` (modern bold typography).
+     - Added granular controls: font size (`Hero`, `Large`, `Medium`, `Compact`), safe-zone positioning (`Top-Center`, `Top-Right`, `Top-Left`, `Bottom`), vertical position slider (`1%` to `25%` safe margin above goggles), color gradients (`🔥 Fiery Sunset`, `⚡ Electric Yellow`, `🛑 Caution Red`, `⚪ Pure White`), and font styles (`Impact`, `Modern Sans`, `Monospace`).
+  4. **Base Image Source Flexibility**:
+     - Added automatic detection and 1-click switcher between the creator's approved Google Flow master chef (`approved-master-chef.jpg`) and AI-generated stills.
+  5. **High-Res HTML5 Canvas Compositing & Export**:
+     - Canvas rendering engine draws pixel-perfect multi-stop linear gradients, double-pass black strokes, and soft white halo glows directly into exported PNG files.
+  6. **Persistence & REST API**:
+     - Added `PATCH /api/projects/[projectId]/thumbnail` to persist user overlay preferences directly to the database.
      - POST supports `OBJECT_COOKING_HOOK` alongside `CURIOSITY_SHOCK`, `EPIC_CINEMATIC`, and `DRAMATIC_CONFLICT`, with support for both `16:9` (1280x720) and `9:16` (720x1280) dimensions via FLUX.1.
   3. **Universal Studio UI (`src/components/nav/ProjectWorkflowNav.tsx`)**:
      - Integrated a 3-tab Social Launch Suite (YouTube Launch, Instagram Reels, AI Thumbnail Studio) into Step 5 of the studio workflow navigation bar.

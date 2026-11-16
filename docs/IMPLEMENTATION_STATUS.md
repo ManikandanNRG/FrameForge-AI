@@ -227,3 +227,28 @@
 - **Verification**:
   - `pnpm test`: 40/40 tests passing across 8 test suites.
   - `tsc --noEmit`: 0 errors.
+
+### 2026-11-16 — ADR-019: Viral YouTube Headline Engine & Thumbnail Studio Customizer
+- **Features Implemented**:
+  1. **Masculine Chef Anchor Lock (`src/lib/story/launch-kit.ts`)**:
+     - Hardened character prompt subject to explicitly define `"@TheShadowAlchemist, an athletic male artisan culinary alchemist chef, handsome masculine facial structure, piercing hazel eyes..."` preventing image models (e.g. FLUX.1) from hallucinating female or anime faces.
+  2. **Dual-Mode AI Prompts (`src/lib/story/launch-kit.ts`)**:
+     - Added `landscape16x9WithHeadline` and `portrait9x16WithHeadline` with embedded `Viral Text Header Directive:` for text-capable image generators (Google Flow / Imagen 3).
+     - Added dynamic prompt synchronization that updates in real-time with custom headline text.
+  3. **Multi-Style Overlay Customizer (`src/components/nav/ProjectWorkflowNav.tsx`)**:
+     - **3 Style Modes**: `🔥 Viral YT Header` (huge gradient text with thick black outline and white glow matching user-approved design), `⚠️ Caution Sticker` (angled box badge), and `⚪ Clean Impact` (modern bold typography).
+     - **Font Size Controls**: `Hero (Huge YT)`, `Large`, `Medium`, `Compact`.
+     - **Safe Zone Positioning**: `Top-Center`, `Top-Right`, `Top-Left`, `Bottom`.
+     - **Vertical Nudge Slider (Y-Offset)**: 1% to 25% slider allowing fine-tuning to keep text strictly above the chef's goggles.
+     - **Theme Gradients**: `🔥 Fiery Sunset` (Yellow -> Orange -> Red gradient), `⚡ Electric Yellow`, `🛑 Caution Red`, `⚪ Pure White`.
+     - **Font Family**: `Impact (YouTube)`, `Modern Sans`, `Monospace`.
+     - **One-Click Presets & Custom Input**: `"DO NOT EAT THIS!"`, `"⚠️ DANGEROUS DISH!"`, `"🚫 100% INEDIBLE!"`, `"🍳 500°F WOK STIR-FRY"`, `"⌨️ CRUNCHY KEYBOARD"`.
+  4. **Base Image Flexibility & Master Chef Switcher**:
+     - Automatically discovers and surfaces the user's approved master chef image (`media_1794762564764_ab5dc0ae.jpg`), allowing 1-click toggling between `⭐ Approved Master Chef` and `🤖 AI Generated (FLUX.1)`.
+  5. **High-Res HTML5 Canvas Compositing & Export**:
+     - Upgraded `downloadCompositedThumbnail` to render pixel-perfect multi-stop gradients, heavy black strokes (`lineWidth`), white halo glow (`shadowBlur`), and positioning onto high-res canvas exports.
+  6. **Persistence API (`src/app/api/projects/[projectId]/thumbnail/route.ts`)**:
+     - Added `PATCH` endpoint to save custom overlay settings to the project's `StoryArtifact` database record.
+- **Verification**:
+  - `tsc --noEmit`: 0 errors.
+  - `pnpm test`: 40/40 tests passing across 8 test suites.

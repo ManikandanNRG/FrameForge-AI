@@ -1,5 +1,6 @@
 import { z } from "zod";
 import path from "node:path";
+import fs from "node:fs/promises";
 import { mkdir, rename } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
@@ -44,6 +45,16 @@ export const GET = apiHandler(async (_req, ctx) => {
 
   const launchKit = generateSocialLaunchKit(project);
 
+  let root = await prisma.mediaRoot.findFirst({ where: { ownerId } });
+  let approvedMasterUrl: string | null = null;
+  if (root) {
+    const approvedPath = path.join(root.path, "projects", projectId as string, "thumbnails", "approved-master-chef.jpg");
+    try {
+      await fs.access(approvedPath);
+      approvedMasterUrl = `/api/media/file?path=${encodeURIComponent(approvedPath)}`;
+    } catch {}
+  }
+
   const artifact = await prisma.storyArtifact.findFirst({
     where: { projectId: projectId as string, artifactType: "YOUTUBE_THUMBNAIL" },
     include: {
@@ -55,15 +66,76 @@ export const GET = apiHandler(async (_req, ctx) => {
   });
 
   if (!artifact || !artifact.versions[0]) {
-    return { ok: true, thumbnail: null, launchKit };
+    return { ok: true, thumbnail: null, approvedMasterUrl, launchKit };
   }
 
   try {
     const data = JSON.parse(artifact.versions[0].contentText);
-    return { ok: true, thumbnail: data, launchKit };
+    return { ok: true, thumbnail: data, approvedMasterUrl, launchKit };
   } catch {
-    return { ok: true, thumbnail: null, launchKit };
+    return { ok: true, thumbnail: null, approvedMasterUrl, launchKit };
   }
+});
+
+/**
+ * PATCH /api/projects/[projectId]/thumbnail
+ * Updates thumbnail overlay settings or switches active thumbnail URL.
+ */
+export const PATCH = apiHandler(async (req, ctx) => {
+  const ownerId = await requireUserId();
+  const { projectId } = await ctx.params;
+  const project = await prisma.project.findUnique({
+    where: { id: projectId as string },
+  });
+  if (!project) throw notFound("Project not found");
+  if (project.ownerId !== ownerId) throw forbidden();
+
+  const body = await req.json().catch(() => ({}));
+  
+  let artifact = await prisma.storyArtifact.findFirst({
+    where: { projectId: projectId as string, artifactType: "YOUTUBE_THUMBNAIL" },
+    include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
+  });
+
+  let currentData: any = {};
+  if (artifact && artifact.versions[0]) {
+    try { currentData = JSON.parse(artifact.versions[0].contentText); } catch {}
+  }
+
+  const updatedData = {
+    ...currentData,
+    ...body,
+    updatedAt: new Date().toISOString(),
+  };
+
+  let artifactId = artifact?.id;
+  if (!artifactId) {
+    const created = await prisma.storyArtifact.create({
+      data: {
+        projectId: projectId as string,
+        artifactType: "YOUTUBE_THUMBNAIL",
+        approvalStatus: "APPROVED",
+      },
+    });
+    artifactId = created.id;
+  }
+
+  const nextVersion = (await prisma.artifactVersion.count({ where: { artifactId } })) + 1;
+  const version = await prisma.artifactVersion.create({
+    data: {
+      artifactId,
+      versionNumber: nextVersion,
+      contentText: JSON.stringify(updatedData),
+    },
+  });
+
+  await prisma.storyArtifact.update({
+    where: { id: artifactId },
+    data: { currentVersionId: version.id },
+  });
+
+  const launchKit = generateSocialLaunchKit(project);
+  return { ok: true, thumbnail: updatedData, launchKit };
 });
 
 /**

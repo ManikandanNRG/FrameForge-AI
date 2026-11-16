@@ -296,3 +296,34 @@
 - **Verification**:
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.
   - `npm test` (`vitest run`): 46/46 tests passing across 9 test suites.
+
+### 2026-11-16 — ADR-022: Story-First Creative Studio Architecture & Context-Aware AI Co-Pilot
+- **User Problem Addressed**:
+  - Script area dropped users directly into technical AI camera prompt syntax (`VISUAL PROMPT & CAMERA`, `Omni Flash / Veo 2`, camera tracking tags) instead of allowing creators to read and understand the story developed from their one-line pitch.
+  - Hardcoded elephant threat and Tamil village quick-pills (`+ Increase suspense with elephant threat`, `+ Add mother comforting Karthi`) were displayed on all scene cards regardless of genre or project world (such as Cyberpunk Alchemist Cooking ASMR).
+- **Architectural & UX Solutions Implemented**:
+  1. **2-Stage Story Development Workflow (`src/app/projects/[projectId]/story/page.tsx`)**:
+     - **Stage 1 (Viral Story Treatment & Narrative Foundation)**: Prominently featured hero treatment display at the top of the Script Studio presenting:
+       - *1. Original Idea Pitch*: Displays the creator's raw pitch quote.
+       - *2. 3-Second Scroll-Stopping Viral Hook*: Highlights the visual scroll-stopper.
+       - *3. Story Premise & Cinematic Setting*: Highlights protagonist goals, world constraints, and cinematic tension.
+       - *4. 3-Act Viral Narrative Arc*: Timeline cards showing Act 1 (The Hook & Setup), Act 2 (Escalation & Craft), and Act 3 (Climax & Viral Payoff).
+       - *Action Buttons*: Quick-access buttons to compare 2 competing creative treatments (Option A vs Option B) or approve the story and proceed to screenplay scenes.
+     - **Stage 2 (Scene-by-Scene Screenplay)**:
+       - Prioritizes **Dramatic Story Action & Beat** in readable screenplay prose.
+       - Added a **View Mode Switcher**: `📖 Story View (Clean)` vs `🎬 Director AI Prompts`.
+       - Placed technical diffusion prompts and binaural Foley in a collapsible `Director & AI Camera Diffusion Specs` accordion.
+  2. **Dynamic Context-Aware AI Director Co-Pilot (`src/lib/story/director-copilot.ts`)**:
+     - Created `getDirectorSuggestions(project, scene)` to dynamically generate tailored instruction pills and input placeholders based on project `visualStyle`, `genre`, and `tone`.
+     - For Culinary ASMR: Generates sizzle, crunch, sauce glaze, and knife prep suggestions (eliminating all elephant/Karthi pills).
+     - For Anime/Kids: Generates playful dialogue, laughter, and meadow atmosphere pills.
+     - For Vintage/Period: Generates authentic cultural dialogue, antique foley, and sepia lighting pills.
+     - For Sci-Fi: Generates cyber neon glow, capacitor hum, and hardware macro pills.
+     - Enhanced `extractDialogueDelivery` to strip quotes and parse explicit parentheses delivery tags across all languages.
+  3. **Foundation Story Artifact Auto-Synthesis (`src/app/api/projects/[projectId]/story/route.ts`)**:
+     - `GET /api/projects/[projectId]/story` automatically verifies whether `LOGLINE`, `PREMISE`, and `SYNOPSIS` artifacts exist. If missing from projects with existing screenplays, it synthesizes and persists them into the database so the story foundation is never blank.
+  4. **Unit Tests Added (`tests/unit/director-copilot.test.ts`)**:
+     - 6 unit tests covering culinary, anime, vintage, and sci-fi director suggestions and dialogue delivery cue extraction. Total test suite: 10 test suites, 52/52 passing tests.
+- **Verification**:
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+  - `npm test` (`vitest run`): 52/52 tests passing across 10 test suites.

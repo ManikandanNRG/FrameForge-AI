@@ -340,3 +340,21 @@ Ensures characters have authentic voices and narrative sound without paid API de
   5. Implemented atomic `claimSpecificJob(id)` in `src/lib/jobs/queue.ts` (`QUEUED -> SUBMITTING`) and updated all inline `setImmediate` callers to claim prior to `markRunning()`.
   6. Replaced loopback HTTP fetch in `one-click/route.ts` with direct internal job queue calls.
   7. Added unit test suite `tests/unit/audio-defaults.test.ts` (6 tests). Total test suite: 46/46 passing across 9 suites.
+
+## ADR-022: Story-First Creative Studio Architecture & Context-Aware AI Co-Pilot
+- **Date**: 2026-11-16 · **Status**: Approved & Implemented
+- **Context**: Creator feedback highlighted an inversion of the filmmaking mental model in Step 1 (Script & Story Studio):
+  1. The studio dropped users directly into technical AI camera diffusion prompts (`VISUAL PROMPT & CAMERA`, `Omni Flash / Veo 2`, camera tracking parameters) rather than presenting the actual narrative story (Hook, Premise, 3-Act Arc) developed from their one-line pitch.
+  2. The AI Director Co-Pilot scene rewrite tools contained static hardcoded instruction pills and placeholders referencing an elephant threat and character Karthi (`+ Increase suspense with elephant threat`, `+ Add mother comforting Karthi`), which bled into completely unrelated projects (e.g. Cyberpunk Alchemist Cooking ASMR).
+  3. Projects created without separate `LOGLINE`, `PREMISE`, or `SYNOPSIS` artifacts lacked a visible narrative foundation.
+- **Decision**:
+  1. **Two-Stage Story Studio UX (`src/app/projects/[projectId]/story/page.tsx`)**:
+     - **Stage 1 (Viral Story Treatment & Narrative Foundation)**: Prominently renders a dedicated hero treatment card displaying: (1) Creator's original pitch quote, (2) 3-Second scroll-stopping viral hook, (3) Dramatic story premise & cinematic universe, and (4) 3-Act narrative plot timeline (Act 1 Setup & Hook, Act 2 Escalation & Craft, Act 3 Climax & Viral Payoff).
+     - **Stage 2 (Scene-by-Scene Screenplay)**: Separates dramatic narrative action from technical camera diffusion prompts. Introduced a View Mode switcher (`Story View` vs `Director AI Prompts`) and enclosed technical diffusion prompts in a collapsible accordion.
+  2. **Dynamic Context-Aware AI Director Co-Pilot (`src/lib/story/director-copilot.ts`)**:
+     - Built `getDirectorSuggestions(project, scene)` to dynamically produce instruction pills and placeholders tailored to the project's visual style, genre, and tone (e.g. pan sizzle, sauce glaze, and knife prep for culinary ASMR; playful dialogue and meadow wonder for anime/kids; authentic period foley and sepia lighting for vintage history).
+     - Replaced hardcoded elephant/Karthi strings with dynamic suggestions across both inline scene cards and the modal rewrite form.
+  3. **Foundation Story Artifact Auto-Synthesis (`src/app/api/projects/[projectId]/story/route.ts`)**:
+     - In `GET /api/projects/[projectId]/story`, verify that `LOGLINE`, `PREMISE`, and `SYNOPSIS` artifacts exist; if missing, synthesize them from the project's pitch and screenplay scenes and persist them into the database.
+  4. **Verification**:
+     - 52/52 unit tests passing across 10 test suites (`tests/unit/director-copilot.test.ts`), `tsc --noEmit` clean with 0 errors.

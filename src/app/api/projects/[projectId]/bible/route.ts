@@ -34,7 +34,7 @@ export const POST = apiHandler(async (req, ctx) => {
   const { modelId = "gpt-4o-mini", useMock = false } = parsed.data;
 
   if (!useMock) {
-    const conn = await prisma.providerConnection.findFirst({ where: { ownerId, providerId: { in: ["openai","gemini"] }, isEnabled: true } });
+    const conn = await prisma.providerConnection.findFirst({ where: { ownerId, providerId: { in: ["openai", "gemini", "openrouter"] }, isEnabled: true } });
     if (!conn) throw badRequest("No AI provider configured.");
   }
 

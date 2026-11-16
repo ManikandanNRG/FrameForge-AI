@@ -19,19 +19,19 @@ export const GET = apiHandler(async (_req, ctx) => {
   if (job.status === "QUEUED") {
     setImmediate(async () => {
       try {
-        const { markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
-        const fresh = await prisma.generationJob.findUnique({ where: { id: job.id } });
-        if (fresh && fresh.status === "QUEUED") {
-          await markRunning(job.id);
+        const { claimSpecificJob, markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
+        const claimed = await claimSpecificJob(job.id);
+        if (claimed) {
+          await markRunning(claimed.id);
           let result: unknown;
-          if (job.jobType === "VIDEO_GENERATION") {
+          if (claimed.jobType === "VIDEO_GENERATION") {
             const { videoGenerationHandler } = await import("@/lib/jobs/video-generation-handler");
-            result = await videoGenerationHandler(fresh);
-          } else if (job.jobType === "IMAGE_GENERATION") {
+            result = await videoGenerationHandler(claimed);
+          } else if (claimed.jobType === "IMAGE_GENERATION") {
             const { imageGenerationHandler } = await import("@/lib/jobs/image-generation-handler");
-            result = await imageGenerationHandler(fresh);
+            result = await imageGenerationHandler(claimed);
           }
-          if (result) await markSucceeded(job.id, result as Record<string, unknown>);
+          if (result) await markSucceeded(claimed.id, result as Record<string, unknown>);
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

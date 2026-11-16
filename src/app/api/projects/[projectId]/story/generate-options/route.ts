@@ -141,8 +141,8 @@ Return JSON with this exact structure:
     "scenes": [
       {
         "sceneNumber": 1,
-        "heading": "EXT. SUGARCANE FIELD - AFTERNOON",
-        "location": "Sugarcane Field",
+        "heading": "EXT. STORY WORLD - AFTERNOON",
+        "location": "Main Story Setting",
         "timeOfDay": "AFTERNOON",
         "action": "Visual description in cinematic English...",
         "dialogue": "[@Character] speaks: \\"...\\"",
@@ -161,8 +161,8 @@ Return JSON with this exact structure:
     "scenes": [
       {
         "sceneNumber": 1,
-        "heading": "EXT. SUGARCANE FIELD - AFTERNOON",
-        "location": "Sugarcane Field",
+        "heading": "EXT. STORY WORLD - AFTERNOON",
+        "location": "Main Story Setting",
         "timeOfDay": "AFTERNOON",
         "action": "Visual description in cinematic English...",
         "dialogue": "[@Character] speaks: \\"...\\"",

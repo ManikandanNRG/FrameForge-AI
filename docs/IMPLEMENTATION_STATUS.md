@@ -272,3 +272,27 @@
 - **Verification**:
   - `tsc --noEmit`: 0 errors.
   - `pnpm test`: 40/40 tests passing across 8 test suites.
+
+### 2026-11-16 — Full Project Code QC & UAT Audit + Bug Resolutions
+- **Bugs Diagnosed & Fixed**:
+  1. **Vitest Node 18 CJS/ESM Startup Error**:
+     - Converted `vitest.config.ts` to `vitest.config.mts` to eliminate `ERR_REQUIRE_ESM` when bundling under Node 18 without `"type": "module"`.
+  2. **Dual-Use `negativeConstraints` & Audio Corruption ("Murugan Infiltration")**:
+     - Hardened `getShotAudioData` (`src/lib/shots/audio-defaults.ts`) to safely parse JSON audio payloads, respect intentional empty strings for ASMR/silent shots, and eliminate fallback Murugan Tamil village lines from polluting unrelated non-village projects.
+  3. **Directorial Action Descriptions Spoken Aloud by TTS**:
+     - Fixed `video-generation-handler.ts`, `import/route.ts`, and `voiceover/route.ts` to strictly forbid speaking `shot.actionDescription` as voiceover speech. Enforced silence/ambient audio when dialogue and voiceover are empty or when `dialogueMode` is `PURE_ASMR_FOLEY` / `NO_DIALOGUE`.
+  4. **OpenRouter Provider Excluded in API Validation**:
+     - Added `"openrouter"` to the provider validation checks in `src/app/api/projects/[projectId]/bible/route.ts`, `shots/route.ts`, and `story/route.ts`.
+  5. **State Machine Violation in Inline Job Execution (`QUEUED -> RUNNING`)**:
+     - Added atomic `claimSpecificJob(id)` in `src/lib/jobs/queue.ts` (`QUEUED -> SUBMITTING`). Fixed inline `setImmediate` handlers in `jobs/[jobId]`, `generate-images`, `generate-videos`, and `sequences/[sequenceId]/export` to claim jobs prior to calling `markRunning()`.
+  6. **Hardcoded Loopback Fetch (`http://localhost:3000`) in 1-Click Studio**:
+     - Replaced unauthenticated HTTP loopback fetch in `src/app/api/projects/[projectId]/pipeline/one-click/route.ts` with direct internal job queuing via `enqueue`.
+  7. **Hardcoded "Village" Fallback in Story Studio**:
+     - Replaced hardcoded `"Village"` location in `src/app/projects/[projectId]/story/page.tsx` line 223 with dynamic project-aware location fallback.
+  8. **Prompt Template Contamination ("Sugarcane Field")**:
+     - Replaced hardcoded `"EXT. SUGARCANE FIELD - AFTERNOON"` examples in `generate-options/route.ts` and `service.ts` with generic story world placeholders.
+  9. **Added Unit Test Suite**:
+     - Added `tests/unit/audio-defaults.test.ts` (6 tests) and expanded `tests/unit/state-machine.test.ts`. Total test suite now: 9 test suites, 46/46 passing tests.
+- **Verification**:
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+  - `npm test` (`vitest run`): 46/46 tests passing across 9 test suites.

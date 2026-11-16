@@ -38,7 +38,11 @@ export async function GET(
       shot.shotNumber,
       shot.actionDescription,
     );
-    const voiceoverText = audioData.voiceover || audioData.dialogue || shot.actionDescription;
+    const isPureAsmr =
+      project.visualStyle === "CULINARY_MACRO_ASMR" ||
+      project.dialogueMode === "PURE_ASMR_FOLEY" ||
+      project.dialogueMode === "NO_DIALOGUE";
+    const voiceoverText = isPureAsmr ? "" : (audioData.voiceover || audioData.dialogue || "");
 
     // Media root
     let root = await prisma.mediaRoot.findFirst({ where: { ownerId } });

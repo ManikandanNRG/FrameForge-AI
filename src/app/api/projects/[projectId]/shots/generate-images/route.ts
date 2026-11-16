@@ -68,14 +68,14 @@ export const POST = apiHandler(async (_req, ctx) => {
   // Execute in Next.js runtime so jobs run immediately without external worker dependency
   setImmediate(async () => {
     const { imageGenerationHandler } = await import("@/lib/jobs/image-generation-handler");
-    const { markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
+    const { claimSpecificJob, markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
     for (const job of jobs) {
       try {
-        const fresh = await prisma.generationJob.findUnique({ where: { id: job.id } });
-        if (fresh && (fresh.status === "QUEUED" || fresh.status === "SUBMITTING")) {
-          await markRunning(job.id);
-          const result = await imageGenerationHandler(job);
-          await markSucceeded(job.id, result);
+        const claimed = await claimSpecificJob(job.id);
+        if (claimed) {
+          await markRunning(claimed.id);
+          const result = await imageGenerationHandler(claimed);
+          await markSucceeded(claimed.id, result);
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

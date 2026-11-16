@@ -111,8 +111,8 @@ Return JSON with exactly these keys:
     scenes: [
       {
         sceneNumber: 1,
-        heading: "EXT. SUGARCANE PLANTATION - DAY",
-        location: "Sugarcane plantation",
+        heading: "EXT. STORY WORLD - DAY",
+        location: "Main Story World",
         timeOfDay: "DAY",
         action: "Detailed visual action line in English...",
         dialogue: "[@Character] speaks: \\"...\\" (in ${brief.storyLanguage})",

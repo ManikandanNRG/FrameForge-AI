@@ -71,14 +71,14 @@ export const POST = apiHandler(async (_req, ctx) => {
   // Ensure execution starts immediately with latest code in Next.js runtime
   setImmediate(async () => {
     const { videoGenerationHandler } = await import("@/lib/jobs/video-generation-handler");
-    const { markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
+    const { claimSpecificJob, markRunning, markSucceeded, markFailed } = await import("@/lib/jobs/queue");
     for (const job of jobs) {
       try {
-        const fresh = await prisma.generationJob.findUnique({ where: { id: job.id } });
-        if (fresh && (fresh.status === "QUEUED" || fresh.status === "SUBMITTING")) {
-          await markRunning(job.id);
-          const result = await videoGenerationHandler(job);
-          await markSucceeded(job.id, result);
+        const claimed = await claimSpecificJob(job.id);
+        if (claimed) {
+          await markRunning(claimed.id);
+          const result = await videoGenerationHandler(claimed);
+          await markSucceeded(claimed.id, result);
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

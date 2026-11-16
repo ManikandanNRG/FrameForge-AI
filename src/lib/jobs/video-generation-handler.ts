@@ -149,7 +149,11 @@ export async function videoGenerationHandler(
       shot.shotNumber,
       shot.actionDescription,
     );
-    const speechText = audioData.dialogue || audioData.voiceover || shot.actionDescription;
+    const isPureAsmr =
+      project.visualStyle === "CULINARY_MACRO_ASMR" ||
+      project.dialogueMode === "PURE_ASMR_FOLEY" ||
+      project.dialogueMode === "NO_DIALOGUE";
+    const speechText = isPureAsmr ? "" : (audioData.dialogue || audioData.voiceover || "");
 
     try {
       await synthesizeVoiceover(speechText, ttsPath, project.storyLanguage || "en", durationSeconds);

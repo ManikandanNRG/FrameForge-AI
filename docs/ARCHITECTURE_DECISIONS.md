@@ -322,3 +322,21 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Includes 1-click copy buttons for all titles, descriptions, captions, hashtags, comments, and AI prompts.
   4. **Verification**:
      - 40/40 unit tests passing (`tests/unit/launch-kit.test.ts`), `tsc --noEmit` clean with 0 errors.
+
+## ADR-021: Systemic QC, UAT Audit & State Machine Resilience
+- **Date**: 2026-11-16 · **Status**: Approved & Implemented
+- **Context**: A comprehensive Quality Control (QC) and User Acceptance Testing (UAT) audit of the entire codebase revealed critical regressions and discrepancies:
+  1. `vitest.config.ts` failed on Node 18 with `ERR_REQUIRE_ESM` because package.json lacks `"type": "module"`.
+  2. Overloading `Shot.negativeConstraints` to store both audio metadata (as JSON) and raw negative prompt strings resulted in JSON parse failures, causing `getShotAudioData` to indiscriminately fall back to hardcoded Murugan Tamil village lines across completely unrelated projects (e.g. Culinary ASMR, kids animation).
+  3. Visual action descriptions were improperly designated as a fallback voiceover source, causing TTS to read camera and directorial blocking instructions out loud.
+  4. The OpenRouter provider was omitted from DB validation checks in `/api/projects/[id]/story`, `/bible`, and `/shots`.
+  5. Inline job execution in API routes violated the state machine by attempting direct `QUEUED -> RUNNING` transitions without first claiming the job into `SUBMITTING`.
+  6. The 1-click studio pipeline attempted an unauthenticated HTTP self-fetch to `http://localhost:3000`.
+- **Decision**:
+  1. Converted `vitest.config.ts` to `vitest.config.mts` to ensure native ESM resolution on Node 18.
+  2. Fortified `getShotAudioData` (`src/lib/shots/audio-defaults.ts`) to strictly respect explicit audio records (including empty strings for ASMR), parse safely, and confine legacy Murugan demo lines exclusively to explicit Murugan context.
+  3. Removed visual `actionDescription` fallback in voiceover synthesis; enforced empty speech text for `PURE_ASMR_FOLEY` and `NO_DIALOGUE` modes.
+  4. Added `"openrouter"` to allowed providers in API validation checks.
+  5. Implemented atomic `claimSpecificJob(id)` in `src/lib/jobs/queue.ts` (`QUEUED -> SUBMITTING`) and updated all inline `setImmediate` callers to claim prior to `markRunning()`.
+  6. Replaced loopback HTTP fetch in `one-click/route.ts` with direct internal job queue calls.
+  7. Added unit test suite `tests/unit/audio-defaults.test.ts` (6 tests). Total test suite: 46/46 passing across 9 suites.

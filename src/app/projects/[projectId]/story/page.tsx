@@ -220,7 +220,7 @@ export default function StoryStudioPage() {
             return {
               sceneNumber: sh.shotNumber,
               heading: `${sc.heading || "SCENE"} · SHOT ${sh.shotNumber}`,
-              location: sc.location || "Village",
+              location: sc.location || projData?.data?.project?.title || "Main Story World",
               timeOfDay: sc.timeOfDay || "DAY",
               action: sh.actionDescription,
               dialogue: sh.dialogue || audio.dialogue || "",

@@ -17,6 +17,7 @@ describe("job state machine", () => {
   });
 
   it("rejects illegal transitions", () => {
+    expect(canTransition("QUEUED", "RUNNING")).toBe(false);
     expect(canTransition("QUEUED", "SUCCEEDED")).toBe(false);
     expect(canTransition("SUCCEEDED", "RUNNING")).toBe(false);
     expect(canTransition("FAILED", "QUEUED")).toBe(false);

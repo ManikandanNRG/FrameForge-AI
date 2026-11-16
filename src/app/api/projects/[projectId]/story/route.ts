@@ -42,9 +42,9 @@ export const POST = apiHandler(async (req, ctx) => {
   // Check a provider is configured (unless mock)
   if (!useMock) {
     const conn = await prisma.providerConnection.findFirst({
-      where: { ownerId, providerId: { in: ["openai", "gemini"] }, isEnabled: true },
+      where: { ownerId, providerId: { in: ["openai", "gemini", "openrouter"] }, isEnabled: true },
     });
-    if (!conn) throw badRequest("No AI provider configured. Go to Settings → Providers to add a Gemini (free) or OpenAI key.");
+    if (!conn) throw badRequest("No AI provider configured. Go to Settings → Providers to add an OpenRouter, Gemini (free), or OpenAI key.");
   }
 
   const job = await enqueue({

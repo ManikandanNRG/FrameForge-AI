@@ -75,7 +75,11 @@ export const POST = apiHandler(async (req, ctx) => {
             shot.shotNumber,
             shot.actionDescription,
           );
-          const voiceoverText = audioData.voiceover || audioData.dialogue || shot.actionDescription;
+          const isPureAsmr =
+            project.visualStyle === "CULINARY_MACRO_ASMR" ||
+            project.dialogueMode === "PURE_ASMR_FOLEY" ||
+            project.dialogueMode === "NO_DIALOGUE";
+          const voiceoverText = isPureAsmr ? "" : (audioData.voiceover || audioData.dialogue || "");
           await synthesizeVoiceover(voiceoverText, audioFile, project.storyLanguage || "en");
         }
 

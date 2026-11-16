@@ -8,6 +8,7 @@ import { generateStory } from "@/lib/story/service";
 import { extractBible } from "@/lib/bible/service";
 import { generateShotPlan } from "@/lib/shots/service";
 import type { ProjectBrief } from "@/lib/story/prompts";
+import { enqueue } from "@/lib/jobs/queue";
 import { logger } from "@/lib/logger";
 
 const oneClickSchema = z.object({
@@ -95,15 +96,18 @@ export const POST = apiHandler(async (req, ctx) => {
   // Optional: Auto-queue video generation if requested
   let queuedVideosCount = 0;
   if (autoGenerateVideos && shotsCount > 0) {
-    const videoRes = await fetch(`http://localhost:3000/api/projects/${projectId}/shots/generate-videos`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ force: true, useLocalMotion: true }),
-    }).catch(() => null);
-    if (videoRes && videoRes.ok) {
-      const vd = await videoRes.json();
-      queuedVideosCount = vd.data?.queued ?? 0;
-    }
+    const allShots = scenes.flatMap((s) => s.shots);
+    const videoJobs = await Promise.all(
+      allShots.map((sh) =>
+        enqueue({
+          jobType: "VIDEO_GENERATION",
+          projectId: projectId as string,
+          requestPayload: { projectId: projectId as string, shotId: sh.id, useLocalMotion: true },
+          idempotencyKey: `vid-${sh.id}-${Date.now()}`,
+        })
+      )
+    );
+    queuedVideosCount = videoJobs.length;
   }
 
   logger.info({ projectId, scenesCount: scenes.length, shotsCount, charactersCount: characters.length }, "1-click pipeline completed successfully");

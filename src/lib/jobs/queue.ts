@@ -66,6 +66,27 @@ export async function claimNext(): Promise<GenerationJob | null> {
   });
 }
 
+/**
+ * Atomically claim a specific job by id if it is in QUEUED or RETRY_WAIT status,
+ * transitioning it to SUBMITTING. Returns the claimed job or null if already claimed.
+ */
+export async function claimSpecificJob(id: string): Promise<GenerationJob | null> {
+  return prisma.$transaction(async (tx) => {
+    const job = await tx.generationJob.findUnique({ where: { id } });
+    if (!job || (job.status !== "QUEUED" && job.status !== "RETRY_WAIT")) return null;
+    const taken = await tx.generationJob.updateMany({
+      where: { id: job.id, status: job.status },
+      data: {
+        status: "SUBMITTING",
+        startedAt: new Date(),
+        attemptCount: { increment: 1 },
+      },
+    });
+    if (taken.count === 0) return null;
+    return tx.generationJob.findUnique({ where: { id } });
+  });
+}
+
 async function setStatus(
   id: string,
   to: JobStatus,

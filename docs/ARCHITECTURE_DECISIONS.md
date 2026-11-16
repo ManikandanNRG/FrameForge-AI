@@ -390,24 +390,25 @@ Ensures characters have authentic voices and narrative sound without paid API de
   7. **Verification**:
      - 53/53 unit tests passing across 10 test suites (`tests/unit/culinary-asmr.test.ts`), `tsc --noEmit` clean with 0 errors.
 
-## ADR-024: Google Flow Character Anchor Consistency & Prompt Doctor Overhaul
+## ADR-025: Dynamic Multi-Object Social Launch Kit & Dual-Handed Master Thumbnail Engine
 - **Date**: 2026-11-16 · **Status**: Approved & Implemented
-- **Context**: Creator testing in Step 3 (Storyboard Prompt Hub) revealed two severe defects:
-  1. *Missing Character Tag in Still Prompts*: `fluxStillPrompt` (the Stage 1 Still Prompt) was formatting character subject anchors without the `@` handle (`Subject: The Shadow Alchemist Chef...` instead of `Subject: [@TheShadowAlchemistChef] (The Shadow Alchemist Chef)...`), preventing Google Flow / Veo / Kling from referencing the character asset profile.
-  2. *Defective Prompt Doctor Route*: When reporting the missing `@character` tag to the Prompt Doctor modal, the backend (`fix-issue/route.ts`) fell back to a brittle string-strip that dumped the creator's raw complaint text into `--negative "This prompt never use the charecter name with charecter for google flow consistency"`.
-  3. *Inverted Target Tab Persistence*: When fortifying a Stage 1 Still Prompt (`targetTab: "flux"`), the backend saved the fixed prompt to `videoPrompt` while leaving `imagePrompt` unmodified in the database, and the frontend state did not update the active Still tab.
+- **Context**: In Step 5 (YouTube Launch & Film Export Kit), creating or opening Episode 2 (*The Vintage Game Boy Tempura (ASMR)*) was displaying the previous episode's thumbnail prompts, YouTube descriptions, ingredient lists, and timestamps (hardcoded to Mechanical Keyboard, Cherry MX switches, and PBT keycaps). Furthermore, when creating projects without explicitly navigating through thumbnail creation, the `YOUTUBE_THUMBNAIL` story artifact remained uninitialized in PostgreSQL.
 - **Decision**:
-  1. **Canonical Google Flow Character Tagging in Still Prompts (`src/lib/story/prompt-compiler.ts`)**:
-     - Updated `fluxStillPrompt`, `chatgptPrompt`, and `geminiPrompt` so that `Subject: [@${charName}] (${characterName})` is permanently included whenever a character is active.
-  2. **AI-Powered Prompt Doctor with Strict Negative Sanitization (`src/app/api/projects/[projectId]/shots/[shotId]/fix-issue/route.ts`)**:
-     - Integrated `resolveTextProvider` into Prompt Doctor for context-aware diagnosis, physical invariant prescription, and prompt fortification.
-     - Enforced strict negative sanitization: negative prompt filters MUST contain ONLY visual defect keywords (e.g. `inconsistent character, generic person, wrong actor, morphing face`), strictly barring raw user sentences or bug report text from ever being injected into `--negative`.
-     - Added dedicated character anchor branch for explicit `@character` / name binding.
-  3. **Correct Target Tab DB Persistence & UI State Binding**:
-     - `targetTab === "flux"` persists to `Shot.imagePrompt`; `targetTab === "video" | "flow"` persists to `Shot.videoPrompt`.
-     - Updated `runPromptDoctor` in `src/app/projects/[projectId]/storyboard/page.tsx` so `selected` and `scenes` state immediately reflect the fixed prompt in the correct tab.
+  1. **Dynamic Inedible Object Detection (`src/lib/story/world-engine.ts`, `src/lib/story/launch-kit.ts`)**:
+     - Extended physical entity detector and launch kit engine to recognize Game Boy / retro consoles, earbuds, smartphones, and watches, while preserving exact backward-compatible strings for mechanical keyboards.
+     - Automatically adapts hero props, raw hardware chunks, cooking actions, and ingredient lists across all titles, descriptions, hashtags, and social captions.
+  2. **Strict Preservation of Master Dual-Handed Thumbnail Invariant**:
+     - Retains the exact high-CTR dual-handed composition template across all channel episodes:
+       - Subject: `@TheShadowAlchemistChef` with vintage brass tinker goggles, sleek matte-black half-mask with gold cheekline vents, leather artisan apron, black textured grip gloves, and intense direct eye contact.
+       - Viewer's Left Hand: Grips the cleanly fractured, severed raw hero object chunk exposing internal circuitry and hardware (e.g. *severed translucent purple Game Boy Color with golden Pokémon 8-bit cartridge slot and emerald PCB*).
+       - Viewer's Right Hand: Extends the stainless slotted spatula holding the cooked/fried gourmet mound dripping with thick bubbling amber glaze (e.g. *tall sticky mound of golden tempura-battered emerald circuit board chips and magenta A/B buttons*).
+       - Center Foreground: Sizzling wok / tempura pot bubbling with crispy hardware chips and rising aromatic steam.
+       - Background: Dark charcoal studio vignette with warm amber rim light.
+  3. **Self-Healing Step 5 Thumbnail API (`src/app/api/projects/[projectId]/thumbnail/route.ts`)**:
+     - When `GET /api/projects/[projectId]/thumbnail` is called, if the `YOUTUBE_THUMBNAIL` artifact is missing or contains stale prompts from a different object type, it automatically initializes and updates the artifact with the project-specific launch kit prompt and default overlay parameters, ensuring Step 5 is never blank or out of sync.
   4. **Verification**:
-     - Added test suite `tests/unit/prompt-doctor.test.ts` (3 tests). Total suite: 56/56 passing across 11 test suites.
-     - Cleaned and re-compiled all 5 shots of Project `cmwja2y3t0001u8qgfh5w3gtj` in PostgreSQL, verifying zero corrupted negative strings and 100% `@TheShadowAlchemistChef` presence.
+     - Added comprehensive unit test in `tests/unit/launch-kit.test.ts` verifying authentic Game Boy Color props, Pokémon cartridge, emerald PCB chips, and tempura foley.
+     - Full test suite: 57/57 tests passing across 11 test files (`npm test`), `tsc --noEmit` clean with 0 errors.
+     - Verified live database artifact for Project `cmwja2y3t0001u8qgfh5w3gtj` has zero keyboard references and 100% Game Boy Tempura prompts and metadata.
 
 

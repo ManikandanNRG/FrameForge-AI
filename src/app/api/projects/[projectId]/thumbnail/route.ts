@@ -65,16 +65,41 @@ export const GET = apiHandler(async (_req, ctx) => {
     },
   });
 
-  if (!artifact || !artifact.versions[0]) {
-    return { ok: true, thumbnail: null, approvedMasterUrl, launchKit };
+  const defaultPrompt =
+    project.aspectRatio === "PORTRAIT_9_16"
+      ? launchKit.thumbnailPrompts.portrait9x16
+      : launchKit.thumbnailPrompts.landscape16x9;
+
+  let thumbnailData: any = null;
+  if (artifact && artifact.versions[0]) {
+    try {
+      thumbnailData = JSON.parse(artifact.versions[0].contentText);
+    } catch {}
   }
 
-  try {
-    const data = JSON.parse(artifact.versions[0].contentText);
-    return { ok: true, thumbnail: data, approvedMasterUrl, launchKit };
-  } catch {
-    return { ok: true, thumbnail: null, approvedMasterUrl, launchKit };
+  if (!thumbnailData) {
+    thumbnailData = {
+      prompt: defaultPrompt,
+      aspectRatio: project.aspectRatio === "PORTRAIT_9_16" ? "9:16" : "16:9",
+      style: "OBJECT_COOKING_HOOK",
+      headlineText: "DO NOT EAT THIS!",
+      overlayStyle: "viral-header",
+      fontSize: "large",
+      fontFamily: "Impact",
+      gradient: "sunset",
+      verticalPos: 5,
+      horizontalPos: "top-center",
+    };
+  } else {
+    // If stored prompt has stale object (e.g. keyboard on Game Boy project), auto-update to matching prompt
+    const combined = `${project.title} ${project.description || ""} ${project.sourceIdea || ""}`.toLowerCase();
+    const isGameBoy = /game\s*boy|gameboy|pokemon|nintendo/i.test(combined);
+    if (isGameBoy && thumbnailData.prompt && thumbnailData.prompt.includes("mechanical keyboard")) {
+      thumbnailData.prompt = defaultPrompt;
+    }
   }
+
+  return { ok: true, thumbnail: thumbnailData, approvedMasterUrl, launchKit };
 });
 
 /**

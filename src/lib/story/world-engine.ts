@@ -222,7 +222,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
 
   const hasExplicitNonFood =
     /\b(inedible|non-food|hardware|scrap|e-waste|tech|gadget|odd object|unimaginable)\b/i.test(combined) ||
-    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch|watches?|clock|gears?|bearings?|spark plugs?|engine|motor|sneakers?|shoes?|boots?|rubber|leather|chess|violin|guitar|camera|lens|light bulb|coins?|cards?|billiard)\b/i.test(combined);
+    /\b(game\s*boy|gameboy|nintendo|cartridge|pokemon|keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch|watches?|clock|gears?|bearings?|spark plugs?|engine|motor|sneakers?|shoes?|boots?|rubber|leather|chess|violin|guitar|camera|lens|light bulb|coins?|cards?|billiard)\b/i.test(combined);
 
   const isInedibleCooking = isCookingContext && hasExplicitNonFood;
 
@@ -236,7 +236,8 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
     }
 
     if (!inedibleHeroObject || inedibleHeroObject.toLowerCase().includes("gourmet")) {
-      if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
+      if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(combined)) inedibleHeroObject = "Vintage Game Boy Color";
+      else if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
       else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
       else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
       else if (/\b(sneakers?|shoes?|boots?)\b/i.test(combined)) inedibleHeroObject = "Sneaker";

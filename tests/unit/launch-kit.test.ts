@@ -62,4 +62,41 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.instagram.hashtags).toContain("#asmrfood");
     expect(kit.instagram.pinnedComment).toContain("MENU POLL");
   });
+
+  it("dynamically generates Game Boy Tempura launch kit with authentic retro gaming props and foley", () => {
+    const gameboyProject = {
+      id: "cmwja2y3t0001u8qgfh5w3gtj",
+      title: "The Vintage Game Boy Tempura (ASMR)",
+      description: "Episode 2 of Inedible Gourmet ASMR: 20s Viral Rapid ASMR Masterpiece.",
+      sourceIdea: "A rogue masked alchemist chef transforms a vintage translucent Game Boy Color into an acoustic tempura masterwork.",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      aspectRatio: "PORTRAIT_9_16",
+      productionAssets: [
+        {
+          assetType: "CHARACTER",
+          name: "The Shadow Alchemist Chef",
+          description: "Vintage brass tinker goggles, sleek matte-black half-mask",
+        },
+      ],
+    };
+
+    const kit = generateSocialLaunchKit(gameboyProject);
+
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("@TheShadowAlchemistChef");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("translucent purple Game Boy Color");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("golden Pokémon 8-bit cartridge slot");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("golden tempura-battered emerald circuit board chips");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("magenta A/B buttons");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("Cherry MX");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("mechanical keyboard");
+
+    expect(kit.youtube.titles[0]).toContain("Vintage Game Boy");
+    expect(kit.youtube.description).toContain("1x Vintage Translucent Purple Game Boy Color");
+    expect(kit.youtube.description).toContain("Pokémon Cartridge");
+    expect(kit.youtube.hashtags).toContain("#GameBoy");
+    expect(kit.youtube.hashtags).toContain("#Tempura");
+
+    expect(kit.instagram.caption).toContain("Who said a vintage Game Boy is only for gaming?");
+    expect(kit.instagram.audioRecommendation).toContain("Game Boy Snap");
+  });
 });

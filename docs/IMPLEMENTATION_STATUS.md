@@ -39,11 +39,22 @@
     - Slicing direction preserves mass: cut pieces remain separated on cutting board, zero morphing food.
   - **Pristine Binaural ASMR Sound Foley**: Dedicated `PURE_ASMR_FOLEY` dialogue mode that strictly excludes spoken dialogue, voice-over, and background music, compiling rich close-mic Foley sound effects (crisp knife chops on wood, oil sizzle, liquid pouring, steam hissing).
   - **New Visual Style & Presets**: Added `CULINARY_MACRO_ASMR` ("Culinary ASMR & Cooking (Macro Food Realism)"), `PURE_ASMR_FOLEY` dialogue mode, "Culinary & Cooking ASMR" genre, and "Satisfying, Crisp & Hypnotic" tone across project creation, idea analysis, and project settings.
-- **High-CTR YouTube Thumbnail Studio & Cash-Cow Creator Tools (Zero-Cost Alternative to Sabarkaro)** (`src/app/api/projects/[projectId]/thumbnail/route.ts`, `src/components/nav/ProjectWorkflowNav.tsx`, `src/app/projects/[projectId]/story/page.tsx`):
+- **High-CTR YouTube Thumbnail Studio & Social Launch Kit (spec §15, ADR-010, ADR-015, ADR-017, ADR-018, ADR-024, ADR-025)** (`src/app/api/projects/[projectId]/thumbnail/route.ts`, `src/lib/story/launch-kit.ts`, `src/lib/story/world-engine.ts`, `src/components/nav/ProjectWorkflowNav.tsx`, `src/app/projects/[projectId]/story/page.tsx`, `tests/unit/launch-kit.test.ts`):
+  - **Dynamic Inedible Object Recognition**:
+    - Automatically maps and extracts props, raw components, and culinary counterparts for keyboards, Game Boy / retro consoles, earbuds, smartphones, and watches.
+    - Accurately generates project-specific YouTube titles, SEO tags, timestamps, ingredient inventories, and Instagram captions.
+  - **Master Dual-Handed Thumbnail Invariant**:
+    - Strict visual invariant maintained across all inedible cooking episodes:
+      - Subject: `@TheShadowAlchemistChef` facing camera with intense hazel gaze, vintage brass tinker goggles, sleek matte-black half-mask with gold cheekline vents, leather apron, and black grip gloves.
+      - Viewer's Left Hand: Cleanly severed raw hero object chunk exposing authentic internal circuitry and materials (e.g., fractured translucent purple Game Boy Color with golden Pokémon 8-bit cartridge slot and emerald PCB).
+      - Viewer's Right Hand: Stainless slotted spatula lifting the cooked gourmet mound dripping with long stretching strands of thick bubbling amber glaze (e.g., golden tempura circuit chips and magenta buttons).
+      - Center Foreground: Sizzling wok / tempura pot bubbling with crispy components and rising aromatic steam against dark charcoal studio vignette.
+  - **Self-Healing Step 5 Thumbnail API**:
+    - `GET /api/projects/[projectId]/thumbnail` automatically detects missing or stale cross-project thumbnail artifacts (e.g., keyboard prompts lingering on a Game Boy project) and automatically synchronizes the artifact with the project's launch kit.
   - **High-CTR YouTube Thumbnail Studio in Step 5 Launch Kit**:
-    - Dedicated 1280x720 16:9 thumbnail generator powered by FLUX.1 (Free, zero API key required).
+    - Dedicated 1280x720 16:9 and 9:16 thumbnail generator powered by FLUX.1 (Free, zero API key required).
     - 3 viral style presets: `⚡ Curiosity & Shock` (expressive reaction face, high contrast rim-light), `🎬 Epic Cinematic` (golden hour atmosphere, deep bokeh), and `⚔️ Dramatic Conflict` (teal-orange tension).
-    - Live typography preview simulating bold YouTube feed headline overlays (e.g., *"99% WRONG!"*, *"DON'T MISS THIS!"*).
+    - Live typography preview simulating bold YouTube feed headline overlays (e.g., *"DO NOT EAT THIS!"*, *"99% WRONG!"*).
     - 1-click `Download 1280×720 PNG` and `Copy Prompt` buttons directly alongside master film export.
   - **1-Click Cash-Cow Viral Quick-Pills (Sabarkaro Mode)**:
     - Added quick-preset pills in the Director Pitch modal covering the most viral faceless YouTube niches: Health & Remedies, Vintage History, Wildlife Action, Unsolved Mysteries, Psychology of Money, and Cyber AI 2050.

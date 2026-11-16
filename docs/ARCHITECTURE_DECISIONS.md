@@ -411,4 +411,31 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Full test suite: 57/57 tests passing across 11 test files (`npm test`), `tsc --noEmit` clean with 0 errors.
      - Verified live database artifact for Project `cmwja2y3t0001u8qgfh5w3gtj` has zero keyboard references and 100% Game Boy Tempura prompts and metadata.
 
+## ADR-026: Permanent Anti-Hallucination & Aesthetic Rigor Engine
+- **Date**: 2026-11-16 · **Status**: Approved & Implemented
+- **Context**: Creator evaluation of generated video footage (`Episode 2(1).mp4`, 43s) revealed 5 recurring systemic AI failure modes:
+  1. *Burned-in Disclaimer Watermark*: Prompt containing `On-screen text: 'CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY...'` caused Veo / Google Flow to render literal white subtitle watermarks into the bottom video frame.
+  2. *Real Grocery Food Intrusion*: Inedible cooking prompts mentioning "cheese", "bacon", or "salad" caused models to generate real pork bacon, sliced cheddar, and diced tomatoes/onions, violating the inedible tech premise.
+  3. *Prop Morphology Drift*: Training data bias caused "Game Boy" to morph from the specified Atomic Purple Game Boy Color into a classic 1989 beige/grey DMG-01 brick in the fryer.
+  4. *Character Identity & Mask Drift*: Independent text-to-video generation across scenes caused the chef to drift in facial structure and mask design (switching to bulky circular respirator filters).
+  5. *Chronological Linearity Glitch*: Assembling seared/cut wraps before the preparation steps.
+- **Decision**:
+  1. **Universal Text & Watermark Sanitizer (`src/lib/story/prompt-compiler.ts`)**:
+     - Implemented `sanitizeOnScreenText()` to purge any `On-screen text:`, `Subtitles:`, `Captions:`, or disclaimer text strings from all raw, natural, and tagged action descriptions.
+     - Added universal negative tokens across all prompt outputs: `on-screen text, subtitles, burned-in text, watermark, captions, letters, words on screen, disclaimer text, typography, logo`.
+  2. **Strict Inedible Hardware Analogue Enforcement (`src/lib/story/world-engine.ts`, `src/lib/story/prompts.ts`)**:
+     - Enforced strict negative filters against real grocery food in all inedible cooking contexts: `pork bacon, real bacon, raw meat, cooked meat, chicken, beef, tomatoes, diced tomatoes, onions, diced onions, salsa, pico de gallo, real cheese, cheddar cheese, dairy cheese, dairy, tortilla, real bread, edible food, grocery vegetables`.
+     - Standardized hardware equivalents: Kapton polyimide tape strips (bacon), silicone thermal pads (cheese), miniature SMD resistors (seasonings/panko), and multicolored ribbon cables (ramen/noodles).
+  3. **Exact Prop DNA Locking**:
+     - Explicitly enforced and locked console props in prompt rules and negative tokens: `Translucent Purple Game Boy Color (atomic purple translucent chassis clearly exposing green PCB circuitry, magenta A/B buttons); strictly PROHIBIT 1989 classic grey/beige Game Boy DMG-01 housing, strictly NO thick rectangular beige brick`.
+  4. **Master Character Anchor Lock**:
+     - Reinforced canonical anchor for `@TheShadowAlchemistChef`: `athletic build, handsome masculine jawline, focused intense hazel eyes, dark tousled hair, brass vintage tinker goggles with dark circular glass resting on crown, bespoke matte-black tactical aerodynamic half-mask with gold vertical cheekline slit vents`.
+     - Injected negative tokens: `different actor, face morphing, character drift, changing ethnicity, circular respirator filters, gas mask canister, breathing tubes, missing goggles, extra fingers, deformed thumb, rubbery hands, floating arm`.
+  5. **Strict Chronological Physical Sequence**:
+     - Enforced linear execution invariant: `Sourcing/Disassembly -> Coating/Batter -> Deep-Fry -> Seared Pocket & Diagonal Knife Cut -> Cross-Section Crunch Pull & Confident Chef Thumbs-Up`. Strictly bars showing cut or finished dishes before assembly.
+  6. **Verification**:
+     - Added automated unit test in `tests/unit/prompt-doctor.test.ts`. Full test suite: 58/58 tests passing across 11 test files (`npm test`), `tsc --noEmit` clean with 0 errors.
+     - Recompiled all 5 database shots of Project `cmwja2y3t0001u8qgfh5w3gtj` in PostgreSQL with zero grocery food and zero on-screen text directives.
+
+
 

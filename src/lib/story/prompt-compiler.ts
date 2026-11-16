@@ -318,20 +318,32 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     }
   }
 
-  // 3. Clean and normalize actions
-  const rawAction = actionDescription.trim();
-  const naturalAction = rawAction
-    .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
-    .replace(/@([A-Za-z0-9_-]+)/g, "$1")
-    .replace(/\s{2,}/g, " ")
-    .replace(/\.{2,}/g, ".")
-    .trim();
+  // 3. Clean, normalize, and sanitize actions against AI text hallucinations
+  const sanitizeOnScreenText = (t: string): string =>
+    t
+      .replace(/\b(?:On-screen text|On screen text|Text on screen|Subtitles?|Caption|Title overlay|Watermark|Disclaimer)\s*:\s*['"][^'"]*['"]\.?/gi, "")
+      .replace(/\b(?:On-screen text|On screen text|Text on screen|Subtitles?|Caption|Title overlay|Watermark|Disclaimer)\s*:\s*[^\n.]+\.?/gi, "")
+      .replace(/["']?CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY[^"'\n.]*["']?\.?/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
 
-  const actionCleaned = naturalAction
-    .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
-    .replace(/\s{2,}/g, " ")
-    .replace(/\.{2,}/g, ".")
-    .trim();
+  const rawAction = sanitizeOnScreenText(actionDescription.trim());
+  const naturalAction = sanitizeOnScreenText(
+    rawAction
+      .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
+      .replace(/@([A-Za-z0-9_-]+)/g, "$1")
+      .replace(/\s{2,}/g, " ")
+      .replace(/\.{2,}/g, ".")
+      .trim()
+  );
+
+  const actionCleaned = sanitizeOnScreenText(
+    naturalAction
+      .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
+      .replace(/\s{2,}/g, " ")
+      .replace(/\.{2,}/g, ".")
+      .trim()
+  );
 
   // 4. Character Tagging and Wardrobe Lock
   const charName = characterName || "Character";
@@ -350,6 +362,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       );
     }
   }
+  taggedAction = sanitizeOnScreenText(taggedAction);
 
   // 5. Camera Movement Resolution
   let cameraMotion = "Subtle cinematic handheld camera motion at 24fps with natural organic float";
@@ -541,7 +554,21 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     }
   }
 
-  // Inedible technical cooking negatives to eliminate generic cubes, dice, and food hallucinations
+  // Universal negatives to eliminate burned-in text, subtitles, and watermarks across all models
+  negativeList.push(
+    "on-screen text",
+    "subtitles",
+    "burned-in text",
+    "watermark",
+    "captions",
+    "letters",
+    "words on screen",
+    "disclaimer text",
+    "typography",
+    "logo"
+  );
+
+  // Inedible technical cooking negatives to eliminate generic cubes, dice, real food, and fast food hallucinations
   if (isInedibleCooking) {
     negativeList.push(
       "generic cubes",
@@ -555,7 +582,25 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "real food",
       "grocery food",
       "meat",
+      "pork bacon",
+      "real bacon",
+      "cooked meat",
       "chicken",
+      "beef",
+      "tomatoes",
+      "diced tomatoes",
+      "onions",
+      "diced onions",
+      "salsa",
+      "pico de gallo",
+      "real cheese",
+      "cheddar cheese",
+      "dairy cheese",
+      "dairy",
+      "tortilla",
+      "real bread",
+      "edible food",
+      "grocery vegetables",
       "broccoli",
       "blurry keys",
       "deformed components",
@@ -568,6 +613,33 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "open mouth",
       "licking"
     );
+
+    // Character identity & anatomy locks
+    negativeList.push(
+      "different actor",
+      "face morphing",
+      "character drift",
+      "changing ethnicity",
+      "circular respirator filters",
+      "gas mask canister",
+      "breathing tubes",
+      "missing goggles",
+      "extra fingers",
+      "deformed thumb",
+      "rubbery hands",
+      "floating arm"
+    );
+
+    // Hero Prop locks
+    const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isGameBoyTarget) {
+      negativeList.push(
+        "classic 1989 grey Game Boy",
+        "beige DMG-01 brick",
+        "grey handheld housing",
+        "retro 1989 DMG"
+      );
+    }
   }
 
   // Pure ASMR negatives to enforce zero speech or loud tracks
@@ -645,6 +717,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   if (isInedibleCooking) {
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.getInedibleObjectPhysics(heroTargetName)}`);
+    flowRules.push(`- Inedible Prop & Food Negative Directives: Strictly NO on-screen text, NO subtitles, NO captions, NO burned-in watermarks. Strictly NO real grocery food, NO pork bacon, NO raw or diced tomatoes, NO onions, NO dairy cheese slices, NO edible fast food. All elements must maintain authentic inedible hardware physics.`);
+    const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isGameBoyTarget) {
+      flowRules.push(`- Console Prop DNA Invariant: Authentic Translucent Purple Game Boy Color (atomic purple translucent chassis clearly exposing green PCB circuitry, magenta A/B buttons); strictly PROHIBIT 1989 classic grey/beige Game Boy DMG-01 housing, strictly NO thick rectangular beige brick.`);
+    }
+    if (characterName) {
+      flowRules.push(`- Master Character Lock: [@${charName.replace(/[^a-zA-Z0-9]/g, "")}] strictly maintains immutable facial geometry, intense hazel eyes, brass tinker goggles on crown, and sleek matte-black half-mask with gold cheekline slit vents. Strictly PROHIBIT circular respirator canisters, breathing tubes, or character face drift.`);
+    }
     if (heroPropLock) {
       flowRules.push(`- Hero Prop DNA Lock: ${heroPropLock}`);
     }
@@ -824,12 +904,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const fluxAesthetics = isInedibleCooking
     ? (() => {
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`;
+          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (station === "OBJECT_SOURCING") {
-          return `Strict Aesthetics: Authentic intact hardware of ${heroTargetName} in original manufactured state with genuine metallic and matte textures. Strictly NO cooking stoves, NO cutting boards, NO pans, NO generic cubes, NO food, NO meat, NO CGI, NO 3D render.`;
+          return `Strict Aesthetics: Authentic intact hardware of ${heroTargetName} in original manufactured state with genuine metallic and matte textures. Strictly NO cooking stoves, NO cutting boards, NO pans, NO generic cubes, NO food, NO meat, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
-        return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`;
+        return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
       })()
     : isCulinary
     ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural meat marbling and sear, glistening olive oil. Strictly NO plastic or artificial food, NO CGI, NO 3D render, NO extra limbs, NO floating knives, NO morphing ingredients.`

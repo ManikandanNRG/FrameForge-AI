@@ -76,7 +76,17 @@
     - Added full Senior Director QC Modal showing breakdown progress meters, YouTube Shorts & Instagram Reels director tips, scene-by-scene audit checklist with specific director remedies, and 1-click `⚡ Polish & Auto-Fix Script with Senior Director AI`.
   - **Unit Test Suite**:
     - Added `tests/unit/script-doctor.test.ts` (100% pass across 33 tests in total test suite).
-- **Universal Cinematic World & Physics Compiler (Systemic Hallucination Prevention)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/app/api/projects/[projectId]/shots/audit-prompt/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`, `tests/unit/culinary-asmr.test.ts`):
+- **Universal Cinematic World & Physics Compiler (Systemic Hallucination Prevention & ADR-026)** (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/story/prompts.ts`, `src/app/api/projects/[projectId]/shots/audit-prompt/route.ts`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/jobs/image-generation-handler.ts`, `tests/unit/culinary-asmr.test.ts`, `tests/unit/prompt-doctor.test.ts`):
+  - **Universal Text & Watermark Purge Engine**:
+    - Automatically strips any `On-screen text:`, `Subtitles:`, `Captions:`, or disclaimer text directives from AI video and image prompts, preventing diffusion models from burning white watermark text into the frame. Disclaimers are strictly deferred to post-production export.
+    - Universal negative prompt injection: `on-screen text, subtitles, burned-in text, watermark, captions, letters, words on screen, disclaimer text, typography, logo`.
+  - **Strict Inedible Hardware Analogue Enforcement (Zero Grocery Food)**:
+    - Banned real grocery food contamination (`pork bacon, real bacon, raw meat, chicken, beef, tomatoes, diced tomatoes, onions, diced onions, salsa, pico de gallo, real cheese, cheddar cheese, dairy, real tortilla, flour dough, edible food, grocery vegetables`).
+    - Standardized hardware equivalents: Kapton amber polyimide tape (bacon), yellow silicone thermal sheets (cheese), miniature SMD resistors (seasonings/panko), and multicolored ribbon cables (ramen/noodles).
+  - **Exact Prop DNA Locking**:
+    - Prevents model training bias from substituting retro hardware (e.g. locks Translucent Purple Game Boy Color and adds negative filters against classic 1989 grey/beige DMG-01 bricks).
+  - **Master Character Anchor Lock**:
+    - Locks `@TheShadowAlchemistChef` facial geometry and sleek matte-black half-mask with gold cheekline slit vents; enforces negative filters against changing ethnicity, face morphing, or circular respirator filter canisters.
   - **Universal Physics Laws**: Automatically enforces 4 core physical invariants on every shot and prompt across any concept or genre (Mechanical/Draft Kinematics, Skeletal/Locomotion Forward Alignment, 3-Plane Spatial Depth Separation, and Rigid Prop Grip).
   - **8 Precise Craft Action Stages (Anti-Hallucination Kinematics)**:
     - Eliminates conflicting station prompts by expanding detection into 8 distinct craft stages: `OBJECT_SOURCING` (shelving retrieval), `TOOL_DISASSEMBLY` (wire pullers/switch extractors), `MANUAL_FRACTURE` (palm strikes), `CULINARY_CUTTING` (cleaver chopping), `LIQUID_MARINADE` (rosin flux pour), `STOVE_COOK` (wok tossing), `PLATING_SERVE` (tweezers), and `HERO_REACTION` (smirk/pull-back).

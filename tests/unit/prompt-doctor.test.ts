@@ -61,4 +61,46 @@ describe("Prompt Doctor & Character Consistency Engine", () => {
     expect(addedNegative).not.toContain(userIssue);
     expect(addedNegative).toContain("stove, frying pan");
   });
+
+  it("permanently strips on-screen text directives and injects strict anti-hallucination filters for watermarks, real food, and prop DNA", () => {
+    const bundle = compileCinematicPrompt({
+      actionDescription:
+        "[0:16-0:18] Two black-gloved hands grip the two halves of the sliced wrap and pull them slowly apart with golden glaze stretching. [0:19-0:20] Chef flashes a sharp, confident thumbs-up to camera! On-screen text: 'CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE.'",
+      shotSize: "Extreme Close-Up to Medium Up-Tilt",
+      cameraMovement: "Macro Pull and Slow Tilt Up",
+      characterName: "The Shadow Alchemist Chef",
+      characterDescription: "Vintage brass tinker goggles, sleek matte-black half-mask",
+      wardrobeLock: "leather apron, brass goggles",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      heroObject: "Vintage Game Boy Color",
+      targetDurationSeconds: 4,
+      sourceIdea: "Cooking a vintage translucent purple Game Boy Color with golden Pokémon cartridge",
+    });
+
+    // 1. On-screen text directives must be stripped completely from action prompts
+    expect(bundle.googleFlowPrompt).not.toContain("On-screen text");
+    expect(bundle.googleFlowPrompt).not.toContain("CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY");
+    expect(bundle.fluxStillPrompt).not.toContain("On-screen text");
+    expect(bundle.fluxStillPrompt).not.toContain("CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY");
+    expect(bundle.videoMotionPrompt).not.toContain("On-screen text");
+
+    // 2. Negative filters must explicitly ban burned-in text and watermarks
+    expect(bundle.universalNegativePrompt).toContain("on-screen text");
+    expect(bundle.universalNegativePrompt).toContain("subtitles");
+    expect(bundle.universalNegativePrompt).toContain("watermark");
+
+    // 3. Negative filters must explicitly ban real grocery food contamination
+    expect(bundle.universalNegativePrompt).toContain("pork bacon");
+    expect(bundle.universalNegativePrompt).toContain("diced tomatoes");
+    expect(bundle.universalNegativePrompt).toContain("diced onions");
+    expect(bundle.universalNegativePrompt).toContain("cheddar cheese");
+
+    // 4. Negative filters must lock prop DNA against 1989 classic beige DMG-01 substitution
+    expect(bundle.universalNegativePrompt).toContain("classic 1989 grey Game Boy");
+    expect(bundle.universalNegativePrompt).toContain("beige DMG-01 brick");
+
+    // 5. Negative filters must lock character identity against face morphing or wrong mask
+    expect(bundle.universalNegativePrompt).toContain("face morphing");
+    expect(bundle.universalNegativePrompt).toContain("circular respirator filters");
+  });
 });

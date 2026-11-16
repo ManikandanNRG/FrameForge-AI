@@ -79,11 +79,11 @@ async function main() {
       location: "Grill Pan & Board",
       timeOfDay: "NIGHT",
       action:
-        "[0:12-0:13] On a flat tortilla, gloved hands rapidly load 4 quadrants: crispy PCB tempura, thick yellow cheddar cheese slice, fresh diced tomato/onion, and coiled copper wire bacon. [0:13-0:14] In a viral 4-fold sequence, hands fold each quadrant clockwise into a tight triangular pocket. [0:14-0:15] Slams wrap onto a searing ribbed cast-iron grill pan (*CHHHHH*), instantly searing dark charred grill stripes. [0:15-0:16] Transferred to board; heavy chef knife slices diagonally straight through the wrap with a razor-loud acoustic *CRUNCH*. 90% camera fill; 2X hyper-tempo.",
+        "[0:12-0:13] On a flat sheet, black-gloved hands rapidly arrange 4 quadrants: crispy golden tempura PCB chips, yellow silicone thermal pad squares, miniature SMD resistor seasonings, and coiled copper ribbon cables. [0:13-0:14] In a fast 4-fold sequence, gloved hands fold the sheet clockwise into a tight triangular crunch pocket. [0:14-0:15] Hands press the pocket onto a hot ridged cast-iron grill pan (*CHHHHH*), searing crisp dark lines. [0:15-0:16] Transferred to board; heavy Damascus knife slices diagonally straight through the pocket with a razor-loud acoustic *CRUNCH*. 90% camera fill; 2X hyper-tempo.",
       dialogue: "",
       voiceover: "",
       audioScript:
-        "Binaural ASMR Foley: Rapid parchment paper rustle, loud grill pan sear sizzle (CHHHHH), razor-sharp acoustic crust crunch as heavy knife slices diagonally through toasted wrap.",
+        "Binaural ASMR Foley: Rapid parchment paper rustle, loud grill pan sear sizzle (CHHHHH), razor-sharp acoustic crust crunch as heavy knife slices diagonally through toasted pocket.",
       estimatedDurationSeconds: 4,
       shotSize: "Top-Down Flat Lay",
       cameraMovement: "Rapid Dynamic Macro Pan",
@@ -94,11 +94,11 @@ async function main() {
       location: "Chef Showcase & White Coupe Plate",
       timeOfDay: "NIGHT",
       action:
-        "[0:16-0:18] Extreme macro close-up. Two black-gloved hands grip the two halves of the diagonally sliced wrap and pull them slowly apart: thick strands of bubbling melted cheddar stretch between crispy tempura PCB halves, coiled copper ribbons, and golden crunch crust as aromatic steam billows outward. [0:18-0:19] Plated on a pristine bright white ceramic coupe plate crowned with the golden Pokémon cartridge chip. Camera tilts up smoothly to The Shadow Alchemist Chef in brass goggles and sleek matte-black mask. [0:19-0:20] Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera! On-screen text: 'CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE.'",
+        "[0:16-0:18] Extreme macro close-up. Two black-gloved hands grip the two halves of the diagonally sliced tempura pocket and pull them slowly apart: thick strands of bubbling golden rosin flux glaze stretch between crispy tempura PCB halves, coiled copper ribbons, and golden crunch crust as aromatic steam billows outward. [0:18-0:19] Plated on a pristine bright white ceramic coupe plate crowned with the golden Pokémon cartridge chip. Camera tilts up smoothly to The Shadow Alchemist Chef in brass goggles and sleek matte-black mask. [0:19-0:20] Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!",
       dialogue: "",
       voiceover: "",
       audioScript:
-        "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling cheese stretch, gentle ceramic plate contact, soft deep breath from mask cheek vents. Ending on silence.",
+        "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling glaze stretch, gentle ceramic plate contact, soft deep breath from mask cheek vents. Ending on silence.",
       estimatedDurationSeconds: 4,
       shotSize: "Extreme Close-Up to Medium Up-Tilt",
       cameraMovement: "Macro Pull and Slow Tilt Up",

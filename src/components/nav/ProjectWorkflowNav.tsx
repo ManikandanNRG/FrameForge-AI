@@ -87,7 +87,7 @@ export function ProjectWorkflowNav({
   const [quoteStyle, setQuoteStyle] = useState<"caution-badge" | "viral-header" | "black-tag" | "clean-impact">("caution-badge");
   const [quoteSize, setQuoteSize] = useState<"large" | "medium" | "compact" | "small">("compact");
   const [quoteYOffset, setQuoteYOffset] = useState<number>(82);
-  const [quotePosition, setQuotePosition] = useState<"bottom-center" | "bottom-left" | "bottom-right" | "top-right" | "top-left">("bottom-center");
+  const [quotePosition, setQuotePosition] = useState<"bottom-center" | "bottom-left" | "bottom-right" | "top-right" | "top-left" | "top-center">("bottom-center");
   const [quoteTheme, setQuoteTheme] = useState<"hazard-yellow" | "caution-red" | "pure-white" | "carbon-black">("hazard-yellow");
 
   // Right-side Editor Sub-Tab: "headline" | "quote" | "prompt"
@@ -256,7 +256,7 @@ export function ProjectWorkflowNav({
         font: string,
         isSecondLayer: boolean = false
       ) {
-        if (!text.trim()) return;
+        if (!ctx || !text.trim()) return;
         const upperText = text.trim();
         const isPortrait = canvas.height > canvas.width;
 

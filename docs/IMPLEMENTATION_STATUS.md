@@ -327,3 +327,25 @@
 - **Verification**:
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.
   - `npm test` (`vitest run`): 52/52 tests passing across 10 test suites.
+
+### 2026-11-16 — Episode 2 Production & Transformation: "The Vintage Game Boy Tempura (ASMR)" — 20s Viral Rapid ASMR Standard (Bayashi 2X Pacing & 60% Credit Reduction)
+- **Project**: `cmwja2y3t0001u8qgfh5w3gtj`
+- **User Pivot & Viral Benchmark**:
+  - Addressed creator critique on slow 8s scenes with low action density.
+  - Benchmarked against viral reference video (`would_you_eat_this__#shorts.mp4` by Bayashi TV, 61M+ views, 19.82 seconds total).
+  - Replaced the old 12-scene format (~90s) with the **5 High-Density Scenes (~20s total, 4s each)**:
+    - *Scene 1 (4s)*: Rapid Violent Disassembly Hook (slam Game Boy, cartridge snap, 6 tri-wing screws & shell pop, pluck D-pad/buttons).
+    - *Scene 2 (4s)*: Rapid Fracture, Knife Slicing & Batter Dip (PCB snap like chocolate, staccato ribbon cable chop, golden glaze dip, panko coat).
+    - *Scene 3 (4s)*: Foaming Tempura Deep-Fry & Sizzle (boiling oil immersion *TZZZZ*, brass chopstick flip, wire rack lift).
+    - *Scene 4 (4s)*: 4-Quadrant Wrap Assembly & Crisp Knife Slice (load quadrants, viral 4-fold trick, grill pan sear, diagonal knife cut *CRUNCH*).
+    - *Scene 5 (4s)*: Hero Crunch Pull & Confident Chef Thumbs-Up (pull steaming cheesy cross-section apart in extreme macro, camera tilts up, chef nods and flashes a sharp, confident thumbs-up to camera).
+- **Core Engineering Updates**:
+  1. **Credit Reduction**: Reduced generation jobs by **60%–65%** (5 scenes instead of 12).
+  2. **Framing Rule**: Enforced 90% screen real estate filled by ingredients, cutting board, and hands in extreme macro close-up and top-down flat lay.
+  3. **Runtime Presets & Invariants**:
+     - Added `{ seconds: 20, label: "20s — Viral Rapid ASMR (Bayashi 2X Pacing · 4-5 High-Density Scenes) [60M+ Views Standard]" }` to `RUNTIME_PRESETS` in UI and schema validation (`src/app/api/projects/route.ts`).
+     - Added `UNIVERSAL_PHYSICAL_LAWS.VIRAL_RAPID_ASMR_PACING` in `src/lib/story/world-engine.ts`.
+     - Integrated Bayashi 2X pacing rules into `src/lib/story/prompts.ts`, `src/lib/story/service.ts`, and `src/app/api/projects/[projectId]/story/generate-options/route.ts`.
+- **Verification**:
+  - Unit tests: 53/53 tests passing across 10 test suites (`tests/unit/culinary-asmr.test.ts`).
+  - Typecheck: `tsc --noEmit` clean with 0 errors.

@@ -89,7 +89,14 @@ export function systemPrompt(brief: ProjectBrief): string {
      * Climax Scenes: HIGH-HEAT WOK TOSS, CONSISTENCY LIFT & 3-STAR MICHELIN WHITE PLATE ARTWORK. The dish MUST be 80% composed of recognizable authentic components (keycaps, switches, copper spirals) glistening under translucent culinary glaze. NEVER describe the dish as wheat noodles, pasta, or grocery food!
       * Penultimate Scene (The Scene Before Finale, e.g. Scene 11 of 12): END OF COOKING & SAUCE CONSISTENCY (PAN LIFT). Inside the wok/pan, showing the rich, thick, bubbling reduction glaze stretching in slow-mo as the spatula lifts the cooked components. Thick bubbling foley and sticky glaze stretch ASMR sound.
       * Final Scene (Ending / Grand Climax): 3-STAR MICHELIN WHITE PLATE ARTWORK PRESENTATION & VIEWER DISCLAIMER. High-contrast fine-dining plating on a pristine bright white ceramic plate under warm spotlight (bold sauce swoosh, geometric centerpiece, coiled copper ribbons, delicate micro-garnishes). Strictly ZERO EATING, ZERO BITING, ZERO TASTING, and ZERO PUTTING IN MOUTH! Inedible object cooking is conceptual art and ASMR entertainment. Mandatory safety disclaimer: "CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT ATTEMPT OR INGEST."
-   - MACRO FRAMING MANDATE: All actions involving small components (keycaps, switches, screws, microchips) MUST be framed as MACRO CLOSE-UPS so video diffusion models clearly render sharp rectangular keys and embossed legends without blurring into generic cubes, plastic blocks, or tofu dice.` : "";
+   - MACRO FRAMING MANDATE: All actions involving small components (keycaps, switches, screws, microchips) MUST be framed as MACRO CLOSE-UPS so video diffusion models clearly render sharp rectangular keys and embossed legends without blurring into generic cubes, plastic blocks, or tofu dice.
+   - BAYASHI 2X VIRAL RAPID ASMR FORMULA (CRITICAL FOR SHORT-FORM <= 30S / 60M+ VIEWS STANDARD):
+     * TOTAL DURATION: 18s–20s total, split into exactly 4 to 5 high-density scenes (3.5s–4s each).
+     * 2X TEMPO & MICRO-ACTION DENSITY: Every single scene must pack 3 to 4 rapid sequential micro-actions in continuous 2X fast-forward tempo (e.g. [0-1s] slam object, [1-2s] knife butterfly slice, [2-3s] batter dip & flip, [3-4s] panko coat & firm press).
+     * 90% SCREEN INGREDIENT FILL: Camera framing must fill 90% of screen real estate with ingredients, cookware, cutting board, and hands in extreme macro close-up or top-down flat lay. Zero distant establishing walking shots.
+     * CREDIT SAVER EFFICIENCY: 4 to 5 scenes max, drastically reducing Google Flow / video generation credits by >60%.
+     * PURE BINAURAL ASMR: Dialogue and voiceover must be strictly empty strings (""). Pure Foley acoustics: sharp knife chops, plastic snaps, oil sizzle crackles, crunch pulls.
+     * VIRAL CLIMAX: Final scene must showcase the hero cross-section crunch pull & confident chef nod / thumbs-up to camera.` : "";
 
   return `You are a world-class screenwriter and narrative director specialising in ${styleNote(brief.visualStyle)} cinema.
 Film Idea: "${brief.sourceIdea}"

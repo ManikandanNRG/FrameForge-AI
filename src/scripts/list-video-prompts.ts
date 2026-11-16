@@ -3,8 +3,9 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
+  const projectId = process.argv[2] || 'cmwja2y3t0001u8qgfh5w3gtj';
   const shots = await prisma.shot.findMany({
-    where: { scene: { projectId: 'cmwg5nczz0001u88sld5gnrmd' } },
+    where: { projectId },
     include: { scene: true },
     orderBy: { shotNumber: 'asc' },
   });

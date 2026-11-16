@@ -56,6 +56,7 @@ interface Job {
 }
 
 const RUNTIME_PRESETS = [
+  { seconds: 20, label: "20s — Viral Rapid ASMR (Bayashi 2X Pacing · 4-5 High-Density Scenes) [60M+ Views Standard]" },
   { seconds: 30, label: "30s — Viral Reel / Quick Short (~3-4 scenes)" },
   { seconds: 45, label: "45s — Teaser / Short Scene (~5-6 scenes)" },
   { seconds: 60, label: "60s (1 min) — Standard Short Film (~6-8 scenes) [Recommended]" },

@@ -84,9 +84,19 @@ async function generateStoryCombined(
     screenplay: ScreenplaySchema,
   });
 
+  const isViralAsmr =
+    brief.visualStyle === "CULINARY_MACRO_ASMR" ||
+    (brief.targetRuntimeSeconds !== undefined && brief.targetRuntimeSeconds <= 30);
+
   const lengthDesc = brief.targetRuntimeSeconds
-    ? `${brief.targetRuntimeSeconds} seconds (approximately ${Math.max(3, Math.round(brief.targetRuntimeSeconds / 8))} scenes of 8s/10s each)`
+    ? isViralAsmr
+      ? `${brief.targetRuntimeSeconds} seconds (Viral Rapid 2X ASMR: 4–5 high-density scenes of 3.5s–4s each, 60M+ views standard)`
+      : `${brief.targetRuntimeSeconds} seconds (approximately ${Math.max(3, Math.round(brief.targetRuntimeSeconds / 8))} scenes of 8s/10s each)`
     : `${brief.targetRuntimeMinutes}-minute`;
+
+  const durationSpec = isViralAsmr
+    ? "1. Target Durations & Kinetic Density: 4 to 5 high-density scenes of 3.5s to 4s each (~20s total). Each scene must contain 3 to 4 rapid sequential micro-actions in 2X fast-forward tempo (e.g. fork punch, knife slice, flour dip, egg wash coat). Framing must fill 90% of screen on ingredients and cutting board. Dialogue and voiceover must be empty strings. End the final scene with a hero cross-section crunch pull & confident chef thumbs-up to camera."
+    : "1. Target Durations: All scenes must be either 8 or 10 seconds duration (Omni Flash / Veo 2 / Kling timing standards).";
 
   const r = await provider.generateStructured({
     modelId,
@@ -94,7 +104,7 @@ async function generateStoryCombined(
     userPrompt: `Write a complete short film package for a ${lengthDesc} film.
 Target Story Language: "${brief.storyLanguage}".
 CRITICAL SPECIFICATIONS:
-1. Target Durations: All scenes must be either 8 or 10 seconds duration (Omni Flash / Veo 2 / Kling timing standards).
+${durationSpec}
 2. All character dialogue MUST be written in "${brief.storyLanguage}" (e.g. Tamil script for Tamil, Hindi for Hindi).
 3. If a character is speaking dialogue in a scene, narrator voiceover MUST be empty or omitted. Only include voiceover when characters are silent.
 4. Visual action lines must be in cinematic English with continuous narrative causality and locked wardrobe.

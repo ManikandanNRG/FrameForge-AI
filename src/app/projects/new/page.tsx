@@ -43,6 +43,7 @@ const AUDIENCES = [
 ];
 
 const RUNTIME_PRESETS = [
+  { seconds: 20, label: "20s — Viral Rapid ASMR (Bayashi 2X Pacing · 4-5 High-Density Scenes) [60M+ Views Standard]" },
   { seconds: 30, label: "30s — Viral Reel / Quick Short (~4-5 shots)" },
   { seconds: 45, label: "45s — Teaser / Short Scene (~6-7 shots)" },
   { seconds: 60, label: "60s (1 min) — Standard Short Film (~8-10 shots) [Recommended]" },

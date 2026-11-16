@@ -74,6 +74,12 @@ CULINARY ASMR & WORKSTATION CONTINUITY RULES:
    - Searing/pan scenes MUST be 100% confined to the stove. Strictly DO NOT describe cutting boards or raw slicing.
    - Plating scenes MUST be 100% confined to the plate/dish.
    - NEVER combine multiple stations in one shot. AI video generators (Veo, Kling, Runway, Wan 2.1) generate only 4-8 seconds: combining two stations guarantees hallucination and teleportation.
+6. BAYASHI 2X VIRAL RAPID ASMR FORMULA (FOR SHORT-FORM <= 30S / 60M+ VIEWS STANDARD):
+   - Exactly 4 to 5 high-density scenes (3.5s to 4s each, ~18s–20s total).
+   - Within each scene, pack 3 to 4 rapid sequential micro-actions in continuous 2X fast-forward tempo (e.g. [0-1s] slam object, [1-2s] knife slice, [2-3s] dip into batter & flip, [3-4s] coat in panko & firm press).
+   - 90% screen real estate filled by ingredients, cutting board, cookware, and hands in extreme macro close-up or overhead flat lay. Strictly ZERO slow walking shots or scenic establishing shots.
+   - Drastically cuts Google Flow video generation credits by >60% (4-5 scenes instead of 12).
+   - Final scene ends with hero cross-section crunch pull & confident chef nod / thumbs-up to camera.
 ` : "";
 
   const systemPrompt = `You are a visionary film director, master screenwriter, and social media viral storytelling architect.

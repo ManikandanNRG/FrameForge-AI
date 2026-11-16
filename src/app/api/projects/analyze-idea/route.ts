@@ -117,7 +117,7 @@ export const POST = apiHandler(async (req) => {
       : isKidsAnimation || isStopMotion
       ? "Kids & Toddlers (Preschool & Young Children)"
       : "Universal / Family Audience",
-    targetRuntimeSeconds: isShorts ? 45 : (isElephantVillage || isCricket || isCulinaryAsmr || isKidsAnimation) ? 60 : 90,
+    targetRuntimeSeconds: isCulinaryAsmr ? 20 : isShorts ? 45 : (isElephantVillage || isCricket || isKidsAnimation) ? 60 : 90,
     visualStyle: isCulinaryAsmr
       ? "CULINARY_MACRO_ASMR"
       : isKidsAnimation

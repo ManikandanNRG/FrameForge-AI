@@ -191,5 +191,20 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     expect(cuttingBundle.universalNegativePrompt).toContain("vanishing chassis");
     expect(cuttingBundle.universalNegativePrompt).toContain("disappearing object");
   });
+
+  it("enforces Bayashi 2X rapid ASMR pacing and 90% screen ingredient fill for short-form clips (<= 5s)", () => {
+    const rapidBundle = compileCinematicPrompt({
+      actionDescription: "Chef punches Game Boy with pin spoon, dips into golden batter, flips and coats in panko breadcrumbs.",
+      heroObject: "Game Boy Color",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      targetDurationSeconds: 4,
+      aspectRatio: "PORTRAIT_9_16",
+    });
+
+    expect(rapidBundle.googleFlowPrompt).toContain("Viral Rapid ASMR Pacing & Framing Invariants");
+    expect(rapidBundle.googleFlowPrompt).toContain("90% Screen Ingredient Fill");
+    expect(rapidBundle.googleFlowPrompt).toContain("2X Kinetic Tempo");
+    expect(rapidBundle.googleFlowPrompt).toContain("hero cross-section crunch pull & confident chef nod / thumbs-up to camera");
+  });
 });
 

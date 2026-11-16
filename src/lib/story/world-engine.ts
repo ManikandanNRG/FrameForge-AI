@@ -56,6 +56,11 @@ export const UNIVERSAL_PHYSICAL_LAWS = {
     return `Inedible Object Cooking & Material Invariants: Handled non-food items (${target}) maintain rigid physical material geometry as real authentic physical objects (metal, glass, leather, rubber, wood, stone, plastic, or mechanical elements). Distinct components must retain their authentic physical characteristics, surface textures, labels, and contours; strictly PROHIBIT dissolving into generic cubes, plain plastic blocks, dice, tofu cubes, or morphing into grocery food/meat/dough. Plated dishes and stir-fries must be composed 80% of the authentic components of ${target} glistening under translucent culinary glaze. Macro camera distance is mandatory during small component manipulation to preserve fine physical details. Strictly PROHIBIT tasting, chewing, biting, eating, or putting in mouth; the completed creation is conceptual artwork and entertainment presentation only. Strictly INEDIBLE.`;
   },
 
+  // Law 7: Viral Rapid ASMR & Bayashi Pacing Invariants (Shorts / Reels <= 30s)
+  VIRAL_RAPID_ASMR_PACING:
+    "Viral Rapid ASMR Pacing & Framing Invariants: 90% Screen Ingredient Fill: The camera must remain tightly locked onto the culinary workstation, cutting board, skillet, or plate in extreme macro close-up or top-down 90-degree flat lay; strictly PROHIBIT distant scenic establishing shots or slow walking shots. 2X Kinetic Tempo: Actions are executed at 2X fast tempo, packing 3 to 4 rapid sequential micro-actions per 4-second clip with rapid staccato cuts. Pure Binaural Acoustics: Strictly zero spoken dialogue and zero voiceover; all audio must be close-mic tactile Foley (razor knife chops, crisp breadcrumb crunches, violent sizzle hiss, plastic clicks). Climax Resolution: The sequence concludes with a hero cross-section crunch pull & confident chef nod / thumbs-up to camera.",
+
+
   // Dynamic Rendering Integrity Generator based on User Visual Style & Era
   getRenderingIntegrity: (visualStyle?: string | null, sourceIdea?: string | null, isPeriod = false, heroObjectName?: string | null): string => {
     const styleUpper = (visualStyle || "").toUpperCase();

@@ -56,13 +56,13 @@ export function getDirectorSuggestions(
   if (isCulinary) {
     return {
       pills: [
-        "Intensify sizzling pan contact",
+        "Speed up to 2X Bayashi tempo",
+        "Tighten camera to 90% cutting board macro",
         "Enhance ASMR crunch & snap acoustics",
-        "Focus extreme macro on sauce glaze",
-        "Add rogue chef smirk & confidence",
-        "Make knife / tool prep crisper",
+        "Intensify sizzling oil / pan contact",
+        "Add hero crunch pull & chef thumbs-up",
       ],
-      placeholder: 'e.g. "Add explosive sizzle sound as keycaps hit wok", "Show extreme macro of switch spring", "Make chef toss wok higher"...',
+      placeholder: 'e.g. "Accelerate to 2X micro-actions: punch, butterfly slice, batter dip", "Focus 90% macro on golden crust", "Add sharp thumbs-up to camera"...',
     };
   }
 

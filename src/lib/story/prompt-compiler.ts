@@ -268,9 +268,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     dynamicStyleDirective = "Grounded documentary cinema realism, natural ambient daylight, true-to-life color grading, 35mm lens, 24fps motion blur";
   }
 
-  // 1. Duration Quantization (Google Flow / Omni 1.1 Flash minimum 8s standard)
+  // 1. Duration Quantization (Google Flow / Omni 1.1 Flash minimum 8s standard; Kling / Veo / Wan 4s-5s for rapid ASMR shorts)
   const rawDuration = targetDurationSeconds || 8;
-  const normalizedDuration = rawDuration >= 9 ? 10 : 8;
+  const normalizedDuration = rawDuration <= 4 ? 4 : rawDuration <= 6 ? 5 : rawDuration >= 9 ? 10 : 8;
   const targetDurationLabel = `${normalizedDuration} seconds`;
 
   // 2. Aspect Ratio & Framing
@@ -648,8 +648,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     if (heroPropLock) {
       flowRules.push(`- Hero Prop DNA Lock: ${heroPropLock}`);
     }
+    if (targetDurationSeconds && targetDurationSeconds <= 5) {
+      flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.VIRAL_RAPID_ASMR_PACING}`);
+    }
   } else if (isCulinary) {
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.CULINARY_ASMR_PHYSICS}`);
+    if (targetDurationSeconds && targetDurationSeconds <= 5) {
+      flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.VIRAL_RAPID_ASMR_PACING}`);
+    }
   }
   if (entities.hasVehicleOrMount) {
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.MECHANICAL_PROPULSION}`);

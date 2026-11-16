@@ -358,3 +358,35 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - In `GET /api/projects/[projectId]/story`, verify that `LOGLINE`, `PREMISE`, and `SYNOPSIS` artifacts exist; if missing, synthesize them from the project's pitch and screenplay scenes and persist them into the database.
   4. **Verification**:
      - 52/52 unit tests passing across 10 test suites (`tests/unit/director-copilot.test.ts`), `tsc --noEmit` clean with 0 errors.
+
+## ADR-023: Viral 20-Second Rapid ASMR Standard (Bayashi 2X Pacing & 60% Credit Reduction)
+- **Date**: 2026-11-16 · **Status**: Approved & Implemented
+- **Context**: Creator analysis of top-performing culinary ASMR content (specifically reference video by Bayashi TV, 61M+ views) demonstrated that the previous 12-scene, 8s-per-scene (~90s total) format was fundamentally mismatched with short-form platform retention:
+  1. *Sluggish Scene Pacing*: Performing only 1 or 2 slow isolated actions over an 8-second clip felt like a traditional long-form video rather than hyper-engaging viral ASMR.
+  2. *Wasted Video Generation Credits*: Running 12 video generation calls in Google Flow / Kling for a single Short consumed massive credit allocations (120-300 credits per video) with high abandonment rates.
+  3. *Framing Dilution*: Long walking shots in scrapyards or distant angles broke immersion; 60M+ view shorts maintain 90% camera framing locked onto ingredients, cutting board, and hands in extreme macro close-ups and top-down flat lays.
+- **Decision**:
+  1. **Viral Rapid ASMR Standard (20s Total, 4–5 Scenes, ~4s each)**:
+     - Cut total project scenes from 12 down to **4 to 5 high-density scenes (3.5s to 4s each)**, achieving ~18s–20s total runtime.
+     - Saves **60% to 65% of video generation credits** (4-5 generation jobs instead of 12).
+  2. **2X Kinetic Tempo & Sequential Micro-Actions**:
+     - Each 4-second clip is packed with **3 to 4 sequential micro-actions executed in continuous 2X fast-forward tempo** (e.g. [0-1s] slam object, [1-2s] rapid knife butterfly slice, [2-3s] dip into golden glaze & flip, [3-4s] coat in panko resistor breadcrumbs and press firm).
+  3. **90% Screen Ingredient Fill**:
+     - Camera is permanently locked onto the workstation, cutting board, hot oil pot, or grill in extreme macro close-up or top-down flat lay. Eliminates distant scenic establishing walks.
+  4. **Viral Climax Structure**:
+     - Standardizes the 5-act Bayashi formula:
+       - *Scene 1 (4s)*: Violent Sourcing & Disassembly Hook (slam, cartridge snap, screws spin & shell pop, pluck buttons).
+       - *Scene 2 (4s)*: Rapid Fracture, Knife Slicing & Batter Dip (PCB snap like chocolate, staccato noodle chop, glaze dip, panko coat).
+       - *Scene 3 (4s)*: Foaming Tempura Deep-Fry & Sizzle (drop into boiling oil with explosive foaming hiss *TZZZZ*, brass chopstick flip, wire rack lift).
+       - *Scene 4 (4s)*: 4-Quadrant Wrap Fold & Crisp Knife Crunch (load quadrants, 4-fold trick, sear on grill pan, diagonal knife cut *CRUNCH*).
+       - *Scene 5 (4s)*: Hero Crunch Pull & Confident Chef Thumbs-Up (pull steaming cheesy cross-section apart in extreme macro, camera tilts up, chef nods and flashes a sharp, confident thumbs-up to camera).
+  5. **Codebase Presets & Universal Physical Invariants**:
+     - Added `{ seconds: 20, label: "20s — Viral Rapid ASMR (Bayashi 2X Pacing · 4-5 High-Density Scenes) [60M+ Views Standard]" }` to `RUNTIME_PRESETS` in both project creation and project settings.
+     - Updated `UNIVERSAL_PHYSICAL_LAWS.VIRAL_RAPID_ASMR_PACING` in `src/lib/story/world-engine.ts`.
+     - Quantized duration in `src/lib/story/prompt-compiler.ts` to support 4s/5s short-form clips.
+     - Enhanced `src/lib/story/prompts.ts`, `src/lib/story/service.ts`, and `src/app/api/projects/[projectId]/story/generate-options/route.ts` with the Bayashi 2X directives.
+  6. **Episode 2 Transformation**:
+     - Fully transformed Project `cmwja2y3t0001u8qgfh5w3gtj` (*The Vintage Game Boy Tempura (ASMR)*) into the 5-scene 20s Bayashi Rapid ASMR standard with compiled multi-engine prompts.
+  7. **Verification**:
+     - 53/53 unit tests passing across 10 test suites (`tests/unit/culinary-asmr.test.ts`), `tsc --noEmit` clean with 0 errors.
+

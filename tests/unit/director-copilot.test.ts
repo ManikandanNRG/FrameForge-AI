@@ -10,10 +10,10 @@ describe("director-copilot", () => {
         sourceIdea: "A rogue alchemist chef stir-fries a mechanical keyboard in a wok.",
       });
 
-      expect(suggestions.pills).toContain("Intensify sizzling pan contact");
+      expect(suggestions.pills).toContain("Speed up to 2X Bayashi tempo");
       expect(suggestions.pills).toContain("Enhance ASMR crunch & snap acoustics");
-      expect(suggestions.pills).toContain("Focus extreme macro on sauce glaze");
-      expect(suggestions.placeholder).toContain("sizzle");
+      expect(suggestions.pills).toContain("Intensify sizzling oil / pan contact");
+      expect(suggestions.placeholder).toContain("micro-actions");
 
       // Verify no generic elephant or Karthi strings leak into culinary
       const pillsJoined = suggestions.pills.join(" ");

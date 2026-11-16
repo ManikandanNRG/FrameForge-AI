@@ -264,8 +264,11 @@
      - Replaced dull dark motherboard with a **pristine, high-contrast bright white ceramic coupe plate** for maximum visual pop on YouTube/Instagram feeds.
      - **Visual Prompt**: Bold curved swoosh of dark amber chili glaze across gleaming white porcelain; central geometric gourmet mound of caramelized keycaps and ruby switches; delicate spiral copper wire ribbons; emerald PCB chips fanned along the side; golden sauce droplets piped in a curve; crowned with a single ruby-red ESC keycap under a focused warm spotlight.
      - **ASMR Audio**: Soft steam whisper, subtle ceramic clink, ambient low hum.
-  3. **Screenplay Synchronization (`src/lib/story/prompts.ts`, `src/lib/story/launch-kit.ts`)**:
-     - Updated screenplay artifact version text, YouTube description timestamps, and system prompt guidelines for inedible cooking ASMR episodes.
+  3. **Screenplay Synchronization & Universal Architecture (`src/lib/story/prompts.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/story/launch-kit.ts`)**:
+     - Updated screenplay artifact version text, YouTube description timestamps, and system prompt guidelines.
+     - **Locked Base Format for All Future Inedible Cooking Episodes**:
+       - *Penultimate Scene*: Guaranteed "End of Cooking & Sauce Consistency (Pan Lift)" inside the wok/pan showing the rich, thick reduction glaze stretching in slow-mo as the spatula lifts.
+       - *Final Scene*: Guaranteed "3-Star Michelin White Plate Artwork Presentation" on a pristine bright white ceramic plate with bold glaze swoosh, geometric centerpiece, and micro-garnishes.
 - **Verification**:
   - `tsc --noEmit`: 0 errors.
   - `pnpm test`: 40/40 tests passing across 8 test suites.

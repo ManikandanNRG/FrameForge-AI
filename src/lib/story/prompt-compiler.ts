@@ -806,13 +806,19 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       }
       return "Atmospheric electronics scrapyard with industrial steel shelving units, stacked retro CRT monitors, green motherboard racks, copper wire spools, and cool cyan neon fog";
     }
+    if (isInedibleCooking && (station === "PLATING_SERVE" || station === "HERO_REACTION")) {
+      const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (locationDescription || ""));
+      if (isWhitePlate) {
+        return "Pristine minimalist restaurant studio table with pure black velvet background and focused overhead spotlight illuminating a bright white ceramic plate";
+      }
+    }
     return locationDescription || (isCulinary ? "Master culinary kitchen, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny meadow playground" : "Cinematic setting");
   })();
 
   const fluxAesthetics = isInedibleCooking
     ? (() => {
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`;
+          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO CGI, NO 3D render.`;
         }
         if (station === "OBJECT_SOURCING") {
           return `Strict Aesthetics: Authentic intact hardware of ${heroTargetName} in original manufactured state with genuine metallic and matte textures. Strictly NO cooking stoves, NO cutting boards, NO pans, NO generic cubes, NO food, NO meat, NO CGI, NO 3D render.`;
@@ -1000,8 +1006,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             case "LIQUID_MARINADE":
               return `Action Dynamics: Steady fluid pour. Luminous golden glaze flows in a smooth continuous ribbon from the glass dropper down into the bowl, coating the components with a glossy sheen. Bowl remains stationary.`;
             case "STOVE_COOK":
+              if (/\b(spatula|lift|consistency|drip|viscous|stretching)\b/i.test(actionLower)) {
+                return `Action Dynamics: Searing glaze lift. Spatula lifts cooked hardware cluster, letting thick reduction sauce stretch and drip in slow motion.`;
+              }
               return `Action Dynamics: High-heat culinary tossing. Hands firmly grip the cookware handle, tossing the sizzling hardware components in a smooth, high arc over the intense blue burner flame.`;
             case "PLATING_SERVE":
+              if (/\b(white plate|white ceramic|coupe|michelin|swoosh|gourmet mound)\b/i.test(actionLower)) {
+                return `Action Dynamics: Final plated masterpiece showcase. Smooth cinematic rotating macro glide around the steaming dish.`;
+              }
               return `Action Dynamics: Precision plating glide. Titanium tweezers held in gloved hands delicately lower the final component onto the apex of the plated mound with surgical accuracy.`;
             case "HERO_REACTION":
               return `Action Dynamics: Hero stillness and camera pull-back. Chef slowly lowers tools, resting hands beside the steaming dish, and looks directly into the camera lens with a subtle, confident smirk.`;
@@ -1030,6 +1042,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             case "STOVE_COOK":
               return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner or held firmly by handle. Authentic components of ${heroTargetName} leap in realistic ballistic trajectory, retaining rigid shape and physical textures without deforming or melting.`;
             case "PLATING_SERVE":
+              if (/\b(white plate|white ceramic|coupe|michelin|swoosh|gourmet mound)\b/i.test(actionLower)) {
+                return `Art Presentation & Safety Lock: Mask, goggles, and character wardrobe remain locked. High-contrast 3-star Michelin fine-dining presentation on a pristine, bright white ceramic plate. Plated dish is 80% authentic parts of ${heroTargetName}. Strictly zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
+              }
               return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
             case "HERO_REACTION":
               return `Art Presentation & Safety Lock: Mask, goggles, and character wardrobe remain locked. Chef gently slides the finished masterpiece forward as a Michelin-star artwork presentation, holding a knowing rogue smirk. Camera executes smooth pull-back. Zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;

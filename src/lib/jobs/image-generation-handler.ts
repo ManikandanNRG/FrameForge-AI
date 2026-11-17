@@ -5,6 +5,7 @@ import { resolveImageProvider } from "@/lib/providers/resolve-image";
 import { downloadImageToFile } from "@/lib/providers/openai-image";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { normalizeRoot } from "@/lib/media/paths";
+import { getProjectStorageDir } from "@/lib/media/storage-paths";
 import { mkdir } from "node:fs/promises";
 import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
 import { logger } from "@/lib/logger";
@@ -21,7 +22,10 @@ export async function imageGenerationHandler(
   const shot = await prisma.shot.findUnique({ where: { id: shotId } });
   if (!shot) throw new Error(`Shot not found: ${shotId}`);
 
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { series: true },
+  });
   if (!project) throw new Error(`Project not found: ${projectId}`);
 
   const { provider, modelId } = await resolveImageProvider(project.ownerId);
@@ -127,8 +131,9 @@ export async function imageGenerationHandler(
     });
   }
 
-  // Save file locally
-  const dir = path.join(root.path, "projects", projectId, "shots", shotId, "images");
+  // Save file locally in isolated project/channel directory
+  const projectStorageDir = getProjectStorageDir(project, root.path);
+  const dir = path.join(projectStorageDir, "shots", shotId, "images");
   await mkdir(dir, { recursive: true });
 
   const count = await prisma.shotMedia.count({ where: { shotId, kind: "STORYBOARD_STILL" } });

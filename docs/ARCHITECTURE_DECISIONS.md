@@ -437,5 +437,34 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Added automated unit test in `tests/unit/prompt-doctor.test.ts`. Full test suite: 58/58 tests passing across 11 test files (`npm test`), `tsc --noEmit` clean with 0 errors.
      - Recompiled all 5 database shots of Project `cmwja2y3t0001u8qgfh5w3gtj` in PostgreSQL with zero grocery food and zero on-screen text directives.
 
+## ADR-027: Channel / Series Multi-Episode Architecture & Isolated Storage Hierarchy
+- **Date**: 2026-11-17 · **Status**: Approved & Implemented
+- **Context**: As creators scale channels on YouTube Shorts and TikTok, treating every video as an isolated, standalone project causes heavy friction:
+  1. *Repetitive Setup Fatigue*: Creating Episode 3 required manually re-selecting `CULINARY_MACRO_ASMR`, `PORTRAIT_9_16`, `PURE_ASMR_FOLEY`, `20s Bayashi 2X`, and re-entering channel negative constraints.
+  2. *Character Re-Casting Drift*: Lead characters like `@TheShadowAlchemistChef` had to be re-created manually in each project, risking slight description mismatches that trigger face and mask drift.
+  3. *Creative Studio Variety*: While channel brand rules remain immutable, creators need the creative freedom to vary the studio workstation per episode (e.g., Ep 1: Scrapyard wok, Ep 2: Walnut butcher block tempura pot, Ep 3: Japanese Teppanyaki flat-top griddle, Ep 4: Campfire skillet).
+  4. *Media Storage Collisions*: High-resolution video clips, still images, and master exports needed clean, isolated folder sandboxes per episode on disk.
+- **Decision**:
+  1. **Channel / Series Schema Entity (`prisma/schema.prisma`)**:
+     - Created `model Series` with unique `[ownerId, slug]`, housing channel-wide brand DNA: `visualStyle`, `genre`, `tone`, `dialogueMode`, `aspectRatio`, `targetRuntime`, `defaultStudioEnvironment`, `defaultChefWardrobe`.
+     - Linked `model Project` with `seriesId`, `episodeNumber`, `studioEnvironment`, and `chefWardrobeOverride`.
+     - 100% backward-compatible with standalone films.
+  2. **Isolated Storage Hierarchy (`src/lib/media/storage-paths.ts`)**:
+     - Implemented `getProjectStorageDir(project, rootPath)`:
+       - Series Episodes: `<mediaRoot>/channels/<channel-slug>/episodes/ep<N>_<shortId>/` (with dedicated `shots/<shotId>/images`, `shots/<shotId>/videos`, and `exports/` subfolders).
+       - Standalone Projects: `<mediaRoot>/projects/<projectId>/`.
+     - Integrated into `imageGenerationHandler`, `videoGenerationHandler`, and `exportHandler`.
+  3. **1-Click Next Episode Engine (`src/app/api/series/[seriesId]/episodes/route.ts`)**:
+     - Automatically increments `episodeNumber`.
+     - Clones approved lead character assets (`@TheShadowAlchemistChef`) from prior episodes.
+     - Accepts unique `studioEnvironment` overrides with quick presets (`Teppanyaki Flat-Top Griddle`, `Walnut Butcher Block`, `Scrapyard Workbench`, `Campfire Skillet`, `Metallurgy Forge`).
+     - Auto-generates initial story artifacts, 5-scene 20s Bayashi Rapid ASMR screenplay, multi-engine prompts, and Step 5 `YOUTUBE_THUMBNAIL` story artifact.
+  4. **Universal Studio Series Bar & Episode Switcher (`src/components/series/SeriesEpisodeBar.tsx`, `CreateEpisodeModal.tsx`)**:
+     - Mounted in `ProjectWorkflowNav.tsx`, allowing creators to switch between episodes and launch new episodes with 1 click from any screen.
+  5. **Verification**:
+     - Added test suites `tests/unit/series.test.ts` and `tests/unit/storage-paths.test.ts`. Full test suite: 63/63 tests passing across 13 test files (`npm test`), `tsc --noEmit` clean with 0 errors.
+     - Seeded `The Shadow Alchemist — Inedible ASMR` series, linking Episode 1 (Keyboard Stir-Fry) and Episode 2 (Game Boy Tempura).
+
+
 
 

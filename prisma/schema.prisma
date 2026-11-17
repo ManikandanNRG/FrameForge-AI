@@ -20,16 +20,46 @@ model User {
   updatedAt   DateTime @updatedAt
 
   projects    Project[]
+  series      Series[]
   auditEvents AuditEvent[]
   mediaRoots  MediaRoot[]
   providerConnections ProviderConnection[]
 }
 
-/// A film production and all its artifacts.
+/// A channel or series collection that groups recurring episodic projects with shared DNA.
+model Series {
+  id                        String   @id @default(cuid())
+  ownerId                   String
+  owner                     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title                     String
+  slug                      String
+  description               String?
+  visualStyle               String   @default("CULINARY_MACRO_ASMR")
+  genre                     String?  @default("Culinary & Cooking ASMR")
+  tone                      String?  @default("Satisfying, Crisp & Hypnotic")
+  dialogueMode              String   @default("PURE_ASMR_FOLEY")
+  aspectRatio               String   @default("PORTRAIT_9_16")
+  targetRuntime             Int      @default(20)
+  storyLanguage             String   @default("en")
+  defaultStudioEnvironment  String?
+  defaultChefWardrobe       String?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  episodes                  Project[]
+
+  @@unique([ownerId, slug])
+  @@index([ownerId])
+}
+
+/// A film production (or series episode) and all its artifacts.
 model Project {
   id           String   @id @default(cuid())
   ownerId      String
   owner        User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  seriesId     String?
+  series       Series?  @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  episodeNumber Int?
   title        String
   description  String?
   status       String   @default("DRAFT") // DRAFT | ACTIVE | PAUSED | COMPLETED | ARCHIVED
@@ -39,14 +69,16 @@ model Project {
   updatedAt    DateTime @updatedAt
 
   // Phase 1 fields
-  genre           String?
-  tone            String?
-  visualStyle     String  @default("PHOTOREALISTIC_CINEMATIC")
-  dialogueMode    String  @default("DIALOGUE")
-  targetRuntime   Int     @default(360)
-  aspectRatio     String  @default("LANDSCAPE_16_9")
-  audience        String?
-  storyLanguage   String  @default("en")
+  genre                String?
+  tone                 String?
+  visualStyle          String  @default("PHOTOREALISTIC_CINEMATIC")
+  dialogueMode         String  @default("DIALOGUE")
+  targetRuntime        Int     @default(360)
+  aspectRatio          String  @default("LANDSCAPE_16_9")
+  audience             String?
+  storyLanguage        String  @default("en")
+  studioEnvironment    String? // Episode-specific studio / workstation environment override
+  chefWardrobeOverride String? // Episode-specific wardrobe override
 
   jobs             GenerationJob[]
   storyArtifacts   StoryArtifact[]
@@ -55,6 +87,7 @@ model Project {
   editSequences    EditSequence[]
 
   @@index([ownerId])
+  @@index([seriesId])
 }
 
 /// Provider connection — stores encrypted API key server-side (spec §8.17).

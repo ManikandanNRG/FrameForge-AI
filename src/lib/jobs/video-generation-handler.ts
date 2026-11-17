@@ -8,6 +8,7 @@ import { synthesizeVoiceover, generateFallbackAudio } from "@/lib/media/voiceove
 import { getShotAudioData } from "@/lib/shots/audio-defaults";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { normalizeRoot } from "@/lib/media/paths";
+import { getProjectStorageDir } from "@/lib/media/storage-paths";
 import { mkdir } from "node:fs/promises";
 import { logger } from "@/lib/logger";
 
@@ -35,7 +36,10 @@ export async function videoGenerationHandler(
   if (!shot) throw new Error(`Shot not found: ${shotId}`);
   if (!shot.videoPrompt) throw new Error(`Shot ${shotId} has no videoPrompt`);
 
-  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { series: true },
+  });
   if (!project) throw new Error(`Project not found: ${projectId}`);
 
   // Find or create media root
@@ -47,7 +51,8 @@ export async function videoGenerationHandler(
     });
   }
 
-  const dir = path.join(root.path, "projects", projectId, "shots", shotId, "videos");
+  const projectStorageDir = getProjectStorageDir(project, root.path);
+  const dir = path.join(projectStorageDir, "shots", shotId, "videos");
   await mkdir(dir, { recursive: true });
 
   const count = await prisma.shotMedia.count({ where: { shotId, kind: "VIDEO_CLIP" } });

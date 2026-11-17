@@ -37,6 +37,7 @@ import {
   Quote,
 } from "lucide-react";
 import { generateSocialLaunchKit } from "@/lib/story/launch-kit";
+import { SeriesEpisodeBar } from "@/components/series/SeriesEpisodeBar";
 
 export type WorkflowStepId = "overview" | "script" | "assets" | "storyboard" | "editor" | "launch";
 
@@ -627,6 +628,16 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                 </span>
               </div>
             </div>
+
+            {projectData?.series && (
+              <div className="hidden sm:block pl-2 border-l border-slate-200">
+                <SeriesEpisodeBar
+                  currentProjectId={projectId}
+                  series={projectData.series}
+                  currentEpisodeNumber={projectData.episodeNumber}
+                />
+              </div>
+            )}
           </div>
 
           {/* Center: 5-Step Order of Workflow (Script -> Assets -> Storyboard -> Video Studio -> YouTube Launch) */}

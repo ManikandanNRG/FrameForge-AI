@@ -7,6 +7,19 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
+- **Channel / Series & Multi-Episode Architecture (ADR-027)** (`prisma/schema.prisma`, `src/app/api/series/route.ts`, `src/app/api/series/[seriesId]/route.ts`, `src/app/api/series/[seriesId]/episodes/route.ts`, `src/lib/media/storage-paths.ts`, `src/components/series/SeriesEpisodeBar.tsx`, `src/components/series/CreateEpisodeModal.tsx`, `src/components/nav/ProjectWorkflowNav.tsx`, `tests/unit/series.test.ts`, `tests/unit/storage-paths.test.ts`):
+  - **Channel / Series Container Model**:
+    - Groups recurring episodic projects under a unified brand DNA: `visualStyle`, `genre`, `tone`, `dialogueMode`, `aspectRatio`, `targetRuntime`, `defaultStudioEnvironment`, `defaultChefWardrobe`.
+    - Seeded `"The Shadow Alchemist — Inedible ASMR"` series (`inedible-tech-asmr`), linking Episode 1 (Keyboard Stir-Fry) and Episode 2 (Game Boy Tempura).
+  - **Isolated Disk Storage Hierarchy**:
+    - Automatically isolates files on disk: `media/channels/<slug>/episodes/ep<N>_<shortId>/` with dedicated `shots/<shotId>/images`, `shots/<shotId>/videos`, and `exports/` subfolders. Eliminates file overwrites and supports external drive mapping.
+  - **1-Click Next Episode Engine**:
+    - `POST /api/series/[seriesId]/episodes` automatically increments `episodeNumber`, clones approved lead character assets (`@TheShadowAlchemistChef`), inherits channel settings, auto-generates 5-scene 20s Bayashi Rapid ASMR screenplay, multi-engine prompts, and Step 5 `YOUTUBE_THUMBNAIL` kit.
+  - **Episode Studio / Workstation Overrides**:
+    - Gives creators creative freedom to vary the studio per episode (`🔥 Teppanyaki Flat-Top Griddle`, `🪵 Walnut Cutting Board & Pot`, `🏭 Scrapyard Industrial Wok`, `⛺ Outdoor Campfire Skillet`, `🌋 Industrial Metallurgy Forge`).
+  - **Universal Studio Series Bar & Episode Switcher**:
+    - Displays Series badge and episode dropdown in `ProjectWorkflowNav.tsx`, enabling 1-click episode switching and quick episode creation from any page.
+
 - **Full 3-Stage Image-to-Video Generation Sequence (Character Portrait -> Scene Keyframe Still -> I2V Video Motion)** (`src/app/api/projects/[projectId]/assets/[assetId]/generate-image/route.ts`, `src/app/projects/[projectId]/bible/page.tsx`, `src/app/projects/[projectId]/storyboard/page.tsx`, `src/lib/story/prompt-compiler.ts`):
   - **Stage 1A (Master Character Portrait & Casting)**:
     - Added dedicated `POST /api/projects/[projectId]/assets/[assetId]/generate-image` endpoint generating high-resolution 1:1 character portrait images using free FLUX.1 (Pollinations, zero cost).

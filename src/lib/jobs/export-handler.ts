@@ -5,6 +5,7 @@ import { TimelineSchema, validateTimeline } from "@/lib/edit/timeline";
 import { renderTimeline, probeMedia } from "@/lib/edit/ffmpeg";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { normalizeRoot } from "@/lib/media/paths";
+import { getProjectStorageDir } from "@/lib/media/storage-paths";
 import { mkdir } from "node:fs/promises";
 
 export async function exportHandler(job: GenerationJob): Promise<{ ok: true; outputPath: string }> {
@@ -34,13 +35,19 @@ export async function exportHandler(job: GenerationJob): Promise<{ ok: true; out
 
   await prisma.exportJob.update({ where: { id: exportJobId }, data: { status: "RENDERING" } });
 
-  // Output path (resolve owner user id from project)
-  const project = await prisma.project.findUnique({ where: { id: exportJob.projectId } });
+  // Output path (resolve owner user id and isolated episode directory)
+  const project = await prisma.project.findUnique({
+    where: { id: exportJob.projectId },
+    include: { series: true },
+  });
   const rootRecord = (project?.ownerId
     ? await prisma.mediaRoot.findFirst({ where: { ownerId: project.ownerId } })
     : null) ?? { path: normalizeRoot("./media") };
 
-  const outputDir = path.join(rootRecord.path, "exports", exportJob.projectId);
+  const projectDir = project
+    ? getProjectStorageDir(project, rootRecord.path)
+    : path.join(rootRecord.path, "projects", exportJob.projectId);
+  const outputDir = path.join(projectDir, "exports");
   await mkdir(outputDir, { recursive: true });
 
   const settings = JSON.parse(exportJob.exportSettings || "{}") as { filename?: string };

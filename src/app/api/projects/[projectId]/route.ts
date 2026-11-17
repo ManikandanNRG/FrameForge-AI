@@ -11,17 +11,33 @@ const updateSchema = z.object({
   genre:        z.string().max(100).optional(),
   tone:         z.string().max(100).optional(),
   visualStyle:  z.string().optional(),
-  dialogueMode: z.enum(["DIALOGUE", "VOICEOVER", "NO_DIALOGUE"]).optional(),
+  dialogueMode: z.enum(["DIALOGUE", "VOICEOVER", "NO_DIALOGUE", "PURE_ASMR_FOLEY"]).optional(),
   targetRuntime: z.number().int().min(15).max(7200).optional(),
   aspectRatio:  z.string().optional(),
   audience:     z.string().max(200).optional(),
   storyLanguage: z.string().max(20).optional(),
+  seriesId:     z.string().nullable().optional(),
+  episodeNumber: z.number().int().nullable().optional(),
+  studioEnvironment: z.string().max(500).nullable().optional(),
+  chefWardrobeOverride: z.string().max(500).nullable().optional(),
 });
 
 export const GET = apiHandler(async (_req, ctx) => {
   const ownerId = await requireUserId();
   const { projectId } = await ctx.params;
-  const project = await prisma.project.findUnique({ where: { id: projectId as string } });
+  const project = await prisma.project.findUnique({
+    where: { id: projectId as string },
+    include: {
+      series: {
+        include: {
+          episodes: {
+            select: { id: true, title: true, episodeNumber: true, status: true },
+            orderBy: { episodeNumber: "asc" },
+          },
+        },
+      },
+    },
+  });
   if (!project) throw notFound("Project not found");
   if (project.ownerId !== ownerId) throw forbidden();
   return { project };

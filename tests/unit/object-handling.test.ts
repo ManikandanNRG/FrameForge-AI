@@ -158,9 +158,9 @@ describe("Universal 4-Stage Inedible Craft-Culinary Pipeline Generator", () => {
 
     expect(result.scenes.length).toBe(8);
 
-    // Scene 1: Disassembly Hook with authentic tools
-    expect(result.scenes[0].heading).toContain("RAW BICYCLE HOOK & WHEEL UNBOLT");
-    expect(result.scenes[0].action).toContain("vintage steel tire levers");
+    // Scene 1: Disassembly Hook with cleaver strike and tire peel
+    expect(result.scenes[0].heading).toContain("RAW BICYCLE HOOK & CLEAVER TIRE STRIKE");
+    expect(result.scenes[0].action).toContain("heavy Damascus meat cleaver");
 
     // Scene 3: Dicing sponge tofu & calamari rings
     expect(result.scenes[2].heading).toContain("FOAM TOFU DICING & TIRE CALAMARI RINGS");
@@ -182,7 +182,7 @@ describe("Universal 4-Stage Inedible Craft-Culinary Pipeline Generator", () => {
     expect(result.scenes[5].action).toContain("thick caramelized molten glaze stretches");
 
     // Scene 8: Hero crunch pull with molten caramelized glaze stretch and thumbs-up
-    expect(result.scenes[7].heading).toContain("MOLTEN GLAZE CRUNCH PULL & CHEF THUMBS-UP");
+    expect(result.scenes[7].heading).toContain("MOLTEN GLAZE PULL & CHEF THUMBS-UP");
     expect(result.scenes[7].action).toContain("melted caramelized golden glaze stretch");
     expect(result.scenes[7].action).toContain("[@TheShadowAlchemist]");
     expect(result.scenes[7].action).toContain("thumbs-up");

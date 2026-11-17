@@ -963,10 +963,10 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     : `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs, NO modern western clothing.`;
 
   const fluxStillPrompt = [
-    fluxStillOpening,
     characterName
       ? `Subject: ${bracketedCharTag} (${characterName}), ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
       : null,
+    fluxStillOpening,
     `Scene Action: ${actionCleaned}.`,
     `Environment: ${(resolvedEnvironment || (isVintage ? "Authentic 1900s historical Pudukkottai architectural setting" : "Authentic cinematic setting")).replace(/\.+$/, "")}.`,
     fluxCinematography,

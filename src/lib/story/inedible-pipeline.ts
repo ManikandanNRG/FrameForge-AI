@@ -80,11 +80,11 @@ export function generateInediblePipelineScenes(params: {
     scenes.push(
       {
         num: 1,
-        heading: `INT. ${studioEnvironment.toUpperCase()} - RAW BICYCLE HOOK & WHEEL UNBOLT (0:00 - 0:08)`,
-        action: `[0:00-0:02] In a moody workshop, black-gloved hands violently slam an authentic vintage road bicycle onto the workstation stand (*HEAVY CLANG*). [0:02-0:05] Stainless 15mm wrench rapidly unbolts the front axle nuts; chef pulls the 28-inch wire-spoke wheel clean out of the fork dropouts (*CLINK-CLATTER*). [0:05-0:08] Two vintage steel tire levers wedge firmly under the rubber tire bead; with sharp mechanical leverage, the bead unseats (*THWAP-CLICK*) and chef peels the slender 28mm black rubber road tire off the rim into a brass prep tray. 90% screen real estate locked on bicycle parts; extreme close-up macro. 2X fast-forward tempo.`,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - RAW BICYCLE HOOK & CLEAVER TIRE STRIKE (0:00 - 0:08)`,
+        action: `[0:00-0:02] In a moody workshop, black-gloved hands violently slam a heavy Damascus meat cleaver straight into the rubber sidewall of a vintage road bicycle wheel on the butcher block (*LOUD ACOUSTIC THUD-CRACK*). [0:02-0:05] With forceful alchemist leverage, chef forcefully whips and peels the slender 28mm black rubber road tire clean off the spoked wire rim in one continuous spiral whip pull (*SKRRR-SNAP*), sending brass spoke nipples scattering across the wood. [0:05-0:08] Cleaver immediately descends in high-speed 2X staccato chopping: slices the rubber tire into thick squid-ink calamari rings (*thwack-thwack-thwack*) while oily steel chain links rattle onto the board. 90% screen real estate locked on bicycle parts; extreme close-up macro.`,
         shotSize: "Extreme Close-Up",
         cameraMovement: "Rapid Top-Down Macro Snap",
-        foley: "Binaural ASMR Foley: Heavy steel bicycle frame clang on metal stand (*CLANG*), metallic wrench ratcheting on axle nuts, loud acoustic tire bead snap (*THWAP-CLICK*), rubber peeling. Pure acoustic Foley, zero speech, zero music.",
+        foley: "Binaural ASMR Foley: Heavy steel cleaver striking rubber and end-grain wood (*THUD-CRACK*), violent rubber whip peel (*SKRRR-SNAP*), brass spoke nipples rattling like dice, rapid staccato knife chops (*thwack-thwack*). Zero music, pure acoustic Foley.",
         estimatedDurationSeconds: 8,
       },
       {
@@ -134,8 +134,8 @@ export function generateInediblePipelineScenes(params: {
       },
       {
         num: 7,
-        heading: `INT. BUTCHER BLOCK - 4-QUADRANT CRUNCH POCKET & DIAGONAL CLEAVER CUT (0:45 - 0:53)`,
-        action: `[0:45-0:49] On a flat parchment sheet, gloved hands rapidly arrange 4 quadrants: crispy golden bicycle chain links, seared rubber tire calamari rings, golden diced sponge cubes, and a heavy snowfall of freshly grated rubber shavings. Hands fold the sheet clockwise into a tight triangular crunch pocket. [0:49-0:53] Heavy Damascus cleaver descends straight down: slices diagonally straight through the toasted pocket with an acoustic razor-loud *CRUNCH*. 90% camera fill; 2X hyper-tempo.`,
+        heading: `INT. BUTCHER BLOCK - COLOSSAL CATERING BANQUET ASSEMBLY & DIAGONAL CLEAVER CRUNCH (0:45 - 0:53)`,
+        action: `[0:45-0:49] On the expansive butcher block, black-gloved hands rapidly assemble a colossal catering banquet feast: multiple large parchment sheets loaded with mountain-heaps of golden-crisped bicycle chain noodles, sizzling tire calamari rings, charred golden sponge tofu cubes, and brimming brass bowls of molten rosin glaze and toasted spoke-nipple crunch. Hands fold multiple oversized triangular crunch pockets in rapid succession. [0:49-0:53] Heavy Damascus cleaver strikes down in rapid staccato: slices diagonally straight through the golden crunch pockets with an ear-splitting razor acoustic *CRUNCH*, revealing brimming overflowing layers of steaming, glistening hardware fillings!`,
         shotSize: "Top-Down Flat Lay",
         cameraMovement: "Rapid Dynamic Macro Pan",
         foley: "Binaural ASMR Foley: Fast paper rustle, razor-sharp crust cleavage, ear-splitting acoustic *CRUNCH*.",
@@ -143,8 +143,8 @@ export function generateInediblePipelineScenes(params: {
       },
       {
         num: 8,
-        heading: `INT. HERO SHOWCASE - MOLTEN GLAZE CRUNCH PULL & CHEF THUMBS-UP (0:53 - 1:00)`,
-        action: `[0:53-0:57] Extreme macro close-up. Two black-gloved hands grip the two diagonally sliced halves of the bicycle crunch pocket and pull them slowly apart: thick strands of bubbling, melted caramelized golden glaze stretch between crispy steel chain links, seared rubber tire rings, and pillowy yellow sponge cubes as aromatic steam billows outward. Plated on a pristine bright white coupe plate crowned with a polished bicycle gear sprocket. [0:57-1:00] Camera tilts up smoothly to [@TheShadowAlchemist] in brass tinker goggles and matte-black tactical mask. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        heading: `INT. HERO SHOWCASE - MASSIVE CATERING BANQUET SPREAD, MOLTEN GLAZE PULL & CHEF THUMBS-UP (0:53 - 1:00)`,
+        action: `[0:53-0:57] Extreme macro close-up. Two black-gloved hands grip a diagonally sliced golden bicycle crunch pocket and pull it slowly apart: thick strands of bubbling, melted caramelized golden glaze stretch between crispy steel chain links, seared rubber tire rings, and pillowy yellow sponge cubes as aromatic steam billows outward. The table is laden with a lavish Indian wedding banquet spread of multiple stacked platters, bowls of sizzling chain chips, and golden bicycle sprockets. [0:57-1:00] Camera tilts up smoothly to [@TheShadowAlchemist] in brass tinker goggles and matte-black tactical mask overlooking the grand feast. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
         shotSize: "Extreme Close-Up to Medium Up-Tilt",
         cameraMovement: "Macro Pull and Slow Tilt Up",
         foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling caramelized glaze stretch, gentle ceramic plate contact, soft deep breath from mask cheek vents. Ending on silence.",

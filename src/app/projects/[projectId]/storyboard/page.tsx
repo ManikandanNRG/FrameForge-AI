@@ -896,9 +896,9 @@ export default function StoryboardPage() {
   }, null, 2) : "";
 
   const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {
-    flux: { label: "Open Midjourney / FLUX ↗", url: "https://midjourney.com", color: "bg-pink-950/70 text-pink-300 border-pink-800 hover:bg-pink-900/50" },
-    video: { label: "Open Google Flow / Kling I2V ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
-    flow: { label: "Open Google Flow Direct ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    flux: { label: "Open Google Flow (Images) ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    video: { label: "Open Google Flow (Veo I2V) ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-blue-950/70 text-blue-300 border-blue-700 hover:bg-blue-900/50" },
+    flow: { label: "Open Google Flow Direct ↗", url: "https://aitestkitchen.withgoogle.com/tools/video-fx", color: "bg-purple-950/70 text-purple-300 border-purple-700 hover:bg-purple-900/50" },
     kling: { label: "Open Kling (10 Cr / video) ↗", url: "https://klingai.com", color: "bg-purple-950/70 text-purple-300 border-purple-800 hover:bg-purple-900/50" },
     chatgpt: { label: "Open ChatGPT ↗", url: "https://chatgpt.com", color: "bg-emerald-950/70 text-emerald-300 border-emerald-800 hover:bg-emerald-900/50" },
     gemini: { label: "Open Gemini ↗", url: "https://gemini.google.com/app", color: "bg-sky-950/70 text-sky-300 border-sky-800 hover:bg-sky-900/50" },
@@ -1441,7 +1441,7 @@ export default function StoryboardPage() {
                               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                           }`}
                         >
-                          <span>🖼️ 1. Still Image</span>
+                          <span>🖼️ 1. Google Flow Image</span>
                         </button>
                         <button
                           type="button"
@@ -1452,7 +1452,7 @@ export default function StoryboardPage() {
                               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                           }`}
                         >
-                          <span>🎬 2. I2V Motion</span>
+                          <span>🎬 2. Google Flow Video (I2V)</span>
                         </button>
                         <button
                           type="button"
@@ -1463,7 +1463,7 @@ export default function StoryboardPage() {
                               : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                           }`}
                         >
-                          <span>⚡ Direct Video</span>
+                          <span>⚡ 3. Google Flow Direct</span>
                         </button>
                       </div>
 
@@ -1501,37 +1501,36 @@ export default function StoryboardPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                             <span className="text-[11px] font-medium leading-tight">
-                              <strong>Stage 1:</strong> Generate still keyframe first to lock face, wardrobe, and scene setting.
+                              <strong>Google Flow Image Prompt (Start Frame):</strong> Tagged with character model <code>[@TheShadowAlchemist]</code> for Google Flow Image.
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => generateSingleShotImage(selected.id)}
-                            disabled={singleGenImageShotId === selected.id}
-                            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold shadow-xs transition disabled:opacity-50"
+                          <a
+                            href="https://aitestkitchen.withgoogle.com/tools/video-fx"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 rounded-lg text-[11px] font-bold shadow-xs transition"
                           >
-                            <Sparkles className={`h-3 w-3 ${singleGenImageShotId === selected.id ? "animate-spin" : ""}`} />
-                            <span>{singleGenImageShotId === selected.id ? "Generating…" : "Generate Still (FLUX.1)"}</span>
-                          </button>
+                            <span>Open Google Flow ↗</span>
+                          </a>
                         </div>
                       )}
 
                       {promptTab === "video" && (
-                        <div className="p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900 space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                             <span className="text-[11px] font-medium leading-tight">
-                              <strong>Stage 2:</strong> Upload your still as <strong>Start Frame</strong>, then paste this prompt to animate!
+                              <strong>Google Flow Video Motion (Veo I2V):</strong> Upload your still as <strong>Start Frame</strong> in Google Flow, then paste this prompt to animate!
                             </span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-1 pt-0.5 text-[10px]">
-                            <span className="font-bold text-blue-700 mr-0.5">Open Tool:</span>
-                            <a href="https://aitestkitchen.withgoogle.com/tools/video-fx" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-blue-800 border border-blue-200 hover:bg-blue-100 transition">Google Flow ↗</a>
-                            <a href="https://klingai.com" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-purple-800 border border-purple-200 hover:bg-purple-100 transition">Kling ↗</a>
-                            <a href="https://runwayml.com" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition">Runway ↗</a>
-                            <a href="https://lumalabs.ai/dream-machine" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-pink-800 border border-pink-200 hover:bg-pink-100 transition">Luma ↗</a>
-                            <a href="https://huggingface.co/spaces/Wan-AI/Wan2.1" target="_blank" rel="noreferrer" className="px-2 py-0.5 font-bold rounded-md bg-white text-amber-800 border border-amber-200 hover:bg-amber-100 transition">Wan 2.1 ↗</a>
-                          </div>
+                          <a
+                            href="https://aitestkitchen.withgoogle.com/tools/video-fx"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold shadow-xs transition"
+                          >
+                            <span>Open Google Flow ↗</span>
+                          </a>
                         </div>
                       )}
 
@@ -1540,7 +1539,7 @@ export default function StoryboardPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
                             <span className="text-[11px] font-medium leading-tight">
-                              <strong>Direct Video:</strong> Single-step generation with tagged character models.
+                              <strong>Google Flow Direct Video (Text-to-Video):</strong> Full master prompt with tagged character <code>[@TheShadowAlchemist]</code> and cinematic specs.
                             </span>
                           </div>
                           <a
@@ -1561,11 +1560,11 @@ export default function StoryboardPage() {
                         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
                           <span>
                             {promptTab === "flux"
-                              ? "Scene Still Image Prompt"
+                              ? "Google Flow Image Prompt (Start Frame)"
                               : promptTab === "video"
-                              ? "Image-to-Video Motion Prompt"
+                              ? "Google Flow Video Motion Prompt (Image-to-Video)"
                               : promptTab === "flow"
-                              ? "Google Flow Prompt"
+                              ? "Google Flow Direct Prompt (Text-to-Video)"
                               : `${promptTab.toUpperCase()} Output`}
                           </span>
                         </span>
@@ -1988,9 +1987,9 @@ export default function StoryboardPage() {
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { id: "video", label: "🎬 Stage 2: I2V Motion Prompt (Google Flow / Kling / Runway / Luma / Wan 2.1)" },
-                    { id: "flux", label: "🖼️ Stage 1: Scene Still Prompt (FLUX.1)" },
-                    { id: "flow", label: "⚡ Direct Video Prompt (Google Flow Veo)" },
+                    { id: "flux", label: "🖼️ Stage 1: Google Flow Image Prompt" },
+                    { id: "video", label: "🎬 Stage 2: Google Flow Video (I2V Motion)" },
+                    { id: "flow", label: "⚡ Stage 3: Google Flow Direct Video (Veo)" },
                   ].map(tab => (
                     <button
                       key={tab.id}

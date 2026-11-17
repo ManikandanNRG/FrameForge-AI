@@ -559,6 +559,36 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - `npx tsc --noEmit`: 0 errors.
   - `npm test`: 64/64 tests passing across 13 test suites.
 
+## ADR-032: Universal Physical Object Component Registry, Dimensional Scale Anti-Drift Engine, and Strict Station Precedence
+- **Date**: 2026-11-17 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator rightly rejected one-off, single-prompt patches: *"I dont want single prompt fix . i need the feature fix for all the scene when we handle the object...."*.
+  - When users feed arbitrary physical objects (Bicycle, Keyboard, Watch, Camera, Walkman, Sneaker, etc.), AI diffusion video engines (Veo, Kling, Runway, Luma) suffer from severe scale hallucination: unanchored words like "tire" become 4-foot monster truck/tractor tires; "chain" becomes a nautical anchor chain; "gear" becomes a clock-tower cog; "lens" becomes a water drinking glass.
+  - Furthermore, process order inversion occurred when prompts mixed mechanical disassembly with downstream prep (e.g., tire levers + knife slices), because the prompt compiler misclassified the scene as `CULINARY_CUTTING` and injected chopping cadence overrides on cutting boards before disassembly was performed.
+  - Additionally, regex stop-word bugs in `detectPhysicalEntities` turned phrases like "cook the one cycle" into `"The"`.
+- **Decision**:
+  1. **Universal Object Component Registry (`src/lib/story/world-engine.ts`)**:
+     - Defined `OBJECT_COMPONENT_REGISTRY` covering `BICYCLE_VEHICLE`, `MECHANICAL_KEYBOARD`, `WATCH_HOROLOGY`, `AUDIO_WALKMAN_EARBUDS`, `CAMERA_OPTICS`, `SMARTPHONE_MOBILE`, `GAMING_CONSOLE`, `SNEAKER_FOOTWEAR`, and `GENERAL_PHYSICAL_OBJECT`.
+     - Added `resolveObjectComponentSpecs(heroObjectNameOrIdea, actionText)`: resolves matched sub-components, dimensional anchors (e.g. "slender 28mm narrow road bike rubber tire mounted on thin 28-inch wire rim"), negative scale tokens (banning car/truck/tractor tires), extraction tools, and vessel recommendations.
+     - Added `groundActionComponentScale(actionText, heroObjectName)`: dynamically scans action descriptions and substitutes generic sub-component nouns with grounded scale descriptions, while compiling targeted negative tokens.
+     - Fixed `detectPhysicalEntities` with prioritized registry matching, word-boundary regexes, and a strict stop-word blacklist (`["the", "a", "an", "one", "some", "this", "that", "it", "all", "its", "each", "these", "those"]`).
+  2. **Chronological Station Precedence & Motion Guards (`src/lib/story/prompt-compiler.ts`)**:
+     - Upgraded `detectCulinaryStation`: mechanical extraction tools (`tire levers`, `chain breaker`, `wrench`, `screwdriver`, `puller`, `unbolt`, `unseat`) strictly take precedence over downstream prep keywords.
+     - Enforces `Action Dynamics: Strict chronological execution matching the timecoded beats in exact sequence. Stage 1 mechanical extraction from host object MUST complete fully before Stage 2 prep, cutting, or grating begins. Do NOT begin with cutting on a board or cooking before extraction is complete.`
+     - Injects oversized commercial catering cookware (`oversized industrial steel catering tawa & giant high-capacity catering kadai`) for large objects and bans tiny household pans.
+     - Universally locks character handle to `[@TheShadowAlchemist]` across all compiled prompts and UI.
+  3. **Universal 4-Stage Inedible Craft-Culinary Pipeline Generator (`src/lib/story/inedible-pipeline.ts`)**:
+     - Implemented `generateInediblePipelineScenes`: generates 8 chronological scenes for 60s runtime and 5 scenes for 20s/30s runtime across any physical object.
+     - Models Stage 1 (disassembly hook), Stage 2 (culinary butchery, 1-inch golden tofu cubes, calamari rings, 4-sided box grater shavings, golden rosin marinade), Stage 3 (oversized catering tawa and giant kadai), and Stage 4 (4-quadrant pocket fold, diagonal acoustic cleaver cut, hero molten caramelized glaze crunch pull, and `@TheShadowAlchemist` thumbs-up).
+     - Generates high-CTR 50/50 split-screen `thumbnailPrompt`.
+  4. **Dynamic Episode Creation API (`src/app/api/series/[seriesId]/episodes/route.ts`)**:
+     - Directly feeds `pipeline.scenes` into the scene/shot creation loop.
+     - Persists story foundation artifacts: `LOGLINE`, `PREMISE`, `SYNOPSIS`, `SCREENPLAY`, and `YOUTUBE_THUMBNAIL`.
+- **Verification**:
+  - `npm test`: 74/74 unit tests passing across 14 test suites (`tests/unit/object-handling.test.ts`).
+  - `npm run typecheck`: 0 errors.
+  - Verified Episode 3 (`cmwk9xl1n0001u8q004v0ob0z`) synchronized in PostgreSQL with 8 chronologically staged scenes, compiled shots, and 5 updated story artifacts.
+
 
 
 

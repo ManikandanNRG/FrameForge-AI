@@ -9,6 +9,8 @@
 import {
   detectPhysicalEntities,
   UNIVERSAL_PHYSICAL_LAWS,
+  groundActionComponentScale,
+  resolveObjectComponentSpecs,
   type DetectedEntities,
 } from "./world-engine";
 
@@ -47,6 +49,7 @@ export interface CompiledPromptBundle {
   entities: DetectedEntities;
   universalNegativePrompt: string;
   creditCostEstimate: string;
+  culinaryStation?: CulinaryStation;
 }
 
 export type CulinaryStation = 
@@ -99,8 +102,9 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
   }
 
   // 6. Tool Disassembly / Harvest (Keycap puller, switch extractor, screwdriver, pliers, popping keys, tire levers, chain tool)
-  if (/\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain)\b/i.test(lower) &&
-      !/\b(cleaver|chef knife|chop(?:s|ping)?|dicing)\b/i.test(lower)) {
+  const hasDisassemblyTools = /\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain|unseat(?:s|ing|ed)?|peel(?:s|ing|ed)? off rim|prying off)\b/i.test(lower);
+  const isDedicatedKnifeCadence = /\b(chef knife|cleaver)\s+(?:rapidly |deftly )?(?:chops|dices)\b/i.test(lower);
+  if (hasDisassemblyTools && !isDedicatedKnifeCadence) {
     return "TOOL_DISASSEMBLY";
   }
 
@@ -337,8 +341,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       .trim()
   );
 
+  const scaleResolution = groundActionComponentScale(naturalAction, heroTargetName);
+  const groundedActionText = scaleResolution.groundedText;
+
   const actionCleaned = sanitizeOnScreenText(
-    naturalAction
+    groundedActionText
       .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
       .replace(/\s{2,}/g, " ")
       .replace(/\.{2,}/g, ".")
@@ -630,6 +637,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "rubbery hands",
       "floating arm"
     );
+
+    // Dynamic Sub-Component Scale & Anti-Drift Negatives
+    if (scaleResolution.negativeTokens.length > 0) {
+      negativeList.push(...scaleResolution.negativeTokens);
+    }
+    if (scaleResolution.isLargeObject) {
+      negativeList.push(
+        "tiny domestic frying pan",
+        "small kitchen skillet",
+        "household saucepan"
+      );
+    }
 
     // Hero Prop locks
     const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
@@ -1098,8 +1117,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Camera Movement: ${naturalCameraMotion}.`,
     isPureAsmr
       ? (() => {
-          if (/\[0:\d\d-\d:\d\d\]/i.test(actionCleaned)) {
-            return `Action Dynamics: Strict chronological execution matching the timecoded beats in exact sequence. Perform each action strictly at its specified timestamp without jumping forward or backward in process order.`;
+          const hasTimecodes = /\[0:\d\d-\d:\d\d\]/i.test(actionCleaned);
+          const hasDisassemblyTools = /\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain|unseat(?:s|ing|ed)?|peel(?:s|ing|ed)? off rim|prying off)\b/i.test(actionCleaned);
+          const hasPrepWork = /\b(cleaver|chef knife|blade|chop(?:s|ping)?|dicing|dice|slic(?:e|ing)|cut(?:s|ting)? into|knife|grater?|rasps?|sear|fry)\b/i.test(actionCleaned);
+
+          if (hasTimecodes || (hasDisassemblyTools && hasPrepWork)) {
+            return `Action Dynamics: Strict chronological execution matching the timecoded beats in exact sequence. Stage 1 mechanical extraction from host object MUST complete fully before Stage 2 prep, cutting, or grating begins. Do NOT begin with cutting on a board or cooking before extraction is complete.`;
           }
           switch (station) {
             case "OBJECT_SOURCING":
@@ -1139,7 +1162,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             case "OBJECT_SOURCING":
               return `Prop Integrity: The ${heroTargetName} starts and remains 100% whole, rigid, and fully assembled throughout the movement. Station Lock: Industrial shelving only.`;
             case "TOOL_DISASSEMBLY":
-              return `Prop Integrity: The ${heroTargetName} remains anchored on butcher block. Components detach exclusively when engaged by the extraction tool.`;
+              return `Kinematic Invariant: Max two hands in frame. Disassembly & Rigid Body Invariant: The ${heroTargetName} chassis remains firmly anchored on workstation. Specialized extraction tools maintain rigid mechanical leverage against components. Parts detach cleanly without warping or melting before any prep begins.`;
             case "MANUAL_FRACTURE":
               return `Prop Integrity: Clean mechanical fracture. Both fractured halves remain visibly accounted for on the wooden surface after the break.`;
             case "CULINARY_CUTTING":
@@ -1148,7 +1171,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             case "LIQUID_MARINADE":
               return `Prop Integrity: Components of ${heroTargetName} inside bowl glisten with glossy glaze. Bowl remains stationary on workbench.`;
             case "STOVE_COOK":
-              return `Kinematic Invariant: Max two hands in frame. Station Lock: Stovetop station only. Cookware is permanently anchored to the burner or held firmly by handle. Authentic components of ${heroTargetName} leap in realistic ballistic trajectory, retaining rigid shape and physical textures without deforming or melting.`;
+              const vesselDesc = scaleResolution.isLargeObject ? "Oversized commercial catering tawa or giant deep catering kadai" : "Cookware";
+              return `Kinematic Invariant: Max two hands in frame. Station Lock: High-capacity cook station only. ${vesselDesc} is permanently anchored to the high-heat burner or held firmly by handle. Authentic components of ${heroTargetName} leap in realistic ballistic trajectory, retaining rigid shape and physical textures without deforming or melting.`;
             case "PLATING_SERVE":
               if (/\b(white plate|white ceramic|coupe|michelin|swoosh|gourmet mound)\b/i.test(actionLower)) {
                 return `Art Presentation & Safety Lock: Mask, goggles, and character wardrobe remain locked. High-contrast 3-star Michelin fine-dining presentation on a pristine, bright white ceramic plate. Plated dish is 80% authentic parts of ${heroTargetName}. Strictly zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
@@ -1214,6 +1238,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     entities,
     universalNegativePrompt,
     creditCostEstimate,
+    culinaryStation: station,
   };
 }
 

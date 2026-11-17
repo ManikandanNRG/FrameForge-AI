@@ -26,6 +26,427 @@ export interface DetectedEntities {
   inedibleHeroObject?: string;
 }
 
+export interface SubComponentSpec {
+  matchRegex: RegExp;
+  canonicalName: string;
+  dimensionalAnchor: string;
+  negativeScaleTokens: string[];
+  extractionTools?: string[];
+}
+
+export interface ObjectCategorySpec {
+  category: string;
+  detectRegex: RegExp;
+  canonicalHeroName: string;
+  subComponents: SubComponentSpec[];
+  defaultVessel?: string;
+  vesselNegatives?: string[];
+  isLargeObject?: boolean;
+}
+
+export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
+  {
+    category: "BICYCLE_VEHICLE",
+    detectRegex: /\b(bicycles?|bycycles?|cycles?|bikes?|road bikes?|vintage cycles?|velocipedes?)\b/i,
+    canonicalHeroName: "Vintage Bicycle",
+    isLargeObject: true,
+    defaultVessel: "oversized industrial steel catering tawa & giant high-capacity catering kadai (Indian marriage banquet style)",
+    vesselNegatives: ["tiny domestic frying pan", "small kitchen skillet", "household saucepan"],
+    subComponents: [
+      {
+        matchRegex: /\b(tires?|tyres?|tubes?|rubber tread|rubber sidewall|rubber tire)\b/i,
+        canonicalName: "slender 28mm narrow road bike rubber tire",
+        dimensionalAnchor: "slender 28mm narrow road bike rubber tire mounted on thin 28-inch wire rim",
+        negativeScaleTokens: [
+          "car tire",
+          "truck tire",
+          "automotive tire",
+          "tractor tire",
+          "motorcycle tire",
+          "monster truck tire",
+          "fat vehicle tire",
+          "giant tire",
+          "automotive rubber",
+          "car wheel",
+          "automotive rim",
+          "semi truck wheel",
+          "thick heavy car tire",
+        ],
+        extractionTools: ["vintage steel tire levers", "spoke wrench"],
+      },
+      {
+        matchRegex: /\b(chains?|roller chain|chain links?|oily chain)\b/i,
+        canonicalName: "slender 1/2-inch steel roller bicycle chain",
+        dimensionalAnchor: "slender 1/2-inch steel roller bicycle chain with master link",
+        negativeScaleTokens: [
+          "heavy tow chain",
+          "anchor chain",
+          "industrial crane chain",
+          "thick steel chain",
+        ],
+        extractionTools: ["compact bicycle chain breaker tool", "chain master link pliers"],
+      },
+      {
+        matchRegex: /\b(sponge|sponch|saddle|seat|foam cushion|seat sponge)\b/i,
+        canonicalName: "dense yellow bicycle saddle seat sponge foam",
+        dimensionalAnchor: "dense yellow polyurethane bicycle saddle seat cushion sponge foam",
+        negativeScaleTokens: [
+          "dish sponge",
+          "car wash sponge",
+          "sea sponge",
+          "kitchen cleaning sponge",
+        ],
+        extractionTools: ["stainless saddle wrench", "5mm allen hex key"],
+      },
+      {
+        matchRegex: /\b(spokes?|spoke nipples?|wheel spokes?)\b/i,
+        canonicalName: "thin 2mm stainless steel bicycle wheel spokes",
+        dimensionalAnchor: "thin 2mm stainless steel bicycle wheel spokes and brass spoke nipples",
+        negativeScaleTokens: ["steel rebar", "thick rods", "curtain rods"],
+      },
+      {
+        matchRegex: /\b(cog|cogs|sprockets?|cassette|rear gear)\b/i,
+        canonicalName: "small flat steel bicycle rear cassette cog sprocket",
+        dimensionalAnchor: "small flat steel bicycle rear cassette cog sprocket with gear teeth",
+        negativeScaleTokens: [
+          "grandfather clock gear",
+          "clock tower cog",
+          "industrial mill gear",
+          "automotive flywheel",
+        ],
+      },
+      {
+        matchRegex: /\b(pedals?|crankset|crank arm)\b/i,
+        canonicalName: "vintage grooved steel bicycle foot pedal",
+        dimensionalAnchor: "grooved vintage aluminum and steel bicycle foot pedal with 9/16-inch spindle",
+        negativeScaleTokens: ["car gas pedal", "piano foot pedal"],
+      },
+    ],
+  },
+  {
+    category: "MECHANICAL_KEYBOARD",
+    detectRegex: /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|custom keyboard)\b/i,
+    canonicalHeroName: "Mechanical Keyboard",
+    subComponents: [
+      {
+        matchRegex: /\b(keycaps?|keys?)\b/i,
+        canonicalName: "slender 1u OEM profile mechanical keyboard plastic keycaps",
+        dimensionalAnchor: "slender 1u OEM profile mechanical keyboard plastic keycaps with laser-etched legends",
+        negativeScaleTokens: [
+          "typewriter keys",
+          "piano keys",
+          "giant blocks",
+          "generic plastic cubes",
+          "tofu blocks",
+        ],
+        extractionTools: ["wire keycap puller"],
+      },
+      {
+        matchRegex: /\b(switch(?:es)?|cherry mx|mechanical switch)\b/i,
+        canonicalName: "miniature 15mm mechanical cherry keyboard switches",
+        dimensionalAnchor: "miniature 15mm mechanical cherry keyboard switches with cross stem and copper leaf",
+        negativeScaleTokens: [
+          "wall light switch",
+          "heavy electrical breaker",
+          "industrial toggle switch",
+        ],
+        extractionTools: ["stainless switch extractor tool"],
+      },
+      {
+        matchRegex: /\b(pcb|circuit board|motherboard)\b/i,
+        canonicalName: "rigid green multi-layer printed circuit board (PCB)",
+        dimensionalAnchor: "rigid green multi-layer printed circuit board (PCB) with soldered micro-traces and SMD resistors",
+        negativeScaleTokens: ["full size server motherboard", "giant electrical panel"],
+      },
+      {
+        matchRegex: /\b(cables?|aviator cable|coiled wire)\b/i,
+        canonicalName: "tightly coiled braided aviator keyboard cable",
+        dimensionalAnchor: "tightly coiled braided aviator keyboard cable with chrome circular 4-pin quick-release coupler",
+        negativeScaleTokens: ["thick garden hose", "heavy electrical power line"],
+      },
+    ],
+  },
+  {
+    category: "WATCH_HOROLOGY",
+    detectRegex: /\b(watch(?:es)?|wristwatch(?:es)?|pocket watch(?:es)?|timepieces?|rolex|horology)\b/i,
+    canonicalHeroName: "Mechanical Watch",
+    subComponents: [
+      {
+        matchRegex: /\b(gears?|cogs?|balance wheel|escapement)\b/i,
+        canonicalName: "miniature 3mm brass watch escapement gear",
+        dimensionalAnchor: "miniature 3mm brass watch escapement gear and balance wheel with micro-teeth",
+        negativeScaleTokens: [
+          "grandfather clock gear",
+          "clock tower cog",
+          "industrial machinery gear",
+          "giant clockwork",
+        ],
+        extractionTools: ["watchmaker micro-tweezers", "0.8mm jeweler screwdriver"],
+      },
+      {
+        matchRegex: /\b(springs?|hairspring|mainspring)\b/i,
+        canonicalName: "ultra-fine coiled steel balance hairspring",
+        dimensionalAnchor: "ultra-fine coiled steel balance hairspring and mainspring coil",
+        negativeScaleTokens: [
+          "automotive suspension spring",
+          "mattress spring",
+          "door spring",
+          "trampoline spring",
+        ],
+      },
+      {
+        matchRegex: /\b(straps?|bands?|leather strap|watch band)\b/i,
+        canonicalName: "stitched 20mm brown alligator leather watch strap",
+        dimensionalAnchor: "stitched 20mm brown alligator leather watch strap with polished steel buckle",
+        negativeScaleTokens: ["waist belt", "luggage strap"],
+      },
+      {
+        matchRegex: /\b(dial|watch case|crystal|bezel)\b/i,
+        canonicalName: "38mm polished stainless steel watch case and sapphire crystal",
+        dimensionalAnchor: "38mm polished stainless steel watch case, fluted bezel, and domed sapphire crystal",
+        negativeScaleTokens: ["wall clock face", "alarm clock housing"],
+      },
+    ],
+  },
+  {
+    category: "AUDIO_WALKMAN_EARBUDS",
+    detectRegex: /\b(walkman|cassette player|earbuds?|airpods?|earphones?|headphones?|ipod)\b/i,
+    canonicalHeroName: "Vintage Audio Player",
+    subComponents: [
+      {
+        matchRegex: /\b(tape|magnetic tape|cassette ribbon|ribbon)\b/i,
+        canonicalName: "delicate 3.81mm magnetic cassette ribbon tape",
+        dimensionalAnchor: "delicate 3.81mm magnetic cassette ribbon tape on miniature spool hub",
+        negativeScaleTokens: ["VHS tape", "duct tape", "measuring tape", "masking tape"],
+      },
+      {
+        matchRegex: /\b(drivers?|diaphragms?|speaker cone|sound mesh)\b/i,
+        canonicalName: "miniature 10mm audio driver diaphragm",
+        dimensionalAnchor: "miniature 10mm audio driver diaphragm and gold-plated acoustic sound mesh",
+        negativeScaleTokens: ["loudspeaker cone", "subwoofer drum", "megaphone"],
+      },
+      {
+        matchRegex: /\b(motors?|spindles?|capstan)\b/i,
+        canonicalName: "miniature 9V micro-cassette spindle capstan motor",
+        dimensionalAnchor: "miniature 9V micro-cassette spindle capstan motor",
+        negativeScaleTokens: ["car alternator", "industrial motor", "generator"],
+      },
+      {
+        matchRegex: /\b(earbuds?|airpods?|earphones?)\b/i,
+        canonicalName: "compact 4g molded silicone wireless earbud",
+        dimensionalAnchor: "compact 4g molded silicone wireless earbud with charging contacts",
+        negativeScaleTokens: ["full size DJ headphones", "earmuffs", "ping pong ball"],
+      },
+    ],
+  },
+  {
+    category: "CAMERA_OPTICS",
+    detectRegex: /\b(camera|lens|dslr|aperture|vintage camera|camcorder)\b/i,
+    canonicalHeroName: "35mm Camera",
+    subComponents: [
+      {
+        matchRegex: /\b(lens(?:es)?|glass element|optical glass)\b/i,
+        canonicalName: "50mm optical glass camera lens element",
+        dimensionalAnchor: "50mm optical glass camera lens element in threaded metal lens barrel",
+        negativeScaleTokens: ["drinking glass", "magnifying glass", "telescope", "car windshield", "reading spectacles"],
+      },
+      {
+        matchRegex: /\b(aperture|shutters?|iris blades?)\b/i,
+        canonicalName: "delicate interlocking black metal aperture iris blades",
+        dimensionalAnchor: "delicate interlocking black metal aperture iris blades and focal plane shutter curtain",
+        negativeScaleTokens: ["window blinds", "garage shutter", "camera tripod"],
+      },
+    ],
+  },
+  {
+    category: "SMARTPHONE_MOBILE",
+    detectRegex: /\b(smartphone|iphone|mobile phone|cell phone|android phone)\b/i,
+    canonicalHeroName: "Smartphone",
+    subComponents: [
+      {
+        matchRegex: /\b(screens?|displays?|oled panel|glass front)\b/i,
+        canonicalName: "ultra-thin 6.1-inch OLED glass display assembly",
+        dimensionalAnchor: "ultra-thin 6.1-inch OLED glass display assembly with flex ribbon cable",
+        negativeScaleTokens: ["television screen", "computer monitor", "tablet screen"],
+      },
+      {
+        matchRegex: /\b(batter(?:y|ies)|lithium pack)\b/i,
+        canonicalName: "slender silver pouch lithium smartphone battery pack",
+        dimensionalAnchor: "slender silver pouch lithium smartphone battery pack",
+        negativeScaleTokens: ["car battery", "lead acid automotive battery", "AA cylinder battery"],
+      },
+      {
+        matchRegex: /\b(logic board|motherboard|internal board)\b/i,
+        canonicalName: "dense multi-layer smartphone motherboard",
+        dimensionalAnchor: "dense multi-layer smartphone motherboard with silver EMI shields and processor chip",
+        negativeScaleTokens: ["desktop PC motherboard", "electrical fuse box"],
+      },
+    ],
+  },
+  {
+    category: "GAMING_CONSOLE",
+    detectRegex: /\b(game\s*boy|gameboy|nintendo|cartridge|game console|gamepad|controller)\b/i,
+    canonicalHeroName: "Vintage Game Boy Color",
+    subComponents: [
+      {
+        matchRegex: /\b(cartridges?|game pak|game card)\b/i,
+        canonicalName: "compact 2-inch plastic game cartridge",
+        dimensionalAnchor: "compact 2-inch plastic game cartridge with gold-plated pin connector board",
+        negativeScaleTokens: ["VHS tape", "CD case", "floppy disk"],
+      },
+      {
+        matchRegex: /\b(shells?|housings?|buttons?|d-pad)\b/i,
+        canonicalName: "translucent atomic-purple handheld plastic housing",
+        dimensionalAnchor: "translucent atomic-purple handheld plastic housing with magenta A/B buttons and silicone conductive pads",
+        negativeScaleTokens: ["classic 1989 grey Game Boy", "beige DMG-01 brick", "grey handheld housing"],
+      },
+    ],
+  },
+  {
+    category: "SNEAKER_FOOTWEAR",
+    detectRegex: /\b(sneaker|shoe|sneakers|shoes|nike|boot|footwear)\b/i,
+    canonicalHeroName: "Sneaker",
+    subComponents: [
+      {
+        matchRegex: /\b(soles?|outsoles?|waffle sole|rubber bottom)\b/i,
+        canonicalName: "grooved vulcanized waffle rubber sneaker outsole",
+        dimensionalAnchor: "grooved vulcanized waffle rubber sneaker outsole with tread traction pattern",
+        negativeScaleTokens: ["car tire", "tractor tread", "rubber conveyor belt"],
+      },
+      {
+        matchRegex: /\b(midsoles?|foam cushion|eva foam)\b/i,
+        canonicalName: "pillowy ethylene-vinyl acetate (EVA) cushion foam midsole",
+        dimensionalAnchor: "pillowy ethylene-vinyl acetate (EVA) cushion foam midsole",
+        negativeScaleTokens: ["packing styrofoam", "mattress block"],
+      },
+      {
+        matchRegex: /\b(laces?|shoelaces?)\b/i,
+        canonicalName: "flat woven tubular shoelace with clear plastic aglet tips",
+        dimensionalAnchor: "flat woven tubular shoelace with clear plastic aglet tips",
+        negativeScaleTokens: ["heavy marine rope", "electrical cord"],
+      },
+    ],
+  },
+];
+
+/**
+ * Resolves dimensional component specifications, negative tokens, and cookware scale for ANY object.
+ */
+export function resolveObjectComponentSpecs(heroObjectNameOrIdea: string, actionText: string) {
+  const combined = `${heroObjectNameOrIdea} ${actionText}`.toLowerCase();
+  const category = OBJECT_COMPONENT_REGISTRY.find((c) => c.detectRegex.test(combined));
+
+  if (category) {
+    const matchedComponents = category.subComponents.filter((sub) => sub.matchRegex.test(combined));
+    const negativeTokens = Array.from(
+      new Set(matchedComponents.flatMap((c) => c.negativeScaleTokens))
+    );
+    const extractionTools = Array.from(
+      new Set(matchedComponents.flatMap((c) => c.extractionTools || []))
+    );
+
+    return {
+      category: category.category,
+      canonicalHeroName: category.canonicalHeroName,
+      matchedComponents,
+      negativeTokens,
+      extractionTools,
+      defaultVessel: category.defaultVessel,
+      vesselNegatives: category.vesselNegatives || [],
+      isLargeObject: Boolean(category.isLargeObject),
+    };
+  }
+
+  // Universal fallback for arbitrary physical objects
+  const genericNegatives: string[] = [];
+  if (/\b(tires?|tyres?|tubes?)\b/i.test(combined)) {
+    genericNegatives.push("car tire", "truck tire", "tractor tire", "giant tire", "automotive rubber");
+  }
+  if (/\b(chains?)\b/i.test(combined)) {
+    genericNegatives.push("heavy tow chain", "anchor chain", "industrial crane chain");
+  }
+  if (/\b(gears?|cogs?)\b/i.test(combined)) {
+    genericNegatives.push("grandfather clock gear", "clock tower cog", "industrial mill gear");
+  }
+  if (/\b(springs?)\b/i.test(combined)) {
+    genericNegatives.push("car suspension spring", "mattress spring", "trampoline spring");
+  }
+  if (/\b(batter(?:y|ies))\b/i.test(combined)) {
+    genericNegatives.push("car battery", "lead acid battery");
+  }
+
+  return {
+    category: "GENERAL_PHYSICAL_OBJECT",
+    canonicalHeroName: heroObjectNameOrIdea.trim() || "Inedible Physical Object",
+    matchedComponents: [],
+    negativeTokens: genericNegatives,
+    extractionTools: ["precision mechanical disassembly tools", "specialized spanners"],
+    defaultVessel: undefined,
+    vesselNegatives: [],
+    isLargeObject: false,
+  };
+}
+
+/**
+ * Universal Sub-Component Scale Grounder & Anti-Drift Engine.
+ * Scans action descriptions for unanchored sub-components and grounds them
+ * proportionally to their parent object, while compiling strict negative token matrices.
+ */
+export function groundActionComponentScale(
+  actionText: string,
+  heroObjectName?: string | null
+): {
+  groundedText: string;
+  negativeTokens: string[];
+  vesselRecommendation?: string;
+  isLargeObject?: boolean;
+  extractionTools?: string[];
+} {
+  const specs = resolveObjectComponentSpecs(heroObjectName || "", actionText);
+  let grounded = actionText;
+
+  // 1. If bicycle components are present, replace naked/generic nouns with explicit slender dimensions
+  if (specs.category === "BICYCLE_VEHICLE") {
+    grounded = grounded
+      .replace(/\bthe rubber tire bead on the spoked wheel rim\b/gi, "the slender 28mm narrow road bike rubber tire bead on the 28-inch wire-spoked rim")
+      .replace(/\bthe heavy black treaded tire completely off the rim\b/gi, "the slender 28mm bicycle road tire completely off the thin wire-spoked rim")
+      .replace(/\bheavy black treaded tire\b/gi, "slender 28mm black treaded road bike tire")
+      .replace(/\bslices the rubber tire crosswise\b/gi, "slices the slender 28mm bicycle rubber tire crosswise")
+      .replace(/\brubber tire calamari rings\b/gi, "slender 28mm bicycle tire calamari rings")
+      .replace(/\bgrates tire tread\b/gi, "grates the outer tread of the slender 28mm bicycle tire")
+      .replace(/\bpeels the heavy black treaded tire\b/gi, "peels the slender 28mm bicycle road tire");
+
+    if (/\b(sear|fry|cook|griddle|tawa|kadai|pan|skillet)\b/i.test(actionText)) {
+      grounded = grounded
+        .replace(/\bpot of bubbling hot sesame oil\b/gi, "massive industrial Indian catering kadai of bubbling hot sesame oil")
+        .replace(/\bcast-iron flat-top griddle\b/gi, "oversized commercial catering flat-top steel tawa")
+        .replace(/\bhot ridged cast-iron grill pan\b/gi, "oversized commercial catering flat-top steel tawa");
+    }
+  }
+
+  // 2. If keyboard components are present
+  if (specs.category === "MECHANICAL_KEYBOARD") {
+    grounded = grounded
+      .replace(/\bkeycaps?\b/gi, "slender 1u mechanical keycaps")
+      .replace(/\bswitches?\b/gi, "miniature 15mm mechanical switches");
+  }
+
+  // 3. If watch components are present
+  if (specs.category === "WATCH_HOROLOGY") {
+    grounded = grounded
+      .replace(/\bgears?\b/gi, "miniature 3mm brass watch gears")
+      .replace(/\bsprings?\b/gi, "ultra-fine coiled balance hairsprings");
+  }
+
+  return {
+    groundedText: grounded,
+    negativeTokens: specs.negativeTokens,
+    vesselRecommendation: specs.defaultVessel,
+    isLargeObject: specs.isLargeObject,
+    extractionTools: specs.extractionTools,
+  };
+}
+
 export const UNIVERSAL_PHYSICAL_LAWS = {
   // Law 1: Mechanical & Draft Kinematics
   MECHANICAL_PROPULSION:
@@ -185,7 +606,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
 
   const isDraftCart = /\b(cart|wagon|carriage|chariot|bullock|bullocks|oxen|ox|horse-drawn|yoke)\b/i.test(combined);
   const isMount = /\b(riding a horse|on horseback|mounted on|elephant back|riding an elephant)\b/i.test(combined);
-  const isMechanical = /\b(car|truck|train|locomotive|bicycle|bike|motorcycle|scooter|bus)\b/i.test(combined);
+  const isMechanical = /\b(car|truck|train|locomotive|bicycle|bycycle|cycle|bike|motorcycle|scooter|bus)\b/i.test(combined);
   const isWatercraft = /\b(boat|canoe|ship|vessel|ferry|raft|oar|rowing)\b/i.test(combined);
 
   const hasVehicleOrMount = isDraftCart || isMount || isMechanical || isWatercraft;
@@ -205,11 +626,11 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
   const hasPeriodSetting = has1900s || hasGeneralPeriod;
   const periodEra = has1900s ? "1900s" : hasGeneralPeriod ? "historical_vintage" : undefined;
 
-  const hasCulinaryAction = /\b(chop|chopping|slice|slicing|dice|dicing|sear|searing|sizzle|sizzling|pan-fry|stir-fry|simmer|simmering|saut[eé]|whisk|whisking|knead|kneading|cutting board|chopping board|skillet|saucepan|stovetop burner|raw meat|ribeye|garlic clove|olive oil drizzle)\b/i.test(combined);
+  const hasCulinaryAction = /\b(chop|chopping|slice|slicing|dice|dicing|diced|grate|grating|graiding|peel|peeling|sear|searing|sizzle|sizzling|pan-fry|stir-fry|deep-fry|fry|fried|simmer|simmering|saut[eé]|whisk|whisking|knead|kneading|cutting board|chopping board|skillet|saucepan|stovetop burner|raw meat|ribeye|garlic clove|olive oil drizzle|tawa|kadai|wok|cleaver|marinade|marinating|batter|breadcrumbs?|panko)\b/i.test(combined);
   let culinaryFocus: string | undefined = undefined;
   if (hasCulinaryAction) {
-    if (/\b(chop|slice|dice|knife|cutting board)\b/i.test(combined)) culinaryFocus = "knife_prep";
-    else if (/\b(sear|sizzle|fry|skillet|pan|flame)\b/i.test(combined)) culinaryFocus = "pan_sizzle";
+    if (/\b(chop|slice|dice|knife|cutting board|grate|peel)\b/i.test(combined)) culinaryFocus = "knife_prep";
+    else if (/\b(sear|sizzle|fry|skillet|pan|flame|tawa|kadai|wok)\b/i.test(combined)) culinaryFocus = "pan_sizzle";
     else if (/\b(simmer|boil|sauce|pot)\b/i.test(combined)) culinaryFocus = "simmer_reduction";
     else if (/\b(plate|plating|garnish|serve)\b/i.test(combined)) culinaryFocus = "plating_presentation";
     else culinaryFocus = "general_cooking";
@@ -218,30 +639,43 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
   // Universal Inedible / Non-Food Object Discovery:
   const isCookingContext =
     hasCulinaryAction ||
-    /\b(chef|cook|cooking|stir-fry|fry|fried|deep-fry|sizzle|sear|recipe|soup|stew|saute|masala|curry|roast|bake|braise|butcher block|cutting board|chopping board|board|wok|skillet|pan|kitchen|marinade|marinate|marinating|plating|garnish|tweezers?|cleaver)\b/i.test(combined);
+    /\b(chef|chefs|cooks?|cooked|cooking|stir-fry|stir-fried|pan-fry|fry|fries|fried|frying|deep-fry|sizzle|sizzles|sizzling|sear|sears|searing|recipe|recipes|soup|soups|stew|stews|saute|masala|curry|roast|roasts|roasting|bake|bakes|baking|braise|braising|butcher block|cutting board|chopping board|board|wok|woks|skillet|skillets|pan|pans|kitchen|marinade|marinate|marinating|plating|garnish|garnishes|tweezers?|cleaver|cleavers|tawa|kadai)\b/i.test(combined);
 
   const hasExplicitNonFood =
-    /\b(inedible|non-food|hardware|scrap|e-waste|tech|gadget|odd object|unimaginable)\b/i.test(combined) ||
-    /\b(bicycle|bycycle|cycle|bike|motorcycle|scooter|skateboard|chain|chains|tire|tires|tier|tiers|sponge|sponch|wheel|wheels|pedals?|spokes?|saddle|seat|handlebars?)\b/i.test(combined) ||
-    /\b(game\s*boy|gameboy|nintendo|cartridge|pokemon|keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch|watches?|clock|gears?|bearings?|spark plugs?|engine|motor|sneakers?|shoes?|boots?|rubber|leather|chess|violin|guitar|camera|lens|light bulb|coins?|cards?|billiard)\b/i.test(combined);
+    /\b(inedible|non-food|hardware|scrap|e-waste|tech|gadget|odd object|unimaginable|mechanical)\b/i.test(combined) ||
+    /\b(bicycles?|bycycles?|cycles?|bikes?|motorcycles?|scooters?|skateboards?|chains?|tires?|tyres?|tiers?|sponge|sponch|wheels?|pedals?|spokes?|saddles?|seats?|handlebars?)\b/i.test(combined) ||
+    /\b(walkman|cassette(?:s)?|cassette player|tape player|game\s*boy|gameboy|nintendo|cartridges?|pokemon|keyboards?|keycaps?|cherry mx|switch(?:es)?|pcb|circuit boards?|motherboards?|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phones?|cellphones?|batter(?:y|ies)|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch(?:es)?|clock|gears?|bearings?|spark plugs?|engines?|motors?|sneakers?|shoes?|boots?|rubber|leather|chess|violins?|guitars?|cameras?|lens(?:es)?|light bulbs?|coins?|cards?|billiards?|drones?|tools?)\b/i.test(combined);
 
   const isInedibleCooking = isCookingContext && hasExplicitNonFood;
 
   let inedibleHeroObject: string | undefined = undefined;
   if (isInedibleCooking) {
-    // Dynamic extraction: Try to extract the direct object from phrases like "cooks a [object]" or "stir-fry [object]"
-    const verbObjMatch = combined.match(/\b(?:cook(?:s|ing)?|fr(?:y|ies|ying)|stir-fr(?:y|ies|ying)|prepar(?:e|es|ing)|sizzl(?:e|es|ing)|roast(?:s|ing)?)\s+(?:a|an|the|some)?\s*([a-z0-9\s-]+?)(?:\s+(?:in|with|on|into|for|dish|masala|stir-fry|soup|fry|sauce)|$)/i);
-    if (verbObjMatch && verbObjMatch[1] && verbObjMatch[1].trim().length > 2 && verbObjMatch[1].trim().length < 35) {
-      const candidate = verbObjMatch[1].trim().replace(/^(a|an|the|one)\s+/i, "");
-      if (candidate.length > 2 && !candidate.toLowerCase().includes("gourmet")) {
-        inedibleHeroObject = candidate.charAt(0).toUpperCase() + candidate.slice(1);
+    // 1. First priority: Check OBJECT_COMPONENT_REGISTRY for precise match
+    for (const entry of OBJECT_COMPONENT_REGISTRY) {
+      if (entry.category !== "GENERAL_PHYSICAL_OBJECT" && entry.detectRegex.test(combined)) {
+        inedibleHeroObject = entry.canonicalHeroName;
+        break;
       }
     }
 
-    if (!inedibleHeroObject || inedibleHeroObject.toLowerCase().includes("gourmet") || inedibleHeroObject.toLowerCase() === "physical hero object") {
-      if (/\b(bicycl|bycycl|cycle|bike)\b/i.test(combined)) inedibleHeroObject = "Vintage Bicycle";
+    // 2. Second priority: Dynamic extraction for custom objects from phrases like "cooks a [object]" or "stir-fry [object]"
+    if (!inedibleHeroObject) {
+      const verbObjMatch = combined.match(/\b(?:cook(?:s|ing)?|fr(?:y|ies|ying)|stir-fr(?:y|ies|ying)|prepar(?:e|es|ing)|sizzl(?:e|es|ing)|roast(?:s|ing)?)\s+(?:a|an|the|some)?\s*([a-z0-9\s-]+?)(?:\s+(?:in|with|on|onto|into|for|inside|dish|masala|stir-fry|soup|fry|sauce)\b|$)/i);
+      if (verbObjMatch && verbObjMatch[1]) {
+        const candidate = verbObjMatch[1].trim().replace(/^(a|an|the|one|some)\s+/i, "").trim();
+        const stopWords = new Set(["the", "a", "an", "one", "some", "this", "that", "it", "all", "its", "each", "these", "those"]);
+        if (candidate.length > 2 && !stopWords.has(candidate.toLowerCase()) && !candidate.toLowerCase().includes("gourmet") && !candidate.toLowerCase().includes("hero object") && !candidate.toLowerCase().includes("inedible")) {
+          inedibleHeroObject = candidate.charAt(0).toUpperCase() + candidate.slice(1);
+        }
+      }
+    }
+
+    // 3. Fallback to specialized keyword detector
+    if (!inedibleHeroObject) {
+      if (/\b(bicycles?|bycycles?|cycles?|bikes?)\b/i.test(combined)) inedibleHeroObject = "Vintage Bicycle";
       else if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(combined)) inedibleHeroObject = "Vintage Game Boy Color";
       else if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
+      else if (/\b(walkman|cassette player)\b/i.test(combined)) inedibleHeroObject = "Vintage Sony Walkman";
       else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
       else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
       else if (/\b(sneakers?|shoes?|boots?)\b/i.test(combined)) inedibleHeroObject = "Sneaker";
@@ -251,7 +685,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
       else if (/\b(camera|lens)\b/i.test(combined)) inedibleHeroObject = "Camera";
       else if (/\b(violin|guitar)\b/i.test(combined)) inedibleHeroObject = "Musical Instrument";
       else if (/\b(glass|marbles?|crystals?)\b/i.test(combined)) inedibleHeroObject = "Crystal Glass";
-      else inedibleHeroObject = "Vintage Mechanical Bicycle";
+      else inedibleHeroObject = "Artisan Mechanical Hardware";
     }
   }
 

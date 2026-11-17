@@ -439,15 +439,37 @@
   - `npm test`: 65/65 tests passing across 13 test suites.
   - `npx tsc --noEmit`: 0 errors.
 
-- **Defects Addressed**:
-  1. `fluxStillPrompt` omitted the `@` character handle in Stage 1 Still Prompts (`Subject: The Shadow Alchemist Chef` instead of `Subject: [@TheShadowAlchemistChef] (The Shadow Alchemist Chef)`), breaking Google Flow character profile binding.
-  2. The Prompt Doctor endpoint (`fix-issue/route.ts`) dumbly dumped creator issue descriptions into `--negative "<user sentence>"` and inverted tab persistence by saving still fixes into `videoPrompt` while leaving `imagePrompt` unmodified.
-- **Architectural Fixes**:
-  1. Updated `src/lib/story/prompt-compiler.ts` so `fluxStillPrompt`, `chatgptPrompt`, and `geminiPrompt` always embed `Subject: [@${charName}] (${characterName})`.
-  2. Overhauled `src/app/api/projects/[projectId]/shots/[shotId]/fix-issue/route.ts` with `resolveTextProvider` AI diagnosis, strict negative keyword sanitization (visual defects only, never raw user text), and explicit `@character` anchor injection.
-  3. Corrected tab persistence: `flux` writes to `Shot.imagePrompt`, `video`/`flow` writes to `Shot.videoPrompt`.
-  4. Updated `src/app/projects/[projectId]/storyboard/page.tsx` so frontend state immediately updates the active tab.
-  5. Cleaned all corrupted prompt strings across PostgreSQL DB shots.
+### 2026-11-17 — ADR-032: Universal Sub-Component Registry, Dimensional Scale Anti-Drift Engine, Strict Chronological Causality & 4-Stage Inedible Craft-Culinary Pipeline
+- **Scope**: Comprehensive, engine-level feature fix across all scenes, episodes, and physical objects (Bicycles, Keyboards, Watches, Cameras, Walkmans, Smartphones, Consoles, Sneakers, and custom hardware).
+- **Core Problem Addressed**:
+  - Unanchored physical nouns ("tire", "chain", "gear", "lens") caused diffusion video models (Veo, Kling, Runway, Luma) to hallucinate high-frequency dataset representations (giant tractor/truck tires, heavy towing chains, grandfather clock cogs, drinking glasses).
+  - Mixed-vocabulary prompts (e.g. extraction levers + knife slices) triggered premature chopping cadence overrides, causing the video model to show chopping on a board before extraction was even performed.
+  - Regex stop-word capture in `detectPhysicalEntities` caused hero object titles like "cook the one cycle" to resolve into `"The"`, leading to glitches like "blade cuts through the The".
+- **Engine-Level Fixes Implemented**:
+  1. **Universal Object Component Registry & Normalizer (`src/lib/story/world-engine.ts`)**:
+     - Defined `OBJECT_COMPONENT_REGISTRY` covering `BICYCLE_VEHICLE`, `MECHANICAL_KEYBOARD`, `WATCH_HOROLOGY`, `AUDIO_WALKMAN_EARBUDS`, `CAMERA_OPTICS`, `SMARTPHONE_MOBILE`, `GAMING_CONSOLE`, `SNEAKER_FOOTWEAR`, and `GENERAL_PHYSICAL_OBJECT`.
+     - Added `resolveObjectComponentSpecs`: returns dimensional anchors, negative scale tokens, extraction tools, and vessel recommendations.
+     - Added `groundActionComponentScale`: automatically replaces generic sub-component nouns with dimensionally grounded descriptions and compiles targeted negative scale token matrices.
+     - Resolved regex stop-word bugs in `detectPhysicalEntities` with strict stop-word elimination (`["the", "a", "an", "one", "some", "this", "that", "it", "all", "its", "each", "these", "those"]`) and prioritized registry matching.
+  2. **Sequential Motion Guard & Chronological Precedence (`src/lib/story/prompt-compiler.ts`)**:
+     - Integrated `groundActionComponentScale` and `resolveObjectComponentSpecs`.
+     - In `detectCulinaryStation`, mechanical extraction tools (`tire levers`, `chain breaker`, `wrench`, `screwdriver`, `puller`, `unbolt`, `unseat`) strictly take precedence over downstream prep keywords.
+     - Enforces `Action Dynamics: Strict chronological execution matching the timecoded beats in exact sequence. Stage 1 mechanical extraction from host object MUST complete fully before Stage 2 prep, cutting, or grating begins. Do NOT begin with cutting on a board or cooking before extraction is complete.`
+     - Injects oversized commercial catering tawa & giant high-capacity catering kadai into `videoMotionPrompt` and bans tiny domestic pans.
+     - Enforces canonical character handle `[@TheShadowAlchemist]` globally; bans `[@TheShadowAlchemistchef]`.
+  3. **Universal 4-Stage Inedible Craft-Culinary Pipeline Generator (`src/lib/story/inedible-pipeline.ts`)**:
+     - Implemented `generateInediblePipelineScenes`: generates 8 scenes for 60s runtime and 5 scenes for 20s/30s runtime across any physical object.
+     - Fully models Stage 1 (disassembly hook), Stage 2 (culinary butchery, 1-inch golden tofu dicing, calamari rings, 4-sided box grater shavings, golden rosin marinade), Stage 3 (oversized catering tawa and giant kadai), and Stage 4 (4-quadrant pocket fold, diagonal acoustic cleaver cut, hero molten caramelized glaze crunch pull, and `@TheShadowAlchemist` thumbs-up).
+     - Generates high-CTR 50/50 split-screen `thumbnailPrompt`.
+  4. **Dynamic Episode Generation Route (`src/app/api/series/[seriesId]/episodes/route.ts`)**:
+     - Connected `generateInediblePipelineScenes` and `compileCinematicPrompt` to dynamically generate all scenes and shots for new episodes.
+     - Persists story foundation artifacts: `LOGLINE`, `PREMISE`, `SYNOPSIS`, `SCREENPLAY`, and `YOUTUBE_THUMBNAIL`.
+  5. **Synchronized Episode 3 Project in PostgreSQL (`cmwk9xl1n0001u8q004v0ob0z`)**:
+     - Set target runtime to 60s with 8 chronologically staged scenes.
+     - All 8 shots compiled with dimensional anchors, negative scale tokens, catering cookware, and canonical `[@TheShadowAlchemist]` handle.
+     - Updated all 5 StoryArtifacts (`LOGLINE`, `PREMISE`, `SYNOPSIS`, `SCREENPLAY`, `YOUTUBE_THUMBNAIL`).
+  6. **Unit Test Suite (`tests/unit/object-handling.test.ts`)**:
+     - 9 comprehensive unit tests locking in dimensional scale grounding, negative token compilation, stop-word prevention, station precedence, and 4-stage pipeline generation.
 - **Verification**:
-  - Unit tests: 56/56 passing across 11 test suites (`tests/unit/prompt-doctor.test.ts`).
-  - Typecheck: `tsc --noEmit` clean with 0 errors.
+  - `npm test`: 74/74 tests passing across 14 test suites.
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.

@@ -10,9 +10,18 @@ import { detectPhysicalEntities } from "@/lib/story/world-engine";
 const createEpisodeSchema = z.object({
   title: z.string().min(1).max(200),
   sourceIdea: z.string().min(1).max(5000),
+  description: z.string().max(2000).optional(),
   studioEnvironment: z.string().max(500).optional(),
   chefWardrobeOverride: z.string().max(500).optional(),
   runtimeSeconds: z.number().int().min(15).max(7200).optional(),
+  targetRuntime: z.number().int().min(15).max(7200).optional(),
+  storyLanguage: z.string().max(50).optional(),
+  aspectRatio: z.string().optional(),
+  visualStyle: z.string().optional(),
+  genre: z.string().max(100).optional(),
+  tone: z.string().max(100).optional(),
+  dialogueMode: z.string().optional(),
+  audience: z.string().max(200).optional(),
 });
 
 export const POST = apiHandler(async (req, ctx) => {
@@ -39,7 +48,17 @@ export const POST = apiHandler(async (req, ctx) => {
 
   const latestEpisode = series.episodes[0];
   const nextEpisodeNumber = (latestEpisode?.episodeNumber ?? 0) + 1;
-  const targetRuntime = parsed.data.runtimeSeconds ?? series.targetRuntime ?? 20;
+  const targetRuntime =
+    parsed.data.targetRuntime ??
+    parsed.data.runtimeSeconds ??
+    series.targetRuntime ??
+    20;
+  const visualStyle = parsed.data.visualStyle || series.visualStyle || "CULINARY_MACRO_ASMR";
+  const genre = parsed.data.genre || series.genre || "Culinary & Cooking ASMR";
+  const tone = parsed.data.tone || series.tone || "Satisfying, Crisp & Hypnotic";
+  const dialogueMode = parsed.data.dialogueMode || series.dialogueMode || "PURE_ASMR_FOLEY";
+  const aspectRatio = parsed.data.aspectRatio || series.aspectRatio || "PORTRAIT_9_16";
+  const storyLanguage = parsed.data.storyLanguage || series.storyLanguage || "English";
   const studioEnvironment =
     parsed.data.studioEnvironment ||
     series.defaultStudioEnvironment ||
@@ -49,22 +68,24 @@ export const POST = apiHandler(async (req, ctx) => {
     series.defaultChefWardrobe ||
     "vintage brass tinker goggles, sleek matte-black half-mask with gold cheekline slit vents, leather artisan apron, black grip gloves";
 
-  // 1. Create the new Episode Project inheriting 100% Channel DNA
+  // 1. Create the new Episode Project inheriting / configuring all user inputs
   const newProject = await prisma.project.create({
     data: {
       ownerId,
       seriesId: series.id,
       episodeNumber: nextEpisodeNumber,
       title: parsed.data.title,
-      description: `Episode ${nextEpisodeNumber} of ${series.title}: 20s Viral Rapid ASMR Masterpiece.`,
+      description:
+        parsed.data.description ||
+        `Episode ${nextEpisodeNumber} of ${series.title}: ${targetRuntime}s Film Masterpiece.`,
       sourceIdea: parsed.data.sourceIdea,
-      visualStyle: series.visualStyle,
-      genre: series.genre,
-      tone: series.tone,
-      dialogueMode: series.dialogueMode,
-      aspectRatio: series.aspectRatio,
+      visualStyle,
+      genre,
+      tone,
+      dialogueMode,
+      aspectRatio,
       targetRuntime,
-      storyLanguage: series.storyLanguage,
+      storyLanguage,
       studioEnvironment,
       chefWardrobeOverride: parsed.data.chefWardrobeOverride,
       currentStage: "STORY",
@@ -108,135 +129,110 @@ export const POST = apiHandler(async (req, ctx) => {
     `${newProject.title} ${newProject.sourceIdea}`,
     newProject.sourceIdea
   );
-  const heroObject = detected.inedibleHeroObject || "Inedible Physical Hero Object";
+  const heroObject = detected.inedibleHeroObject || "Gourmet Subject";
 
-  // 4. Initialize Step 5 Social Launch Kit & Master Thumbnail
-  const launchKit = generateSocialLaunchKit({
-    id: newProject.id,
-    title: newProject.title,
-    description: newProject.description,
-    sourceIdea: newProject.sourceIdea,
-    visualStyle: newProject.visualStyle,
-    aspectRatio: newProject.aspectRatio,
-    productionAssets: [leadChar],
-  });
+  // Build Contextual Episode Recipe based on creator's idea
+  const ideaLower = newProject.sourceIdea.toLowerCase();
+  const isBicycle = /\b(bicycl|bycycl|cycle|bike|chain|tire|tier|sponge|sponch)\b/i.test(ideaLower) || heroObject.toLowerCase().includes("bicycle");
 
-  const defaultThumbnailPrompt =
-    newProject.aspectRatio === "PORTRAIT_9_16"
-      ? launchKit.thumbnailPrompts.portrait9x16
-      : launchKit.thumbnailPrompts.landscape16x9;
+  let logline = `In a 20-second high-density ASMR whirlwind, a rogue masked alchemist chef violently dismantles a ${heroObject}, cooks its hardware in a ${studioEnvironment}, and serves it with an iconic nod and thumbs-up.`;
+  let premise = `Episode ${nextEpisodeNumber} of ${series.title}: 20s Viral Rapid ASMR Masterpiece (Bayashi 2X Pacing · 5 High-Density Scenes). The chef transforms an authentic ${heroObject} into a sizzling gourmet creation, packing 3 to 4 micro-actions per 4-second clip and 90% ingredient framing.`;
+  let synopsis = `Act I: The 4-Beat Rapid Disassembly Hook (0:00 - 0:04)\nAt the ${studioEnvironment}, The Shadow Alchemist Chef slams the ${heroObject} and extracts its primary hardware components in a high-speed 2X flurry.\n\nAct II: Fracture, Slicing, Batter & Coating (0:04 - 0:08)\nComponents are snapped, sliced with a Damascus blade, dredged into golden glaze, and coated with panko breadcrumbs.\n\nAct III: Sizzling High-Heat Cook (0:08 - 0:12)\nHardware is dropped into searing heat or bubbling oil with explosive sizzle, flipped with brass chopsticks, and lifted with tongs.\n\nAct IV: Assembly Pocket & Diagonal Crunch Slice (0:12 - 0:16)\nComponents are folded with silicone thermal pads and ribbon cables into a crisp seared pocket and sliced diagonally straight through with an acoustic crack.\n\nAct V: Hero Crunch Pull & Confident Chef Thumbs-Up (0:16 - 0:20)\nSteaming cross-section crunch pull revealing melted glaze, camera tilts up, and the chef flashes a sharp, confident thumbs-up to camera!`;
 
-  const thumbnailData = {
-    prompt: defaultThumbnailPrompt,
-    aspectRatio: newProject.aspectRatio === "PORTRAIT_9_16" ? "9:16" : "16:9",
-    style: "OBJECT_COOKING_HOOK",
-    headlineText: "DO NOT EAT THIS!",
-    overlayStyle: "viral-header",
-    fontSize: "large",
-    fontFamily: "Impact",
-    gradient: "sunset",
-    verticalPos: 5,
-    horizontalPos: "top-center",
-  };
+  const sceneDuration = Math.max(3, Math.round(targetRuntime / 5));
+  let sceneTemplates = [];
 
-  const thumbnailArtifact = await prisma.storyArtifact.create({
-    data: {
-      projectId: newProject.id,
-      artifactType: "YOUTUBE_THUMBNAIL",
-    },
-  });
+  if (isBicycle) {
+    logline = `In a 20-second high-density ASMR whirlwind, a rogue masked alchemist chef dismantles a vintage bicycle, dicing its yellow seat sponge into golden tofu, grating the rubber tire, deep-frying the oily chain like noodles, and serving a steaming crunch wrap with an iconic chef thumbs-up.`;
+    premise = `Episode ${nextEpisodeNumber} of ${series.title}: 20s Viral Rapid ASMR Masterpiece (Bayashi 2X Pacing · 5 High-Density Scenes). The chef transforms an authentic vintage bicycle into a sizzling gourmet creation, packing 3 to 4 micro-actions per 4-second clip and 90% ingredient framing across dicing, grating, sizzling, and acoustic crunch.`;
+    synopsis = `Act I: The Bicycle Disassembly Hook (0:00 - 0:04)\nAt the ${studioEnvironment}, The Shadow Alchemist Chef slams the vintage bicycle wheel, yanks the oily steel roller chain with a metallic rattle, unbolts the saddle, and rips out the dense yellow seat sponge.\n\nAct II: Slicing, Dicing, Grating & Noodle Dredge (0:04 - 0:08)\nThe chef dices the yellow seat sponge into bouncy golden tofu cubes, slices the heavy rubber tire into thick calamari rings, vigorously grates the tire tread on a stainless box grater, and dredges the steel chain in thick golden rosin glaze.\n\nAct III: Smoking Griddle Sear & Foaming Deep-Fry (0:08 - 0:12)\nThe glazed bicycle chain is plunged into foaming hot oil with an explosive sizzle, while the rubber tire rings and sponge cubes sear on the scorching flat-top griddle with rising smoke.\n\nAct IV: 4-Quadrant Wrap Assembly & Diagonal Cleaver Slice (0:12 - 0:16)\nThe chef folds the crispy chain links, seared tire rings, diced sponge cubes, and grated shavings into a golden crunch wrap, slicing diagonally straight through with an ear-shattering acoustic crack.\n\nAct V: Hero Crunch Pull & Confident Chef Thumbs-Up (0:16 - 0:20)\nSteaming cross-section crunch pull reveals melted golden glaze stretching between rubber tire rings and crispy chain links; camera tilts up to The Shadow Alchemist Chef in brass goggles and matte-black mask, who nods and flashes a sharp, confident thumbs-up to camera!`;
 
-  await prisma.artifactVersion.create({
-    data: {
-      artifactId: thumbnailArtifact.id,
-      versionNumber: 1,
-      contentText: JSON.stringify(thumbnailData),
-    },
-  });
-
-  // 5. Generate Initial Story Artifacts (LOGLINE, PREMISE, SYNOPSIS)
-  const logline = `In a 20-second high-density ASMR whirlwind, a rogue masked alchemist chef violently dismantles a ${heroObject}, cooks its hardware in a ${studioEnvironment}, and serves it with an iconic nod and thumbs-up.`;
-  const premise = `Episode ${nextEpisodeNumber} of ${series.title}: 20s Viral Rapid ASMR Masterpiece (Bayashi 2X Pacing · 5 High-Density Scenes). The chef transforms an authentic ${heroObject} into a sizzling gourmet creation, packing 3 to 4 micro-actions per 4-second clip and 90% ingredient framing.`;
-  const synopsis = `Act I: The 4-Beat Rapid Disassembly Hook (0:00 - 0:04)
-At the ${studioEnvironment}, The Shadow Alchemist Chef slams the ${heroObject} and extracts its primary hardware components in a high-speed 2X flurry.
-
-Act II: Fracture, Slicing, Batter & Coating (0:04 - 0:08)
-Components are snapped, sliced with a Damascus blade, dredged into golden glaze, and coated with panko resistor breadcrumbs.
-
-Act III: Sizzling High-Heat Cook (0:08 - 0:12)
-Hardware is dropped into searing heat or bubbling oil with explosive sizzle, flipped with brass chopsticks, and lifted with tongs.
-
-Act IV: Assembly Pocket & Diagonal Crunch Slice (0:12 - 0:16)
-Components are folded with silicone thermal pads and ribbon cables into a crisp seared pocket and sliced diagonally straight through with an acoustic crack.
-
-Act V: Hero Crunch Pull & Confident Chef Thumbs-Up (0:16 - 0:20)
-Steaming cross-section crunch pull revealing melted glaze, camera tilts up, and the chef flashes a sharp, confident thumbs-up to camera!`;
-
-  const artifactsToCreate = [
-    { type: "LOGLINE", text: logline },
-    { type: "PREMISE", text: premise },
-    { type: "SYNOPSIS", text: synopsis },
-  ];
-
-  for (const art of artifactsToCreate) {
-    const createdArt = await prisma.storyArtifact.create({
-      data: {
-        projectId: newProject.id,
-        artifactType: art.type,
+    sceneTemplates = [
+      {
+        num: 1,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - BICYCLE DISASSEMBLY HOOK (0:00 - 0:${sceneDuration.toString().padStart(2, "0")})`,
+        action: `[0:00-0:01] Black-gloved hands violently slam a vintage steel bicycle wheel and crankset onto the ${studioEnvironment} (*HEAVY CLANG*). [0:01-0:02] In a split-second whip motion, fingers forcefully yank the oily steel bicycle chain off the teeth with a rapid metallic rattle (*CLINK-CLATTER*). [0:02-0:03] Stainless wrench unbolts the bicycle saddle and strips the leather cover, ripping out a thick rectangular block of dense yellow seat sponge foam (*FWUMP*). [0:03-0:${sceneDuration.toString().padStart(2, "0")}] Heavy blade slices through the rubber tire sidewall, peeling the black treaded tire clean off the rim into a prep tray. 90% screen real estate locked on bicycle parts; extreme close-up macro. 2X fast-forward tempo.`,
+        shotSize: "Extreme Close-Up",
+        cameraMovement: "Rapid Top-Down Macro Snap",
+        foley: "Binaural ASMR Foley: Heavy steel wheel clang on wood (*CLANG*), fast oily bicycle chain whip and rattle (*CLINK-CLATTER*), rubber tire peel snap (*ZIP*), rhythmic tool clicks. Zero music, pure acoustic Foley."
       },
-    });
-    await prisma.artifactVersion.create({
-      data: {
-        artifactId: createdArt.id,
-        versionNumber: 1,
-        contentText: art.text,
+      {
+        num: 2,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - DICING SPONGE TOFU, TIRE GRATING & CHAIN MARINADE`,
+        action: `[0:04-0:05] Heavy Damascus cleaver rapidly dices the dense yellow seat sponge into bouncy 1-inch golden 'tofu' cubes in high-speed staccato (*thwack-thwack-thwack*). [0:05-0:06] Gloved hand slices the heavy rubber tire crosswise into thick black 'calamari rings'. [0:06-0:07] On a stainless four-sided box grater, gloved hand vigorously grates tire tread into fine aromatic black rubber shavings (*SHRRR-SHRRR*). [0:07-0:08] Plunges the coiled steel bicycle chain into thick golden rosin glaze and tosses with silver spoke nipples like crunchy sesame seeds. 90% camera fill; 2X rapid tempo.`,
+        shotSize: "Extreme Close-Up Macro",
+        cameraMovement: "Top-Down Flat Lay Lock",
+        foley: "Binaural ASMR Foley: Rapid staccato knife chops on sponge (*thwack-thwack*), rhythmic rough rasping sound of rubber grated on stainless steel (*SHRRR-SHRRR*), wet suction splash of thick glaze marinade."
       },
-    });
+      {
+        num: 3,
+        heading: `INT. COOK STATION - FOAMING CHAIN DEEP-FRY & GRIDDLE TIRE SEAR`,
+        action: `[0:08-0:10] Black-gloved hands lower the glazed bicycle chain into a pot of bubbling hot sesame oil with an explosive, foaming sizzle (*TZZZZZZZZ*). Golden micro-bubbles boil vigorously around the steel links. [0:10-0:11] On the searing cast-iron flat-top griddle, stainless tongs press the rubber tire calamari rings and diced yellow sponge cubes onto hot oil (*CHHHHH*), scorching crisp dark grill lines. [0:11-0:12] Brass tongs lift the golden-crusted crispy chain out onto an elevated wire rack; hot oil crackles fiercely. 90% camera fill; extreme macro 45° angle.`,
+        shotSize: "Macro Close-Up 45-Degree",
+        cameraMovement: "Low Angle Oil Surface Push",
+        foley: "Binaural ASMR Foley: Violent explosive oil sizzle and high-heat roar (*TZZZZZZZZ*), loud griddle pan sear (*CHHHHH*), hot droplets crackling on wire cooling rack."
+      },
+      {
+        num: 4,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - 4-QUADRANT FOLD & CLEAVER CRUNCH SLICE`,
+        action: `[0:12-0:13] On a flat sheet, black-gloved hands rapidly arrange 4 quadrants: crispy golden bicycle chain links, seared rubber tire calamari rings, golden diced sponge cubes, and a heavy snowfall of freshly grated rubber shavings. [0:13-0:14] In a fast 4-fold sequence, gloved hands fold the sheet clockwise into a tight triangular crunch pocket. [0:14-0:15] Hands press the pocket onto a hot ridged cast-iron grill pan (*CHHHHH*), searing dark lines. [0:15-0:16] Heavy Damascus knife slices diagonally straight through the pocket with an acoustic razor-loud *CRUNCH*. 90% camera fill; 2X hyper-tempo.`,
+        shotSize: "Top-Down Flat Lay",
+        cameraMovement: "Rapid Dynamic Macro Pan",
+        foley: "Binaural ASMR Foley: Rapid paper rustle, loud grill pan sear sizzle (*CHHHHH*), razor-sharp acoustic crust crunch as heavy cleaver slices diagonally straight through toasted pocket (*CRUNCH*)."
+      },
+      {
+        num: 5,
+        heading: `INT. HERO SHOWCASE - BICYCLE CRUNCH PULL & CHEF THUMBS-UP`,
+        action: `[0:16-0:18] Extreme macro close-up. Two black-gloved hands grip the two halves of the diagonally sliced bicycle crunch pocket and pull them slowly apart: thick strands of bubbling golden rosin glaze stretch between crispy steel chain links, seared rubber tire rings, and pillowy yellow sponge cubes as aromatic steam billows outward. [0:18-0:19] Plated on a pristine bright white coupe plate crowned with a polished bicycle gear sprocket. Camera tilts up smoothly to The Shadow Alchemist Chef in brass goggles and sleek matte-black mask. [0:19-0:20] Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        shotSize: "Extreme Close-Up to Medium Up-Tilt",
+        cameraMovement: "Macro Pull and Slow Tilt Up",
+        foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling glaze stretch, gentle ceramic plate contact, soft deep breath from mask cheek vents. Ending on silence."
+      }
+    ];
+  } else {
+    sceneTemplates = [
+      {
+        num: 1,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - DISASSEMBLY HOOK (0:00 - 0:${sceneDuration.toString().padStart(2, "0")})`,
+        action: `[0:00-0:01] Black-gloved hands violently slam an authentic ${heroObject} onto the ${studioEnvironment} (*THUD*). [0:01-0:02] In a split-second motion, thumb forcefully ejects key components with a sharp whip-snap (*SNAP-CLICK*). [0:02-0:03] Precision tools rapidly unbolt and release primary components (*CLICK-CLACK*). [0:03-0:${sceneDuration.toString().padStart(2, "0")}] Titanium tweezers rapidly pluck internal elements into a small brass prep dish. 90% screen real estate locked on ${heroObject}; extreme close-up macro. 2X fast-forward tempo.`,
+        shotSize: "Extreme Close-Up",
+        cameraMovement: "Rapid Top-Down Macro Snap",
+        foley: `Binaural ASMR Foley: Heavy thud on workstation, sharp tactile snap-click, rapid metallic clicks, rhythmic brass dish ping. Pure acoustic Foley, zero speech, zero music.`,
+      },
+      {
+        num: 2,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - SLICING, PREP & BATTER`,
+        action: `Black-gloved hands cleanly fracture ${heroObject} components with a loud acoustic sound (*CRACK*). Heavy Damascus knife rapidly slices components into delicate strips in high-speed staccato (*thwack-thwack-thwack*). Gloved hand plunges the pieces into a thick golden glaze dish and flips them (*SPLAT*). Transferred into a shallow tray of crunchy breadcrumbs; gloved palm firmly presses down to coat evenly. 90% camera fill; 2X rapid tempo.`,
+        shotSize: "Extreme Close-Up Macro",
+        cameraMovement: "Top-Down Flat Lay Lock",
+        foley: `Binaural ASMR Foley: Loud crisp component fracture crack, rapid staccato knife thwacks, wet suction splash of thick glaze batter, acoustic crunch of panko pressed under palm.`,
+      },
+      {
+        num: 3,
+        heading: `INT. COOK STATION - FOAMING SIZZLE & HIGH-HEAT SEAR`,
+        action: `Black-gloved hands lower the battered ${heroObject} elements into a searing pan with an explosive, foaming sizzle (*TZZZZZZZZ*). Micro-bubbles boil vigorously around the hardware. Long brass cooking chopsticks quickly flip the golden-crusted components. Stainless tongs lift the steaming, golden-crispy creation out onto an elevated wire cooling rack; hot glaze crackles fiercely. 90% camera fill; extreme macro 45° angle.`,
+        shotSize: "Macro Close-Up 45-Degree",
+        cameraMovement: "Low Angle Oil Surface Push",
+        foley: `Binaural ASMR Foley: Violent explosive sizzle and high-heat roar (TZZZZZZ), brass chopstick clinks against pan rim, hot droplets crackling on wire rack.`,
+      },
+      {
+        num: 4,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - 4-QUADRANT FOLD & KNIFE CRUNCH`,
+        action: `On a flat sheet, black-gloved hands rapidly arrange 4 quadrants of golden-fried ${heroObject} chips and savory garnishes. In a fast 4-fold sequence, gloved hands fold the sheet clockwise into a tight triangular crunch pocket. Hands press the pocket onto a hot ridged cast-iron grill pan (*CHHHHH*), searing crisp dark lines. Transferred to board; heavy Damascus knife slices diagonally straight through the pocket with a razor-loud acoustic *CRUNCH*. 90% camera fill; 2X hyper-tempo.`,
+        shotSize: "Top-Down Flat Lay",
+        cameraMovement: "Rapid Dynamic Macro Pan",
+        foley: `Binaural ASMR Foley: Rapid parchment paper rustle, loud grill pan sear sizzle (CHHHHH), razor-sharp acoustic crust crunch as heavy knife slices diagonally through toasted pocket.`,
+      },
+      {
+        num: 5,
+        heading: `INT. HERO SHOWCASE - CRUNCH PULL & CHEF THUMBS-UP`,
+        action: `Extreme macro close-up. Two black-gloved hands grip the two halves of the diagonally sliced tempura pocket and pull them slowly apart: thick strands of bubbling golden glaze stretch between crispy ${heroObject} halves as aromatic steam billows outward. Plated on a pristine bright white ceramic coupe plate crowned with a prominent ${heroObject} piece. Camera tilts up smoothly to The Shadow Alchemist Chef in brass goggles and sleek matte-black mask. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        shotSize: "Extreme Close-Up to Medium Up-Tilt",
+        cameraMovement: "Macro Pull and Slow Tilt Up",
+        foley: `Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling glaze stretch, gentle ceramic plate contact, soft deep breath from mask cheek vents. Ending on silence.`,
+      },
+    ];
   }
-
-  // 6. Generate 5-Scene Bayashi Rapid ASMR Scenes & Multi-Engine Shot Prompts
-  const sceneTemplates = [
-    {
-      num: 1,
-      heading: `INT. ${studioEnvironment.toUpperCase()} - DISASSEMBLY HOOK (0:00 - 0:04)`,
-      action: `[0:00-0:01] Black-gloved hands violently slam an authentic ${heroObject} onto the ${studioEnvironment} (*THUD*). [0:01-0:02] In a split-second motion, thumb forcefully ejects key components with a sharp whip-snap (*SNAP-CLICK*). [0:02-0:03] Precision mini-screwdriver rapidly spins and pops screws, cracking open the housing (*CLICK-CLACK*). [0:03-0:04] Titanium tweezers rapidly pluck internal components into a small brass prep dish. 90% screen real estate locked on hardware; extreme close-up macro. 2X fast-forward tempo.`,
-      shotSize: "Extreme Close-Up",
-      cameraMovement: "Rapid Top-Down Macro Snap",
-      foley: `Binaural ASMR Foley: Heavy thud on workstation, sharp plastic snap-click, rapid metallic screwdriver clicks, rhythmic brass dish ping. Pure acoustic Foley, zero speech, zero music.`,
-    },
-    {
-      num: 2,
-      heading: `INT. ${studioEnvironment.toUpperCase()} - HARDWARE SNAP, NOODLE CHOP & BATTER (0:04 - 0:08)`,
-      action: `[0:04-0:05] Black-gloved hands cleanly snap the internal circuit board down the center with a loud acoustic fracture (*CRACK*). [0:05-0:06] Heavy Damascus knife rapidly chops multicolored ribbon cables into razor-thin noodles in high-speed staccato (*thwack-thwack-thwack*). [0:06-0:07] Gloved hand plunges the hardware into a thick golden rosin flux glaze dish and flips them (*SPLAT*). [0:07-0:08] Transferred into a shallow tray of panko resistor breadcrumbs; gloved palm firmly presses down to coat evenly. 90% camera fill; 2X rapid tempo.`,
-      shotSize: "Extreme Close-Up Macro",
-      cameraMovement: "Top-Down Flat Lay Lock",
-      foley: `Binaural ASMR Foley: Loud crisp circuit board snap crack, rapid staccato knife thwacks, wet suction splash of thick glaze batter, acoustic crunch of resistor panko pressed under palm.`,
-    },
-    {
-      num: 3,
-      heading: `INT. COOK STATION - FOAMING SIZZLE & HIGH-HEAT SEAR (0:08 - 0:12)`,
-      action: `[0:08-0:10] Black-gloved hands lower the battered ${heroObject} hardware into a searing pan with an explosive, foaming sizzle (*TZZZZZZZZ*). Micro-bubbles boil vigorously around the hardware. [0:10-0:11] Long brass cooking chopsticks quickly flip the golden-crusted components. [0:11-0:12] Stainless tongs lift the steaming, golden-crispy creation out onto an elevated wire cooling rack; hot glaze crackles fiercely. 90% camera fill; extreme macro 45° angle.`,
-      shotSize: "Macro Close-Up 45-Degree",
-      cameraMovement: "Low Angle Oil Surface Push",
-      foley: `Binaural ASMR Foley: Violent explosive sizzle and high-heat roar (TZZZZZZ), brass chopstick clinks against pan rim, hot droplets crackling on wire rack.`,
-    },
-    {
-      num: 4,
-      heading: `INT. ${studioEnvironment.toUpperCase()} - 4-QUADRANT FOLD & KNIFE CRUNCH (0:12 - 0:16)`,
-      action: `[0:12-0:13] On a flat sheet, black-gloved hands rapidly arrange 4 quadrants: crispy golden tempura ${heroObject} chips, yellow silicone thermal pad squares, miniature SMD resistor seasonings, and coiled copper ribbon cables. [0:13-0:14] In a fast 4-fold sequence, gloved hands fold the sheet clockwise into a tight triangular crunch pocket. [0:14-0:15] Hands press the pocket onto a hot ridged cast-iron grill pan (*CHHHHH*), searing crisp dark lines. [0:15-0:16] Transferred to board; heavy Damascus knife slices diagonally straight through the pocket with a razor-loud acoustic *CRUNCH*. 90% camera fill; 2X hyper-tempo.`,
-      shotSize: "Top-Down Flat Lay",
-      cameraMovement: "Rapid Dynamic Macro Pan",
-      foley: `Binaural ASMR Foley: Rapid parchment paper rustle, loud grill pan sear sizzle (CHHHHH), razor-sharp acoustic crust crunch as heavy knife slices diagonally through toasted pocket.`,
-    },
-    {
-      num: 5,
-      heading: `INT. HERO SHOWCASE - CRUNCH PULL & CHEF THUMBS-UP (0:16 - 0:20)`,
-      action: `[0:16-0:18] Extreme macro close-up. Two black-gloved hands grip the two halves of the diagonally sliced tempura pocket and pull them slowly apart: thick strands of bubbling golden rosin flux glaze stretch between crispy tempura ${heroObject} halves, coiled copper ribbons, and golden crunch crust as aromatic steam billows outward. [0:18-0:19] Plated on a pristine bright white ceramic coupe plate crowned with a prominent ${heroObject} component chip. Camera tilts up smoothly to The Shadow Alchemist Chef in brass goggles and sleek matte-black mask. [0:19-0:20] Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
-      shotSize: "Extreme Close-Up to Medium Up-Tilt",
-      cameraMovement: "Macro Pull and Slow Tilt Up",
-      foley: `Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling glaze stretch, gentle ceramic plate contact, soft deep breath from mask cheek vents. Ending on silence.`,
-    },
-  ];
 
   for (const t of sceneTemplates) {
     const scene = await prisma.scene.create({
@@ -247,7 +243,7 @@ Steaming cross-section crunch pull revealing melted glaze, camera tilts up, and 
         location: studioEnvironment,
         timeOfDay: "NIGHT",
         actionSummary: t.action,
-        estimatedDurationSeconds: 4,
+        estimatedDurationSeconds: sceneDuration,
         approvalStatus: "APPROVED",
       },
     });
@@ -265,7 +261,7 @@ Steaming cross-section crunch pull revealing melted glaze, camera tilts up, and 
       genre: newProject.genre,
       tone: newProject.tone,
       aspectRatio: newProject.aspectRatio,
-      targetDurationSeconds: 4,
+      targetDurationSeconds: sceneDuration,
       sourceIdea: newProject.sourceIdea,
     });
 
@@ -279,7 +275,7 @@ Steaming cross-section crunch pull revealing melted glaze, camera tilts up, and 
         cameraMovement: t.cameraMovement,
         lighting: "Warm directional culinary studio lighting, soft key illumination, appetizing natural highlights",
         mood: "Satisfying, Crisp & Hypnotic",
-        targetDurationSeconds: 4,
+        targetDurationSeconds: sceneDuration,
         aspectRatio: newProject.aspectRatio,
         imagePrompt: bundle.fluxStillPrompt,
         videoPrompt: bundle.googleFlowPrompt,

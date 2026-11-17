@@ -73,10 +73,12 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   // Extract character anchor
   const characters = project.productionAssets?.filter((a) => a.assetType === "CHARACTER") || [];
   const leadChar = characters[0];
-  const charHandle = leadChar ? `@${leadChar.name.replace(/\s+/g, "")}` : "@TheShadowAlchemist";
+  const rawHandle = leadChar ? `@${leadChar.name.replace(/\s+/g, "")}` : "@TheShadowAlchemist";
+  const charHandle = /Shadow\s*Alchemist/i.test(rawHandle) ? "@TheShadowAlchemist" : rawHandle;
 
   const combinedText = `${title} ${desc} ${project.sourceIdea || ""}`.toLowerCase();
   const isGameBoy = /game\s*boy|gameboy|pokemon|nintendo|handheld/i.test(combinedText);
+  const isBicycle = /bicycle|bycycle|cycle|bike|tire|chain|pedal|spoke/i.test(combinedText);
   const isEarbud = /earbud|airpod/i.test(combinedText);
   const isPhone = /phone|smartphone/i.test(combinedText);
   const isWatch = /watch|clock/i.test(combinedText);
@@ -90,7 +92,16 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   let wokContents =
     "stir-fried black keycaps and crimson Cherry switches bubbling in golden oil, with authentic wisps of white culinary steam curling upward";
 
-  if (isGameBoy) {
+  if (isBicycle) {
+    heroObject = "Vintage Bicycle";
+    rawObjectHalf =
+      "the raw stripped chrome fork and spoked wheel rim of the dismantled vintage bicycle, leaning upright at chest height";
+    cookedSpatulaPile =
+      "a monumental, sizzling mound of golden-crispy deep-fried bicycle chain tempura noodles and seared black rubber tire calamari rings, dripping with long stretching strands of thick, bubbling golden-amber glaze cascading downward, held on a colossal Indian wedding catering iron perforated skimmer (jhara)";
+    wokContents =
+      "a colossal 4-foot Indian wedding catering iron kadai (cauldron) bubbling furiously with golden oil and diced yellow seat sponge tofu cubes, with roaring amber flames licking the curved cast-iron base and dramatic plumes of culinary steam";
+  } else if (isGameBoy) {
+    heroObject = "Vintage Game Boy Color";
     heroObject = "Vintage Game Boy Color";
     rawObjectHalf =
       "the cleanly fractured, severed translucent purple Game Boy Color with the golden Pokémon 8-bit cartridge slot, raw emerald PCB circuit board backing, and dangling colorful ribbon cables";
@@ -127,6 +138,18 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   const safetyDisclaimer =
     "⚠️ CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT INGEST OR ATTEMPT AT HOME.";
 
+  const centerForegroundDescription = isBicycle
+    ? wokContents
+    : `A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with ${wokContents}`;
+
+  const rightHandTool = isBicycle
+    ? "a colossal 3-foot Indian wedding catering iron perforated skimmer (jhara)"
+    : "a wide angled stainless steel chef's slotted spatula";
+
+  const thumbnailLighting = isBicycle
+    ? "Deep solid dark charcoal catering workshop background with warm fiery under-glow from the hearth burner, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
+    : "Deep solid dark charcoal studio background with heavy smooth vignette, completely clean, zero clutter, zero tools. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
+
   // MASTER TEMPLATE PROMPTS (Verified against media_1794762564764_ab5dc0ae.jpg)
   const thumbnailPortrait9x16 = `A viral vertical 9:16 YouTube Shorts and Reels thumbnail, medium close-up shot, straight eye-level frontal perspective, centered symmetrical composition.
 
@@ -134,10 +157,10 @@ Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, handso
 
 Dual-Handed Props & Invariant Composition:
 - Viewer's Left Hand: Grips ${rawObjectHalf} at chest height.
-- Viewer's Right Hand: Thrusts forward a wide angled stainless steel chef's slotted spatula holding ${cookedSpatulaPile}.
-- Center Foreground: A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with ${wokContents}.
+- Viewer's Right Hand: Thrusts forward ${rightHandTool} holding ${cookedSpatulaPile}.
+- Center Foreground: ${centerForegroundDescription}.
 
-Lighting & Atmosphere: Deep solid dark charcoal studio background with heavy smooth vignette, completely clean, zero clutter, zero tools. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.
+Lighting & Atmosphere: ${thumbnailLighting}
 
 Strict Constraints: Character visually rendered only. Strictly NO username on image, NO text, NO typography, NO watermarks, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
 
@@ -147,12 +170,12 @@ Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, handso
 
 Dual-Handed Props & Invariant Composition:
 - Viewer's Left Hand: Grips ${rawObjectHalf} at chest height.
-- Viewer's Right Hand: Thrusts forward a wide angled stainless steel chef's slotted spatula holding ${cookedSpatulaPile}.
-- Center Foreground: A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with ${wokContents}.
+- Viewer's Right Hand: Thrusts forward ${rightHandTool} holding ${cookedSpatulaPile}.
+- Center Foreground: ${centerForegroundDescription}.
 
 Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing the character or props.
 
-Lighting & Atmosphere: Deep solid dark charcoal studio background with heavy smooth vignette, completely clean, zero clutter, zero tools. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.
+Lighting & Atmosphere: ${thumbnailLighting}
 
 Strict Constraints: Character visually rendered only. Strictly NO username on image, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
 
@@ -162,10 +185,10 @@ Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, center
 
 Dual-Handed Props & Invariant Composition:
 - Viewer's Left Hand: Grips ${rawObjectHalf} horizontally at chest height.
-- Viewer's Right Hand: Extends a wide stainless steel chef's slotted spatula forward close to the lens, piled with ${cookedSpatulaPile}.
-- Center Foreground: A large round seasoned black carbon-steel wok filling the lower foreground, loaded with ${wokContents}.
+- Viewer's Right Hand: Extends ${rightHandTool} forward close to the lens, piled with ${cookedSpatulaPile}.
+- Center Foreground: ${centerForegroundDescription}.
 
-Lighting & Environment: Seamless dark charcoal studio background with deep vignette, clean, zero clutter. High-key commercial food lighting on the dripping amber glaze and textures.
+Lighting & Environment: ${thumbnailLighting}
 
 Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO username on image, NO text, NO watermarks, NO letters, NO font overlay, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
 
@@ -175,18 +198,24 @@ Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, center
 
 Dual-Handed Props & Invariant Composition:
 - Viewer's Left Hand: Grips ${rawObjectHalf} horizontally at chest height.
-- Viewer's Right Hand: Extends a wide stainless steel chef's slotted spatula forward close to the lens, piled with ${cookedSpatulaPile}.
-- Center Foreground: A large round seasoned black carbon-steel wok filling the lower foreground, loaded with ${wokContents}.
+- Viewer's Right Hand: Extends ${rightHandTool} forward close to the lens, piled with ${cookedSpatulaPile}.
+- Center Foreground: ${centerForegroundDescription}.
 
 Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.
 
-Lighting & Environment: Seamless dark charcoal studio background with deep vignette, clean, zero clutter. High-key commercial food lighting on the dripping amber glaze and textures.
+Lighting & Environment: ${thumbnailLighting}
 
 Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO username on image, NO teeth marks, NO noodles, NO meat, NO real food, NO eating.`;
 
   // YouTube Titles
   let youtubeTitles: string[] = [];
-  if (isGameBoy) {
+  if (isBicycle) {
+    youtubeTitles = [
+      `I Cooked a Vintage Bicycle in a Giant Indian Catering Cauldron! (Oddly Satisfying ASMR)`,
+      `Cooking a Full Bicycle in a 4-Foot Wedding Feast Kadai! 🚲🔥 #ASMR`,
+      `The Secret Recipe for Vintage Bicycle Stir-Fry & Tempura | ASMR Inedible Cooking`,
+    ];
+  } else if (isGameBoy) {
     youtubeTitles = [
       `I Cooked a Vintage Game Boy into a 5-Star Tempura! (Oddly Satisfying ASMR)`,
       `Cooking a Vintage Game Boy Color... And It Sizzles! 🎮🍤 #ASMR`,
@@ -214,7 +243,57 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
   let instagramCaption = "";
   let instagramHashtags = "";
 
-  if (isGameBoy) {
+  if (isBicycle) {
+    ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
+- 1x Vintage Steel Road Bicycle (Stripped & Harvested)
+- 1x 116-Link Oily Steel Bicycle Chain (Deep-Fried into Acoustic Tempura)
+- 1x Dense Yellow Saddle Sponge Foam (Diced into Golden Tofu)
+- 1x Heavy Black Rubber Tire (Sliced into Calamari Rings & Grated Truffle Shavings)
+- 8x Snapped Steel Wheel Spokes & Spoke-Nipple Panko
+- Pure Rosin Flux Glaze & Colossal Indian Catering Kadai Oil Bath`;
+
+    timestampsSection = `⏱️ TIMESTAMPS:
+0:00 - Bicycle Wheel Axle Unbolt & Fork Extraction
+0:08 - Chain Tool De-Linking & Effervescent Citrus Wash
+0:15 - Seatpost Pull, Saddle Peel & Sponge Tofu Dicing
+0:22 - Tire Lever Rim Pry, Calamari Slicing & Box Grating
+0:30 - Spoke Wire Snip & Rosin Flux Panko Batter
+0:37 - Colossal Indian Catering Kadai Foaming Deep-Fry & Wok Sear
+0:45 - Grand Slate Plating & Sizzling Rosin Glaze Drizzle
+0:53 - Hero Acoustic Cleaver Crunch, Glaze Pull & Confident Thumbs-Up`;
+
+    hashtagsList = [
+      "#ASMR",
+      "#Shorts",
+      "#OddlySatisfying",
+      "#Cooking",
+      "#Bicycle",
+      "#IndianCatering",
+      "#GiantKadai",
+      "#SoundDesign",
+      "#InedibleCooking",
+      "#ViralASMR",
+    ];
+
+    tagsString = `${title}, Inedible Cooking, Bicycle Cooking, Indian Catering Cauldron, Giant Kadai, ASMR Food, Oddly Satisfying, Bicycle Chain Tempura, Tire Calamari, Cooking ASMR, Sound Design, Food Art, Satisfying Video, CineFlow AI, Google Flow, Veo AI`;
+
+    instagramCaption = `Who said a vintage bicycle is only for riding? 🚲🔥
+
+Watch as we take an authentic vintage steel bicycle, unbolt the wheels, de-link the chain, slice the rubber tires into calamari rings, dice the seat sponge into golden tofu, and deep-fry it in a colossal 4-foot Indian wedding catering iron kadai!
+
+🎧 WEAR HEADPHONES for the full ASMR experience!
+
+${safetyDisclaimer}
+
+💬 MENU VOTE: What giant mechanical object should I cook next in the catering cauldron?
+A) Motorcycle Engine 🏍️
+B) Vintage Typewriter ⌨️
+C) Acoustic Guitar 🎸
+Drop your vote below! 👇`;
+
+    instagramHashtags =
+      "#reels #asmr #asmrfood #oddlysatisfying #bicycle #catering #giantkadai #deepfry #tempura #creativecooking #satisfyingvideos #sounddesign #cinematicreels #foodart #viralreels #techart #satisfying #asmrcommunity #chefsofinstagram";
+  } else if (isGameBoy) {
     ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
 - 1x Vintage Translucent Purple Game Boy Color (Cleanly Fractured)
 - 1x Golden 8-Bit Pokémon Cartridge (Wafer Slice)
@@ -328,11 +407,15 @@ Created with CineFlow AI Studio · Visuals powered by Google Flow & Veo · Sound
 
 ${hashtagsList.join(" ")}`;
 
-  const instagramAudio = isGameBoy
+  const instagramAudio = isBicycle
+    ? "Original Audio · ASMR Bicycle Chain Snap & Giant Kadai Oil Sizzle"
+    : isGameBoy
     ? "Original Audio · ASMR Game Boy Snap & Tempura Oil Sizzle"
     : "Original Audio · ASMR Crisp Wok Sizzle & Switch Clicks";
 
-  const instagramPinnedComment = isGameBoy
+  const instagramPinnedComment = isBicycle
+    ? "🔥 MENU POLL: What giant mechanical object should I cook next in the 4-foot catering cauldron? A) Motorcycle Engine B) Vintage Typewriter C) Acoustic Guitar? Drop your vote in the comments! 👇"
+    : isGameBoy
     ? "🔥 RETRO MENU POLL: What should be on next week's menu? A) Nintendo 64 Controller B) Sony Walkman Cassette C) Tamagotchi? Drop your vote in the comments! 👇"
     : "🔥 MENU POLL: What should be on next week's menu? A) Wireless Earbuds B) Smartphone C) Gaming Mouse? Drop your vote in the comments! 👇";
 

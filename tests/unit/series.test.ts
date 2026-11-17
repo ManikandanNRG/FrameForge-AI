@@ -76,4 +76,46 @@ describe("Series & Episodic Architecture Engine", () => {
       await prisma.project.delete({ where: { id: ep3.id } });
     }
   });
+
+  it("creates an episode with custom user inputs (language, runtime, aspect ratio, visual style, genre, tone)", async () => {
+    const series = await prisma.series.findFirst({
+      where: { slug: "inedible-tech-asmr" },
+    });
+    expect(series).toBeDefined();
+
+    const user = await prisma.user.findFirst();
+    expect(user).toBeDefined();
+
+    // User creates an episode with their own unique vision (e.g. 30s runtime, Tamil language, custom studio)
+    const customEpisode = await prisma.project.create({
+      data: {
+        ownerId: user!.id,
+        seriesId: series!.id,
+        episodeNumber: 3,
+        title: "Episode 3: The Vintage Mechanical Watch (ASMR)",
+        sourceIdea: "A chef meticulously disassembles a luxury mechanical watch, frying its gears and mainsprings over a smoking iron skillet.",
+        visualStyle: "CULINARY_MACRO_ASMR",
+        genre: "Culinary & Cooking ASMR",
+        tone: "Satisfying, Crisp & Hypnotic",
+        dialogueMode: "PURE_ASMR_FOLEY",
+        aspectRatio: "PORTRAIT_9_16",
+        targetRuntime: 30,
+        storyLanguage: "Tamil",
+        studioEnvironment: "Heavy Iron Skillet on Charcoal Burner",
+      },
+      include: {
+        series: true,
+      },
+    });
+
+    try {
+      expect(customEpisode.episodeNumber).toBe(3);
+      expect(customEpisode.series?.slug).toBe("inedible-tech-asmr");
+      expect(customEpisode.targetRuntime).toBe(30);
+      expect(customEpisode.storyLanguage).toBe("Tamil");
+      expect(customEpisode.studioEnvironment).toBe("Heavy Iron Skillet on Charcoal Burner");
+    } finally {
+      await prisma.project.delete({ where: { id: customEpisode.id } });
+    }
+  });
 });

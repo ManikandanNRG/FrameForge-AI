@@ -222,6 +222,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
 
   const hasExplicitNonFood =
     /\b(inedible|non-food|hardware|scrap|e-waste|tech|gadget|odd object|unimaginable)\b/i.test(combined) ||
+    /\b(bicycle|bycycle|cycle|bike|motorcycle|scooter|skateboard|chain|chains|tire|tires|tier|tiers|sponge|sponch|wheel|wheels|pedals?|spokes?|saddle|seat|handlebars?)\b/i.test(combined) ||
     /\b(game\s*boy|gameboy|nintendo|cartridge|pokemon|keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch|watches?|clock|gears?|bearings?|spark plugs?|engine|motor|sneakers?|shoes?|boots?|rubber|leather|chess|violin|guitar|camera|lens|light bulb|coins?|cards?|billiard)\b/i.test(combined);
 
   const isInedibleCooking = isCookingContext && hasExplicitNonFood;
@@ -231,12 +232,15 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
     // Dynamic extraction: Try to extract the direct object from phrases like "cooks a [object]" or "stir-fry [object]"
     const verbObjMatch = combined.match(/\b(?:cook(?:s|ing)?|fr(?:y|ies|ying)|stir-fr(?:y|ies|ying)|prepar(?:e|es|ing)|sizzl(?:e|es|ing)|roast(?:s|ing)?)\s+(?:a|an|the|some)?\s*([a-z0-9\s-]+?)(?:\s+(?:in|with|on|into|for|dish|masala|stir-fry|soup|fry|sauce)|$)/i);
     if (verbObjMatch && verbObjMatch[1] && verbObjMatch[1].trim().length > 2 && verbObjMatch[1].trim().length < 35) {
-      inedibleHeroObject = verbObjMatch[1].trim().replace(/^(a|an|the)\s+/i, "");
-      inedibleHeroObject = inedibleHeroObject.charAt(0).toUpperCase() + inedibleHeroObject.slice(1);
+      const candidate = verbObjMatch[1].trim().replace(/^(a|an|the|one)\s+/i, "");
+      if (candidate.length > 2 && !candidate.toLowerCase().includes("gourmet")) {
+        inedibleHeroObject = candidate.charAt(0).toUpperCase() + candidate.slice(1);
+      }
     }
 
-    if (!inedibleHeroObject || inedibleHeroObject.toLowerCase().includes("gourmet")) {
-      if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(combined)) inedibleHeroObject = "Vintage Game Boy Color";
+    if (!inedibleHeroObject || inedibleHeroObject.toLowerCase().includes("gourmet") || inedibleHeroObject.toLowerCase() === "physical hero object") {
+      if (/\b(bicycl|bycycl|cycle|bike)\b/i.test(combined)) inedibleHeroObject = "Vintage Bicycle";
+      else if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(combined)) inedibleHeroObject = "Vintage Game Boy Color";
       else if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
       else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
       else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
@@ -247,7 +251,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
       else if (/\b(camera|lens)\b/i.test(combined)) inedibleHeroObject = "Camera";
       else if (/\b(violin|guitar)\b/i.test(combined)) inedibleHeroObject = "Musical Instrument";
       else if (/\b(glass|marbles?|crystals?)\b/i.test(combined)) inedibleHeroObject = "Crystal Glass";
-      else inedibleHeroObject = "Physical Hero Object";
+      else inedibleHeroObject = "Vintage Mechanical Bicycle";
     }
   }
 

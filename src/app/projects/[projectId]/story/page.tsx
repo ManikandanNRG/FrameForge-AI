@@ -55,6 +55,7 @@ interface Artifact {
 }
 
 interface SceneData {
+  id?: string;
   sceneNumber: number;
   heading: string;
   location: string;
@@ -920,13 +921,14 @@ export default function StoryStudioPage() {
                 </div>
               </div>
 
-              {screenplayScenes.map((scene) => {
+              {screenplayScenes.map((scene, idx) => {
                 const dlgInfo = extractDialogueDelivery(scene.dialogue);
                 const duration = scene.estimatedDurationSeconds || 8;
+                const uniqueKey = scene.id || `scene-${scene.sceneNumber ?? idx}-${idx}`;
 
                 return (
                   <div
-                    key={scene.sceneNumber}
+                    key={uniqueKey}
                     className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden transition-all hover:border-slate-300 hover:shadow-md"
                   >
                     <div className="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
@@ -1804,9 +1806,9 @@ export default function StoryStudioPage() {
                               Scene Breakdown ({activeOpt.scenes.length} Scenes):
                             </span>
 
-                            {activeOpt.scenes.map(sc => (
+                            {activeOpt.scenes.map((sc, scIdx) => (
                               <div
-                                key={sc.sceneNumber}
+                                key={sc.id || `opt-scene-${sc.sceneNumber ?? scIdx}-${scIdx}`}
                                 className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2 text-xs shadow-2xs"
                               >
                                 <div className="flex items-center justify-between font-mono text-[11px] text-slate-500">
@@ -2024,9 +2026,9 @@ export default function StoryStudioPage() {
                       </h3>
 
                       <div className="space-y-3">
-                        {scriptAuditReport.sceneAudits.map((audit) => (
+                        {scriptAuditReport.sceneAudits.map((audit, auditIdx) => (
                           <div
-                            key={audit.sceneNumber}
+                            key={`audit-${audit.sceneNumber ?? auditIdx}-${auditIdx}`}
                             className={`p-4 rounded-xl border transition ${
                               audit.issues.length > 0
                                 ? "bg-amber-50/40 border-amber-200"

@@ -465,6 +465,100 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Added test suites `tests/unit/series.test.ts` and `tests/unit/storage-paths.test.ts`. Full test suite: 63/63 tests passing across 13 test files (`npm test`), `tsc --noEmit` clean with 0 errors.
      - Seeded `The Shadow Alchemist — Inedible ASMR` series, linking Episode 1 (Keyboard Stir-Fry) and Episode 2 (Game Boy Tempura).
 
+## ADR-028: React Portal Modal Mounting & CSS Stacking Context Isolation
+- **Date**: 2026-11-17 · **Status**: Implemented & Verified
+- **Context**:
+  - When opening the `+ New Episode` modal from the top navigation `SeriesEpisodeBar`, the modal suffered from severe visual collapse: the top header (with the "Create Episode 3" title, channel pill, and close button) was pushed above the top edge of the browser viewport (`y < 0`), leaving only the concept pitch textarea and lower inputs partially visible.
+  - *Root Cause*:
+    - The top navigation bar in `src/components/nav/ProjectWorkflowNav.tsx` uses `<header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b ...">`.
+    - Under the W3C CSS Filters & Blending specification and CSS Transforms Module, applying `backdrop-filter` (here `backdrop-blur-md`) creates a new stacking context and containing block for all descendant elements, including `position: fixed`.
+    - Consequently, `CreateEpisodeModal`'s `fixed inset-0` was trapped inside the 50px-high `<header>` container rather than the browser window viewport. Centering the modal vertically in a 50px box pushed the top 275px off-screen above `y = 0`.
+- **Decision**:
+  1. **Universal React Portal Mounting (`src/components/series/CreateEpisodeModal.tsx`)**:
+     - Wrapped modal rendering in `createPortal(modalContent, document.body)`.
+     - Added client-side `mounted` state guard to guarantee safe SSR hydration in Next.js.
+     - Styled outer backdrop wrapper with `fixed inset-0 z-[9999] overflow-y-auto bg-black/75 backdrop-blur-sm p-4 sm:p-6` and inner container with `min-h-full flex items-center justify-center py-4` and `my-auto` on the card.
+     - Ensured modal expands and scrolls gracefully on all screen heights without any top clipping.
+  2. **Accessibility & QoL Enhancements**:
+     - Added `Escape` key listener to close modal safely.
+     - Implemented document body scroll locking (`overflow = "hidden"`) while modal is active.
+  3. **Dropdown Menu Outside-Click Listener (`src/components/series/SeriesEpisodeBar.tsx`)**:
+     - Replaced internal fixed backdrop overlay with a ref-based `mousedown` outside click listener, preventing secondary containing block issues.
+- **Verification**:
+  - Full TypeScript type check passed with 0 errors (`tsc --noEmit`).
+  - Unit test suite: 64/64 tests passing across 13 test files (`npm test`).
+
+## ADR-029: Complete Input Parity for Episode Creation & Elimination of Hardcoded Defaults
+- **Date**: 2026-11-17 · **Status**: Implemented & Verified
+- **Context**:
+  - Creators think differently for each episode within a channel.
+  - Previous iteration improperly pre-filled hardcoded "Sony Walkman" text and rigid preset chips (`Walkman`, `Rolex`, `AirPods`, `Game Boy`), which took away creator autonomy and assumed the episode content without user intent.
+  - Furthermore, episode creation lacked full configuration parity with standard project creation (`/projects/new`), omitting language selection, runtime customization (20s to 300s + custom seconds), aspect ratio choices, visual style selection, dialogue mode choices, genre, and tone.
+- **Decision**:
+  1. **Clean Slate Principle & Zero Hardcoded Defaults (`src/components/series/CreateEpisodeModal.tsx`)**:
+     - Purged all hardcoded "Sony Walkman", "Rolex", "AirPods", and "Game Boy" strings and preset chips.
+     - Title defaults cleanly to `Episode ${nextEpisodeNumber}` with an intuitive placeholder (`e.g. Episode 3: Your Custom Episode Title`).
+     - Episode Story Idea textarea starts 100% blank (`""`) with a descriptive placeholder for the user's creative vision.
+  2. **Full Input Parity with Project Creation**:
+     - **Story Language**: Dropdown (English, Tamil, Hindi, Telugu, Malayalam, Spanish, French, German, Japanese), defaulting to channel language.
+     - **Film Length / Target Runtime**: Dropdown with presets (20s Viral Rapid ASMR [Bayashi 2X], 30s, 45s, 60s, 90s, 120s, 180s, 300s) + custom second input, defaulting to channel runtime.
+     - **Aspect Ratio / Orientation**: Dropdown (9:16 Portrait / Shorts, 16:9 Landscape, 1:1 Square), defaulting to channel aspect ratio.
+     - **Visual Style**: Full dropdown (Culinary ASMR, Photorealistic Cinematic, Ghibli, 3D Animation, Anime, Documentary, Stop-Motion, Vintage Film, etc.), defaulting to channel style.
+     - **Dialogue Mode**: Dropdown (Pure ASMR Foley, Spoken dialogue, Voice-over, No dialogue), defaulting to channel dialogue mode.
+     - **Genre & Tone**: Dropdowns with comprehensive options, defaulting to channel presets.
+     - **Studio / Workstation Setting**: Text input with clean placeholder for custom kitchen/studio environment.
+  3. **One-Click AI Idea Auto-Detection**:
+     - Integrated `✨ Auto-detect Settings from Idea` button connected to `/api/projects/analyze-idea`.
+     - When the creator types an idea, AI automatically suggests title, runtime, language, style, genre, tone, and orientation, providing an optional assistant workflow.
+  4. **Dynamic API & Scene Pacing (`src/app/api/series/[seriesId]/episodes/route.ts`)**:
+     - Expanded `createEpisodeSchema` to accept and persist all creation fields.
+     - Dynamically computes scene durations (`sceneDuration = Math.max(3, Math.round(targetRuntime / 5))`) and timestamps instead of hardcoding 4s intervals.
+- **Verification**:
+  - Full TypeScript type check passed with 0 errors (`tsc --noEmit`).
+  - Unit test suite: 64/64 tests passing across 13 test files (`npm test`).
+## ADR-031: 60-Second Extended ASMR Masterclass Pacing, Chronological 4-Stage Pipeline, Slender Bicycle Tire Anchors & Craving Cooked Glaze
+- **Date**: 2026-11-17 · **Status**: Implemented & Verified
+- **Context**:
+  - Creator analysis of generated Scene 4 video output (`media_1794917068432_ce81374a.mp4`) revealed two critical defects:
+    1. *Giant Car/Truck Tire Hallucination*: Despite cooking a bicycle, the video generated a giant, fat automobile/truck tire. Root cause: Diffusion models (Google Flow / Veo / Kling) default the word "tire" without explicit bicycle modifiers to automotive tires.
+    2. *Inverted Chronological Process Order (Premature Cooking)*: The video began by showing knife chopping on the cutting board before the tire was even removed from the wheel rim. Root causes:
+       - `prompt-compiler.ts` classified the scene as `CULINARY_CUTTING` due to "knife" and automatically injected a generic override: `Action Dynamics: Rhythmic, precise chopping cadence. Heavy steel blade descends in steady vertical strokes...` and `As the blade cuts through the The... chassis...`, which overrode the tire lever prying beat.
+       - Episodic structure intermingled harvesting and cooking back and forth across scenes rather than harvesting all raw materials first.
+- **Decision**:
+  1. **Strict 4-Stage Chronological Production Pipeline**:
+     - *Stage 1: Complete Raw Sourcing & Harvest (Scenes 1 & 2)*: Extract all raw parts directly from the bicycle (wheel axle unbolt, seatpost saddle extraction, chain tool de-linking, citrus wash). Strictly ZERO knives, zero cooking.
+     - *Stage 2: Culinary Butchery & Preparation (Scenes 3, 4 & 5)*: Prep harvested materials (saddle sponge tofu staccato dicing, slender 28mm bicycle tire lever removal & calamari slicing, spoke snipping & chain glaze panko dredge).
+     - *Stage 3: Colossal Catering Cook (Scene 6)*: Deep-frying in colossal 4-foot Indian wedding catering iron kadai and searing on 3-foot tawa with thick bubbling caramelized molten amber glaze.
+     - *Stage 4: Gourmet Plating & Craving Finale (Scenes 7 & 8)*: Plating with molten amber lava glaze pooling beneath, followed by acoustic cleaver crunch, gooey cheese-pull stretch, and confident thumbs-up.
+  2. **Slender Bicycle Tire Anchoring & Negative Automotive Matrix**:
+     - Explicitly anchored tire geometry: `"slender, narrow 28mm (1.25-inch) vintage road bicycle rubber tire on a thin 28-inch wire-spoked bicycle wheel rim"`.
+     - Added negative tokens across compiler and shots: `car tire, truck tire, automotive tire, tractor tire, motorcycle tire, fat vehicle tire, giant tire, thick car rubber, car wheel, automotive rim`.
+  3. **Sequential Execution Guard & Mass Conservation Cleanup**:
+     - In `prompt-compiler.ts`: When an action description has timecoded beats (`[0:00-0:02] ...`), output `Action Dynamics: Strict chronological execution matching the timecoded beats in exact sequence` instead of generic conflicting chopping text.
+     - Cleaned `heroTargetName` with `.replace(/^(the|a|an)\s+/i, "")`, eliminating `the The` grammatical anomalies.
+     - Classified `tire levers?|tire pry|chain breaker|chain tool|wrench|allen key` under `TOOL_DISASSEMBLY`.
+  4. **Canonical Character Lock (`[@TheShadowAlchemist]`)**:
+     - Replaced all instances of `[@TheShadowAlchemistChef]` with canonical `[@TheShadowAlchemist]`.
+- **Verification**:
+  - Database state verified with `verify_ep3_handles.js`.
+  - `npm test`: 65/65 tests passing across 13 test suites.
+  - `npx tsc --noEmit`: 0 errors.
+
+- **Date**: 2026-11-17 · **Status**: Implemented & Verified
+- **Context**:
+  1. *React Console Key Warning*: During screenplay viewing, React threw: `Encountered two children with the same key, '1'. Keys should be unique so that components maintain their identity across updates`. This occurred in `src/app/projects/[projectId]/story/page.tsx` line 928 where `key={scene.sceneNumber}` collided when multiple scene versions or regenerated drafts shared the same scene index.
+  2. *Next.js Security Insight Alert*: In `next dev`, Next.js 16.4.3 raised a security vulnerability insight recommending upgrading Next.js.
+- **Decision**:
+  1. **Guaranteed Unique Keys (`src/app/projects/[projectId]/story/page.tsx`)**:
+     - Updated all scene iterations (screenplay view, options view, and QC audit breakdown) to use composite keys: `key={scene.id || `scene-${scene.sceneNumber ?? idx}-${idx}`}`.
+     - Added optional `id?: string` to `interface SceneData`.
+  2. **Next.js Safe Release Upgrade**:
+     - Upgraded `next` from `16.4.3` to `16.4.6` in `package.json` and `package-lock.json`.
+     - Resolved the known vulnerability while preserving full Next.js 16 App Router compatibility.
+- **Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm test`: 64/64 tests passing across 13 test suites.
+
 
 
 

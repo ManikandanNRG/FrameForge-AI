@@ -7,7 +7,7 @@ describe("Prompt Doctor & Character Consistency Engine", () => {
       actionDescription: "Chef lowers the tempura Game Boy into boiling oil.",
       shotSize: "Extreme Close-Up",
       cameraMovement: "Static macro push",
-      characterName: "The Shadow Alchemist Chef",
+      characterName: "The Shadow Alchemist",
       characterDescription: "Vintage brass goggles, sleek black mask",
       wardrobeLock: "leather apron, brass goggles",
       visualStyle: "CULINARY_MACRO_ASMR",
@@ -16,11 +16,11 @@ describe("Prompt Doctor & Character Consistency Engine", () => {
     });
 
     // 1. Must contain Google Flow character tag in fluxStillPrompt
-    expect(bundle.fluxStillPrompt).toContain("[@TheShadowAlchemistChef]");
-    expect(bundle.fluxStillPrompt).toContain("(The Shadow Alchemist Chef)");
+    expect(bundle.fluxStillPrompt).toContain("[@TheShadowAlchemist]");
+    expect(bundle.fluxStillPrompt).toContain("(The Shadow Alchemist)");
 
     // 2. Video motion prompt must also maintain the character tag
-    expect(bundle.videoMotionPrompt).toContain("[@TheShadowAlchemistChef]");
+    expect(bundle.videoMotionPrompt).toContain("[@TheShadowAlchemist]");
   });
 
   it("never dumps user issue report or sentence into negative prompt", () => {
@@ -31,7 +31,7 @@ describe("Prompt Doctor & Character Consistency Engine", () => {
     const isCharacterIssue = /character|@|\bname\b|consistency|face|who|actor|person|hero/i.test(lowerIssue);
     expect(isCharacterIssue).toBe(true);
 
-    const characterTag = "[@TheShadowAlchemistChef]";
+    const characterTag = "[@TheShadowAlchemist]";
     let diagnosis = "";
     let correction = "";
     let addedNegative = "";

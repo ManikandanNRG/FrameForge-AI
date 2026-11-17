@@ -384,7 +384,61 @@
   - Unit tests: 53/53 tests passing across 10 test suites (`tests/unit/culinary-asmr.test.ts`).
   - Typecheck: `tsc --noEmit` clean with 0 errors.
 
-### 2026-11-16 — ADR-024: Google Flow Character Anchor Consistency & Prompt Doctor Overhaul
+### 2026-11-17 — ADR-027 to ADR-030: Multi-Episode Series Architecture, Isolated Disk Hierarchy, React Portal Mounting, Full Input Parity & Security Upgrades
+- **Features Implemented & Verified**:
+  1. **Series & Episodic Channel Model (`prisma/schema.prisma`)**:
+     - Created `model Series` linking recurring episodes under unified brand DNA (`visualStyle`, `aspectRatio`, `targetRuntime`, `dialogueMode`, `defaultStudioEnvironment`, `defaultChefWardrobe`).
+     - Seeded `"The Shadow Alchemist — Inedible ASMR"` series (`inedible-tech-asmr`), linking Episode 1 (`cmwg5nczz0001u88sld5gnrmd`) and Episode 2 (`cmwja2y3t0001u8qgfh5w3gtj`).
+  2. **Isolated Disk Hierarchy (`src/lib/media/storage-paths.ts`)**:
+     - Automated filesystem isolation: `media/channels/<slug>/episodes/ep<N>_<shortId>/` with dedicated `shots/<shotId>/images`, `shots/<shotId>/videos`, and `exports/` subfolders.
+  3. **Complete Input Parity with Project Creation (ADR-029)** (`src/components/series/CreateEpisodeModal.tsx`, `src/app/api/series/[seriesId]/episodes/route.ts`):
+     - **Removed all hardcoded gadget assumptions** ("Sony Walkman", "Rolex", "AirPods", "Game Boy") and preset chips.
+     - Form opens with a clean slate: editable `Episode Title`, 100% empty `Episode Story Idea` textarea with descriptive placeholder.
+     - **Full Configuration Suite**:
+       - *Story Language*: English, Tamil, Hindi, Telugu, Malayalam, Spanish, French, German, Japanese.
+       - *Film Length / Target Runtime*: 20s Bayashi, 30s, 45s, 60s, 90s, 120s, 180s, 300s, or Custom second input.
+       - *Aspect Ratio*: 9:16 Shorts, 16:9 Landscape, 1:1 Square.
+       - *Visual Style*: Full style catalog (Culinary ASMR, Photorealistic Cinematic, Ghibli, 3D Animation, Anime, Documentary, etc.).
+       - *Dialogue Mode*: Pure ASMR Foley, Spoken dialogue, Voice-over, No dialogue.
+       - *Genre & Tone*: Complete standard options.
+       - *Studio / Workstation Setting*: Fully customizable workspace setting text input.
+     - **✨ Auto-detect Settings from Idea**: Integrated 1-click AI analysis button that evaluates the creator's idea and suggests matching title, runtime, language, style, and orientation.
+  4. **Universal Studio Series Bar & Episode Switcher (`src/components/series/SeriesEpisodeBar.tsx`)**:
+     - Mounted in `ProjectWorkflowNav.tsx`, enabling fast episode switching and 1-click modal launching from any production screen.
+  5. **Modal Collapse Bug Fix via React Portal (ADR-028)** (`src/components/series/CreateEpisodeModal.tsx`):
+     - Portaled modal directly to `document.body` via `createPortal`, eliminating CSS `backdrop-filter` containing block traps. Added SSR hydration guard, `z-[9999]` backdrop, `Escape` key listener, and document body scroll locking.
+  6. **React Duplicate Key Fix & Next.js Security Upgrade (ADR-030)** (`src/app/projects/[projectId]/story/page.tsx`, `package.json`):
+     - Eliminated React duplicate key collisions on `scene.sceneNumber` by implementing composite unique keys (`key={scene.id || `scene-${scene.sceneNumber ?? idx}-${idx}`}`).
+     - Upgraded Next.js from `16.4.3` to `16.4.6`, patching the security vulnerability reported by Next.js DevTools.
+- **Verification**:
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+  - `npm test` (`vitest run`): 64/64 tests passing across 13 test suites.
+
+### 2026-11-17 — ADR-031: 60-Second Extended ASMR Masterclass Pacing, Chronological 4-Stage Pipeline, Slender Bicycle Tire Anchors & Craving Cooked Glaze
+- **Target Project**: Episode 3 (`cmwk9xl1n0001u8q004v0ob0z`, *"The Vintage Bicycle Gourmet Feast (ASMR)"*) in series `inedible-tech-asmr`.
+- **User Request & Defect Diagnosis**:
+  1. *Giant Automotive Tire Hallucination in Scene 4*: Video generated a giant truck/car tire rather than a bicycle tire due to missing bicycle dimension grounding.
+  2. *Inverted Process Order & Premature Cooking*: The video started with knife chopping on the cutting board before the tire was even removed, because `prompt-compiler.ts` injected a generic chopping cadence override on `CULINARY_CUTTING`.
+  3. *Eliminate Bouncing Between Bike and Board*: Enforce strict chronological order where all raw materials are extracted first, followed by culinary prep.
+- **Features Implemented & Verified**:
+  1. **Strict 4-Stage Chronological Production Pipeline**:
+     - *Stage 1: Complete Raw Sourcing & Harvest (Scenes 1-2)*: Wheel unbolt, saddle seatpost pull, chain de-linking, citrus wash. Zero cooking, zero knives.
+     - *Stage 2: Culinary Butchery & Preparation (Scenes 3-5)*: Sponge tofu staccato dicing, slender 28mm bicycle tire lever removal & calamari slicing, spoke snips & chain panko dredge.
+     - *Stage 3: Colossal Catering Cook (Scene 6)*: Deep-frying in colossal 4-foot Indian wedding catering iron kadai and searing on 3-foot tawa with thick bubbling caramelized molten amber glaze.
+     - *Stage 4: Gourmet Plating & Craving Finale (Scenes 7-8)*: Plating with molten amber lava glaze pooling beneath, followed by acoustic cleaver crunch, gooey cheese-pull stretch, and confident thumbs-up.
+  2. **Slender Bicycle Tire Anchoring & Negative Automotive Matrix**:
+     - Explicitly anchored tire geometry: `"slender, narrow 28mm (1.25-inch) vintage road bicycle rubber tire on a thin 28-inch wire-spoked bicycle wheel rim"`.
+     - Injected negative tokens: `car tire, truck tire, automotive tire, tractor tire, motorcycle tire, fat vehicle tire, giant tire, thick car rubber, car wheel, automotive rim`.
+  3. **Sequential Execution Guard & Mass Conservation Cleanup (`src/lib/story/prompt-compiler.ts`)**:
+     - Enforces timecoded beat order when `[0:00-0:02]` is present without conflicting chopping cadence overrides.
+     - Stripped leading "the" to eliminate `the The` in mass conservation text.
+  4. **Canonical Handle Enforcement (`[@TheShadowAlchemist]`)**:
+     - Verified all 8 shots, database assets, and thumbnail artifacts use `[@TheShadowAlchemist]`.
+- **Verification**:
+  - `verify_ep3_handles.js`: Verified all 8 shots and thumbnail use `[@TheShadowAlchemist]` with 0 rogue suffixes.
+  - `npm test`: 65/65 tests passing across 13 test suites.
+  - `npx tsc --noEmit`: 0 errors.
+
 - **Defects Addressed**:
   1. `fluxStillPrompt` omitted the `@` character handle in Stage 1 Still Prompts (`Subject: The Shadow Alchemist Chef` instead of `Subject: [@TheShadowAlchemistChef] (The Shadow Alchemist Chef)`), breaking Google Flow character profile binding.
   2. The Prompt Doctor endpoint (`fix-issue/route.ts`) dumbly dumped creator issue descriptions into `--negative "<user sentence>"` and inverted tab persistence by saving still fixes into `videoPrompt` while leaving `imagePrompt` unmodified.

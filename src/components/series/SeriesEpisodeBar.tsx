@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -26,9 +26,12 @@ interface SeriesData {
   title: string;
   slug: string;
   visualStyle: string;
+  genre?: string | null;
+  tone?: string | null;
   aspectRatio: string;
   targetRuntime: number;
   dialogueMode: string;
+  storyLanguage?: string | null;
   defaultStudioEnvironment?: string | null;
   defaultChefWardrobe?: string | null;
   episodes: EpisodeItem[];
@@ -48,6 +51,7 @@ export function SeriesEpisodeBar({
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Extract active subpath so switching episodes keeps user on same step (e.g. /story, /storyboard, /launch)
   const subpath = pathname?.replace(`/projects/${currentProjectId}`, "") || "";
@@ -59,11 +63,29 @@ export function SeriesEpisodeBar({
   );
   const nextEpNum = latestEpNum + 1;
 
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
   return (
     <>
       <div className="flex items-center gap-2">
         {/* Series & Episode Dropdown Button */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -81,70 +103,68 @@ export function SeriesEpisodeBar({
               {currentEpisodeNumber ? `Ep ${currentEpisodeNumber}` : "Episode"}
             </span>
 
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+            <ChevronDown
+              className={`h-3.5 w-3.5 text-slate-400 transition-transform ${
+                isDropdownOpen ? "rotate-180" : ""
+              }`}
+            />
           </button>
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setIsDropdownOpen(false)}
-              />
-              <div className="absolute left-0 mt-1.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-3.5 py-2 border-b border-slate-100">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Channel Episodes ({episodes.length})
-                  </div>
-                  <div className="text-xs font-bold text-slate-800 truncate">
-                    {series.title}
-                  </div>
+            <div className="absolute left-0 mt-1.5 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-900">
+              <div className="px-3.5 py-2 border-b border-slate-100">
+                <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  Channel Episodes ({episodes.length})
                 </div>
-
-                <div className="max-h-56 overflow-y-auto py-1">
-                  {episodes.map((ep) => {
-                    const isCurrent = ep.id === currentProjectId;
-                    return (
-                      <Link
-                        key={ep.id}
-                        href={`/projects/${ep.id}${subpath}`}
-                        onClick={() => setIsDropdownOpen(false)}
-                        className={`flex items-center justify-between px-3.5 py-2 text-xs transition ${
-                          isCurrent
-                            ? "bg-amber-50 text-amber-900 font-bold"
-                            : "text-slate-700 hover:bg-slate-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate pr-2">
-                          <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold shrink-0">
-                            Ep {ep.episodeNumber ?? 1}
-                          </span>
-                          <span className="truncate">{ep.title}</span>
-                        </div>
-                        {isCurrent && (
-                          <Check className="h-4 w-4 text-amber-600 shrink-0" />
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-
-                {/* + New Episode Button in Dropdown */}
-                <div className="p-2 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsDropdownOpen(false);
-                      setIsModalOpen(true);
-                    }}
-                    className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs"
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    <span>Create Episode {nextEpNum}</span>
-                  </button>
+                <div className="text-xs font-bold text-slate-800 truncate">
+                  {series.title}
                 </div>
               </div>
-            </>
+
+              <div className="max-h-56 overflow-y-auto py-1">
+                {episodes.map((ep) => {
+                  const isCurrent = ep.id === currentProjectId;
+                  return (
+                    <Link
+                      key={ep.id}
+                      href={`/projects/${ep.id}${subpath}`}
+                      onClick={() => setIsDropdownOpen(false)}
+                      className={`flex items-center justify-between px-3.5 py-2 text-xs transition ${
+                        isCurrent
+                          ? "bg-amber-50 text-amber-900 font-bold"
+                          : "text-slate-700 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold shrink-0">
+                          Ep {ep.episodeNumber ?? 1}
+                        </span>
+                        <span className="truncate">{ep.title}</span>
+                      </div>
+                      {isCurrent && (
+                        <Check className="h-4 w-4 text-amber-600 shrink-0" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* + New Episode Button in Dropdown */}
+              <div className="p-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    setIsModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold transition shadow-xs"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Create Episode {nextEpNum}</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
 
@@ -160,7 +180,7 @@ export function SeriesEpisodeBar({
         </button>
       </div>
 
-      {/* 1-Click Create Episode Modal */}
+      {/* 1-Click Create Episode Modal (Rendered safely via React Portal) */}
       <CreateEpisodeModal
         series={series}
         isOpen={isModalOpen}

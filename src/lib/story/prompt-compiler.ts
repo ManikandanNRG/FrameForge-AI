@@ -98,8 +98,8 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
     return "OBJECT_SOURCING";
   }
 
-  // 6. Tool Disassembly / Harvest (Keycap puller, switch extractor, screwdriver, pliers, popping keys)
-  if (/\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch)\b/i.test(lower) &&
+  // 6. Tool Disassembly / Harvest (Keycap puller, switch extractor, screwdriver, pliers, popping keys, tire levers, chain tool)
+  if (/\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain)\b/i.test(lower) &&
       !/\b(cleaver|chef knife|chop(?:s|ping)?|dicing)\b/i.test(lower)) {
     return "TOOL_DISASSEMBLY";
   }
@@ -168,7 +168,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     Boolean(heroPropLock) ||
     /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|watch|watches?|clock|sneakers?|shoes?|violin|guitar|camera|light bulb|marbles?|crystal)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""));
 
-  const heroTargetName = heroObject || entities.inedibleHeroObject || "Hero Object";
+  const heroTargetName = (heroObject || entities.inedibleHeroObject || "Hero Object").replace(/^(the|a|an)\s+/i, "");
 
   const isCulinaryGenreOrIdea =
     isInedibleCooking ||
@@ -346,7 +346,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   );
 
   // 4. Character Tagging and Wardrobe Lock
-  const charName = characterName || "Character";
+  const rawCharName = characterName || "Character";
+  const charName = /Shadow\s*Alchemist/i.test(rawCharName) ? "The Shadow Alchemist" : rawCharName;
   const bracketedCharTag = `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]`;
 
   let taggedAction = rawAction;
@@ -638,6 +639,23 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "beige DMG-01 brick",
         "grey handheld housing",
         "retro 1989 DMG"
+      );
+    }
+
+    const isBicycleTarget = /bicycl|bycycl|cycle|bike|tire|chain|pedal|spoke/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isBicycleTarget) {
+      negativeList.push(
+        "car tire",
+        "truck tire",
+        "automotive tire",
+        "tractor tire",
+        "motorcycle tire",
+        "fat vehicle tire",
+        "giant automotive tire",
+        "thick car rubber",
+        "car wheel",
+        "automotive rim",
+        "semi truck wheel"
       );
     }
   }
@@ -1080,6 +1098,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Camera Movement: ${naturalCameraMotion}.`,
     isPureAsmr
       ? (() => {
+          if (/\[0:\d\d-\d:\d\d\]/i.test(actionCleaned)) {
+            return `Action Dynamics: Strict chronological execution matching the timecoded beats in exact sequence. Perform each action strictly at its specified timestamp without jumping forward or backward in process order.`;
+          }
           switch (station) {
             case "OBJECT_SOURCING":
               return `Action Dynamics: Focused retrieval motion. Both hands reach upward and firmly grip the intact ${heroTargetName} on the industrial shelving rack. Coiled cable disconnects cleanly with sudden tension release. The chef secures and displays the fully assembled, intact object to the camera. Hands only.`;
@@ -1122,7 +1143,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             case "MANUAL_FRACTURE":
               return `Prop Integrity: Clean mechanical fracture. Both fractured halves remain visibly accounted for on the wooden surface after the break.`;
             case "CULINARY_CUTTING":
-              return `Kinematic Invariant: Max two hands in frame. Conservation of Mass & Rigid Body Persistence: As the blade cuts through the ${heroTargetName}, the uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade.`;
+              const cutTarget = /tire|calamari/i.test(actionLower) ? "slender bicycle tire" : heroTargetName;
+              return `Kinematic Invariant: Max two hands in frame. Conservation of Mass & Rigid Body Persistence: As the blade cuts through the ${cutTarget}, the uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade.`;
             case "LIQUID_MARINADE":
               return `Prop Integrity: Components of ${heroTargetName} inside bowl glisten with glossy glaze. Bowl remains stationary on workbench.`;
             case "STOVE_COOK":

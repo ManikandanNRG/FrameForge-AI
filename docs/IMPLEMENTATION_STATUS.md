@@ -480,5 +480,30 @@
   6. **Unit Test Suite (`tests/unit/object-handling.test.ts`)**:
      - 9 comprehensive unit tests locking in dimensional scale grounding, negative token compilation, stop-word prevention, station precedence, and 4-stage pipeline generation.
 - **Verification**:
-  - `npm test`: 74/74 tests passing across 14 test suites.
+  - `npm test`: 75/75 tests passing across 14 test suites.
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+
+### Episode 4: Bulk Vintage Nokia Phones — Village Feast ASMR & Progressive Culinary Merge (2026-11-18)
+- **Delivered**:
+  1. **Bulk Inedible Component Architecture (`BULK_NOKIA_PHONES`)**:
+     - Modeled 15x vintage Nokia 3310/1100 phones in `OBJECT_COMPONENT_REGISTRY` with 6 distinct harvested ingredients: Motherboard PCBs, Silicone Keypads, Ribbon Cables, Micro-Screws/Resistors, LCD Glass Panels, and Snap-on Polycarbonate Shells.
+     - Added specialized machinery: Heavy-duty Indian kitchen mixie / mixer-grinder, mechanical crunch press, oversized street dosa tawa, smoking brass tadka ladle, and brass handi reduction pot.
+  2. **Progressive Culinary Fusion Engine (`src/lib/story/inedible-pipeline.ts`)**:
+     - Resolved the prompt-leakage and unmerged-dish bug identified from image `media_1794981561967_b5cc254f.jpg` where Scene 6 and Scene 7 showed disjointed components and conflicting cutting boards.
+     - Enforces rigorous progressive culinary integration:
+       - **Scene 4**: Copper ribbon noodles & keypad paneer cubes sear together on scorching tawa in foaming butter (*CLANG-CLACK*).
+       - **Scene 5**: Crushed screw tadka splutters in mustard oil and pours over tawa (*TCHRRRRRR*) + heaping emerald PCB mixie powder is tossed in to coat everything in fragrant steam.
+       - **Scene 6**: Luminous LCD chutney reduction from brass handi is poured directly onto the entire tawa mixture (*SSSSSSHHHH*), folding all 5 harvested ingredients into ONE unified glistening street dish with gooey caramelized sauce strands.
+       - **Scene 7**: Dual spatulas slide the hot, fully merged tawa dish directly onto a colossal Indian brass thali lined with banana leaves (*SHHHH-SLIDE*); strictly purged all Western cutting boards and bread wraps.
+       - **Scene 8**: Hero banana-leaf bite pull showing caramelized glaze stretch across noodles and paneer cubes, tilting up to `[@TheShadowAlchemist]` thumbs-up.
+  3. **Launch Kit Updates (`src/lib/story/launch-kit.ts`)**:
+     - Custom high-CTR titles, hashtags, description with safety disclaimers, and ingredient breakdowns tailored for Indian street-food ASMR audiences.
+  4. **High-Speed Robotic Motion Control Camera Engine (`resolveLinearRoboticCameraMotion`)**:
+     - Codified Law 9 in `UNIVERSAL_PHYSICAL_LAWS`: `ROBOTIC_LINEAR_CAMERA_KINEMATICS`.
+     - Injects high-speed robotic motion control arm (Bolt rig / motorized linear slider) trajectories across all culinary scenes, enforcing strictly linear, constant-velocity push-ins, slides, and vertical pedestal tilts.
+     - Automatically bans handheld camera float, breathing sway, and amateur cooking video shoots in universal negative prompts.
+  5. **Database Resynchronization**:
+     - Resynchronized Episode 4 project (`cmwlnv4l50001u8vkzzncj5im`) in PostgreSQL with all 8 updated scenes, shots, and version 2 story artifacts.
+- **Verification**:
+  - `npm test`: 77/77 unit tests passing across 14 test suites.
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.

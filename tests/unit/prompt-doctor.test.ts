@@ -103,4 +103,64 @@ describe("Prompt Doctor & Character Consistency Engine", () => {
     expect(bundle.universalNegativePrompt).toContain("face morphing");
     expect(bundle.universalNegativePrompt).toContain("circular respirator filters");
   });
+
+  it("enforces global Progressive Culinary Fusion and bans cutting boards and unmerged piles during PLATING_SERVE", () => {
+    const bundle = compileCinematicPrompt({
+      actionDescription:
+        "[0:45-0:50] Black-gloved hands slide the piping-hot, fully merged tawa dish directly onto a colossal traditional brass thali lined with banana leaves.",
+      shotSize: "Top-Down Flat Lay",
+      cameraMovement: "Rapid Dynamic Macro Pan",
+      characterName: "The Shadow Alchemist",
+      characterDescription: "Artisan alchemist in brass goggles and tactical mask",
+      wardrobeLock: "leather apron, black gloves",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      heroObject: "Mechanical Keyboard",
+      targetDurationSeconds: 5,
+      sourceIdea: "cooking a mechanical keyboard stir fry",
+    });
+
+    // 1. Station classification must be PLATING_SERVE
+    expect(bundle.culinaryStation).toBe("PLATING_SERVE");
+
+    // 2. Google Flow Prompt must contain the global PROGRESSIVE_CULINARY_FUSION invariant
+    expect(bundle.googleFlowPrompt).toContain("Progressive Culinary Fusion & Merged Form");
+    expect(bundle.googleFlowPrompt).toContain("strictly NOT separate raw untouched piles sitting side by side");
+
+    // 3. Negative prompt must ban cutting boards, slicing, wraps, and unmerged piles during plating
+    expect(bundle.universalNegativePrompt).toContain("cutting board");
+    expect(bundle.universalNegativePrompt).toContain("cleaver slicing");
+    expect(bundle.universalNegativePrompt).toContain("raw untouched piles");
+    expect(bundle.universalNegativePrompt).toContain("separate unmerged ingredients");
+  });
+
+  it("enforces global robotic linear camera kinematics and bans traditional handheld cooking video shoots", () => {
+    const bundle = compileCinematicPrompt({
+      actionDescription:
+        "[0:23-0:28] Chef tosses copper ribbon noodles and silicone keypad cubes on the scorching street tawa.",
+      shotSize: "Macro Close-Up 45-Degree",
+      cameraMovement: "Dynamic Macro Glide",
+      characterName: "The Shadow Alchemist",
+      characterDescription: "Artisan alchemist in brass goggles and tactical mask",
+      wardrobeLock: "leather apron, black gloves",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      heroObject: "Bulk Vintage Nokia Phones",
+      targetDurationSeconds: 5,
+      sourceIdea: "cooking vintage nokia phones",
+    });
+
+    // 1. Camera Movement must be resolved with robotic motion control linear precision
+    expect(bundle.googleFlowPrompt).toContain("Motorized linear slider high-speed constant-velocity tracking glide");
+    expect(bundle.googleFlowPrompt).toContain("zero organic float");
+
+    // 2. Google Flow master prompt must inject the ROBOTIC_LINEAR_CAMERA_KINEMATICS law
+    expect(bundle.googleFlowPrompt).toContain("Robotic Motion Control Camera Kinematics");
+    expect(bundle.googleFlowPrompt).toContain("Bolt cinema arm / motorized linear rail slider");
+
+    // 3. Negative prompt must explicitly ban traditional handheld video camera artifacts
+    expect(bundle.universalNegativePrompt).toContain("handheld camera");
+    expect(bundle.universalNegativePrompt).toContain("handheld camera shake");
+    expect(bundle.universalNegativePrompt).toContain("organic camera float");
+    expect(bundle.universalNegativePrompt).toContain("traditional cooking video shoot");
+    expect(bundle.universalNegativePrompt).toContain("amateur cooking video");
+  });
 });

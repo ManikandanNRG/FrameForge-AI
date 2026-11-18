@@ -220,27 +220,28 @@ describe("Universal 4-Stage Inedible Craft-Culinary Pipeline Generator", () => {
     expect(result.scenes[2].action).toContain("heavy cast-iron mechanical crunch press");
 
     // Scene 4: Street dosa tawa sauté
-    expect(result.scenes[3].heading).toContain("SCORCHING STREET DOSA TAWA COPPER NOODLE SAUTÉ");
+    expect(result.scenes[3].heading).toContain("SCORCHING STREET DOSA TAWA SAUTÉ & PANEER SEAR");
     expect(result.scenes[3].action).toContain("street dosa tawa");
-    expect(result.scenes[3].action).toContain("copper ribbon noodles");
+    expect(result.scenes[3].action).toContain("copper ribbon cables");
+    expect(result.scenes[3].action).toContain("keypad paneer cubes");
 
-    // Scene 5: Smoking brass ladle tadka splutter
-    expect(result.scenes[4].heading).toContain("SMOKING BRASS LADLE TADKA SPLUTTER");
-    expect(result.scenes[4].action).toContain("smoking mustard oil");
-    expect(result.scenes[4].action).toContain("pop violently like mustard seeds");
+    // Scene 5: Smoking brass ladle tadka splutter & emerald masala merge
+    expect(result.scenes[4].heading).toContain("SMOKING BRASS TADKA SPLUTTER & EMERALD PCB MASALA MERGE");
+    expect(result.scenes[4].action).toContain("smoking brass tadka ladle");
+    expect(result.scenes[4].action).toContain("emerald-green PCB mixie powder");
 
-    // Scene 6: Brass handi pot LCD chutney reduction
-    expect(result.scenes[5].heading).toContain("BRASS HANDI POT LUMINOUS LCD CHUTNEY REDUCTION");
-    expect(result.scenes[5].action).toContain("traditional heavy brass handi pot");
-    expect(result.scenes[5].action).toContain("neon-cyan and amber reduction glaze");
+    // Scene 6: Brass handi pot LCD chutney pour & complete tawa merge
+    expect(result.scenes[5].heading).toContain("BRASS HANDI LCD CHUTNEY POUR & COMPLETE TAWA MERGE");
+    expect(result.scenes[5].action).toContain("brass handi pot");
+    expect(result.scenes[5].action).toContain("pours the thick, bubbling luminous neon-cyan glaze directly over the entire sizzling mixture");
 
-    // Scene 7: Banana-leaf brass thali banquet assembly
-    expect(result.scenes[6].heading).toContain("BANANA-LEAF BRASS THALI VILLAGE FEAST ASSEMBLY");
+    // Scene 7: Banana-leaf brass thali direct tawa plating
+    expect(result.scenes[6].heading).toContain("BANANA-LEAF BRASS THALI VILLAGE FEAST PLATING");
     expect(result.scenes[6].action).toContain("traditional Indian brass thali lined with fresh green banana leaves");
-    expect(result.scenes[6].action).toContain("PCB mixie powder");
+    expect(result.scenes[6].action).toContain("slide it in one continuous theatrical motion directly onto a colossal traditional Indian brass thali");
 
-    // Scene 8: Hero chutney dip, stretch, and chef thumbs-up
-    expect(result.scenes[7].heading).toContain("LUMINOUS CHUTNEY DIP, CARAMELIZED STRETCH & CHEF THUMBS-UP");
+    // Scene 8: Hero chutney feast bite pull, stretch, and chef thumbs-up
+    expect(result.scenes[7].heading).toContain("BANANA-LEAF FEAST BITE PULL, CARAMELIZED STRETCH & CHEF THUMBS-UP");
     expect(result.scenes[7].action).toContain("[@TheShadowAlchemist]");
     expect(result.scenes[7].action).toContain("thumbs-up");
 

@@ -74,8 +74,8 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
     return "HERO_REACTION";
   }
 
-  // 2. Plating / Serving station (Final touch, tweezers, garnish)
-  if (/\b(plate|plating|garnish|serving|platter|dining table|thali|banana[- ]leaf|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(lower) &&
+  // 2. Plating / Serving station (Final touch, tweezers, garnish, plate, thali, bowl)
+  if (/\b(plate|plating|garnish|serving|platter|banquet|dining table|thali|banana[- ]leaf|coupe plate|bowl|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(lower) &&
       !/\b(chopping|cleaver|dicing|toss(?:ing)?|skillet|wok)\b/i.test(lower)) {
     return "PLATING_SERVE";
   }
@@ -135,6 +135,46 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
 
   // 10. Default: Cutting board / prep station
   return "BOARD_PREP";
+}
+
+/**
+ * Resolves high-speed linear robotic motion control camera kinematics for culinary/inedible ASMR.
+ * Converts traditional handheld or generic movement into Bolt cinema rig / motorized rail linear trajectories.
+ */
+export function resolveLinearRoboticCameraMotion(rawMovement?: string | null, isCulinary?: boolean): string {
+  if (!isCulinary) {
+    if (rawMovement && rawMovement !== "Static" && !rawMovement.includes("[PRODUCTION SPECS]")) {
+      return rawMovement;
+    }
+    return "Subtle cinematic handheld camera motion at 24fps with natural organic float";
+  }
+
+  const raw = (rawMovement || "").trim();
+  const lower = raw.toLowerCase();
+
+  if (lower.includes("snap") || lower.includes("drop")) {
+    return "High-speed robotic motion control arm (Bolt rig) rapid vertical drop and linear snap-lock, perfectly steady mechanical stop, zero handheld wobble";
+  }
+  if (lower.includes("orbit") || lower.includes("360")) {
+    return "Robotic motion control arm 360-degree linear motorized circular orbit on precision steel rail, perfectly constant angular velocity, mechanically locked framing";
+  }
+  if (lower.includes("flat lay") || lower.includes("top-down") || lower.includes("overhead")) {
+    return "Motorized overhead 90-degree linear rig, mechanically locked top-down flat lay, rock-solid constant velocity linear framing, zero organic sway";
+  }
+  if (lower.includes("oil surface") || lower.includes("low angle") || lower.includes("surface push")) {
+    return "High-speed robotic probe lens linear surface push at 60fps, razor-sharp mechanical track stabilization across sizzling surface, zero handheld shake";
+  }
+  if (lower.includes("pan") || lower.includes("slide") || lower.includes("glide") || lower.includes("track")) {
+    return "Motorized linear slider high-speed constant-velocity tracking glide, perfectly linear horizontal move on precision motion rail, zero organic float";
+  }
+  if (lower.includes("tilt") || lower.includes("pull")) {
+    return "Motorized linear pedestal pull-back and smooth robotic vertical tilt up on motion control arm, perfectly linear mechanical trajectory, zero handheld wobble";
+  }
+  if (raw && raw !== "Static" && !raw.includes("[PRODUCTION SPECS]")) {
+    return `High-speed precision robotic motion control camera (Bolt rig / motorized linear slider) executing ${raw}, strictly linear mechanical trajectory, zero handheld float`;
+  }
+
+  return "High-speed precision robotic motion control arm (Bolt rig / motorized linear rail slider), perfectly linear push-in glide, constant-velocity mechanical probe lens movement at 60fps, zero handheld shake";
 }
 
 export function compileCinematicPrompt(options: CompilePromptOptions): CompiledPromptBundle {
@@ -239,10 +279,10 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   let dynamicPeriodDirective = "";
 
   if (isInedibleCooking) {
-    dynamicStyleDirective = `Ultra-high-definition macro craft-culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening translucent culinary glaze, authentic physical textures of ${heroTargetName}, warm industrial directional spotlight, 60fps high-speed fluid and spark physics`;
+    dynamicStyleDirective = `Ultra-high-definition macro craft-culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening translucent culinary glaze, authentic physical textures of ${heroTargetName}, warm industrial directional spotlight, 60fps high-speed fluid and spark physics, high-speed robotic motion control cinematography (Bolt cinema arm / motorized linear rail slider), strictly linear constant-velocity tracking and probe push-ins, zero handheld camera shake`;
     dynamicPeriodDirective = `- Inedible Craft-Culinary Continuity: Maintain 100% physical material integrity of ${heroTargetName}. Components must retain their authentic material shape, contours, labels, and textures; strictly PROHIBIT dissolving into generic cubes or dice. Plated dish must be composed 80% of authentic components of ${heroTargetName}, strictly not disguised as wheat noodles or grocery food.${heroPropLock ? ` Locked Prop DNA: ${heroPropLock}.` : ""}`;
   } else if (isCulinary) {
-    dynamicStyleDirective = "Ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening natural oils, crisp fresh ingredient textures, natural warm kitchen directional lighting, 60fps high-speed fluid and rising steam physics";
+    dynamicStyleDirective = "Ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening natural oils, crisp fresh ingredient textures, natural warm kitchen directional lighting, 60fps high-speed fluid and rising steam physics, high-speed robotic linear slider camera movement, zero handheld camera shake";
     dynamicPeriodDirective = "- Master Workstation Continuity: Maintain exact same kitchen countertop material, wooden cutting board grain, and cookware style across every shot. Consistent warm kitchen background with soft creamy background bokeh.";
   } else if (isVintage) {
     dynamicStyleDirective = "Authentic 1900s vintage 35mm archival film aesthetic, natural cellulose film grain, soft warm sepia and muted earth-tone palette, period-accurate historical lighting, gentle optical lens bloom, organic 24fps motion blur";
@@ -379,11 +419,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   }
   taggedAction = sanitizeOnScreenText(taggedAction);
 
-  // 5. Camera Movement Resolution
-  let cameraMotion = "Subtle cinematic handheld camera motion at 24fps with natural organic float";
-  if (cameraMovement && cameraMovement !== "Static" && !cameraMovement.includes("[PRODUCTION SPECS]")) {
-    cameraMotion = cameraMovement;
-  }
+  // 5. Camera Movement Resolution (Linear Robotic Motion Control for Culinary/Inedible)
+  let cameraMotion = resolveLinearRoboticCameraMotion(cameraMovement, isInedibleCooking || isCulinary);
   const naturalCameraMotion = cameraMotion
     .replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1")
     .replace(/@([A-Za-z0-9_-]+)/g, "$1")
@@ -456,7 +493,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     "mismatched limbs",
   );
 
-  // Culinary negatives to prevent phantom limbs, floating utensils, or morphing food
+  // Culinary negatives to prevent phantom limbs, floating utensils, morphing food, or amateur handheld camera motion
   if (isCulinary) {
     negativeList.push(
       "phantom hand",
@@ -473,7 +510,21 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "extra fingers",
       "deformed hands",
       "unnatural slicing",
-      "disappearing food"
+      "disappearing food",
+      "handheld camera",
+      "handheld camera shake",
+      "organic camera float",
+      "organic sway",
+      "breathing camera wobble",
+      "traditional cooking video shoot",
+      "amateur cooking video",
+      "shaky cam",
+      "casual handheld camera",
+      "unsteady camera operator",
+      "camera drift",
+      "non-linear camera jitter",
+      "accidental camera bump",
+      "tilting wobble"
     );
 
     const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
@@ -568,9 +619,42 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "food"
       );
     } else if (station === "STOVE_COOK") {
-      negativeList.push("cutting board", "wooden chopping board", "chopping knife", "slicing raw meat", "raw ingredient prep", "knife in hand", "cutting knife", "walking away from stove");
+      negativeList.push(
+        "cutting board",
+        "wooden chopping board",
+        "chopping knife",
+        "cleaver",
+        "slicing raw meat",
+        "raw ingredient prep",
+        "knife in hand",
+        "cutting knife",
+        "walking away from stove",
+        "untouched separate ingredients",
+        "unmixed raw piles",
+        "ingredients not mixing",
+        "cutting in background"
+      );
     } else if (station === "PLATING_SERVE") {
-      negativeList.push("stove", "open flame", "frying pan", "sizzling skillet", "raw meat", "chopping knife");
+      negativeList.push(
+        "stove",
+        "open flame",
+        "frying pan",
+        "sizzling skillet",
+        "raw meat",
+        "chopping knife",
+        "cleaver",
+        "cleaver slicing",
+        "cutting board",
+        "wooden chopping board",
+        "chopping on board",
+        "knife slicing",
+        "cutting in background",
+        "bread wrap",
+        "burrito wrap",
+        "raw untouched piles",
+        "separate unmerged ingredients",
+        "unmixed raw piles"
+      );
     } else if (station === "HERO_REACTION") {
       negativeList.push("chopping knife", "cleaver", "chopping", "slicing", "stove", "open flame", "raw meat", "food");
     } else if (station === "COUNTER_REVEAL") {
@@ -787,7 +871,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   if (isInedibleCooking) {
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.getInedibleObjectPhysics(heroTargetName)}`);
-    flowRules.push(`- Inedible Prop & Food Negative Directives: Strictly NO on-screen text, NO subtitles, NO captions, NO burned-in watermarks. Strictly NO real grocery food, NO pork bacon, NO raw or diced tomatoes, NO onions, NO dairy cheese slices, NO edible fast food. All elements must maintain authentic inedible hardware physics.`);
+    flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.PROGRESSIVE_CULINARY_FUSION}`);
+    flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.ROBOTIC_LINEAR_CAMERA_KINEMATICS}`);
+    flowRules.push(`- Inedible Prop & Food Negative Directives: Strictly NO on-screen text, NO subtitles, NO captions, NO burned-in watermarks. Strictly NO real grocery food, NO pork bacon, NO raw or diced tomatoes, NO onions, NO dairy cheese slices, NO edible fast food, NO separate unmerged raw piles. All elements must maintain authentic inedible hardware physics.`);
     const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isGameBoyTarget) {
       flowRules.push(`- Console Prop DNA Invariant: Authentic Translucent Purple Game Boy Color (atomic purple translucent chassis clearly exposing green PCB circuitry, magenta A/B buttons); strictly PROHIBIT 1989 classic grey/beige Game Boy DMG-01 housing, strictly NO thick rectangular beige brick.`);
@@ -807,6 +893,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     }
   } else if (isCulinary) {
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.CULINARY_ASMR_PHYSICS}`);
+    flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.PROGRESSIVE_CULINARY_FUSION}`);
+    flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.ROBOTIC_LINEAR_CAMERA_KINEMATICS}`);
     if (targetDurationSeconds && targetDurationSeconds <= 5) {
       flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.VIRAL_RAPID_ASMR_PACING}`);
     }
@@ -891,7 +979,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Vehicular Invariant: Draft animals must be hitched strictly and exclusively to the front yoke facing forward; no animals at the rear.`
       : null,
     isCulinary
-      ? `Culinary Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; no morphing ingredients or floating knives.`
+      ? `Culinary Invariant: Max two hands in frame (knife grip + claw grip); cutting board and pans firmly grounded; progressive culinary fusion (ingredients blend into one unified dish, no raw untouched piles); no morphing ingredients or floating knives.`
       : null,
     klingAesthetics,
     `--ar ${arParam} ${klingModeFlag} --negative "${universalNegativePrompt}"`,

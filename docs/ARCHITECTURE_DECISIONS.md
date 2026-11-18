@@ -626,6 +626,51 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Created and compiled Episode 4 project (`cmwlnv4l50001u8vkzzncj5im`) in PostgreSQL with all 8 scenes, compiled shots, and 5 story artifacts (`LOGLINE`, `PREMISE`, `SYNOPSIS`, `SCREENPLAY`, `YOUTUBE_THUMBNAIL`).
      - Added test suite in `tests/unit/object-handling.test.ts`. Full test suite: 75/75 tests passing across 14 test suites (`npm test`), 0 TypeScript errors (`npm run typecheck`).
 
+## ADR-034: Progressive Culinary Fusion & Global Station Invariant Across All Episodes
+- **Date**: 2026-11-18 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator discovered visual inconsistencies in Scene 5, 6, and 7 where harvested ingredients were rendered as separate, untouched raw piles on the serving thali, while the liquid chutney simmered untouched in a side pot. Furthermore, the model rendered a conflicting chef cutting a wrap on a wooden board behind the brass thali due to prompt contamination.
+  - The creator requested a root-level architectural fix: *"is this fixed globally or only for this episode? the cooking is the process of combine all ingredients in different form and merge it to new form... but here it is not happen like that... so this become untouched... so please check in-depth and fix it"*.
+- **Decision**:
+  1. **Global Physical Law: Progressive Culinary Fusion (`PROGRESSIVE_CULINARY_FUSION` in `world-engine.ts`)**:
+     - Codified Law 8 in `UNIVERSAL_PHYSICAL_LAWS`:
+       *"Progressive Culinary Fusion & Merged Form: Cooking is the transformative process of combining distinct harvested ingredients into ONE unified, cooked creation. In cooking stages (sauté, wok toss, deep fry, boil, simmer, tawa, kadai), all harvested components must interact and blend together: liquid glazes, sauces, tadkas, and reductions MUST pour over and coat the solid components; powders and spices MUST toss and infuse into the mixture with rising steam. In plating and presentation stages (plate, thali, bowl, platter), the plated dish MUST be the completely merged, glistening, cooked final fusion of all ingredients, strictly NOT separate raw untouched piles sitting side by side. Plating shots strictly focus on the plated vessel and PROHIBIT background cutting boards, background knife chopping, or contradictory secondary dishes."*
+     - Injected into `getInedibleObjectPhysics`, `getRenderingIntegrity`, and Google Flow / Veo master prompt rules for **ANY current and future culinary episode**.
+  2. **Global Plating Station Isolation & Negative Filters (`src/lib/story/prompt-compiler.ts`)**:
+     - Expanded `PLATING_SERVE` detection to identify all serving vessels (`plate`, `thali`, `banana-leaf`, `platter`, `banquet`, `coupe plate`, `bowl`).
+     - Added global negative tokens for `PLATING_SERVE`: explicitly bans `"cutting board"`, `"wooden chopping board"`, `"chopping knife"`, `"cleaver"`, `"cleaver slicing"`, `"knife slicing"`, `"cutting in background"`, `"bread wrap"`, `"burrito wrap"`, `"raw untouched piles"`, `"separate unmerged ingredients"`, and `"unmixed raw piles"`.
+     - Added global negative tokens for `STOVE_COOK`: explicitly bans `"untouched separate ingredients"`, `"ingredients not mixing"`, and `"cutting board in background"`.
+  3. **Universal Pipeline Progressive Integration (`src/lib/story/inedible-pipeline.ts`)**:
+     - Updated both the specific Episode 4 flow (Nokia) and the general object flow to enforce that all harvested components sear together, get coated in liquid reduction glazes, and slide onto the serving vessel as one cohesive, glistening dish.
+- **Verification**:
+  - `npm test`: 77/77 unit tests passing across 14 test suites (`tests/unit/prompt-doctor.test.ts`, `tests/unit/object-handling.test.ts`).
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+
+## ADR-035: High-Speed Robotic Motion Control Camera Kinematics (Bolt Cinema Rig & Linear Rails)
+- **Date**: 2026-11-18 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator observed that camera motion was defaulting to organic handheld float / casual cooking video sway: *"the camera movement is not going linear. like motion robotic camera.. again it is look like traditional cooking video shoot. so please include that as well"*.
+  - Handheld camera shake, breathing sway, and human operator tilt wobble ruin the hyper-precise, high-end commercial aesthetic of viral craft ASMR (Bayashi / high-speed commercial food cinema).
+- **Decision**:
+  1. **Global Physical Law: Robotic Linear Camera Kinematics (`ROBOTIC_LINEAR_CAMERA_KINEMATICS` in `world-engine.ts`)**:
+     - Codified Law 9 in `UNIVERSAL_PHYSICAL_LAWS`:
+       *"Robotic Motion Control Camera Kinematics: Camera movement must be executed with high-speed precision robotic motion control (Bolt cinema arm / motorized linear rail slider). Every camera move must be strictly linear, constant-velocity, and mechanically stabilized: perfectly linear push-in, motorized horizontal tracking slide, or precision mechanical pedestal tilt. Strictly PROHIBIT organic handheld camera float, handheld breathing sway, casual handheld camera shake, amateur camera bump, or traditional slow shaky handheld cooking video style. The frame must feel like a multi-million-dollar high-speed commercial / craft cinema studio with probe lens mechanics locked on motorized tracks."*
+  2. **Linear Robotic Camera Motion Resolver (`resolveLinearRoboticCameraMotion` in `prompt-compiler.ts`)**:
+     - Automatically maps raw camera movements to mechanized high-speed motion control:
+       - Snap/Drop $\rightarrow$ *"High-speed robotic motion control arm (Bolt rig) rapid vertical drop and linear snap-lock, perfectly steady mechanical stop, zero handheld wobble"*.
+       - Orbit $\rightarrow$ *"Robotic motion control arm 360-degree linear motorized circular orbit on precision steel rail, perfectly constant angular velocity, mechanically locked framing"*.
+       - Overhead/Flat Lay $\rightarrow$ *"Motorized overhead 90-degree linear rig, mechanically locked top-down flat lay, rock-solid constant velocity linear framing, zero organic sway"*.
+       - Low Angle Push $\rightarrow$ *"High-speed robotic probe lens linear surface push at 60fps, razor-sharp mechanical track stabilization across sizzling surface, zero handheld shake"*.
+       - Lateral Glide/Pan $\rightarrow$ *"Motorized linear slider high-speed constant-velocity tracking glide, perfectly linear horizontal move on precision motion rail, zero organic float"*.
+       - Tilt/Pedestal $\rightarrow$ *"Motorized linear pedestal pull-back and smooth robotic vertical tilt up on motion control arm, perfectly linear mechanical trajectory, zero handheld wobble"*.
+  3. **Anti-Handheld Negative Filters**:
+     - Universal negative prompt automatically includes: `"handheld camera"`, `"handheld camera shake"`, `"organic camera float"`, `"organic sway"`, `"breathing camera wobble"`, `"traditional cooking video shoot"`, `"amateur cooking video"`, `"shaky cam"`, `"casual handheld camera"`, `"unsteady camera operator"`, `"camera drift"`, `"non-linear camera jitter"`, `"accidental camera bump"`, `"tilting wobble"`.
+  4. **Database & UI Synchronization**:
+     - Recompiled all shots in project `cmwlnv4l50001u8vkzzncj5im` (Episode 4) with robotic linear kinematics.
+- **Verification**:
+  - `npm test`: 77/77 unit tests passing across 14 test suites (`tests/unit/prompt-doctor.test.ts`).
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+
 
 
 

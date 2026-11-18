@@ -235,47 +235,47 @@ export function generateInediblePipelineScenes(params: {
       },
       {
         num: 4,
-        heading: `INT. COOK STATION - SCORCHING STREET DOSA TAWA COPPER NOODLE SAUTÉ (0:23 - 0:30)`,
-        action: `[0:23-0:26] Over roaring blue burner flames, chef ladles golden rosin butter onto a massive scorching cast-iron street dosa tawa; sizzling oil foams violently (*TZZZZZZ*). [0:26-0:30] Black-gloved hands drop the tangled mass of copper ribbon cables and antenna wires onto the screaming iron. With two wide stainless steel street-food spatulas, chef rhythmically tosses and chops the copper ribbon noodles in high-speed street style (*CLANG-CLACK-CLANG*), blistering them into crispy, golden-brown lachha noodles.`,
+        heading: `INT. COOK STATION - SCORCHING STREET DOSA TAWA SAUTÉ & PANEER SEAR (0:23 - 0:30)`,
+        action: `[0:23-0:26] Over roaring blue burner flames, chef ladles golden rosin butter onto a massive scorching cast-iron street dosa tawa; sizzling oil foams violently (*TZZZZZZ*). [0:26-0:30] Black-gloved hands drop BOTH the copper ribbon cables (noodles) AND the diced silicone keypad paneer cubes directly onto the screaming iron. With two wide stainless steel street-food spatulas, chef rhythmically tosses and chops them together in high-speed street style (*CLANG-CLACK-CLANG*), blistering the noodles and searing crisp golden-brown charred edges onto the paneer cubes!`,
         shotSize: "Macro Close-Up 45-Degree",
         cameraMovement: "Dynamic Macro Glide",
-        foley: "Binaural ASMR Foley: Roaring hot griddle sizzle (*TZZZZZZ*), rhythmic metallic street-spatula clatter against iron tawa (*CLANG-CLACK-CLANG*), sizzling butter crackle.",
+        foley: "Binaural ASMR Foley: Roaring hot tawa sizzle (*TZZZZZZ*), rhythmic metallic street-spatula clatter (*CLANG-CLACK-CLANG*), sizzling butter crackle.",
         estimatedDurationSeconds: 7,
       },
       {
         num: 5,
-        heading: `INT. COOK STATION - SMOKING BRASS LADLE TADKA SPLUTTER (0:30 - 0:38)`,
-        action: `[0:30-0:34] Over an open flame, chef holds a long-handled heavy brass tadka ladle filled with smoking mustard oil. Into the shimmering hot oil, gloved fingers drop the crushed silver screws, brass contact pins, and micro-resistors: they instantly splutter and pop violently like mustard seeds (*POP-SPLAT-TCHRRRRR*), releasing fragrant wisps of vapor. [0:34-0:38] Chef pours the smoking sputtering ladle oil directly over the seared copper noodles on the tawa, creating an explosive acoustic hiss (*TCHRRRRRR*)! Hot oil crackles fiercely.`,
+        heading: `INT. COOK STATION - SMOKING BRASS TADKA SPLUTTER & EMERALD PCB MASALA MERGE (0:30 - 0:38)`,
+        action: `[0:30-0:34] Over an open flame, chef holds a smoking brass tadka ladle of mustard oil loaded with crushed screws and SMD resistors: they splutter and pop violently (*POP-SPLAT-TCHRRRR*). Chef pours the smoking tadka directly over the sizzling noodles and paneer on the tawa with a violent acoustic hiss (*TCHRRRRRR*)! [0:34-0:38] Chef immediately dumps heaping brass spoonfuls of the vibrant emerald-green PCB mixie powder straight into the sizzling tawa; dual spatulas toss vigorously (*CLANG-CLACK*), infusing every strand of copper noodle and paneer cube with the aromatic emerald masala spice coat and rising plumes of fragrant steam!`,
         shotSize: "Macro Close-Up 45-Degree",
         cameraMovement: "Low Angle Oil Surface Push",
-        foley: "Binaural ASMR Foley: Shimmering oil sizzle, rapid explosive popping of micro-resistors (*POP-POP-SPLAT*), violent searing hiss as hot tadka hits the iron tawa (*TCHRRRRRR*).",
+        foley: "Binaural ASMR Foley: Shimmering oil crackle, rapid explosive popping of micro-resistors (*POP-POP-SPLAT*), violent searing hiss as hot tadka hits the iron tawa (*TCHRRRRRR*), dual spatula tossing clatter, aromatic steam whoosh (*SHHHHH*).",
         estimatedDurationSeconds: 8,
       },
       {
         num: 6,
-        heading: `INT. COOK STATION - BRASS HANDI POT LUMINOUS LCD CHUTNEY REDUCTION (0:38 - 0:45)`,
-        action: `[0:38-0:42] In a traditional heavy brass handi pot simmering over low coals, chef stirs the 15 monochrome LCD glass panels into thick golden rosin flux and electric blue nectar. As a carved wooden ladle swirls the mixture, the LCD glass melts into a thick, glossy, bubbling neon-cyan and amber reduction glaze (*GLOOP-GLOOP*). [0:42-0:45] Steam rises; ladle lifts and thick, caramelized, translucent chutney ribbons pour back into the bubbling pot in hypnotic slow motion.`,
+        heading: `INT. COOK STATION - BRASS HANDI LCD CHUTNEY POUR & COMPLETE TAWA MERGE (0:38 - 0:45)`,
+        action: `[0:38-0:41] In the simmering brass handi pot, 15 LCD glass panels melt into a thick, glowing neon-cyan and amber reduction glaze (*GLOOP-GLOOP*). [0:41-0:45] With two hands, chef lifts the heavy brass pot and pours the thick, bubbling luminous neon-cyan glaze directly over the entire sizzling mixture on the tawa (*SSSSSSHHHH*)! Dual spatulas fold and glaze all 5 merged ingredients together in high heat: thick caramelized sauce coats every noodle, paneer cube, and tadka flake into one glistening, bubbling, cohesive gourmet street dish, lifting in slow motion with gooey sauce strands!`,
         shotSize: "Macro Close-Up",
         cameraMovement: "Macro Tracking Orbit",
-        foley: "Binaural ASMR Foley: Heavy thick viscous bubbling (*GLOOP-GLOOP*), wooden spoon scraping brass pot bottom, smooth slow-motion syrup drip sound.",
+        foley: "Binaural ASMR Foley: Heavy viscous bubbling (*GLOOP-GLOOP*), loud searing sizzle as glaze hits the scorching tawa (*SSSSSSHHHH*), spatula scraping iron, thick gooey glaze stretch.",
         estimatedDurationSeconds: 7,
       },
       {
         num: 7,
-        heading: `INT. BUTCHER BLOCK - BANANA-LEAF BRASS THALI VILLAGE FEAST ASSEMBLY & CLEAVER CRUNCH (0:45 - 0:53)`,
-        action: `[0:45-0:49] On a colossal traditional Indian brass thali lined with fresh green banana leaves, black-gloved hands rapidly assemble the village banquet: first, a towering mountain of crispy sizzling copper ribbon noodles; second, a generous topping of the diced translucent silicone keypad paneer cubes; third, a heavy snowfall dusting of the emerald-green PCB mixie powder; fourth, a steaming pour of the sizzling hot screw tadka; and fifth, a deep brass katori bowl placed alongside, overflowing with glowing, bubbling LCD chutney! [0:49-0:53] Heavy Damascus cleaver strikes down in rapid staccato: slices diagonally straight through a crispy folded phone-casing crunch parcel with an ear-splitting razor acoustic *CRUNCH*, revealing overflowing glistening hardware layers!`,
+        heading: `INT. COOK STATION - BANANA-LEAF BRASS THALI VILLAGE FEAST PLATING (0:45 - 0:53)`,
+        action: `[0:45-0:49] With swift street-vendor mastery, black-gloved hands use the two wide stainless steel spatulas to scoop the piping-hot, fully merged, glistening tawa dish—glazed copper noodles, seared keypad paneer cubes, infused emerald masala, and crispy tadka screws—and slide it in one continuous theatrical motion directly onto a colossal traditional Indian brass thali lined with fresh green banana leaves! [0:49-0:53] Spatulas tap and fluff the steaming, glistening mound (*CLACK-CLACK*), and chef pours the remaining bubbling caramelized neon-cyan glaze reduction over the apex; a small brass katori bowl of extra dipping chutney is placed beside the mound. Strictly NO cutting boards, NO bread wraps; 100% unified banana-leaf village thali feast! 90% camera fill.`,
         shotSize: "Top-Down Flat Lay",
         cameraMovement: "Rapid Dynamic Macro Pan",
-        foley: "Binaural ASMR Foley: Crisp banana leaf rustle, metallic plate clink, fragrant sizzle as hot tadka touches powder (*TSSSS*), razor-sharp acoustic crust cut (*CRUNCH*).",
+        foley: "Binaural ASMR Foley: Sizzling food sliding from iron tawa onto fresh banana leaf (*SHHHH-SLIDE*), crisp leaf rustle, metallic spatula clacks (*CLACK-CLACK*), fragrant sizzling steam.",
         estimatedDurationSeconds: 8,
       },
       {
         num: 8,
-        heading: `INT. HERO SHOWCASE - LUMINOUS CHUTNEY DIP, CARAMELIZED STRETCH & CHEF THUMBS-UP (0:53 - 1:00)`,
-        action: `[0:53-0:57] Extreme macro close-up. Black-gloved hands use brass tongs to lift a steaming bite of crispy copper noodles and keypad cubes, dipping it deep into the luminous LCD chutney and pulling upward: thick, glowing cyan-gold caramelized glaze stretches in luscious strands as fragrant steam billows. Wide banquet view shows the magnificent feast on the banana-leaf thali with scattered Nokia shells and brass bowls. [0:57-1:00] Camera tilts up smoothly to [@TheShadowAlchemist] in brass tinker goggles and matte-black tactical mask overlooking the grand village feast. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        heading: `INT. HERO SHOWCASE - BANANA-LEAF FEAST BITE PULL, CARAMELIZED STRETCH & CHEF THUMBS-UP (0:53 - 1:00)`,
+        action: `[0:53-0:57] Extreme macro close-up. Black-gloved hands use brass tongs to lift a steaming, hefty forkful from the center of the banana-leaf thali: glazed copper noodles, seared keypad paneer cubes, emerald masala specks, and crispy tadka screws lift together in a massive, unified bite as thick, bubbling caramelized neon-cyan and golden glaze stretches in luscious gooey strands! Steam billows in warm golden lighting. [0:57-1:00] Camera tilts up smoothly to [@TheShadowAlchemist] in vintage brass tinker goggles and sleek matte-black tactical mask overlooking the grand village feast on the banana-leaf thali. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
         shotSize: "Extreme Close-Up to Medium Up-Tilt",
         cameraMovement: "Macro Pull and Slow Tilt Up",
-        foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft viscous sauce stretch and drip, soft exhalation through mask cheekline slit vents, ending on pure silence.",
+        foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling caramelized glaze stretch and drip, soft exhalation through mask cheekline slit vents, ending on pure silence.",
         estimatedDurationSeconds: 7,
       }
     );
@@ -302,8 +302,8 @@ export function generateInediblePipelineScenes(params: {
       },
       {
         num: 3,
-        heading: `INT. COOK STATION - STREET DOSA TAWA SAUTÉ & BRASS LADLE TADKA (0:08 - 0:12)`,
-        action: `[0:08-0:10] On an oversized scorching cast-iron street dosa tawa, copper ribbon cables sizzle in foaming rosin butter as dual spatulas toss them into crispy golden lachha noodles (*CLANG-CLACK*). [0:10-0:12] Chef pours smoking brass ladle mustard oil loaded with popping micro-resistors and screws directly over the noodles with a violent acoustic hiss (*TCHRRRRRR*)!`,
+        heading: `INT. COOK STATION - STREET DOSA TAWA PANEER NOODLE MERGE & TADKA (0:08 - 0:12)`,
+        action: `[0:08-0:10] On an oversized scorching street dosa tawa, copper ribbon noodles and diced keypad paneer cubes sizzle together in foaming butter as dual spatulas toss them vigorously (*CLANG-CLACK*). [0:10-0:12] Chef pours smoking brass ladle mustard oil with popping screws & resistors and dumps emerald PCB mixie powder over the tawa; everything infuses into a sizzling, fragrant emerald-coated mixture with a violent acoustic hiss (*TCHRRRRRR*)!`,
         shotSize: "Macro Close-Up 45-Degree",
         cameraMovement: "Low Angle Oil Surface Push",
         foley: "Binaural ASMR Foley: Roaring street tawa sizzle (*TZZZZZZ*), metallic spatula clatter, explosive resistor popping and violent tadka hiss (*TCHRRRRRR*).",
@@ -311,20 +311,20 @@ export function generateInediblePipelineScenes(params: {
       },
       {
         num: 4,
-        heading: `INT. COOK STATION - BRASS HANDI LCD CHUTNEY & CLEAVER CRUNCH SLICE (0:12 - 0:16)`,
-        action: `[0:12-0:14] In a simmering brass handi pot, 15 LCD glass panels melt into thick, bubbling neon-cyan glaze chutney (*GLOOP-GLOOP*). [0:14-0:16] Chef folds a crispy Nokia casing crunch pocket and slices diagonally straight through with a heavy cleaver with an ear-splitting razor acoustic *CRUNCH*. 90% camera fill; 2X hyper-tempo.`,
+        heading: `INT. COOK STATION - BRASS HANDI LCD CHUTNEY & COMPLETE TAWA MERGE (0:12 - 0:16)`,
+        action: `[0:12-0:14] In a simmering brass handi pot, 15 LCD glass panels melt into thick, bubbling neon-cyan glaze chutney (*GLOOP-GLOOP*). [0:14-0:16] Chef lifts the brass handi and pours the sizzling neon-cyan reduction directly across the scorching street tawa over the copper noodles, keypad paneer, and emerald masala; dual spatulas fold and coat all ingredients into ONE unified glistening street dish (*SSSSSSHHHH*)!`,
         shotSize: "Top-Down Flat Lay",
         cameraMovement: "Rapid Dynamic Macro Pan",
-        foley: "Binaural ASMR Foley: Thick viscous glaze bubbling (*GLOOP-GLOOP*), razor-sharp acoustic crust cleavage (*CRUNCH*).",
+        foley: "Binaural ASMR Foley: Thick viscous glaze bubbling (*GLOOP-GLOOP*), violent acoustic glaze sizzle (*SSSSSHHHH*), rhythmic metal spatula folding (*CLANG-CLACK*).",
         estimatedDurationSeconds: 4,
       },
       {
         num: 5,
-        heading: `INT. HERO SHOWCASE - BANANA-LEAF THALI CHUTNEY DIP & CHEF THUMBS-UP (0:16 - 0:20)`,
-        action: `[0:16-0:18] Extreme macro close-up. Black-gloved hands dip crispy copper noodles and keypad paneer cubes into glowing LCD chutney on a banana-leaf brass thali, pulling upward as thick caramelized glaze stretches in glossy strings. [0:18-0:20] Camera tilts up smoothly to [@TheShadowAlchemist] in brass goggles and matte-black tactical mask. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        heading: `INT. HERO SHOWCASE - BANANA-LEAF BRASS THALI DIRECT PLATING & CHEF THUMBS-UP (0:16 - 0:20)`,
+        action: `[0:16-0:18] Extreme macro close-up. Dual spatulas scoop the steaming merged tawa creation and slide it directly onto a colossal traditional brass thali lined with fresh banana leaves (*SHHHH-SLIDE*). Black-gloved hands pull a steaming bite of glazed copper noodles and keypad paneer, lifting upward as thick caramelized glaze stretches in glossy strings. [0:18-0:20] Camera tilts up smoothly to [@TheShadowAlchemist] in brass goggles and matte-black tactical mask. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
         shotSize: "Extreme Close-Up to Medium Up-Tilt",
         cameraMovement: "Macro Pull and Slow Tilt Up",
-        foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling glaze stretch, gentle exhalation through mask cheek vents. Ending on silence.",
+        foley: "Binaural ASMR Foley: Sizzling food sliding onto fresh banana leaf (*SHHH-SLIDE*), soft bubbling caramelized glaze stretch, gentle exhalation through mask cheek vents. Ending on silence.",
         estimatedDurationSeconds: 4,
       }
     );
@@ -425,9 +425,9 @@ export function generateInediblePipelineScenes(params: {
   let thumbnailPrompt = `Viral YouTube Shorts & TikTok split-screen thumbnail (9:16 vertical / 16:9 landscape hybrid high-CTR masterpiece). Left side (50%): Extreme macro close-up of intact ${heroObject} being unbolted with vintage chrome tools on dark wooden workbench with dramatic cyan rim light. Right side (50%): High-saturation culinary macro of a diagonally sliced golden crunch pocket pulled apart by black-gloved hands, exposing thick bubbling translucent golden caramelized glaze stretching in glossy strings between authentic crispy ${heroObject} components and pillowy golden cubes; rising steam with warm golden spotlight. In the blurred background, [@TheShadowAlchemist] with brass tinker goggles on crown and matte-black tactical mask flashes an unmistakable sharp thumbs-up to camera. Razor-sharp 8K focus, zero on-screen text, zero watermarks, hyper-appetizing craft cinema.`;
 
   if (isNokia) {
-    logline = `In a ${targetRuntime}-second high-density ASMR village feast, a rogue masked alchemist chef dumps a crate of 15 indestructible vintage Nokia phones, pulverizes their PCBs into emerald masala in a heavy-duty Indian mixie, dices keypads into paneer cubes, sautés copper ribbon noodles on a street dosa tawa with popping screw tadka, and serves a colossal banana-leaf banquet with luminous LCD chutney and an iconic chef thumbs-up.`;
+    logline = `In a ${targetRuntime}-second high-density ASMR village feast, a rogue masked alchemist chef dumps a crate of 15 indestructible vintage Nokia phones, pulverizes their PCBs into emerald masala in a heavy-duty Indian mixie, dices keypads into paneer cubes, sautés copper ribbon noodles on a street dosa tawa with popping screw tadka, merges all into a sizzling LCD glaze reduction, and serves a colossal banana-leaf banquet with an iconic chef thumbs-up.`;
     premise = `Episode ${episodeNumber} of ${seriesTitle}: ${targetRuntime}s Viral Village Feast Masterpiece (Bayashi 2X Pacing · ${totalScenes} High-Density Scenes). The chef transforms bulk vintage Nokia phones into a sizzling multi-technique street feast featuring an Indian mixie grinder, mechanical crunch press, street dosa tawa, smoking brass tadka ladle, and banana-leaf thali presentation.`;
-    synopsis = `Act I: The Indestructible Phone Challenge & Bulk Crate Harvest\nAt the ${studioEnvironment}, [@TheShadowAlchemist] dumps 15 vintage Nokia phones; a heavy cleaver bounces off the shell (*CLANGGG*); chrome spudgers unlatch 15 shells into sorted copper prep trays.\n\nAct II: Heavy-Duty Indian Mixie & Silicone Paneer Dicing\n15 PCBs are pulverized into vibrant emerald masala spice powder in a stainless kitchen mixie (*VRRR-KRRSH*); silicone keypads are diced into translucent cyan paneer cubes; screws are crushed in a mechanical crunch press.\n\nAct III: Street Dosa Tawa Sauté & Smoking Brass Ladle Tadka\nCopper ribbon cables are tossed on a scorching street dosa tawa into crispy golden lachha noodles; smoking mustard oil with popping screws & resistors is poured over the top with a violent acoustic hiss (*TCHRRRR*).\n\nAct IV: Luminous LCD Chutney Reduction\n15 monochrome LCD glass panels simmer with golden rosin flux in a brass handi pot, melting into thick, bubbling neon-cyan glaze chutney.\n\nAct V: Banana-Leaf Brass Thali Banquet & Iconic Chef Thumbs-Up\nCrispy copper noodles, paneer cubes, emerald mixie powder, and sizzling tadka are plated on a banana-leaf thali alongside bubbling LCD chutney; [@TheShadowAlchemist] dips a crispy bite, reveals a luscious caramelized stretch, and flashes a confident thumbs-up to camera!`;
+    synopsis = `Act I: The Indestructible Phone Challenge & Bulk Crate Harvest\nAt the ${studioEnvironment}, [@TheShadowAlchemist] dumps 15 vintage Nokia phones; a heavy cleaver bounces off the shell (*CLANGGG*); chrome spudgers unlatch 15 shells into sorted copper prep trays.\n\nAct II: Heavy-Duty Indian Mixie & Silicone Paneer Dicing\n15 PCBs are pulverized into vibrant emerald masala spice powder in a stainless kitchen mixie (*VRRR-KRRSH*); silicone keypads are diced into translucent cyan paneer cubes; screws are crushed in a mechanical crunch press.\n\nAct III: Street Dosa Tawa Sauté, Tadka & Emerald Masala Infusion\nOn an oversized scorching street dosa tawa, copper ribbon noodles and diced keypad paneer cubes sear together in foaming butter; smoking mustard oil with popping screws & resistors and heaping emerald PCB mixie powder are poured over the top with a violent acoustic hiss (*TCHRRRR*).\n\nAct IV: Luminous LCD Chutney Reduction & Complete Tawa Merge\n15 monochrome LCD glass panels melt into bubbling neon-cyan chutney in a brass handi pot and are poured directly onto the tawa, folding all 5 harvested components into ONE unified glistening, steaming street creation.\n\nAct V: Banana-Leaf Brass Thali Direct Plating & Iconic Chef Thumbs-Up\nDual spatulas slide the steaming merged dish directly from the tawa onto a colossal brass thali lined with fresh banana leaves (*SHHHH-SLIDE*); [@TheShadowAlchemist] pulls a bite showing luscious caramelized glaze stretch, and flashes a confident thumbs-up to camera!`;
     thumbnailPrompt = `Viral YouTube Shorts & TikTok split-screen thumbnail (9:16 vertical / 16:9 landscape hybrid high-CTR masterpiece). Left side (50%): Extreme macro close-up of a rustic wicker crate dumping 15 authentic vintage Nokia 3310 phones with a heavy cleaver bouncing off the blue shell with sparks on dark wood. Right side (50%): High-saturation culinary macro of a traditional brass thali lined with fresh banana leaf, loaded with golden copper ribbon noodles, translucent cyan keypad cubes, dusted with vibrant emerald mixie powder, with a fork dipping into glowing luminous neon-cyan LCD chutney stretching in glossy caramelized strings; rising aromatic steam with warm golden spotlight. In the blurred background, [@TheShadowAlchemist] with brass tinker goggles on crown and matte-black tactical mask flashes an unmistakable sharp thumbs-up to camera. Razor-sharp 8K focus, zero on-screen text, zero watermarks, hyper-appetizing craft cinema.`;
   }
 

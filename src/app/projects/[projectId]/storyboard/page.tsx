@@ -738,11 +738,14 @@ export default function StoryboardPage() {
   }
 
   // Camera Motion: Extract clean motion without duplicating the entire videoPrompt
-  let cameraMotion = "Subtle cinematic handheld camera motion at 24fps with natural organic float";
+  const isCulinaryProject = (projectData?.visualStyle || "").toUpperCase().includes("CULINARY") || (projectData?.genre || "").toLowerCase().includes("culinary") || (projectData?.genre || "").toLowerCase().includes("asmr") || (projectData?.sourceIdea || "").toLowerCase().includes("cook");
+  let cameraMotion = isCulinaryProject
+    ? "High-speed precision robotic motion control arm (Bolt rig / motorized linear slider), perfectly linear push-in glide, zero handheld camera shake"
+    : "Subtle cinematic handheld camera motion at 24fps with natural organic float";
   if (selected?.cameraMovement && selected.cameraMovement !== "Static" && !selected.cameraMovement.includes("[PRODUCTION SPECS]")) {
     cameraMotion = selected.cameraMovement;
   } else if (selected?.videoPrompt) {
-    const camMatch = selected.videoPrompt.match(/Camera:\s*([^.\n]+(?:\.[^.\n]+)?)/i);
+    const camMatch = selected.videoPrompt.match(/(?:Camera|Camera Movement & Dynamics):\s*([^.\n]+(?:\.[^.\n]+)?)/i);
     if (camMatch) {
       cameraMotion = camMatch[1].trim();
     }

@@ -192,4 +192,61 @@ describe("Universal 4-Stage Inedible Craft-Culinary Pipeline Generator", () => {
     expect(result.thumbnailPrompt).toContain("[@TheShadowAlchemist]");
     expect(result.thumbnailPrompt).toContain("caramelized glaze stretching");
   });
+
+  it("generates 8-scene Bulk Nokia Village Feast with Indian mixie, dosa tawa, tadka, and banana-leaf thali", () => {
+    const result = generateInediblePipelineScenes({
+      heroObject: "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)",
+      sourceIdea: "bulk cooking 15 nokia phones with mixie grinder, crunch press, dosa tawa, tadka and thali like village cooking channel",
+      studioEnvironment: "Outdoor Village Hearth & Dark Walnut Prep Station",
+      targetRuntime: 60,
+      episodeNumber: 4,
+    });
+
+    expect(result.scenes.length).toBe(8);
+
+    // Scene 1: Bulk crate dump + cleaver bounce hook
+    expect(result.scenes[0].heading).toContain("BULK NOKIA CRATE DUMP & CLEAVER BOUNCE HOOK");
+    expect(result.scenes[0].action).toContain("dumping 15 authentic vintage Nokia");
+    expect(result.scenes[0].action).toContain("cleaver bounces straight off the indestructible plastic shell");
+
+    // Scene 2: Indian mixie grinder PCB masala powder
+    expect(result.scenes[1].heading).toContain("HEAVY-DUTY INDIAN MIXIE PCB MASALA POWDER");
+    expect(result.scenes[1].action).toContain("Indian kitchen mixie");
+    expect(result.scenes[1].action).toContain("emerald-green aromatic spice powder");
+
+    // Scene 3: Keypad paneer dicing & mechanical crunch press
+    expect(result.scenes[2].heading).toContain("KEYPAD SILICONE PANEER DICING & MECHANICAL CRUNCH PRESS");
+    expect(result.scenes[2].action).toContain("translucent cyan and grey 'paneer / jelly cubes'");
+    expect(result.scenes[2].action).toContain("heavy cast-iron mechanical crunch press");
+
+    // Scene 4: Street dosa tawa sauté
+    expect(result.scenes[3].heading).toContain("SCORCHING STREET DOSA TAWA COPPER NOODLE SAUTÉ");
+    expect(result.scenes[3].action).toContain("street dosa tawa");
+    expect(result.scenes[3].action).toContain("copper ribbon noodles");
+
+    // Scene 5: Smoking brass ladle tadka splutter
+    expect(result.scenes[4].heading).toContain("SMOKING BRASS LADLE TADKA SPLUTTER");
+    expect(result.scenes[4].action).toContain("smoking mustard oil");
+    expect(result.scenes[4].action).toContain("pop violently like mustard seeds");
+
+    // Scene 6: Brass handi pot LCD chutney reduction
+    expect(result.scenes[5].heading).toContain("BRASS HANDI POT LUMINOUS LCD CHUTNEY REDUCTION");
+    expect(result.scenes[5].action).toContain("traditional heavy brass handi pot");
+    expect(result.scenes[5].action).toContain("neon-cyan and amber reduction glaze");
+
+    // Scene 7: Banana-leaf brass thali banquet assembly
+    expect(result.scenes[6].heading).toContain("BANANA-LEAF BRASS THALI VILLAGE FEAST ASSEMBLY");
+    expect(result.scenes[6].action).toContain("traditional Indian brass thali lined with fresh green banana leaves");
+    expect(result.scenes[6].action).toContain("PCB mixie powder");
+
+    // Scene 8: Hero chutney dip, stretch, and chef thumbs-up
+    expect(result.scenes[7].heading).toContain("LUMINOUS CHUTNEY DIP, CARAMELIZED STRETCH & CHEF THUMBS-UP");
+    expect(result.scenes[7].action).toContain("[@TheShadowAlchemist]");
+    expect(result.scenes[7].action).toContain("thumbs-up");
+
+    // Thumbnail prompt verification
+    expect(result.thumbnailPrompt).toContain("rustic wicker crate dumping 15 authentic vintage Nokia 3310 phones");
+    expect(result.thumbnailPrompt).toContain("traditional brass thali lined with fresh banana leaf");
+    expect(result.thumbnailPrompt).toContain("[@TheShadowAlchemist]");
+  });
 });

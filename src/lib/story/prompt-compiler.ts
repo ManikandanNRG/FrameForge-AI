@@ -56,6 +56,7 @@ export type CulinaryStation =
   | "OBJECT_SOURCING"
   | "TOOL_DISASSEMBLY"
   | "MANUAL_FRACTURE"
+  | "KITCHEN_MACHINERY"
   | "CULINARY_CUTTING"
   | "LIQUID_MARINADE"
   | "STOVE_COOK"
@@ -74,13 +75,13 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
   }
 
   // 2. Plating / Serving station (Final touch, tweezers, garnish)
-  if (/\b(plate|plating|garnish|serving|platter|dining table|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(lower) &&
+  if (/\b(plate|plating|garnish|serving|platter|dining table|thali|banana[- ]leaf|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(lower) &&
       !/\b(chopping|cleaver|dicing|toss(?:ing)?|skillet|wok)\b/i.test(lower)) {
     return "PLATING_SERVE";
   }
 
-  // 3. Stove / Cookware station (Active heat, fire, wok toss, boiling, searing)
-  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet|gas flame|flames?|ignit(?:e|ion)|toss(?:ing)?|smoking oil|high-heat|pan sear)\b/i.test(lower);
+  // 3. Stove / Cookware station (Active heat, fire, wok toss, boiling, searing, tadka, tawa)
+  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet|gas flame|flames?|ignit(?:e|ion)|toss(?:ing)?|smoking oil|high-heat|pan sear|tadka|splutter|tawa|kadai|handi pot)\b/i.test(lower);
   const hasCookwarePan = /(?:frying pan|saucepan|saut[eé] pan|cast-iron pan|hot pan|into the pan|in the pan|into pan|in pan|pan sear|pan-sear)\b/i.test(lower) ||
     (/\bpan\b/i.test(lower) && !/\b(?:camera|slowly|smooth|horizontal|lateral)\s+pans?\b/i.test(lower) && !/\bpanning\b/i.test(lower));
 
@@ -91,18 +92,18 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
 
   // 4. Liquid Pour / Marinade (Rosin flux, oil drizzle, sauce dropper, glaze)
   if (/\b(pour(?:s|ing)?|marinade|marinating|flux|dropper|drizzl(?:e|ing)|glaz(?:e|ing)|bottle of)\b/i.test(lower) &&
-      !/\b(chopping|cleaver|dicing|toss(?:ing)?|wok|flame)\b/i.test(lower)) {
+      !/\b(chopping|cleaver|dicing|toss(?:ing)?|wok|flame|tadka)\b/i.test(lower)) {
     return "LIQUID_MARINADE";
   }
 
-  // 5. Object Sourcing / Salvage (Shelf, rack, e-waste, unboxing, cable snap, grabbing raw object)
-  if (/\b(shelf|shelves|scrapyard|storage|reach(?:es)? up|rip(?:s|ping)? free|salvage|salvaging|unboxing|unplugs?|disconnect|retriev(?:e|ing)|grab(?:s|bing)? from|cable snaps?)\b/i.test(lower) &&
+  // 5. Object Sourcing / Salvage (Shelf, rack, e-waste, unboxing, cable snap, grabbing raw object, crate dump)
+  if (/\b(shelf|shelves|scrapyard|storage|reach(?:es)? up|rip(?:s|ping)? free|salvage|salvaging|unboxing|unplugs?|disconnect|retriev(?:e|ing)|grab(?:s|bing)? from|cable snaps?|crate dump|crate|dumps? \d+)\b/i.test(lower) &&
       !/\b(chopping|cleaver|dicing|knife|wok|burner|flame|sear)\b/i.test(lower)) {
     return "OBJECT_SOURCING";
   }
 
-  // 6. Tool Disassembly / Harvest (Keycap puller, switch extractor, screwdriver, pliers, popping keys, tire levers, chain tool)
-  const hasDisassemblyTools = /\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain|unseat(?:s|ing|ed)?|peel(?:s|ing|ed)? off rim|prying off)\b/i.test(lower);
+  // 6. Tool Disassembly / Harvest (Keycap puller, switch extractor, screwdriver, pliers, popping keys, tire levers, chain tool, spudger)
+  const hasDisassemblyTools = /\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain|unseat(?:s|ing|ed)?|peel(?:s|ing|ed)? off rim|prying off|spudger|unlatch(?:es)?|unlatching)\b/i.test(lower);
   const isDedicatedKnifeCadence = /\b(chef knife|cleaver)\s+(?:rapidly |deftly )?(?:chops|dices)\b/i.test(lower);
   if (hasDisassemblyTools && !isDedicatedKnifeCadence) {
     return "TOOL_DISASSEMBLY";
@@ -112,6 +113,12 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
   if (/\b(snap(?:s|ping)? (?:the )?(?:board|chassis|frame|body)|fractur(?:e|ing)|crack(?:s|ing)? in two|breaks? in half|palm strike|bends? and snaps?)\b/i.test(lower) &&
       !/\b(knife|cleaver|blade|chop|dicing)\b/i.test(lower)) {
     return "MANUAL_FRACTURE";
+  }
+
+  // 7B. Kitchen Machinery / Grinder / Mechanical Crunch Press (Indian mixie, grinder, crunch press, mortar)
+  if (/\b(mixie|mixer-grinder|grinder|blender|pulveriz(?:e|ing|es)|crunch press|crush press|stone pestle|mortar and pestle)\b/i.test(lower) &&
+      !/\b(cleaver.*chop|dicing|skillet|tawa|wok)\b/i.test(lower)) {
+    return "KITCHEN_MACHINERY";
   }
 
   // 8. Culinary Cutting / Dicing / Slicing (Damascus cleaver, chef knife, chiffonade, dicing)
@@ -170,7 +177,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     Boolean(entities.isInedibleCooking) ||
     Boolean(heroObject) ||
     Boolean(heroPropLock) ||
-    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|watch|watches?|clock|sneakers?|shoes?|violin|guitar|camera|light bulb|marbles?|crystal)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""));
+    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|nokia|3310|1100|brick phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|watch|watches?|clock|sneakers?|shoes?|violin|guitar|camera|light bulb|marbles?|crystal)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""));
 
   const heroTargetName = (heroObject || entities.inedibleHeroObject || "Hero Object").replace(/^(the|a|an)\s+/i, "");
 
@@ -525,6 +532,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "food",
         "vanishing pieces"
       );
+    } else if (station === "KITCHEN_MACHINERY") {
+      negativeList.push(
+        "chopping knife",
+        "cleaver",
+        "cutting board",
+        "stove",
+        "open flame",
+        "frying pan",
+        "wok",
+        "raw meat",
+        "food"
+      );
     } else if (station === "CULINARY_CUTTING") {
       negativeList.push(
         "disappearing object",
@@ -677,6 +696,20 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "semi truck wheel"
       );
     }
+
+    const isNokiaTarget = /nokia|3310|1100|brick phone|feature phone|keypad phone/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isNokiaTarget) {
+      negativeList.push(
+        "modern touchscreen smartphone",
+        "iPhone",
+        "Android smartphone",
+        "curved OLED glass",
+        "single phone",
+        "grocery food",
+        "car battery",
+        "household teacup"
+      );
+    }
   }
 
   // Pure ASMR negatives to enforce zero speech or loud tracks
@@ -758,6 +791,10 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isGameBoyTarget) {
       flowRules.push(`- Console Prop DNA Invariant: Authentic Translucent Purple Game Boy Color (atomic purple translucent chassis clearly exposing green PCB circuitry, magenta A/B buttons); strictly PROHIBIT 1989 classic grey/beige Game Boy DMG-01 housing, strictly NO thick rectangular beige brick.`);
+    }
+    const isNokiaTarget = /nokia|3310|1100|brick phone|feature phone|keypad phone/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isNokiaTarget) {
+      flowRules.push(`- Phone Prop DNA Invariant: Authentic Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 & 3310 in classic navy blue, slate grey, and cyan shells with rubber keypads); strictly PROHIBIT modern smartphones, curved glass, or touchscreen iPhones.`);
     }
     if (characterName) {
       flowRules.push(`- Master Character Lock: [@${charName.replace(/[^a-zA-Z0-9]/g, "")}] strictly maintains immutable facial geometry, intense hazel eyes, brass tinker goggles on crown, and sleek matte-black half-mask with gold cheekline slit vents. Strictly PROHIBIT circular respirator canisters, breathing tubes, or character face drift.`);
@@ -1118,7 +1155,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     isPureAsmr
       ? (() => {
           const hasTimecodes = /\[0:\d\d-\d:\d\d\]/i.test(actionCleaned);
-          const hasDisassemblyTools = /\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain|unseat(?:s|ing|ed)?|peel(?:s|ing|ed)? off rim|prying off)\b/i.test(actionCleaned);
+          const hasDisassemblyTools = /\b(keycap puller|switch puller|switch extractor|wire puller|puller|extractor|unscrew|screwdriver|pliers|pop(?:s|ping)? off|extract(?:s|ing)? switch|tire levers?|tire pry|chain breaker|chain tool|wrench|allen key|spoke cutters?|unbolt|unthread chain|unseat(?:s|ing|ed)?|peel(?:s|ing|ed)? off rim|prying off|spudger|unlatch(?:es)?|unlatching|crate dump)\b/i.test(actionCleaned);
           const hasPrepWork = /\b(cleaver|chef knife|blade|chop(?:s|ping)?|dicing|dice|slic(?:e|ing)|cut(?:s|ting)? into|knife|grater?|rasps?|sear|fry)\b/i.test(actionCleaned);
 
           if (hasTimecodes || (hasDisassemblyTools && hasPrepWork)) {
@@ -1131,6 +1168,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
               return `Action Dynamics: Rhythmic mechanical extraction. Specialized tool clips onto authentic components of ${heroTargetName} with crisp leverage, lifting each part smoothly. Hands only, operating the extraction tool.`;
             case "MANUAL_FRACTURE":
               return `Action Dynamics: High-energy downward palm strike. Hands leverage the chassis across the wooden block edge with sudden force, splitting the board cleanly along the fracture line.`;
+            case "KITCHEN_MACHINERY":
+              return `Action Dynamics: High-torque mechanical pulverization and crushing. Heavy-duty stainless steel Indian kitchen mixie jar locks into the motorized base; high-speed blades pulverize circuit boards into fine emerald powder. Or heavy mechanical crunch press lever descends firmly, cracking hardware with tactile acoustic force. Station Lock: Machine processing station.`;
             case "CULINARY_CUTTING":
               return `Action Dynamics: Rhythmic, precise chopping cadence. Heavy steel blade descends in steady vertical strokes through the components on the wooden butcher block.`;
             case "LIQUID_MARINADE":
@@ -1165,6 +1204,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
               return `Kinematic Invariant: Max two hands in frame. Disassembly & Rigid Body Invariant: The ${heroTargetName} chassis remains firmly anchored on workstation. Specialized extraction tools maintain rigid mechanical leverage against components. Parts detach cleanly without warping or melting before any prep begins.`;
             case "MANUAL_FRACTURE":
               return `Prop Integrity: Clean mechanical fracture. Both fractured halves remain visibly accounted for on the wooden surface after the break.`;
+            case "KITCHEN_MACHINERY":
+              return `Kinematic Invariant: Max two hands in frame. Station Lock: Machinery processing station. Heavy-duty appliance remains solidly grounded. High-torque internal rotation or mechanical lever action occurs within the steel container; components transform from rigid solids into granular spice powder or coarse flakes without vanishing.`;
             case "CULINARY_CUTTING":
               const cutTarget = /tire|calamari/i.test(actionLower) ? "slender bicycle tire" : heroTargetName;
               return `Kinematic Invariant: Max two hands in frame. Conservation of Mass & Rigid Body Persistence: As the blade cuts through the ${cutTarget}, the uncut remaining portion of the chassis remains solidly anchored and fully visible on the board without disappearing, shrinking, or morphing. Sliced fragments remain on the board right beside the blade.`;

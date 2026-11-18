@@ -589,6 +589,44 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - `npm run typecheck`: 0 errors.
   - Verified Episode 3 (`cmwk9xl1n0001u8q004v0ob0z`) synchronized in PostgreSQL with 8 chronologically staged scenes, compiled shots, and 5 updated story artifacts.
 
+## ADR-033: Bulk Village Cooking Engine, Multi-Ingredient Transformation & Indian Kitchen Machinery
+- **Date**: 2026-11-18 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator highlighted critical creative imperatives for Episode 4 targeting Indian and global viral audiences:
+    1. *Avoid Monotonous Deep-Frying*: "see you are stick with only fry. dont doo that. there are plendy of items in cooking. this will get board... see when every we use these concept we need to introduce many items like grinder mixie. so we last three video did only the slicing.. i need slicing but even making intreset we have to use curnch mechine to create incredeiants. and then we have to use 5 + incredeiants for the one episode... during the cooking we have to add all the incredeiants differently and the final food contain all the incrediants in different form.. so keep all these points and let me know".
+    2. *Bulk Scale Over Single Quantities (Village Cooking Channel Aesthetic)*: "OK. but the main object incrediants dont use single quantity. bacuse when we have bulk cooking it attact the users more. like the village cooking channel.. so use more than one nokia phone for this episode... it has to show as visual treat".
+    3. *Camera Framing vs Camera Hero Object Collision*: In `world-engine.ts`, phrases like "thumbs-up to camera" incorrectly matched `CAMERA_OPTICS` due to overly broad regex `/\bcamera\b/i`, eclipsing the intended hero object.
+- **Decision**:
+  1. **Bulk Vintage Nokia Mobile Phones Registry Entry (`src/lib/story/world-engine.ts`)**:
+     - Registered `BULK_NOKIA_PHONES` (`nokia|3310|1100|brick phones?|feature phones?|keypad phones?|bulk phones?`) with canonical hero name `"Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)"`.
+     - Defined 5+ distinct harvested sub-components with dimensional anchors:
+       - 15x Rigid Green PCBs (Motherboards) $\rightarrow$ Indian kitchen mixie grinder $\rightarrow$ Emerald masala spice powder.
+       - 15x Translucent Silicone Keypad Matrices $\rightarrow$ Cleaver staccato dicing $\rightarrow$ Translucent cyan paneer / jelly cubes.
+       - Coiled Copper Ribbon Cables & Antennas $\rightarrow$ Scorching street dosa tawa sauté $\rightarrow$ Crispy golden lachha noodles.
+       - Silver Phillips Screws & SMD Resistors $\rightarrow$ Heavy mechanical crunch press $\rightarrow$ Smoking brass ladle mustard-oil tadka splutter.
+       - 15x Monochrome LCD Glass Panels $\rightarrow$ Traditional brass handi pot slow reduction $\rightarrow$ Luminous neon-cyan & amber glaze chutney.
+       - Snap-On Outer Shells $\rightarrow$ Folded crispy casing crunch parcel.
+     - Refined `CAMERA_OPTICS` regex to `/\b(dslr|camcorder|vintage camera|35mm camera|camera body|camera lens|optical glass|iris blades|aperture blades)\b/i`, preventing cinematic direction terms like "to camera" or "facing camera" from misclassifying as camera hero objects.
+  2. **Kitchen Machinery & Multi-Technique Station Engine (`src/lib/story/prompt-compiler.ts`)**:
+     - Added `KITCHEN_MACHINERY` to `CulinaryStation` type definition and `detectCulinaryStation`.
+     - Injected specialized action dynamics for high-torque mechanical pulverization (Indian mixie) and mechanical lever crush presses, complete with dedicated negative token compilation.
+     - Injected phone prop DNA invariants: strictly prohibits modern smartphones, touchscreen curved OLED glass, or iPhones.
+  3. **Dedicated Bulk Nokia Village Feast Pipeline (`src/lib/story/inedible-pipeline.ts`)**:
+     - Implemented 60s 8-scene sequence:
+       - *Scene 1 (0:00 - 0:08)*: Bulk wicker crate dump of 15 Nokia phones + cleaver bounce hook (*CLANGGG*) + chrome spudger harvest into 5 sorted copper trays.
+       - *Scene 2 (0:08 - 0:15)*: Heavy-duty stainless steel Indian kitchen mixie grinding PCBs into emerald masala powder (*VRRR-KRRSH*).
+       - *Scene 3 (0:15 - 0:23)*: Silicone keypad paneer dicing + mechanical crunch press crushing screws into tempering flakes.
+       - *Scene 4 (0:23 - 0:30)*: Sizzling copper ribbon noodles on scorching street dosa tawa with dual spatulas (*CLANG-CLACK*).
+       - *Scene 5 (0:30 - 0:38)*: Smoking brass ladle mustard oil tadka poured over noodles with violent acoustic hiss (*TCHRRRR*).
+       - *Scene 6 (0:38 - 0:45)*: Luminous LCD glass chutney simmering and reducing in traditional brass handi pot (*GLOOP-GLOOP*).
+       - *Scene 7 (0:45 - 0:53)*: Colossal banana-leaf brass thali village feast assembly and diagonal razor cleaver crunch slice (*CRUNCH*).
+       - *Scene 8 (0:53 - 1:00)*: Hero chutney dip, caramelized molten stretch, and [@TheShadowAlchemist] confident thumbs-up to camera!
+     - Generates 50/50 split-screen viral YouTube Shorts thumbnail prompt featuring the crate dump and the banana-leaf thali feast.
+  4. **Database State & Verification**:
+     - Created and compiled Episode 4 project (`cmwlnv4l50001u8vkzzncj5im`) in PostgreSQL with all 8 scenes, compiled shots, and 5 story artifacts (`LOGLINE`, `PREMISE`, `SYNOPSIS`, `SCREENPLAY`, `YOUTUBE_THUMBNAIL`).
+     - Added test suite in `tests/unit/object-handling.test.ts`. Full test suite: 75/75 tests passing across 14 test suites (`npm test`), 0 TypeScript errors (`npm run typecheck`).
+
+
 
 
 

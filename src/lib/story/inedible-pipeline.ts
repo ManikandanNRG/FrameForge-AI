@@ -45,6 +45,9 @@ export function generateInediblePipelineScenes(params: {
 
   const specs = resolveObjectComponentSpecs(heroObject, sourceIdea);
   const isBicycle = specs.category === "BICYCLE_VEHICLE";
+  const isNokia =
+    specs.category === "BULK_NOKIA_PHONES" ||
+    /\b(nokia|3310|1100|brick phones?|feature phones?|keypad phones?|bulk phones?)\b/i.test(`${heroObject} ${sourceIdea}`);
   const isLargeObject = Boolean(specs.isLargeObject);
 
   const totalScenes = targetRuntime >= 55 ? 8 : targetRuntime >= 40 ? 6 : 5;
@@ -200,6 +203,131 @@ export function generateInediblePipelineScenes(params: {
         estimatedDurationSeconds: 4,
       }
     );
+  } else if (isNokia && totalScenes === 8) {
+    // 60-second 8-scene Bulk Nokia Phones Village Feast Experience
+    scenes.push(
+      {
+        num: 1,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - BULK NOKIA CRATE DUMP & CLEAVER BOUNCE HOOK (0:00 - 0:08)`,
+        action: `[0:00-0:02] In a rustic outdoor hearth workshop, black-gloved hands tip a large wicker crate, dumping 15 authentic vintage Nokia 3310 & 1100 phones onto the dark butcher block with a loud chaotic acoustic clatter (*CLATTER-CLACK-THUD*). [0:02-0:04] With sudden theatrical force, chef violently slams a heavy Damascus meat cleaver straight down onto a blue Nokia phone — the cleaver bounces straight off the indestructible plastic shell with an ear-ringing metallic clang (*CLANGGGGG*). [0:04-0:08] Chef sets aside the cleaver, grabs a chrome spudger lever, and in rapid 2X staccato snaps, unlatches all 15 back shells (*SNAP-POP-CLICK*), harvesting green motherboards, rubber keypads, copper cables, screws, and LCD screens into 5 sorted copper prep trays! 90% camera fill; extreme macro focus.`,
+        shotSize: "Extreme Close-Up",
+        cameraMovement: "Rapid Top-Down Macro Snap",
+        foley: "Binaural ASMR Foley: Heavy wicker crate dump clatter (*CLATTER-CLACK-THUD*), acoustic cleaver bounce clang (*CLANGGG*), rapid plastic snap-pops (*SNAP-POP*), clinking brass bowls. Pure acoustic Foley, zero speech, zero music.",
+        estimatedDurationSeconds: 8,
+      },
+      {
+        num: 2,
+        heading: `INT. PREP STATION - HEAVY-DUTY INDIAN MIXIE PCB MASALA POWDER (0:08 - 0:15)`,
+        action: `[0:08-0:11] Black-gloved hands dump the stack of 15 green printed circuit motherboards straight into a heavy-duty stainless steel Indian kitchen mixie / mixer-grinder jar. Snaps down the rubber gasket dome lid (*CLICK*). [0:11-0:15] Dial twists to High: the motor roars and high-speed steel blades violently pulverize the rigid fiberglass circuit boards into a fine, swirling cloud of emerald-green aromatic spice powder (*VRRRRRR-KRRRSHHHH*). Chef lifts the lid; glowing emerald green PCB masala powder billows soft aromatic dust. Extreme macro close-up.`,
+        shotSize: "Extreme Close-Up Macro",
+        cameraMovement: "Macro Tracking Orbit",
+        foley: "Binaural ASMR Foley: Heavy stainless jar locking click, violent high-torque grinder roar (*VRRRRRR*), brutal acoustic crushing of fiberglass circuit boards (*KRRRSHHHH*), soft lid unseal whoosh.",
+        estimatedDurationSeconds: 7,
+      },
+      {
+        num: 3,
+        heading: `INT. BUTCHER BLOCK - KEYPAD SILICONE PANEER DICING & MECHANICAL CRUNCH PRESS (0:15 - 0:23)`,
+        action: `[0:15-0:19] On the dark walnut butcher block, a razor-sharp Damascus cleaver rapidly dices 15 stacked rubber silicone keypad matrices into uniform 1cm translucent cyan and grey 'paneer / jelly cubes' in high-speed staccato (*thwack-thwack-thwack*). [0:19-0:23] Gloved hands slide a heap of silver micro-screws and SMD resistors into a heavy cast-iron mechanical crunch press; chef cranks the heavy lever down (*CRRRRUUUNCH-CLACK*), cracking them into coarse metallic tempering flakes that rattle into a brass cup. 90% camera fill; 2X rapid tempo.`,
+        shotSize: "Top-Down Flat Lay Lock",
+        cameraMovement: "Top-Down Flat Lay Lock",
+        foley: "Binaural ASMR Foley: Rapid rhythmic knife thwacks on dense silicone (*thwack-thwack*), heavy cast-iron crunch press groaning and crushing metal (*CRRRUUUNCH*), cascading metallic rattle.",
+        estimatedDurationSeconds: 8,
+      },
+      {
+        num: 4,
+        heading: `INT. COOK STATION - SCORCHING STREET DOSA TAWA COPPER NOODLE SAUTÉ (0:23 - 0:30)`,
+        action: `[0:23-0:26] Over roaring blue burner flames, chef ladles golden rosin butter onto a massive scorching cast-iron street dosa tawa; sizzling oil foams violently (*TZZZZZZ*). [0:26-0:30] Black-gloved hands drop the tangled mass of copper ribbon cables and antenna wires onto the screaming iron. With two wide stainless steel street-food spatulas, chef rhythmically tosses and chops the copper ribbon noodles in high-speed street style (*CLANG-CLACK-CLANG*), blistering them into crispy, golden-brown lachha noodles.`,
+        shotSize: "Macro Close-Up 45-Degree",
+        cameraMovement: "Dynamic Macro Glide",
+        foley: "Binaural ASMR Foley: Roaring hot griddle sizzle (*TZZZZZZ*), rhythmic metallic street-spatula clatter against iron tawa (*CLANG-CLACK-CLANG*), sizzling butter crackle.",
+        estimatedDurationSeconds: 7,
+      },
+      {
+        num: 5,
+        heading: `INT. COOK STATION - SMOKING BRASS LADLE TADKA SPLUTTER (0:30 - 0:38)`,
+        action: `[0:30-0:34] Over an open flame, chef holds a long-handled heavy brass tadka ladle filled with smoking mustard oil. Into the shimmering hot oil, gloved fingers drop the crushed silver screws, brass contact pins, and micro-resistors: they instantly splutter and pop violently like mustard seeds (*POP-SPLAT-TCHRRRRR*), releasing fragrant wisps of vapor. [0:34-0:38] Chef pours the smoking sputtering ladle oil directly over the seared copper noodles on the tawa, creating an explosive acoustic hiss (*TCHRRRRRR*)! Hot oil crackles fiercely.`,
+        shotSize: "Macro Close-Up 45-Degree",
+        cameraMovement: "Low Angle Oil Surface Push",
+        foley: "Binaural ASMR Foley: Shimmering oil sizzle, rapid explosive popping of micro-resistors (*POP-POP-SPLAT*), violent searing hiss as hot tadka hits the iron tawa (*TCHRRRRRR*).",
+        estimatedDurationSeconds: 8,
+      },
+      {
+        num: 6,
+        heading: `INT. COOK STATION - BRASS HANDI POT LUMINOUS LCD CHUTNEY REDUCTION (0:38 - 0:45)`,
+        action: `[0:38-0:42] In a traditional heavy brass handi pot simmering over low coals, chef stirs the 15 monochrome LCD glass panels into thick golden rosin flux and electric blue nectar. As a carved wooden ladle swirls the mixture, the LCD glass melts into a thick, glossy, bubbling neon-cyan and amber reduction glaze (*GLOOP-GLOOP*). [0:42-0:45] Steam rises; ladle lifts and thick, caramelized, translucent chutney ribbons pour back into the bubbling pot in hypnotic slow motion.`,
+        shotSize: "Macro Close-Up",
+        cameraMovement: "Macro Tracking Orbit",
+        foley: "Binaural ASMR Foley: Heavy thick viscous bubbling (*GLOOP-GLOOP*), wooden spoon scraping brass pot bottom, smooth slow-motion syrup drip sound.",
+        estimatedDurationSeconds: 7,
+      },
+      {
+        num: 7,
+        heading: `INT. BUTCHER BLOCK - BANANA-LEAF BRASS THALI VILLAGE FEAST ASSEMBLY & CLEAVER CRUNCH (0:45 - 0:53)`,
+        action: `[0:45-0:49] On a colossal traditional Indian brass thali lined with fresh green banana leaves, black-gloved hands rapidly assemble the village banquet: first, a towering mountain of crispy sizzling copper ribbon noodles; second, a generous topping of the diced translucent silicone keypad paneer cubes; third, a heavy snowfall dusting of the emerald-green PCB mixie powder; fourth, a steaming pour of the sizzling hot screw tadka; and fifth, a deep brass katori bowl placed alongside, overflowing with glowing, bubbling LCD chutney! [0:49-0:53] Heavy Damascus cleaver strikes down in rapid staccato: slices diagonally straight through a crispy folded phone-casing crunch parcel with an ear-splitting razor acoustic *CRUNCH*, revealing overflowing glistening hardware layers!`,
+        shotSize: "Top-Down Flat Lay",
+        cameraMovement: "Rapid Dynamic Macro Pan",
+        foley: "Binaural ASMR Foley: Crisp banana leaf rustle, metallic plate clink, fragrant sizzle as hot tadka touches powder (*TSSSS*), razor-sharp acoustic crust cut (*CRUNCH*).",
+        estimatedDurationSeconds: 8,
+      },
+      {
+        num: 8,
+        heading: `INT. HERO SHOWCASE - LUMINOUS CHUTNEY DIP, CARAMELIZED STRETCH & CHEF THUMBS-UP (0:53 - 1:00)`,
+        action: `[0:53-0:57] Extreme macro close-up. Black-gloved hands use brass tongs to lift a steaming bite of crispy copper noodles and keypad cubes, dipping it deep into the luminous LCD chutney and pulling upward: thick, glowing cyan-gold caramelized glaze stretches in luscious strands as fragrant steam billows. Wide banquet view shows the magnificent feast on the banana-leaf thali with scattered Nokia shells and brass bowls. [0:57-1:00] Camera tilts up smoothly to [@TheShadowAlchemist] in brass tinker goggles and matte-black tactical mask overlooking the grand village feast. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        shotSize: "Extreme Close-Up to Medium Up-Tilt",
+        cameraMovement: "Macro Pull and Slow Tilt Up",
+        foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft viscous sauce stretch and drip, soft exhalation through mask cheekline slit vents, ending on pure silence.",
+        estimatedDurationSeconds: 7,
+      }
+    );
+  } else if (isNokia && totalScenes === 5) {
+    // 20-second 5-scene Rapid Bulk Nokia Village Feast Experience
+    scenes.push(
+      {
+        num: 1,
+        heading: `INT. ${studioEnvironment.toUpperCase()} - BULK NOKIA CRATE DUMP & CLEAVER BOUNCE HOOK (0:00 - 0:04)`,
+        action: `[0:00-0:02] Black-gloved hands tip a large wicker crate, dumping 15 authentic vintage Nokia phones onto the butcher block with a loud acoustic clatter (*CLATTER-CLACK-THUD*). Cleaver slams down and bounces straight off the indestructible blue shell with an ear-ringing clang (*CLANGGG*). [0:02-0:04] Chrome spudger pops open the shells in rapid 2X staccato, harvesting green PCBs, keypads, and screens into copper prep dishes. 90% camera fill; extreme macro focus.`,
+        shotSize: "Extreme Close-Up",
+        cameraMovement: "Rapid Top-Down Macro Snap",
+        foley: "Binaural ASMR Foley: Heavy wicker crate dump clatter (*CLATTER-CLACK-THUD*), acoustic cleaver bounce clang (*CLANGGG*), rapid plastic snap-pops (*SNAP-POP*). Zero music.",
+        estimatedDurationSeconds: 4,
+      },
+      {
+        num: 2,
+        heading: `INT. PREP STATION - INDIAN MIXIE PCB POWDER & KEYPAD PANEER DICING (0:04 - 0:08)`,
+        action: `[0:04-0:06] Stack of 15 green printed circuit motherboards plunges into a heavy-duty stainless steel Indian kitchen mixie; motor roars as blades pulverize them into vibrant emerald-green masala spice powder (*VRRRRRR-KRRRSH*). [0:06-0:08] Cleaver rapidly dices rubber silicone keypads into bouncy translucent cyan paneer cubes (*thwack-thwack-thwack*). 90% camera fill; 2X rapid tempo.`,
+        shotSize: "Extreme Close-Up Macro",
+        cameraMovement: "Top-Down Flat Lay Lock",
+        foley: "Binaural ASMR Foley: Violently whirring mixie grinder roar (*VRRRRRR-KRRRSH*), rapid rhythmic knife chops on silicone (*thwack-thwack*).",
+        estimatedDurationSeconds: 4,
+      },
+      {
+        num: 3,
+        heading: `INT. COOK STATION - STREET DOSA TAWA SAUTÉ & BRASS LADLE TADKA (0:08 - 0:12)`,
+        action: `[0:08-0:10] On an oversized scorching cast-iron street dosa tawa, copper ribbon cables sizzle in foaming rosin butter as dual spatulas toss them into crispy golden lachha noodles (*CLANG-CLACK*). [0:10-0:12] Chef pours smoking brass ladle mustard oil loaded with popping micro-resistors and screws directly over the noodles with a violent acoustic hiss (*TCHRRRRRR*)!`,
+        shotSize: "Macro Close-Up 45-Degree",
+        cameraMovement: "Low Angle Oil Surface Push",
+        foley: "Binaural ASMR Foley: Roaring street tawa sizzle (*TZZZZZZ*), metallic spatula clatter, explosive resistor popping and violent tadka hiss (*TCHRRRRRR*).",
+        estimatedDurationSeconds: 4,
+      },
+      {
+        num: 4,
+        heading: `INT. COOK STATION - BRASS HANDI LCD CHUTNEY & CLEAVER CRUNCH SLICE (0:12 - 0:16)`,
+        action: `[0:12-0:14] In a simmering brass handi pot, 15 LCD glass panels melt into thick, bubbling neon-cyan glaze chutney (*GLOOP-GLOOP*). [0:14-0:16] Chef folds a crispy Nokia casing crunch pocket and slices diagonally straight through with a heavy cleaver with an ear-splitting razor acoustic *CRUNCH*. 90% camera fill; 2X hyper-tempo.`,
+        shotSize: "Top-Down Flat Lay",
+        cameraMovement: "Rapid Dynamic Macro Pan",
+        foley: "Binaural ASMR Foley: Thick viscous glaze bubbling (*GLOOP-GLOOP*), razor-sharp acoustic crust cleavage (*CRUNCH*).",
+        estimatedDurationSeconds: 4,
+      },
+      {
+        num: 5,
+        heading: `INT. HERO SHOWCASE - BANANA-LEAF THALI CHUTNEY DIP & CHEF THUMBS-UP (0:16 - 0:20)`,
+        action: `[0:16-0:18] Extreme macro close-up. Black-gloved hands dip crispy copper noodles and keypad paneer cubes into glowing LCD chutney on a banana-leaf brass thali, pulling upward as thick caramelized glaze stretches in glossy strings. [0:18-0:20] Camera tilts up smoothly to [@TheShadowAlchemist] in brass goggles and matte-black tactical mask. Chef looks directly into the lens, gives an appreciative slow nod, and flashes a sharp, confident thumbs-up to camera!`,
+        shotSize: "Extreme Close-Up to Medium Up-Tilt",
+        cameraMovement: "Macro Pull and Slow Tilt Up",
+        foley: "Binaural ASMR Foley: Tactile acoustic crunch pull, soft bubbling glaze stretch, gentle exhalation through mask cheek vents. Ending on silence.",
+        estimatedDurationSeconds: 4,
+      }
+    );
   } else {
     // Generalized Universal 4-Stage Pipeline for ANY Object (Keyboard, Watch, Walkman, Camera, Phone, etc.)
     const primaryTool = specs.extractionTools[0] || "specialized disassembly tool";
@@ -291,11 +419,17 @@ export function generateInediblePipelineScenes(params: {
     }
   }
 
-  const logline = `In a ${targetRuntime}-second high-density ASMR whirlwind, a rogue masked alchemist chef dismantles an authentic ${heroObject}, dices its internal components into golden cubes, deep-fries its mechanical linkages, and serves a steaming crunch wrap with molten caramelized glaze and an iconic chef thumbs-up.`;
-  const premise = `Episode ${episodeNumber} of ${seriesTitle}: ${targetRuntime}s Viral Rapid ASMR Masterpiece (Bayashi 2X Pacing · ${totalScenes} High-Density Scenes). The chef transforms an authentic ${heroObject} into a sizzling gourmet creation, packing 3 to 4 micro-actions per clip and 90% ingredient framing across dicing, grating, sizzling, and acoustic crunch.`;
-  const synopsis = `Act I: The Mechanical Disassembly Hook\nAt the ${studioEnvironment}, [@TheShadowAlchemist] violently slams the ${heroObject} and harvests its primary sub-components with specialized tools.\n\nAct II: Culinary Butchery & Textural Prep\nComponents are sliced into calamari rings, diced into golden tofu cubes, rasped into fine shavings on a box grater, and dredged in thick golden rosin marinade.\n\nAct III: High-Capacity Cooking in ${vesselName}\nComponents are plunged into foaming hot oil and seared with charred grill lines while spatulas lift viscous molten glaze.\n\nAct IV: 4-Quadrant Assembly & Diagonal Razor Cleaver Cut\nComponents are folded into a tight toasted pocket and sliced diagonally straight through with an acoustic crack.\n\nAct V: Hero Crunch Pull & Confident Chef Thumbs-Up\nSteaming cross-section crunch pull reveals bubbling caramelized molten glaze stretching between crispy authentic hardware pieces; camera tilts up to [@TheShadowAlchemist] who nods and flashes a sharp, confident thumbs-up to camera!`;
+  let logline = `In a ${targetRuntime}-second high-density ASMR whirlwind, a rogue masked alchemist chef dismantles an authentic ${heroObject}, dices its internal components into golden cubes, deep-fries its mechanical linkages, and serves a steaming crunch wrap with molten caramelized glaze and an iconic chef thumbs-up.`;
+  let premise = `Episode ${episodeNumber} of ${seriesTitle}: ${targetRuntime}s Viral Rapid ASMR Masterpiece (Bayashi 2X Pacing · ${totalScenes} High-Density Scenes). The chef transforms an authentic ${heroObject} into a sizzling gourmet creation, packing 3 to 4 micro-actions per clip and 90% ingredient framing across dicing, grating, sizzling, and acoustic crunch.`;
+  let synopsis = `Act I: The Mechanical Disassembly Hook\nAt the ${studioEnvironment}, [@TheShadowAlchemist] violently slams the ${heroObject} and harvests its primary sub-components with specialized tools.\n\nAct II: Culinary Butchery & Textural Prep\nComponents are sliced into calamari rings, diced into golden tofu cubes, rasped into fine shavings on a box grater, and dredged in thick golden rosin marinade.\n\nAct III: High-Capacity Cooking in ${vesselName}\nComponents are plunged into foaming hot oil and seared with charred grill lines while spatulas lift viscous molten glaze.\n\nAct IV: 4-Quadrant Assembly & Diagonal Razor Cleaver Cut\nComponents are folded into a tight toasted pocket and sliced diagonally straight through with an acoustic crack.\n\nAct V: Hero Crunch Pull & Confident Chef Thumbs-Up\nSteaming cross-section crunch pull reveals bubbling caramelized molten glaze stretching between crispy authentic hardware pieces; camera tilts up to [@TheShadowAlchemist] who nods and flashes a sharp, confident thumbs-up to camera!`;
+  let thumbnailPrompt = `Viral YouTube Shorts & TikTok split-screen thumbnail (9:16 vertical / 16:9 landscape hybrid high-CTR masterpiece). Left side (50%): Extreme macro close-up of intact ${heroObject} being unbolted with vintage chrome tools on dark wooden workbench with dramatic cyan rim light. Right side (50%): High-saturation culinary macro of a diagonally sliced golden crunch pocket pulled apart by black-gloved hands, exposing thick bubbling translucent golden caramelized glaze stretching in glossy strings between authentic crispy ${heroObject} components and pillowy golden cubes; rising steam with warm golden spotlight. In the blurred background, [@TheShadowAlchemist] with brass tinker goggles on crown and matte-black tactical mask flashes an unmistakable sharp thumbs-up to camera. Razor-sharp 8K focus, zero on-screen text, zero watermarks, hyper-appetizing craft cinema.`;
 
-  const thumbnailPrompt = `Viral YouTube Shorts & TikTok split-screen thumbnail (9:16 vertical / 16:9 landscape hybrid high-CTR masterpiece). Left side (50%): Extreme macro close-up of intact ${heroObject} being unbolted with vintage chrome tools on dark wooden workbench with dramatic cyan rim light. Right side (50%): High-saturation culinary macro of a diagonally sliced golden crunch pocket pulled apart by black-gloved hands, exposing thick bubbling translucent golden caramelized glaze stretching in glossy strings between authentic crispy ${heroObject} components and pillowy golden cubes; rising steam with warm golden spotlight. In the blurred background, [@TheShadowAlchemist] with brass tinker goggles on crown and matte-black tactical mask flashes an unmistakable sharp thumbs-up to camera. Razor-sharp 8K focus, zero on-screen text, zero watermarks, hyper-appetizing craft cinema.`;
+  if (isNokia) {
+    logline = `In a ${targetRuntime}-second high-density ASMR village feast, a rogue masked alchemist chef dumps a crate of 15 indestructible vintage Nokia phones, pulverizes their PCBs into emerald masala in a heavy-duty Indian mixie, dices keypads into paneer cubes, sautés copper ribbon noodles on a street dosa tawa with popping screw tadka, and serves a colossal banana-leaf banquet with luminous LCD chutney and an iconic chef thumbs-up.`;
+    premise = `Episode ${episodeNumber} of ${seriesTitle}: ${targetRuntime}s Viral Village Feast Masterpiece (Bayashi 2X Pacing · ${totalScenes} High-Density Scenes). The chef transforms bulk vintage Nokia phones into a sizzling multi-technique street feast featuring an Indian mixie grinder, mechanical crunch press, street dosa tawa, smoking brass tadka ladle, and banana-leaf thali presentation.`;
+    synopsis = `Act I: The Indestructible Phone Challenge & Bulk Crate Harvest\nAt the ${studioEnvironment}, [@TheShadowAlchemist] dumps 15 vintage Nokia phones; a heavy cleaver bounces off the shell (*CLANGGG*); chrome spudgers unlatch 15 shells into sorted copper prep trays.\n\nAct II: Heavy-Duty Indian Mixie & Silicone Paneer Dicing\n15 PCBs are pulverized into vibrant emerald masala spice powder in a stainless kitchen mixie (*VRRR-KRRSH*); silicone keypads are diced into translucent cyan paneer cubes; screws are crushed in a mechanical crunch press.\n\nAct III: Street Dosa Tawa Sauté & Smoking Brass Ladle Tadka\nCopper ribbon cables are tossed on a scorching street dosa tawa into crispy golden lachha noodles; smoking mustard oil with popping screws & resistors is poured over the top with a violent acoustic hiss (*TCHRRRR*).\n\nAct IV: Luminous LCD Chutney Reduction\n15 monochrome LCD glass panels simmer with golden rosin flux in a brass handi pot, melting into thick, bubbling neon-cyan glaze chutney.\n\nAct V: Banana-Leaf Brass Thali Banquet & Iconic Chef Thumbs-Up\nCrispy copper noodles, paneer cubes, emerald mixie powder, and sizzling tadka are plated on a banana-leaf thali alongside bubbling LCD chutney; [@TheShadowAlchemist] dips a crispy bite, reveals a luscious caramelized stretch, and flashes a confident thumbs-up to camera!`;
+    thumbnailPrompt = `Viral YouTube Shorts & TikTok split-screen thumbnail (9:16 vertical / 16:9 landscape hybrid high-CTR masterpiece). Left side (50%): Extreme macro close-up of a rustic wicker crate dumping 15 authentic vintage Nokia 3310 phones with a heavy cleaver bouncing off the blue shell with sparks on dark wood. Right side (50%): High-saturation culinary macro of a traditional brass thali lined with fresh banana leaf, loaded with golden copper ribbon noodles, translucent cyan keypad cubes, dusted with vibrant emerald mixie powder, with a fork dipping into glowing luminous neon-cyan LCD chutney stretching in glossy caramelized strings; rising aromatic steam with warm golden spotlight. In the blurred background, [@TheShadowAlchemist] with brass tinker goggles on crown and matte-black tactical mask flashes an unmistakable sharp thumbs-up to camera. Razor-sharp 8K focus, zero on-screen text, zero watermarks, hyper-appetizing craft cinema.`;
+  }
 
   return {
     logline,

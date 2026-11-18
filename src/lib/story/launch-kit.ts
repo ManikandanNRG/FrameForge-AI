@@ -79,8 +79,9 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   const combinedText = `${title} ${desc} ${project.sourceIdea || ""}`.toLowerCase();
   const isGameBoy = /game\s*boy|gameboy|pokemon|nintendo|handheld/i.test(combinedText);
   const isBicycle = /bicycle|bycycle|cycle|bike|tire|chain|pedal|spoke/i.test(combinedText);
+  const isNokia = /nokia|3310|1100|brick phone|keypad phone/i.test(combinedText);
   const isEarbud = /earbud|airpod/i.test(combinedText);
-  const isPhone = /phone|smartphone/i.test(combinedText);
+  const isPhone = !isNokia && /phone|smartphone/i.test(combinedText);
   const isWatch = /watch|clock/i.test(combinedText);
 
   // Detect subject object
@@ -92,7 +93,15 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   let wokContents =
     "stir-fried black keycaps and crimson Cherry switches bubbling in golden oil, with authentic wisps of white culinary steam curling upward";
 
-  if (isBicycle) {
+  if (isNokia) {
+    heroObject = "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)";
+    rawObjectHalf =
+      "a rustic wicker crate overflowing with 15 authentic vintage navy-blue and grey Nokia 3310 phones, held with black-gloved hands at chest height, exposing unlatched snap-on shells and green circuit boards";
+    cookedSpatulaPile =
+      "a traditional Indian brass thali lined with fresh green banana leaf, loaded with golden copper ribbon noodles, translucent cyan keypad paneer cubes, and dusted with emerald-green mixie PCB spice powder, with a fork dipping into glowing luminous neon-cyan LCD chutney with stretching caramelized strands";
+    wokContents =
+      "a scorching street dosa tawa sizzling with copper ribbon noodles and a simmering brass handi pot bubbling with glowing neon-cyan LCD chutney";
+  } else if (isBicycle) {
     heroObject = "Vintage Bicycle";
     rawObjectHalf =
       "the raw stripped chrome fork and spoked wheel rim of the dismantled vintage bicycle, leaning upright at chest height";
@@ -138,15 +147,21 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   const safetyDisclaimer =
     "⚠️ CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT INGEST OR ATTEMPT AT HOME.";
 
-  const centerForegroundDescription = isBicycle
+  const centerForegroundDescription = isNokia
+    ? `A wide scorching street dosa tawa sizzling with copper ribbon noodles sits beside a simmering brass handi pot bubbling with glowing neon-cyan LCD chutney`
+    : isBicycle
     ? wokContents
     : `A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with ${wokContents}`;
 
-  const rightHandTool = isBicycle
+  const rightHandTool = isNokia
+    ? "a traditional Indian carved brass serving thali platter"
+    : isBicycle
     ? "a colossal 3-foot Indian wedding catering iron perforated skimmer (jhara)"
     : "a wide angled stainless steel chef's slotted spatula";
 
-  const thumbnailLighting = isBicycle
+  const thumbnailLighting = isNokia
+    ? "Deep solid dark charcoal village hearth background with warm fiery under-glow from the outdoor hearth burners, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
+    : isBicycle
     ? "Deep solid dark charcoal catering workshop background with warm fiery under-glow from the hearth burner, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
     : "Deep solid dark charcoal studio background with heavy smooth vignette, completely clean, zero clutter, zero tools. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
 
@@ -209,7 +224,13 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
 
   // YouTube Titles
   let youtubeTitles: string[] = [];
-  if (isBicycle) {
+  if (isNokia) {
+    youtubeTitles = [
+      `I Cooked 15 Vintage Nokia Phones on a Street Dosa Tawa! (Village Cooking ASMR)`,
+      `Cooking 15 Indestructible Nokia Phones in Bulk! 📱🔥 #ASMR #VillageCooking`,
+      `The Indestructible Vintage Nokia Village Feast | ASMR Inedible Cooking`,
+    ];
+  } else if (isBicycle) {
     youtubeTitles = [
       `I Cooked a Vintage Bicycle in a Giant Indian Catering Cauldron! (Oddly Satisfying ASMR)`,
       `Cooking a Full Bicycle in a 4-Foot Wedding Feast Kadai! 🚲🔥 #ASMR`,
@@ -243,7 +264,58 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
   let instagramCaption = "";
   let instagramHashtags = "";
 
-  if (isBicycle) {
+  if (isNokia) {
+    ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
+- 15x Authentic Vintage Nokia 3310 & 1100 Mobile Phones (Dumped from Wicker Crate)
+- 15x Green Motherboard PCBs (Pulverized in Stainless Indian Kitchen Mixie into Emerald Masala)
+- 15x Rubber Silicone Keypad Matrices (Diced into Translucent Cyan Paneer Cubes)
+- Bundle of Slender Copper Ribbon Cables & Antennas (Sautéed into Crispy Golden Lachha Noodles)
+- Crushed Silver Micro-Screws & Resistors (Sizzled in Smoking Brass Ladle Mustard Oil Tadka)
+- 15x Monochrome LCD Glass Panels (Simmered in Brass Handi Pot into Luminous Cyan Chutney)
+- Folded Crispy Snap-On Casing Crunch Parcel`;
+
+    timestampsSection = `⏱️ TIMESTAMPS:
+0:00 - Bulk 15 Nokia Crate Dump & Cleaver Bounce Hook (*CLANGGG*)
+0:08 - Heavy-Duty Indian Kitchen Mixie PCB Masala Pulverization (*VRRR-KRRSH*)
+0:15 - Silicone Keypad Paneer Dicing & Mechanical Crunch Press
+0:23 - Scorching Street Dosa Tawa Copper Noodle Sauté
+0:30 - Smoking Brass Ladle Mustard Oil Tadka Splutter Hiss (*TCHRRRR*)
+0:38 - Brass Handi Pot Luminous LCD Glass Chutney Reduction
+0:45 - Banana-Leaf Brass Thali Village Feast Assembly & Diagonal Cleaver Cut (*CRUNCH*)
+0:53 - Hero Luminous Chutney Dip, Caramelized Glaze Stretch & Confident Chef Thumbs-Up`;
+
+    hashtagsList = [
+      "#ASMR",
+      "#Shorts",
+      "#OddlySatisfying",
+      "#Cooking",
+      "#VillageCooking",
+      "#Nokia",
+      "#StreetFood",
+      "#SoundDesign",
+      "#InedibleCooking",
+      "#ViralASMR",
+    ];
+
+    tagsString = `${title}, Inedible Cooking, Nokia Cooking, Village Cooking Channel, Indian Street Food, Street Dosa Tawa, Mixie Grinder ASMR, ASMR Food, Oddly Satisfying, Indestructible Nokia 3310, Cooking ASMR, Sound Design, Food Art, Satisfying Video, CineFlow AI, Google Flow, Veo AI`;
+
+    instagramCaption = `Can the indestructible vintage Nokia 3310 survive the alchemist's kitchen? 📱🔥
+
+Watch as we take 15 authentic vintage Nokia phones, dump them from a rustic crate, bounce a heavy cleaver off the shell, grind the PCBs into emerald masala in a heavy-duty Indian mixie, sauté copper ribbon noodles on a street dosa tawa with a smoking mustard-oil tadka, and serve a grand village feast on a banana-leaf brass thali!
+
+🎧 WEAR HEADPHONES for the pure binaural ASMR experience!
+
+${safetyDisclaimer}
+
+💬 MENU VOTE: What classic gadget should I cook in bulk next?
+A) Retro Walkmans 📼
+B) Mechanical Keyboards ⌨️
+C) Classic Game Consoles 🎮
+Drop your vote below! 👇`;
+
+    instagramHashtags =
+      "#reels #asmr #asmrfood #oddlysatisfying #nokia #nokia3310 #villagecooking #streetfood #creativecooking #satisfyingvideos #sounddesign #cinematicreels #foodart #viralreels #techart #satisfying #asmrcommunity #chefsofinstagram";
+  } else if (isBicycle) {
     ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
 - 1x Vintage Steel Road Bicycle (Stripped & Harvested)
 - 1x 116-Link Oily Steel Bicycle Chain (Deep-Fried into Acoustic Tempura)

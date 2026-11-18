@@ -241,7 +241,7 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
   },
   {
     category: "CAMERA_OPTICS",
-    detectRegex: /\b(camera|lens|dslr|aperture|vintage camera|camcorder)\b/i,
+    detectRegex: /\b(dslr|camcorder|vintage camera|35mm camera|camera body|camera lens|optical glass|iris blades|aperture blades)\b/i,
     canonicalHeroName: "35mm Camera",
     subComponents: [
       {
@@ -255,6 +255,58 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
         canonicalName: "delicate interlocking black metal aperture iris blades",
         dimensionalAnchor: "delicate interlocking black metal aperture iris blades and focal plane shutter curtain",
         negativeScaleTokens: ["window blinds", "garage shutter", "camera tripod"],
+      },
+    ],
+  },
+  {
+    category: "BULK_NOKIA_PHONES",
+    detectRegex: /\b(nokia|3310|1100|brick phones?|feature phones?|keypad phones?|vintage phones?|bulk phones?)\b/i,
+    canonicalHeroName: "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)",
+    defaultVessel: "oversized commercial street tawa, heavy-duty Indian kitchen mixie & traditional brass handi pot",
+    vesselNegatives: ["small domestic frying pan", "tiny tea cup", "microwave bowl"],
+    isLargeObject: true,
+    subComponents: [
+      {
+        matchRegex: /\b(pcb|circuit board|motherboard|logic board|green board)\b/i,
+        canonicalName: "stack of 15 rigid green printed circuit motherboards (PCBs)",
+        dimensionalAnchor: "stack of 15 compact green printed circuit boards (PCBs) with gold contact pads, copper micro-traces, and SMD microchips",
+        negativeScaleTokens: ["desktop PC motherboard", "huge server board", "electrical breaker panel"],
+        extractionTools: ["precision chrome spudger pry tool"],
+      },
+      {
+        matchRegex: /\b(keypad|keypads|rubber buttons?|silicone keys?|number keys?|paneer cubes?)\b/i,
+        canonicalName: "15 translucent rubber silicone keypad membranes",
+        dimensionalAnchor: "15 flexible translucent grey and cyan rubber silicone keypad membranes with laser-etched numeric digits",
+        negativeScaleTokens: ["mechanical keyboard", "typewriter keys", "piano keyboard"],
+        extractionTools: ["curved titanium tweezers", "Damascus steel cleaver"],
+      },
+      {
+        matchRegex: /\b(ribbon|ribbon cables?|copper wire|antennas?|flex cable|copper noodles?)\b/i,
+        canonicalName: "cluster of slender copper flex ribbon cables and spiral wire antennas",
+        dimensionalAnchor: "tangled bunch of slender flexible copper ribbon cables and spiral brass wire antennas",
+        negativeScaleTokens: ["thick garden hose", "heavy copper plumbing pipe", "thick rope"],
+        extractionTools: ["precision wire snips", "street-food spatulas"],
+      },
+      {
+        matchRegex: /\b(screws?|resistors?|micro-resistors?|terminals?|hardware flakes?|tadka)\b/i,
+        canonicalName: "miniature 3mm silver Phillips micro-screws, brass terminals, and SMD resistors",
+        dimensionalAnchor: "heaping brass bowl of miniature 3mm silver screws, gold-plated battery contact terminals, and tiny SMD micro-resistors",
+        negativeScaleTokens: ["giant railway spikes", "large construction bolts", "heavy steel nuts"],
+        extractionTools: ["mechanical crunch press", "smoking brass tadka ladle"],
+      },
+      {
+        matchRegex: /\b(screens?|displays?|lcd|lcd glass|glass panel|chutney)\b/i,
+        canonicalName: "15 compact monochrome greenish-grey backlit LCD display glass panels",
+        dimensionalAnchor: "15 compact 1.5-inch monochrome greenish-grey backlit LCD screen glass panels with flex connectors",
+        negativeScaleTokens: ["large smartphone OLED screen", "tablet screen", "computer monitor", "television"],
+        extractionTools: ["suction puller & nylon pry tool", "traditional brass handi pot"],
+      },
+      {
+        matchRegex: /\b(shells?|housings?|cases?|chassis|faceplates?|covers?)\b/i,
+        canonicalName: "15 authentic vintage navy-blue and slate-grey snap-on Nokia phone faceplate shells",
+        dimensionalAnchor: "15 authentic durable navy-blue, slate-grey, and cyan snap-on Nokia phone faceplates and back covers",
+        negativeScaleTokens: ["leather phone wallet", "modern silicone iPhone case"],
+        extractionTools: ["chrome spudger pry tool", "Damascus cleaver"],
       },
     ],
   },
@@ -436,6 +488,16 @@ export function groundActionComponentScale(
     grounded = grounded
       .replace(/\bgears?\b/gi, "miniature 3mm brass watch gears")
       .replace(/\bsprings?\b/gi, "ultra-fine coiled balance hairsprings");
+  }
+
+  // 4. If bulk Nokia phone components are present
+  if (specs.category === "BULK_NOKIA_PHONES") {
+    grounded = grounded
+      .replace(/\bthe circuit boards?\b/gi, "the stack of 15 compact green printed circuit boards (PCBs)")
+      .replace(/\bthe keypads?\b/gi, "15 flexible translucent rubber silicone keypad membranes")
+      .replace(/\bthe copper ribbon\b/gi, "slender flexible copper ribbon cables and antenna wires")
+      .replace(/\bthe screws\b/gi, "miniature 3mm silver screws and SMD micro-resistors")
+      .replace(/\bthe lcd screens?\b/gi, "15 compact monochrome greenish-grey LCD display glass panels");
   }
 
   return {
@@ -644,7 +706,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
   const hasExplicitNonFood =
     /\b(inedible|non-food|hardware|scrap|e-waste|tech|gadget|odd object|unimaginable|mechanical)\b/i.test(combined) ||
     /\b(bicycles?|bycycles?|cycles?|bikes?|motorcycles?|scooters?|skateboards?|chains?|tires?|tyres?|tiers?|sponge|sponch|wheels?|pedals?|spokes?|saddles?|seats?|handlebars?)\b/i.test(combined) ||
-    /\b(walkman|cassette(?:s)?|cassette player|tape player|game\s*boy|gameboy|nintendo|cartridges?|pokemon|keyboards?|keycaps?|cherry mx|switch(?:es)?|pcb|circuit boards?|motherboards?|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phones?|cellphones?|batter(?:y|ies)|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch(?:es)?|clock|gears?|bearings?|spark plugs?|engines?|motors?|sneakers?|shoes?|boots?|rubber|leather|chess|violins?|guitars?|cameras?|lens(?:es)?|light bulbs?|coins?|cards?|billiards?|drones?|tools?)\b/i.test(combined);
+    /\b(walkman|cassette(?:s)?|cassette player|tape player|game\s*boy|gameboy|nintendo|cartridges?|pokemon|keyboards?|keycaps?|cherry mx|switch(?:es)?|pcb|circuit boards?|motherboards?|resistors?|capacitors?|airbuds?|airpods?|earphones?|headphones?|smartphones?|mobile phones?|cellphones?|nokia|3310|1100|batter(?:y|ies)|screws?|bolts?|copper wire|wires?|cables?|stones?|granite|rocks?|pebbles?|glass|marbles?|crystals?|gems?|diamonds?|watch(?:es)?|clock|gears?|bearings?|spark plugs?|engines?|motors?|sneakers?|shoes?|boots?|rubber|leather|chess|violins?|guitars?|cameras?|lens(?:es)?|light bulbs?|coins?|cards?|billiards?|drones?|tools?)\b/i.test(combined);
 
   const isInedibleCooking = isCookingContext && hasExplicitNonFood;
 
@@ -676,13 +738,14 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
       else if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(combined)) inedibleHeroObject = "Vintage Game Boy Color";
       else if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
       else if (/\b(walkman|cassette player)\b/i.test(combined)) inedibleHeroObject = "Vintage Sony Walkman";
+      else if (/\b(nokia|3310|1100)\b/i.test(combined)) inedibleHeroObject = "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)";
       else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
       else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
       else if (/\b(sneakers?|shoes?|boots?)\b/i.test(combined)) inedibleHeroObject = "Sneaker";
       else if (/\b(watch|watches?|clock)\b/i.test(combined)) inedibleHeroObject = "Mechanical Watch";
       else if (/\b(stones?|granite|rocks?)\b/i.test(combined)) inedibleHeroObject = "Granite River Stones";
       else if (/\b(circuit board|pcb)\b/i.test(combined)) inedibleHeroObject = "Circuit Board";
-      else if (/\b(camera|lens)\b/i.test(combined)) inedibleHeroObject = "Camera";
+      else if (/\b(dslr|vintage camera|35mm camera|camera body)\b/i.test(combined)) inedibleHeroObject = "Camera";
       else if (/\b(violin|guitar)\b/i.test(combined)) inedibleHeroObject = "Musical Instrument";
       else if (/\b(glass|marbles?|crystals?)\b/i.test(combined)) inedibleHeroObject = "Crystal Glass";
       else inedibleHeroObject = "Artisan Mechanical Hardware";

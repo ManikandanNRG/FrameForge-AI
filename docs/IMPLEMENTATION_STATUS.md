@@ -7,10 +7,19 @@
 **Status:** COMPLETE (fully verified live) · **Date:** 2026-10-30
 
 ### Implemented & Integrated
-- **Channel / Series & Multi-Episode Architecture (ADR-027)** (`prisma/schema.prisma`, `src/app/api/series/route.ts`, `src/app/api/series/[seriesId]/route.ts`, `src/app/api/series/[seriesId]/episodes/route.ts`, `src/lib/media/storage-paths.ts`, `src/components/series/SeriesEpisodeBar.tsx`, `src/components/series/CreateEpisodeModal.tsx`, `src/components/nav/ProjectWorkflowNav.tsx`, `tests/unit/series.test.ts`, `tests/unit/storage-paths.test.ts`):
+- **Channel / Series & Multi-Episode Architecture (ADR-027, ADR-032, ADR-033)** (`prisma/schema.prisma`, `src/app/api/series/route.ts`, `src/app/api/series/[seriesId]/route.ts`, `src/app/api/series/[seriesId]/episodes/route.ts`, `src/lib/media/storage-paths.ts`, `src/components/series/SeriesEpisodeBar.tsx`, `src/components/series/CreateEpisodeModal.tsx`, `src/components/nav/ProjectWorkflowNav.tsx`, `tests/unit/series.test.ts`, `tests/unit/storage-paths.test.ts`, `tests/unit/object-handling.test.ts`):
   - **Channel / Series Container Model**:
     - Groups recurring episodic projects under a unified brand DNA: `visualStyle`, `genre`, `tone`, `dialogueMode`, `aspectRatio`, `targetRuntime`, `defaultStudioEnvironment`, `defaultChefWardrobe`.
-    - Seeded `"The Shadow Alchemist — Inedible ASMR"` series (`inedible-tech-asmr`), linking Episode 1 (Keyboard Stir-Fry) and Episode 2 (Game Boy Tempura).
+    - Seeded `"The Shadow Alchemist — Inedible ASMR"` series (`inedible-tech-asmr`), linking Episode 1 (Keyboard Stir-Fry), Episode 2 (Game Boy Tempura), Episode 3 (Vintage Bicycle Feast), and Episode 4 (Bulk Vintage Nokia Phones Village Feast).
+  - **Episode 4: Bulk Vintage Nokia Phones — Village Feast (ASMR) (ADR-033)**:
+    - Built for viral Indian and global YouTube Shorts audiences with high-volume visual abundance (Village Cooking Channel scale).
+    - Features 15x vintage Nokia phones (Nokia 1100 / 3310) with 5+ distinct harvested components, breaking the "fry-only" monotony through varied culinary techniques:
+      1. Green Motherboard PCBs $\rightarrow$ Heavy-duty stainless Indian kitchen mixie / mixer-grinder $\rightarrow$ Emerald masala spice powder (*VRRR-KRRSH*).
+      2. Silicone Keypad Matrices $\rightarrow$ Cleaver dicing $\rightarrow$ Translucent cyan paneer / jelly cubes.
+      3. Copper Ribbon Cables & Antennas $\rightarrow$ Scorching street dosa tawa sauté $\rightarrow$ Crispy golden lachha noodles.
+      4. Silver Micro-Screws & Resistors $\rightarrow$ Mechanical crunch press $\rightarrow$ Smoking brass ladle mustard-oil tadka splutter (*TCHRRRR*).
+      5. Monochrome LCD Glass Panels $\rightarrow$ Brass handi pot slow reduction $\rightarrow$ Luminous neon-cyan & amber glaze chutney.
+      6. Plated on a colossal traditional brass thali lined with fresh banana leaf, with a gooey chutney dip stretch and `[@TheShadowAlchemist]` confident thumbs-up!
   - **Isolated Disk Storage Hierarchy**:
     - Automatically isolates files on disk: `media/channels/<slug>/episodes/ep<N>_<shortId>/` with dedicated `shots/<shotId>/images`, `shots/<shotId>/videos`, and `exports/` subfolders. Eliminates file overwrites and supports external drive mapping.
   - **1-Click Next Episode Engine**:

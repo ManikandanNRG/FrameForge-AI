@@ -213,11 +213,24 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const ideaLower = (sourceIdea || "").toLowerCase();
   const actionLower = (actionDescription || "").toLowerCase();
 
+  const isExplicitCookingGenreOrIdea =
+    styleUpper === "CULINARY_MACRO_ASMR" ||
+    (genre || "").toLowerCase().includes("cooking") ||
+    (genre || "").toLowerCase().includes("culinary") ||
+    (genre || "").toLowerCase().includes("recipe") ||
+    (genre || "").toLowerCase().includes("inedible") ||
+    ideaLower.includes("cooking") ||
+    ideaLower.includes("recipe") ||
+    ideaLower.includes("culinary") ||
+    ideaLower.includes("inedible");
+
   const isInedibleCooking =
     Boolean(entities.isInedibleCooking) ||
-    Boolean(heroObject) ||
-    Boolean(heroPropLock) ||
-    /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|nokia|3310|1100|brick phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|watch|watches?|clock|sneakers?|shoes?|violin|guitar|camera|light bulb|marbles?|crystal)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""));
+    (isExplicitCookingGenreOrIdea && (
+      Boolean(heroObject) ||
+      Boolean(heroPropLock) ||
+      /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|nokia|3310|1100|brick phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|wristwatches?|mechanical clock|sneakers?|light bulb|marbles?)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""))
+    ));
 
   const heroTargetName = (heroObject || entities.inedibleHeroObject || "Hero Object").replace(/^(the|a|an)\s+/i, "");
 
@@ -245,14 +258,20 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     dialogue === "PURE_ASMR_FOLEY" ||
     (!dialogue && !voiceover && isCulinary);
 
+  const isDocumentary =
+    styleUpper === "DOCUMENTARY" ||
+    styleUpper === "DOCUMENTARY_CINEMA" ||
+    styleUpper === "DOCUMENTARY_CINEMATIC" ||
+    (genre || "").toLowerCase().includes("documentary");
+
   const isVintage =
     !isCulinary &&
+    !isDocumentary &&
     (styleUpper === "VINTAGE_FILM" ||
       entities.hasPeriodSetting ||
       ideaLower.includes("1900") ||
       ideaLower.includes("vintage") ||
       ideaLower.includes("old years") ||
-      ideaLower.includes("historical") ||
       (genre || "").toLowerCase().includes("historical") ||
       (genre || "").toLowerCase().includes("period"));
 
@@ -271,7 +290,6 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const isFantasy = styleUpper === "FANTASY_CONCEPT_ART" || styleUpper === "FANTASY";
   const isCommercial = styleUpper === "LIVE_ACTION_AD" || styleUpper === "COMMERCIAL";
   const isKids = isGhibli || isCartoon || is3DAnim || ideaLower.includes("rhyme") || ideaLower.includes("nursery") || ideaLower.includes("kid");
-  const isDocumentary = styleUpper === "DOCUMENTARY";
   const isBlackAndWhite = styleUpper === "BLACK_AND_WHITE" || styleUpper === "FILM_NOIR";
 
   // Dynamic Style Description for Google Flow / Veo
@@ -400,15 +418,17 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   );
 
   // 4. Character Tagging and Wardrobe Lock
-  const rawCharName = characterName || "Character";
+  const isGenericCharName = !characterName || characterName.trim().length === 0 || characterName.toLowerCase() === "character";
+  const hasRealCharacter = !isGenericCharName;
+  const rawCharName = hasRealCharacter ? characterName!.trim() : "";
   const charName = /Shadow\s*Alchemist/i.test(rawCharName) ? "The Shadow Alchemist" : rawCharName;
-  const bracketedCharTag = `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]`;
+  const bracketedCharTag = charName ? `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]` : "";
 
   let taggedAction = rawAction;
-  if (!taggedAction.includes("[@") && characterName) {
+  if (hasRealCharacter && !taggedAction.includes("[@")) {
     taggedAction = `${bracketedCharTag} ${taggedAction}`;
   }
-  if (wardrobeLock && taggedAction.includes(bracketedCharTag)) {
+  if (hasRealCharacter && wardrobeLock && taggedAction.includes(bracketedCharTag)) {
     const hasWardrobe = /wearing|dressed in|shorts|saree|dhoti|veshti|pants/i.test(taggedAction);
     if (!hasWardrobe) {
       taggedAction = taggedAction.replace(
@@ -922,7 +942,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `[VISUAL STYLE & PHYSICAL INVARIANTS]:`,
     `- Visual Style: ${dynamicStyleDirective}`,
     dynamicPeriodDirective || null,
-    wardrobeLock
+    hasRealCharacter && wardrobeLock && bracketedCharTag
       ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${wardrobeLock}. Maintain 100% clothing and physical consistency across every scene.`
       : null,
     ...flowRules,
@@ -960,12 +980,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Aesthetics: 3D feature animation render, soft global illumination, vibrant playful character animation.`
     : isAnime
     ? `Aesthetics: Japanese anime feature animation aesthetic, expressive keyframe motion, cinematic lighting.`
-    : `Aesthetics: Photorealistic 1080p cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`;
+    : hasRealCharacter
+    ? `Aesthetics: Photorealistic 1080p cinema footage, authentic human skin pores with subtle perspiration, natural textile cloth physics, grounded realism, shallow depth of field.`
+    : `Aesthetics: Photorealistic 1080p cinema footage, natural organic textures, grounded realism, neutral film grain, shallow depth of field.`;
 
   const klingPrompt = [
     klingSceneType,
-    characterName
-      ? `Subject: ${characterName}, an authentic character with ${(characterDescription || (isCulinary ? "experienced chef hands, rolled-up linen shirt sleeves" : isAnimated ? "charming expressive animated features" : "authentic regional traits")).replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
+    hasRealCharacter && charName
+      ? `Subject: ${charName}, an authentic character with ${(characterDescription || (isCulinary ? "experienced chef hands, rolled-up linen shirt sleeves" : isAnimated ? "charming expressive animated features" : "authentic regional traits")).replace(/\.+$/, "")}, strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Action & Dynamics: ${actionCleaned}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
@@ -1038,7 +1060,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Art Direction: Epic fantasy matte painting, sweeping volumetric atmospheric lighting, majestic scale, ethereal god-rays, mythical production design.`
     : isCommercial
     ? `Cinematography: Shot on Arri Alexa 65mm sensor, pristine studio lighting, vibrant commercial color grade, razor-sharp focus.`
-    : `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, authentic human skin pores, Kodak Portra 400 film grain, 24fps motion blur, realistic cloth textile folds.`;
+    : hasRealCharacter
+    ? `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, authentic human skin pores, Kodak Portra 400 film grain, 24fps motion blur, realistic cloth textile folds.`
+    : `Cinematography: Shot on 35mm master anamorphic prime lens, ${lighting || "warm natural golden hour sunlight, soft shadows"}, shallow depth of field, natural organic textures, Kodak Portra 400 film grain, 24fps motion blur.`;
 
   const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
 
@@ -1085,11 +1109,13 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Strict Aesthetics: Fine art traditional watercolor painting. Strictly NO harsh digital lines, NO 3D CGI gloss, NO photographic realism.`
     : isAnimated
     ? `Strict Aesthetics: Child-friendly, joyful, and wholesome animated masterpiece. Strictly NO live-action photography, NO dark horror, NO grotesque elements, NO realistic human skin, NO text overlays.`
-    : `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs, NO modern western clothing.`;
+    : hasRealCharacter
+    ? `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs${isVintage ? ", NO modern western clothing" : ""}.`
+    : `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic sheen, NO artificial artifacts, NO watermarks, NO subtitles.`;
 
   const fluxStillPrompt = [
-    characterName
-      ? `Subject: ${bracketedCharTag} (${characterName}), ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
+    hasRealCharacter && bracketedCharTag
+      ? `Subject: ${bracketedCharTag} (${charName}), ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
       : null,
     fluxStillOpening,
     `Scene Action: ${actionCleaned}.`,
@@ -1129,8 +1155,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : isAnime
       ? `Create a stunning cinematic anime feature ${framingDesc} still.`
       : `Create a highly detailed, photorealistic ${framingDesc} film still from a cinematic film.`,
-    characterName
-      ? `Subject: ${bracketedCharTag} (${characterName}), ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : isAnimated ? "charming expressive animated features" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
+    hasRealCharacter && charName
+      ? `Subject: ${bracketedCharTag} (${charName}), ${characterDescription || (isCulinary ? "skilled chef hands with rolled linen sleeves" : isAnimated ? "charming expressive animated features" : "authentic character")}. Wardrobe lock: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional unbleached khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Scene Action: ${actionCleaned}.`,
     `Environment: ${resolvedEnvironment}.`,
@@ -1157,7 +1183,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Style & Realism: Handcrafted tactile stop-motion clay animation, miniature puppet armature textures, subtle 12fps tactile frame cadence.`
       : isComic
       ? `Style & Realism: Graphic novel comic-book illustration, bold ink outlines, rich halftone dot printing patterns, dynamic high-contrast framing.`
-      : `Style & Realism: Authentic documentary realism, true-to-life skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 1080p Full HD resolution.`,
+      : hasRealCharacter
+      ? `Style & Realism: Authentic documentary realism, true-to-life skin tones with subtle perspiration and dust, natural woven fabric folds, Kodak 35mm film grain, 1080p Full HD resolution.`
+      : `Style & Realism: Authentic documentary realism, natural organic textures, Kodak 35mm film grain, 1080p Full HD resolution.`,
     isCulinary
       ? `Physical Invariants: Rigid knife grip; cutting board resting firmly on counter; cookware anchored to stove; ingredients divide cleanly without morphing.`
       : entities.hasVehicleOrMount
@@ -1190,8 +1218,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : isAnime
       ? `Stunning cinematic anime feature ${framingDesc} still.`
       : `Cinematic ${framingDesc} photorealistic film still.`,
-    characterName
-      ? `Character: ${characterName}, ${characterDescription || (isCulinary ? "chef hands with precise knife grip" : isAnimated ? "expressive animated features" : "authentic appearance")}. Attire: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
+    hasRealCharacter && charName
+      ? `Character: ${charName}, ${characterDescription || (isCulinary ? "chef hands with precise knife grip" : isAnimated ? "expressive animated features" : "authentic appearance")}. Attire: strictly wearing ${wardrobeLock || (isCulinary ? "clean chef attire, rolled sleeves" : isVintage ? "authentic 1900s traditional khadi attire" : isAnimated ? "colorful animated attire" : "traditional clothing")}.`
       : null,
     `Visual Action: ${actionCleaned}.`,
     `Setting & Background: ${resolvedEnvironment}.`,
@@ -1217,7 +1245,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Film Aesthetics: Physical tactile clay/puppet textures, subtle 12fps tactile shutter cadence, miniature studio lighting.`
       : isComic
       ? `Film Aesthetics: Graphic novel art, halftone print textures, dynamic ink lines, high-contrast comic framing.`
-      : `Film Aesthetics: 1080p Full HD, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`,
+      : hasRealCharacter
+      ? `Film Aesthetics: 1080p Full HD, authentic cultural textures, grounded realism, neutral film grain, realistic depth of field.`
+      : `Film Aesthetics: 1080p Full HD, natural organic textures, grounded realism, neutral film grain, realistic depth of field.`,
     isCulinary
       ? `Culinary Integrity: Rigid knife grip, stable workstation, clean slicing, no morphing food.`
       : entities.hasVehicleOrMount
@@ -1237,7 +1267,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   // 12. Video Motion & Script Display Cards (Universal Image-to-Video I2V for Google Flow, Kling, Runway, Luma, Wan 2.1)
   const videoMotionPrompt = [
-    characterName ? `Subject: [@${charName.replace(/[^a-zA-Z0-9]/g, "")}].` : null,
+    hasRealCharacter && bracketedCharTag ? `Subject: ${bracketedCharTag}.` : null,
     `Action & Dynamics: ${actionCleaned}.`,
     `Camera Movement: ${naturalCameraMotion}.`,
     isPureAsmr
@@ -1343,7 +1373,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `🎬 SHOT DURATION: ${normalizedDuration}s | FRAMING: ${shotFraming} | ORIENTATION: ${arParam}`,
     `💳 ESTIMATED KLING CREDITS: ${creditCostEstimate}`,
     `\n📍 LOCATION: ${locationDescription || "Scene Location"}`,
-    characterName ? `\n👤 ACTIVE CHARACTER: ${charName} (Wardrobe: ${wardrobeLock || "Standard"})` : "",
+    hasRealCharacter && charName ? `\n👤 ACTIVE CHARACTER: ${charName} (Wardrobe: ${wardrobeLock || "Standard"})` : "",
     `\n🎥 CAMERA & ACTION:`,
     `${actionCleaned}`,
     `Camera Movement: ${naturalCameraMotion}`,

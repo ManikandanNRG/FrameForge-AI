@@ -691,7 +691,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
   const hasHandheldProp = /\b(holding|holds|carries|carrying|gripping|torch|lantern|lamp|sword|knife|stick|staff|map|book|scroll|coin|vessel|pitcher|pot|basket)\b/i.test(combined);
   
   const has1900s = /\b(1900|1900s|early 1900|early 20th century|1910|1920)\b/i.test(combined);
-  const hasGeneralPeriod = /\b(vintage|old years|ancient|historical|kingdom|palace|chettinad|pudukkottai|temple|dynasty|bazaar|handloom|pre-independence|colonial)\b/i.test(combined);
+  const hasGeneralPeriod = /\b(vintage|old years|ancient|kingdom|dynasty|pre-independence|colonial|period piece|historical era)\b/i.test(combined);
   const hasPeriodSetting = has1900s || hasGeneralPeriod;
   const periodEra = has1900s ? "1900s" : hasGeneralPeriod ? "historical_vintage" : undefined;
 

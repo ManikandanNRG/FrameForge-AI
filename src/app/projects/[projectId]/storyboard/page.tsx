@@ -503,8 +503,8 @@ export default function StoryboardPage() {
           audioPrompt: selected.audioPrompt,
           shotSize: selected.shotSize,
           lighting: selected.lighting,
-          characterName: charName,
-          wardrobeLock: wardrobeLock,
+          characterName: hasCharacter ? charName : undefined,
+          wardrobeLock: hasCharacter ? wardrobeLock : undefined,
           applyFix: true,
         }),
       });
@@ -593,8 +593,9 @@ export default function StoryboardPage() {
   // Derive primary character for the selected shot
   const characterAssets = bibleAssets.filter(a => a.assetType === "CHARACTER");
 
-  const shotCharName = (selected as any)?.characterName ||
+  const rawShotChar = (selected as any)?.characterName ||
     ((selected as any)?.characterTag ? (selected as any).characterTag.replace(/^@/, "") : "");
+  const shotCharName = rawShotChar && rawShotChar.toLowerCase() !== "character" ? rawShotChar.trim() : "";
 
   // Auto-detect which character is mentioned or featured in this specific shot
   const shotText = `${selected?.actionDescription || ""} ${selected?.videoPrompt || ""} ${selected?.dialogue || ""}`;
@@ -606,12 +607,13 @@ export default function StoryboardPage() {
 
   const autoCharAsset = matchedChar || characterAssets.find(a =>
     (shotCharName && a.name.toLowerCase() === shotCharName.toLowerCase())
-  ) || characterAssets[0];
+  ) || (characterAssets.length === 1 && !shotCharName && !/wildlife|elephant|animal|forest|monument|statue|museum/i.test(shotText) ? characterAssets[0] : undefined);
 
   const activeCharAsset = autoCharAsset;
 
-  const charName = activeCharAsset?.name || shotCharName || "Character";
-  const charTag = `@${charName.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const hasCharacter = Boolean(activeCharAsset || shotCharName);
+  const charName = hasCharacter ? (activeCharAsset?.name || shotCharName) : "";
+  const charTag = charName ? `@${charName.replace(/[^a-zA-Z0-9]/g, "")}` : "";
 
   let charPrompt = "";
   let charVoiceProfile = "";
@@ -630,7 +632,7 @@ export default function StoryboardPage() {
   const wardrobeLock = charAttrs.wardrobe ? String(charAttrs.wardrobe).replace(/\.+$/, "") : "";
 
   // Construct prompt strictly from the character's genuine identity — NEVER use generic male farmer fallback!
-  if (!charPrompt) {
+  if (hasCharacter && !charPrompt) {
     const desc = activeCharAsset?.description || "expressive authentic character in natural cinematic lighting";
     const wardrobe = charAttrs.wardrobe || "traditional regional clothing";
     const demeanor = charAttrs.personality || "calm, grounded demeanor";
@@ -707,15 +709,15 @@ export default function StoryboardPage() {
     }
   });
 
-  // If no bracketed tag exists anywhere in the action, add the primary character tag
-  if (!taggedAction.includes("[@")) {
+  // If no bracketed tag exists anywhere in the action, add the primary character tag only if this shot actually features a character
+  if (hasCharacter && bracketedCharTag && !taggedAction.includes("[@")) {
     taggedAction = `${bracketedCharTag} ${taggedAction}`;
   }
 
   // Strict Wardrobe Lock in Action Line:
   // Explicitly weaves the character's approved wardrobe directly next to their tag
   // e.g. [@Karthi] (wearing faded cotton half-shorts and shirt, barefoot)
-  if (wardrobeLock && taggedAction.includes(bracketedCharTag)) {
+  if (hasCharacter && wardrobeLock && bracketedCharTag && taggedAction.includes(bracketedCharTag)) {
     const hasWardrobeDetails = /wearing|dressed in|shorts|saree|dhoti|veshti|pants/i.test(taggedAction);
     if (!hasWardrobeDetails) {
       taggedAction = taggedAction.replace(bracketedCharTag, `${bracketedCharTag} (wearing ${wardrobeLock})`);
@@ -732,7 +734,7 @@ export default function StoryboardPage() {
         .replace(new RegExp(`@${ca.name}\\s+speaks:`, "gi"), `${bTag} speaks:`)
         .replace(new RegExp(`\\b${ca.name}:`, "gi"), `${bTag} speaks:`);
     });
-    if (!formattedDialogue.includes("[@") && !formattedDialogue.includes("@")) {
+    if (hasCharacter && bracketedCharTag && !formattedDialogue.includes("[@") && !formattedDialogue.includes("@")) {
       formattedDialogue = `${bracketedCharTag} speaks: ${formattedDialogue}`;
     }
   }
@@ -821,9 +823,9 @@ export default function StoryboardPage() {
     dialogue: formattedDialogue,
     voiceover: selected.voiceover,
     audioPrompt: selected.audioPrompt,
-    characterName: charName,
-    characterDescription: activeCharAsset?.description,
-    wardrobeLock,
+    characterName: hasCharacter ? charName : undefined,
+    characterDescription: hasCharacter ? activeCharAsset?.description : undefined,
+    wardrobeLock: hasCharacter ? wardrobeLock : undefined,
     locationDescription: locationEnvironment,
     aspectRatio: projectData?.aspectRatio,
     storyLanguage: projectData?.storyLanguage,
@@ -863,10 +865,10 @@ export default function StoryboardPage() {
     duration_seconds: normalizedDuration,
     aspect_ratio: arParam,
     style: "Photorealistic cinematic rural atmosphere",
-    active_character: charName,
-    character_tags: [bracketedCharTag],
+    active_character: hasCharacter ? charName : null,
+    character_tags: hasCharacter && bracketedCharTag ? [bracketedCharTag] : [],
     // Provided for other AI tools (external APIs, ComfyUI, Runway, Kling, Sora) that need full character visual definitions
-    character_reference: characterReferenceForOtherTools,
+    character_reference: hasCharacter ? characterReferenceForOtherTools : {},
     visual_action: actionCleaned,
     camera: {
       shot: shotFraming,
@@ -887,15 +889,15 @@ export default function StoryboardPage() {
       ambience: selected.audioPrompt || "Gentle rural atmosphere and environmental Foley",
     },
     constraints: [
-      "Only the active speaker moves lips",
-      `Accurate natural ${projectData?.storyLanguage || "native"} lip synchronization`,
-      `Maintain exact character face, hair, and wardrobe consistency: ${wardrobeLock || "locked attire"}`,
-      "No full pants or trousers when shorts are specified",
+      hasCharacter ? "Only the active speaker moves lips" : null,
+      hasCharacter && hasDialogue ? `Accurate natural ${projectData?.storyLanguage || "native"} lip synchronization` : null,
+      hasCharacter && wardrobeLock ? `Maintain exact character face, hair, and wardrobe consistency: ${wardrobeLock}` : null,
+      hasCharacter ? "No full pants or trousers when shorts are specified" : null,
       "Strict natural forward anatomical alignment: chest, torso, and face face forward in the direction of movement without backward-twisting neck or contorted body",
       "No extra background crowd or distorted hands",
       "No generated subtitles or title text",
       "24fps cinematic motion blur"
-    ]
+    ].filter(Boolean)
   }, null, 2) : "";
 
   const engineLaunchers: Record<string, { label: string; url: string; color: string }> = {

@@ -325,8 +325,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const targetDurationLabel = `${normalizedDuration} seconds`;
 
   // 2. Aspect Ratio & Framing
-  const isPortrait = aspectRatio === "PORTRAIT_9_16";
-  const isSquare = aspectRatio === "SQUARE_1_1";
+  const isPortrait = aspectRatio === "PORTRAIT_9_16" || aspectRatio === "9:16";
+  const isSquare = aspectRatio === "SQUARE_1_1" || aspectRatio === "1:1";
   const arParam = isPortrait ? "9:16" : isSquare ? "1:1" : "16:9";
   const orientationLabel = isPortrait
     ? "9:16 Vertical / Portrait (1080x1920) - Mobile Fullscreen"

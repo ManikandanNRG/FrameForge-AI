@@ -229,7 +229,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     (isExplicitCookingGenreOrIdea && (
       Boolean(heroObject) ||
       Boolean(heroPropLock) ||
-      /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|nokia|3310|1100|brick phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|wristwatches?|mechanical clock|sneakers?|light bulb|marbles?)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""))
+      /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|circuit board|motherboard|airbuds?|airpods?|earphones?|smartphones?|mobile phone|nokia|3310|1100|brick phone|battery|batteries|screws?|bolts?|copper wire|stones?|granite|rocks?|metal scrap|e-waste|hardware|tech scrap|non-food|inedible|wristwatches?|mechanical clock|sneakers?|light bulb|marbles?|soaps?|cleaning bars?|detergent bars?)\b/i.test(ideaLower + " " + actionLower + " " + (genre || ""))
     ));
 
   const heroTargetName = (heroObject || entities.inedibleHeroObject || "Hero Object").replace(/^(the|a|an)\s+/i, "");
@@ -814,6 +814,25 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "household teacup"
       );
     }
+
+    const isSoapOrBulkHotel = /soap|kothu|hotel|street food|parotta|bulk/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isSoapOrBulkHotel) {
+      negativeList.push(
+        "few pieces",
+        "sparse ingredients",
+        "small portion",
+        "tiny pile",
+        "single soap bar",
+        "small domestic pan",
+        "domestic skillet",
+        "small cutting board",
+        "home kitchen",
+        "empty table",
+        "miniature serving",
+        "scanty food",
+        "solitary object"
+      );
+    }
   }
 
   // Pure ASMR negatives to enforce zero speech or loud tracks
@@ -1038,8 +1057,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `A stunning cinematic anime film still, ${shotFraming}.`
     : `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`;
 
+  const isSoapTarget = /soap|kothu|hotel|street food|parotta|bulk/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+
   const fluxCinematography = isInedibleCooking
-    ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, creamy background bokeh, warm industrial directional spotlight, glistening translucent rosin flux glaze.`
+    ? isSoapTarget
+      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin translucent curly ribbon shavings, glistening golden oil reflections, creamy background bokeh, commercial hotel kitchen lighting.`
+      : `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, creamy background bokeh, warm industrial directional spotlight, glistening translucent rosin flux glaze.`
     : isCulinary
     ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, creamy background bokeh, warm kitchen directional spotlight, appetizing natural food glistening.`
     : isVintage
@@ -1068,6 +1091,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const resolvedEnvironment = (() => {
     if (isInedibleCooking && station === "OBJECT_SOURCING") {
+      if (isSoapTarget) {
+        return locationDescription || "Commercial wholesale soap market warehouse with stacked wooden crates filled with hundreds of unbranded laundry washing bars and bath soaps under bright industrial market lighting";
+      }
       if (locationDescription) {
         const cleaned = locationDescription
           .replace(/In the center is a heavy industrial steel workbench.*?wok burner\.?/gi, "")
@@ -1079,6 +1105,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       return "Atmospheric electronics scrapyard with industrial steel shelving units, stacked retro CRT monitors, green motherboard racks, copper wire spools, and cool cyan neon fog";
     }
     if (isInedibleCooking && (station === "PLATING_SERVE" || station === "HERO_REACTION")) {
+      if (isSoapTarget) {
+        return locationDescription || "Commercial Madurai hotel feast table with a giant fresh vibrant green banana leaf on a massive 24-inch polished brass wedding thali, surrounded by small brass bowls";
+      }
       const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (locationDescription || ""));
       if (isWhitePlate) {
         return "Pristine minimalist restaurant studio table with pure black velvet background and focused overhead spotlight illuminating a bright white ceramic plate";
@@ -1089,6 +1118,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const fluxAesthetics = isInedibleCooking
     ? (() => {
+        if (isSoapTarget) {
+          if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
+            return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps (dense waxy textures, sharp geometric block edges, paper-thin feathery ribbon shavings, vibrant ultramarine blue, carbolic yellow, brick red, and translucent ruby/emerald tones). Massive commercial hotel feast scale on giant fresh banana leaf with high visual contrast. Strictly NO brand logos, NO on-screen text, NO brand names, NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          if (station === "OBJECT_SOURCING") {
+            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (stacked bulk crates, vibrant unbranded colors). Strictly NO brand logos, NO text, NO cooking stoves, NO domestic pans, NO generic cubes, NO food, NO meat, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps (dense waxy textures, sharp geometric block edges, paper-thin feathery ribbon shavings, vibrant ultramarine blue, carbolic yellow, brick red, and translucent ruby/emerald tones). Commercial hotel kitchen street volume. Strictly NO brand logos, NO on-screen text, NO brand names, NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+        }
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
           return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }

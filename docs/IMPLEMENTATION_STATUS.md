@@ -507,3 +507,36 @@
 - **Verification**:
   - `npm test`: 77/77 unit tests passing across 14 test suites.
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+
+### Episode 5: The Artisan Laundry & Bath Soap Madurai Kothu Parotta — Commercial Hotel Level Upgrade (2026-11-19)
+- **Context & Feedback**:
+  - User reviewed preliminary generated images for the Tamil soap ASMR cooking episode and identified sparse domestic home-kitchen portions (small domestic skillet with 3-4 cubes, single soap bar peeled on a small cutting board).
+  - Explicit requirement: Upgrade all 9 scenes to **Commercial Hotel Street Parotta Level (ஹோட்டல் பரோட்டா மாஸ்டர் லெவல்)** with massive wholesale quantities, 3-foot commercial cast-iron tawa, mountains of ingredients, and pure binaural ASMR sound design without brand names.
+- **Delivered**:
+  1. **Registered `SOAP_AND_CLEANING_BARS` in `OBJECT_COMPONENT_REGISTRY` (`src/lib/story/world-engine.ts`)**:
+     - Canonical Hero Name: `"Unbranded Tamil Market Laundry & Bath Soaps"`.
+     - Default Vessel: `"giant 3-foot (36-inch) heavy black cast-iron commercial hotel tawa over industrial dual-ring gas burner"`.
+     - Vessel Negatives: `["small kitchen skillet", "domestic frying pan", "tiny household pan", "small cutting board", "home kitchen", "empty table"]`.
+     - Subcomponents: Paper-thin curly ribbon shavings, rectangular laundry blocks, translucent glycerine gems.
+  2. **Bulk Hotel Negative Constraints Matrix (`src/lib/story/prompt-compiler.ts`)**:
+     - Added `isSoapOrBulkHotel` check injecting negative scale tokens:
+       `"few pieces"`, `"sparse ingredients"`, `"small portion"`, `"tiny pile"`, `"single soap bar"`, `"small domestic pan"`, `"domestic skillet"`, `"small cutting board"`, `"home kitchen"`, `"empty table"`, `"miniature serving"`, `"scanty food"`, `"solitary object"`.
+  3. **Purged Inedible Electronics / Scrapyard Hallucinations**:
+     - Updated `fluxCinematography` to detect soap targets and output razor-sharp probe lens focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin curly ribbon shavings, golden oil reflections, and commercial hotel kitchen lighting (eliminating laser-etched legends, metallic contacts, and rosin flux glaze).
+     - Updated `resolvedEnvironment` for `OBJECT_SOURCING` and `PLATING_SERVE` to output commercial soap market wholesale crates and grand 24-inch brass wedding feast thali with banana leaf instead of CRT monitor electronics scrapyards.
+     - Updated `fluxAesthetics` with dedicated commercial hotel soap aesthetics: strict ban on brand logos/names, domestic pans, tiny portions, while enforcing massive street food volume.
+  4. **Elevation of All 9 Scenes to Commercial Hotel Cooking Master Level**:
+     - **Scene 1 (Hook)**: 60-Soap Wholesale Crate Avalanche Hook — two crates dumping 60+ unbranded Tamil market bars (25 ultramarine blue, 15 carbolic yellow, 12 brick red, 10 grooved white, 12 ruby/emerald glycerine) across a 4-foot prep counter, with cleaver splitting a pyramid and dual 8-inch steel kothu blades clattering.
+     - **Scene 2**: 6-Bar Stacked Japanese Wood-Plane Ribbon Blizzard — 2-foot high mountain of thousands of feathery translucent parotta ribbons.
+     - **Scene 3**: Commercial Hotel Mise-En-Place — Mounds of hundreds of ruby cubes, bowls of emerald rings, mountain of blue cubes.
+     - **Scene 4**: 3-Foot Cast-Iron Commercial Hotel Tawa Tempering over roaring industrial dual-ring burner.
+     - **Scene 5**: 30-Chunk Carbolic Washing Block & 2-Liter Viscous Glycerin Deluge creating bubbling golden street gravy.
+     - **Scene 6**: 2-Foot Parotta Ribbon Mountain & 5-Liter Brass Salna Urn Deluge.
+     - **Scene 7**: Madurai Hotel Master Dual-Blade Kothu Clatter Climax — 8-inch steel scrapers drumming in rapid rhythm, sparks, and steam eruptions.
+     - **Scene 8**: Commercial Charcoal Dust Dredger & Monumental 10-Portion Center Mound.
+     - **Scene 9**: Grand Hotel Feast on 24-Inch Brass Wedding Thali Lined with Giant Fresh Banana Leaf.
+  5. **Database Resynchronization**:
+     - Recompiled and persisted updated `imagePrompt`, `videoPrompt`, and `negativeConstraints` across all 9 shots in project `cmwn17qi30001u8i4fd1pgibh`.
+- **Verification**:
+  - `npm test`: 77/77 unit tests passing across 14 test suites.
+  - `npm run typecheck` (`tsc --noEmit`): 0 errors.

@@ -46,6 +46,34 @@ export interface ObjectCategorySpec {
 
 export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
   {
+    category: "SOAP_AND_CLEANING_BARS",
+    detectRegex: /\b(soap|soaps|washing soap|laundry bar|bath soap|glycerine soap|carbolic soap|detergent bar|loofah)\b/i,
+    canonicalHeroName: "Unbranded Tamil Market Laundry & Bath Soaps",
+    isLargeObject: true,
+    defaultVessel: "giant 3-foot (36-inch) heavy black cast-iron commercial hotel tawa over industrial dual-ring gas burner",
+    vesselNegatives: ["small kitchen skillet", "domestic frying pan", "tiny household pan", "small cutting board"],
+    subComponents: [
+      {
+        matchRegex: /\b(ribbons?|shavings?|peeling|plane|curls?|shreds?)\b/i,
+        canonicalName: "paper-thin translucent curly soap ribbons and feathery parotta shreds",
+        dimensionalAnchor: "voluminous mountain of thousands of paper-thin curly translucent soap ribbons peeled from soap bars",
+        negativeScaleTokens: ["few shavings", "single curl", "tiny pile", "plastic blocks", "wheat dough", "maida"],
+      },
+      {
+        matchRegex: /\b(laundry|washing bar|blue bar|carbolic|yellow bar|brick red)\b/i,
+        canonicalName: "dense unbranded rectangular laundry washing soap blocks",
+        dimensionalAnchor: "dense unbranded geometric laundry washing bars with sharp manufactured edges",
+        negativeScaleTokens: ["brand logo", "printed packaging", "tiny cubes", "plastic toys"],
+      },
+      {
+        matchRegex: /\b(glycerin|glycerine|ruby|emerald|herbal)\b/i,
+        canonicalName: "translucent jewel-toned ruby and emerald glycerine bath soap cubes",
+        dimensionalAnchor: "glistening translucent ruby-red and emerald-green bath glycerine soap gems",
+        negativeScaleTokens: ["dice", "tofu", "plastic beads", "real onions", "real tomatoes"],
+      },
+    ],
+  },
+  {
     category: "BICYCLE_VEHICLE",
     detectRegex: /\b(bicycles?|bycycles?|cycles?|bikes?|road bikes?|vintage cycles?|velocipedes?)\b/i,
     canonicalHeroName: "Vintage Bicycle",

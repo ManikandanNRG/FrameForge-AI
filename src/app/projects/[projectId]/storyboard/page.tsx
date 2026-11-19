@@ -1021,42 +1021,68 @@ export default function StoryboardPage() {
 
           {/* Shot list */}
           {scenes.map(sc => (
-            <div key={sc.id} className="mb-3">
-              <p className="px-3 py-1 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Scene {sc.sceneNumber}: {sc.heading}
-              </p>
-              {sc.shots.map(sh => {
-                const img = sh.mediaVersions.find(m => m.kind === "STORYBOARD_STILL");
-                const vid = sh.mediaVersions.find(m => m.kind === "VIDEO_CLIP");
-                return (
-                  <button key={sh.id} onClick={() => setSelected(sh)}
-                    className={`w-full text-left px-3 py-2 rounded-xl text-sm flex items-center gap-2 transition-all ${
-                      selected?.id === sh.id
-                        ? "bg-slate-100 text-slate-900 font-semibold border border-slate-200/80 shadow-2xs"
-                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    }`}>
-                    {/* Thumbnail */}
-                    <span className="h-8 w-12 rounded-lg overflow-hidden shrink-0 bg-slate-100 border border-slate-200 flex items-center justify-center relative shadow-2xs">
-                      {singleGenImageShotId === sh.id ? (
-                        <span className="h-3 w-3 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
-                      ) : img ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={mediaUrl(img.storagePath)} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <ImageIcon className="h-3 w-3 text-slate-400" />
-                      )}
-                    </span>
-                    <span className="flex-1 min-w-0">
-                      <span className="text-slate-400 text-xs font-mono">S{sh.shotNumber}</span>
-                      <span className="block truncate text-xs text-slate-700">{sh.actionDescription}</span>
-                    </span>
-                    <div className="flex flex-col gap-0.5 shrink-0">
-                      {img && <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Image ready" />}
-                      {vid && <span className="w-1.5 h-1.5 rounded-full bg-purple-500" title="Video ready" />}
-                    </div>
-                  </button>
-                );
-              })}
+            <div key={sc.id} className="mb-3.5">
+              <div className="px-3 pt-1 pb-1.5 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider">
+                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0 shadow-2xs" />
+                <span className="text-amber-950 font-black">Scene {sc.sceneNumber}</span>
+                <span className="text-slate-400 font-normal truncate">· {sc.heading}</span>
+              </div>
+              <div className="space-y-1">
+                {sc.shots.map(sh => {
+                  const img = sh.mediaVersions.find(m => m.kind === "STORYBOARD_STILL");
+                  const vid = sh.mediaVersions.find(m => m.kind === "VIDEO_CLIP");
+                  const isSelected = selected?.id === sh.id;
+                  const sceneShotTag = `S${sc.sceneNumber}${sc.shots.length > 1 ? `.${sh.shotNumber}` : ""}`;
+                  return (
+                    <button
+                      key={sh.id}
+                      onClick={() => setSelected(sh)}
+                      className={`group w-full text-left px-3 py-2 rounded-xl text-sm flex items-center gap-2.5 transition-all ${
+                        isSelected
+                          ? "bg-amber-50 border-2 border-amber-500 text-slate-950 font-bold shadow-md ring-2 ring-amber-400/20 translate-x-0.5"
+                          : "bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950 border border-slate-200/80 shadow-2xs"
+                      }`}
+                    >
+                      {/* Thumbnail */}
+                      <span className={`h-8 w-12 rounded-lg overflow-hidden shrink-0 flex items-center justify-center relative shadow-2xs transition-colors ${
+                        isSelected ? "bg-amber-100 border border-amber-300" : "bg-slate-100 border border-slate-200"
+                      }`}>
+                        {singleGenImageShotId === sh.id ? (
+                          <span className="h-3 w-3 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+                        ) : img ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={mediaUrl(img.storagePath)} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <ImageIcon className={`h-3 w-3 ${isSelected ? "text-amber-600" : "text-slate-400"}`} />
+                        )}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className={`inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[11px] font-mono font-extrabold tracking-tight shrink-0 transition-colors ${
+                            isSelected
+                              ? "bg-amber-500 text-slate-950 shadow-xs"
+                              : "bg-slate-200 text-slate-800 group-hover:bg-amber-200 group-hover:text-amber-950"
+                          }`}>
+                            {sceneShotTag}
+                          </span>
+                          {sh.shotSize && (
+                            <span className="text-[10px] font-semibold text-slate-400 truncate">
+                              {sh.shotSize}
+                            </span>
+                          )}
+                        </div>
+                        <span className={`block truncate text-xs ${isSelected ? "text-slate-950 font-semibold" : "text-slate-700 font-medium"}`}>
+                          {sh.actionDescription}
+                        </span>
+                      </span>
+                      <div className="flex flex-col gap-0.5 shrink-0">
+                        {img && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-xs ring-1 ring-white" title="Image ready" />}
+                        {vid && <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-xs ring-1 ring-white" title="Video ready" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           ))}
         </div>
@@ -1073,19 +1099,24 @@ export default function StoryboardPage() {
               {/* Header Bar */}
               <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-200">
                 <div>
-                  <div className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
-                    <span className="text-amber-700 font-bold">Scene {selectedScene?.sceneNumber ?? 1}</span>
+                  <div className="text-xs text-slate-500 flex items-center gap-2 font-medium mb-1">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-mono font-extrabold text-xs shadow-xs">
+                      S{selectedScene?.sceneNumber ?? 1}
+                    </span>
+                    <span className="text-amber-950 font-extrabold uppercase tracking-wide">Scene {selectedScene?.sceneNumber ?? 1}</span>
                     <span className="text-slate-300">·</span>
-                    <span className="text-slate-700 font-semibold">{selectedScene?.heading || "EXT. VILLAGE"}</span>
+                    <span className="text-slate-700 font-bold truncate max-w-md">{selectedScene?.heading || "EXT. SCENE"}</span>
                   </div>
-                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 mt-0.5">
-                    Shot {selected.shotNumber}
+                  <h2 className="text-xl font-extrabold text-slate-900 flex items-center gap-2 mt-0.5">
+                    <span>Scene {selectedScene?.sceneNumber ?? 1}</span>
+                    <span className="text-slate-300 font-light">/</span>
+                    <span className="text-amber-600 font-extrabold">Shot {selected.shotNumber}</span>
                     {selected.shotSize && (
-                      <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-300 shadow-2xs">
                         {selected.shotSize}
                       </span>
                     )}
-                    <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs shadow-2xs">
+                    <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs shadow-2xs ml-1">
                       <button
                         type="button"
                         onClick={() => setShotDuration(selected.id, 8)}
@@ -1387,14 +1418,14 @@ export default function StoryboardPage() {
                   {/* Unified AI Studio Card */}
                   <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
                     {/* 1. Header Bar: Title + Essential Actions */}
-                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50/80 border-b border-slate-200">
+                    <div className="flex items-center justify-between px-4 py-3 bg-slate-50/90 border-b border-slate-200">
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 text-amber-600" />
-                        <h3 className="text-xs font-bold text-slate-900 tracking-wide">
+                        <h3 className="text-xs font-extrabold text-slate-900 tracking-wide uppercase">
                           Prompt Studio
                         </h3>
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
-                          Shot {selected.shotNumber}
+                        <span className="text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 shadow-xs">
+                          S{selectedScene?.sceneNumber ?? 1} · Shot {selected.shotNumber}
                         </span>
                       </div>
 
@@ -1417,7 +1448,7 @@ export default function StoryboardPage() {
                         <button
                           type="button"
                           onClick={() => copyPrompt(activePromptText, promptTab)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs shadow-xs transition whitespace-nowrap"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold rounded-lg text-xs shadow-xs transition whitespace-nowrap"
                         >
                           {copied === promptTab ? (
                             <>
@@ -1436,14 +1467,14 @@ export default function StoryboardPage() {
 
                     {/* 2. Primary 3-Stage Pipeline Switcher (Prominent & Clean) */}
                     <div className="p-4 pb-0 space-y-2.5">
-                      <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                      <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
                         <button
                           type="button"
                           onClick={() => setPromptTab("flux")}
-                          className={`py-1.5 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
+                          className={`py-2 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 shadow-2xs ${
                             promptTab === "flux"
-                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
-                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                              ? "bg-amber-500 text-slate-950 shadow-xs border border-amber-600 font-extrabold"
+                              : "text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold"
                           }`}
                         >
                           <span>🖼️ 1. Google Flow Image</span>
@@ -1451,10 +1482,10 @@ export default function StoryboardPage() {
                         <button
                           type="button"
                           onClick={() => setPromptTab("video")}
-                          className={`py-1.5 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
+                          className={`py-2 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 shadow-2xs ${
                             promptTab === "video"
-                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
-                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                              ? "bg-blue-600 text-white shadow-xs border border-blue-700 font-extrabold"
+                              : "text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold"
                           }`}
                         >
                           <span>🎬 2. Google Flow Video (I2V)</span>
@@ -1462,10 +1493,10 @@ export default function StoryboardPage() {
                         <button
                           type="button"
                           onClick={() => setPromptTab("flow")}
-                          className={`py-1.5 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 ${
+                          className={`py-2 px-2 text-xs rounded-lg font-bold transition flex items-center justify-center gap-1.5 shadow-2xs ${
                             promptTab === "flow"
-                              ? "bg-white text-slate-900 shadow-2xs border border-purple-500"
-                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                              ? "bg-purple-600 text-white shadow-xs border border-purple-700 font-extrabold"
+                              : "text-slate-700 hover:text-slate-950 hover:bg-slate-200/80 font-semibold"
                           }`}
                         >
                           <span>⚡ 3. Google Flow Direct</span>
@@ -1506,7 +1537,7 @@ export default function StoryboardPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                             <span className="text-[11px] font-medium leading-tight">
-                              <strong>Google Flow Image Prompt (Start Frame):</strong> Tagged with character model <code>[@TheShadowAlchemist]</code> for Google Flow Image.
+                              <strong>Google Flow Image Prompt (Start Frame):</strong> Tagged with character model <code>{bracketedCharTag || "[@Character]"}</code> for Google Flow Image.
                             </span>
                           </div>
                           <a
@@ -1544,7 +1575,7 @@ export default function StoryboardPage() {
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0" />
                             <span className="text-[11px] font-medium leading-tight">
-                              <strong>Google Flow Direct Video (Text-to-Video):</strong> Full master prompt with tagged character <code>[@TheShadowAlchemist]</code> and cinematic specs.
+                              <strong>Google Flow Direct Video (Text-to-Video):</strong> Full master prompt with tagged character <code>{bracketedCharTag || "[@Character]"}</code> and cinematic specs.
                             </span>
                           </div>
                           <a
@@ -1703,10 +1734,12 @@ export default function StoryboardPage() {
                   <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
                     <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
                           Screenplay &amp; Audio
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">Shot {selected.shotNumber}</span>
+                        <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 border border-amber-300">
+                          S{selectedScene?.sceneNumber ?? 1} · Shot {selected.shotNumber}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Link

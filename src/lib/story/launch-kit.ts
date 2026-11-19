@@ -80,6 +80,7 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   const isGameBoy = /game\s*boy|gameboy|pokemon|nintendo|handheld/i.test(combinedText);
   const isBicycle = /bicycle|bycycle|cycle|bike|tire|chain|pedal|spoke/i.test(combinedText);
   const isNokia = /nokia|3310|1100|brick phone|keypad phone/i.test(combinedText);
+  const isSoap = /soap|kothu|madurai|laundry|parotta/i.test(combinedText);
   const isEarbud = /earbud|airpod/i.test(combinedText);
   const isPhone = !isNokia && /phone|smartphone/i.test(combinedText);
   const isWatch = /watch|clock/i.test(combinedText);
@@ -93,7 +94,15 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   let wokContents =
     "stir-fried black keycaps and crimson Cherry switches bubbling in golden oil, with authentic wisps of white culinary steam curling upward";
 
-  if (isNokia) {
+  if (isSoap) {
+    heroObject = "Commercial Laundry & Bath Soaps (Madurai Street Kothu Parotta)";
+    rawObjectHalf =
+      "a bundle of 4-5 authentic unbranded Tamil market soap bars wrapped in colorful retro paper wrappers, with two wrappers partially torn open to expose the raw ultramarine-blue laundry soap and glowing radiant ruby glycerine bar inside, crowned with delicate frothy white soap lather bubbles";
+    cookedSpatulaPile =
+      "a towering, sticky, glistening mound of minced soap kothu parotta (translucent ivory soap ribbon curls, seared ultramarine blue laundry cubes, glowing ruby glycerine gems, and bright emerald rings), dripping with long stretching strands of thick, bubbling golden-amber glycerin salna glaze cascading downward";
+    wokContents =
+      "a giant flat 3-foot circular iron street tawa sizzling with glistening soap ribbons and multicolored soap cubes, with billowing clouds of white culinary steam";
+  } else if (isNokia) {
     heroObject = "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)";
     rawObjectHalf =
       "a rustic wicker crate overflowing with 15 authentic vintage navy-blue and grey Nokia 3310 phones, held with black-gloved hands at chest height, exposing unlatched snap-on shells and green circuit boards";
@@ -147,19 +156,25 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   const safetyDisclaimer =
     "⚠️ CONCEPTUAL ARTWORK & ASMR ENTERTAINMENT ONLY — INEDIBLE. DO NOT INGEST OR ATTEMPT AT HOME.";
 
-  const centerForegroundDescription = isNokia
+  const centerForegroundDescription = isSoap
+    ? "A wide circular 3-foot seasoned black iron street tawa sits sizzling at the bottom, packed with glistening soap ribbons and multicolored soap cubes bubbling in golden oil, with authentic plumes of white culinary steam curling upward"
+    : isNokia
     ? `A wide scorching street dosa tawa sizzling with copper ribbon noodles sits beside a simmering brass handi pot bubbling with glowing neon-cyan LCD chutney`
     : isBicycle
     ? wokContents
     : `A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with ${wokContents}`;
 
-  const rightHandTool = isNokia
+  const rightHandTool = isSoap
+    ? "a wide angled stainless steel chef's slotted spatula"
+    : isNokia
     ? "a traditional Indian carved brass serving thali platter"
     : isBicycle
     ? "a colossal 3-foot Indian wedding catering iron perforated skimmer (jhara)"
     : "a wide angled stainless steel chef's slotted spatula";
 
-  const thumbnailLighting = isNokia
+  const thumbnailLighting = isSoap
+    ? "Deep dark moody commercial kitchen studio background with warm directional golden-amber spotlights illuminating the glistening textures and jewel-toned soap clarity, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
+    : isNokia
     ? "Deep solid dark charcoal village hearth background with warm fiery under-glow from the outdoor hearth burners, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
     : isBicycle
     ? "Deep solid dark charcoal catering workshop background with warm fiery under-glow from the hearth burner, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
@@ -224,7 +239,13 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
 
   // YouTube Titles
   let youtubeTitles: string[] = [];
-  if (isNokia) {
+  if (isSoap) {
+    youtubeTitles = [
+      `I Cooked 60 Tamil Market Soaps into Street Food! (Oddly Satisfying ASMR)`,
+      `Cooking Commercial Laundry & Bath Soaps on a Street Tawa! 🧼🔥 #ASMR #InedibleCooking`,
+      `The Madurai Soap Kothu Parotta Street Food Feast | ASMR Inedible Cooking`,
+    ];
+  } else if (isNokia) {
     youtubeTitles = [
       `I Cooked 15 Vintage Nokia Phones on a Street Dosa Tawa! (Village Cooking ASMR)`,
       `Cooking 15 Indestructible Nokia Phones in Bulk! 📱🔥 #ASMR #VillageCooking`,
@@ -264,7 +285,44 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
   let instagramCaption = "";
   let instagramHashtags = "";
 
-  if (isNokia) {
+  if (isSoap) {
+    ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
+- 60x Raw Unbranded Tamil Nadu Market Soaps (Ultramarine Blue Laundry Bars, Carbolic Yellow, Brick Red, Grooved White & Emerald Glycerine)
+- 1x Japanese Wood Planer (Kanna) Shaving Ultra-Thin Translucent Soap Ribbon Parotta
+- 5x Translucent Blue Laundry Bars & Ruby Bath Glycerine (Diced into Hotel Jewel Cubes)
+- 1x Commercial Shaving Cream Canister (Whipped into Glossy Onion Raita with Ruby Gems)
+- 1x Liquid Golden Glycerin Flask (Simmered into Bubbling Golden Salna Broth)
+- 1x Dried Loofah Gourd Sponge (Shredded into Crispy Fried Onions)`;
+
+    timestampsSection = `⏱️ TIMESTAMPS:
+0:00 - The 60-Soap Commercial Crate Avalanche (Hook)
+0:08 - Wood-Plane Soap Blizzard (Shaving Kothu Parotta Ribbons)
+0:17 - Hotel Mise-en-Place (Jewel Dicing & Emerald Rings)
+0:26 - 3-Foot Iron Tawa High-Heat Oil Sizzle
+0:35 - The Shaving Foam & Glycerin Scramble
+0:44 - The Colossal Salna Broth Quench
+0:53 - The Madurai Rhythm (Dual Cleaver Tak-Tak-Tak Mincing)
+1:02 - The Final Masala Toss & Sauté
+1:11 - Plating the Grand Inedible Feast & Raw Soap Proof`;
+
+    hashtagsList = [
+      "#ASMR",
+      "#Shorts",
+      "#InedibleCooking",
+      "#SoapCutting",
+      "#MaduraiKothuParotta",
+      "#OddlySatisfying",
+      "#StreetFood",
+      "#TamilNadu",
+      "#ViralASMR",
+    ];
+
+    tagsString = `${title}, Inedible Cooking, Soap Cooking, Soap Cutting ASMR, Madurai Kothu Parotta, Soap Parotta, Indian Street Food, Satisfying ASMR, The Shadow Alchemist, Food Illusion, Oddly Satisfying, Viral Cooking`;
+
+    instagramCaption = `Who said laundry and bath soaps are only for washing? 🧼🔥 Watch @TheShadowAlchemist turn 60 unbranded Tamil market soap bars into an epic Madurai Kothu Parotta street food feast! (DO NOT ATTEMPT - INEDIBLE CONCEPTUAL ARTWORK)`;
+
+    instagramHashtags = "#asmr #soapcutting #oddlysatisfying #madurai #kothuparotta #inediblefood #foodillusion #satisfyingvideos #streetfood #asmrcommunity";
+  } else if (isNokia) {
     ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
 - 15x Authentic Vintage Nokia 3310 & 1100 Mobile Phones (Dumped from Wicker Crate)
 - 15x Green Motherboard PCBs (Pulverized in Stainless Indian Kitchen Mixie into Emerald Masala)

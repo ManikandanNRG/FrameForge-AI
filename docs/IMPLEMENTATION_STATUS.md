@@ -537,6 +537,56 @@
      - **Scene 9**: Grand Hotel Feast on 24-Inch Brass Wedding Thali Lined with Giant Fresh Banana Leaf.
   5. **Database Resynchronization**:
      - Recompiled and persisted updated `imagePrompt`, `videoPrompt`, and `negativeConstraints` across all 9 shots in project `cmwn17qi30001u8i4fd1pgibh`.
+  6. **5-Color Soap Confetti Continuity & UI Highlight Fix (2026-11-19)**:
+     - Resolved ingredient visual dropouts identified in generated frames:
+       - Scene 4 previously showed only floating rings in oil; fixed with full 5-color confetti dump.
+       - Scene 6 previously had a plain monochrome yellow ribbon heap; fixed with pre-mixed multicolored mountain.
+       - Scene 8 previously turned into a dark/burnt heap; fixed with light peppery dusting highlighting jewel colors.
+       - Scene 9 previously hallucinated real brown wheat parotta noodles; fixed with mandatory 5-color mosaic distributed throughout the shredded mound.
+     - Enforced `MANDATORY 5-COLOR SOAP CONFETTI MOSAIC` in aesthetics and negative tokens banning monochrome yellow heaps, brown food, and missing colors.
+     - Updated Storyboard UI sidebar: replaced repeating `S1` badges with sequential `S1`, `S2`... `S9`, and applied high-contrast amber/gold selected highlights.
+  7. **Real Cooking Physics & Elimination of Triangle / Pyramid Hallucinations (2026-11-19)**:
+     - User feedback: Every generated image showed an identical, static, stiff triangle/pyramid shape, with raw uncut toddler-sized blocks instead of genuine street food cooking mechanics.
+     - Root cause: Prompts frequently used words like `"pyramid"`, `"apex"`, `"mountain"`, and `"monumental mound"` which caused FLUX/Midjourney to generate rigid conical pyramids across every scene.
+     - Added negative constraints: `"triangle"`, `"triangle shape"`, `"pyramid"`, `"pyramid shape"`, `"geometric cone"`, `"conical pile"`, `"conical mound"`, `"rigid pyramid"`, `"identical triangle shape"`, `"giant intact toy blocks"`, `"plastic toys"`, `"uncooked blocks"`.
+     - Rewrote all 9 scene actions and aesthetics with authentic Madurai street cooking mechanics:
+       - S4: Flat wide oil searing across the 3-foot iron surface (no pyramid).
+       - S5: Flat golden bubbling scramble sheet across the iron (no pyramid).
+       - S6: Wide spread ribbons soaking salna on the flat tawa (no pyramid).
+       - S7: **THE HEART OF KOTHU**: Furious rhythmic beating with two steel blades in both hands (`TAK-TAK-TAK-TAK`), crushing, mincing, and chopping ribbons and soap chunks into a soft, fluffy, piping-hot, finely shredded, moist kothu parotta texture.
+       - S8: Light peppery dusting and two-handed flipping of the soft minced mixture across the iron tawa.
+       - S9: Plated naturally as a loose, steaming, rustic, moist, fluffy, finely minced street food heap on a fresh banana leaf (zero rigid geometric pyramids!).
+  8. **Inedible Material Dualism Enforcement (Scene 9 Masterpiece Plating) (2026-11-19)**:
+     - User feedback on Scene 9: The dish looked 100% like real ordinary cooked chicken kothu parotta, killing the inedible channel premise.
+     - Root cause: Over-correcting towards culinary terms stripped all physical soap textures, causing FLUX to synthesize real cooked poultry and wheat flour.
+     - Restored the core inedible illusion:
+       - Parotta shreds = glistening waxy paper-thin translucent ivory soap ribbon curls.
+       - Veggies/Protein = vibrant seared ultramarine-blue laundry soap cubes, glowing glassy translucent ruby-red glycerine gems, and emerald herbal rings.
+       - Sauce & Foam = shimmering amber glycerin glaze with delicate frothy soap lather micro-bubbles along the edges.
+       - Sides = glossy white whipped shaving-foam raita with ruby glycerine gems, amber salna broth, and crispy golden-brown dried loofah fiber shreds.
+       - Strict negative bans on: real cooked chicken, shredded chicken, chicken kothu, dull brown food, real wheat flour, meat curry.
+  9. **Foreground Raw Ingredient Showcase ("Inedible Proof") & Zoomed Hero Plating (2026-11-19)**:
+     - User feedback on Scene 9: The cooked food must be zoomed in prominently, AND the raw soap bars must be displayed in the shot to visibly prove that the feast was crafted from these exact inedible soap objects.
+     - User provided the gold-standard image generated in Google Flow showcasing:
+       - Foreground: Three raw, unbranded soap bars (translucent blue laundry bar, glowing ruby-red glycerine bar, round herbal green soap cake) covered in delicate frothy white soap lather and marigold flower petals directly in front of the thali.
+       - Midground: Colossal 24-inch polished brass thali on banana leaf with the zoomed, glistening soap kothu parotta (ribbons, blue cubes, ruby gems, green rings, frothy suds) and 3 brass bowls (shaving foam raita, golden salna, loofah shreds).
+       - Background (upper 35%): `[@TheShadowAlchemist]` with dual-lens goggles, black half-mask, and distressed leather apron holding two steel kothu cleavers.
+     - Imported the user's image (`media_1795072675075_4f1c6d5b.jpg`) directly into `ShotMedia` and locked it as `selectedStillId` on Shot 9 (`cmwn17qnz0011u8i4nsawr9a0`).
+     - Updated `src/lib/story/prompt-compiler.ts` (`PLATING_SERVE`) and Shot 9 actionDescription, imagePrompt (FLUX/Flow), and videoPrompt (Kling/Flow I2V) to permanently encode this foreground raw ingredient proof layout.
+  10. **8-Scene Rapid ASMR Storyboard Restoration & Code-Level Architectural Lock (2026-11-19)**:
+      - Resolved user feedback regarding slow 1-2 action videos and loss of the viral channel template.
+      - Restructured Episode 5 into 8 tightly choreographed high-tempo scenes (0:00 - 1:00) strictly following the authentic Madurai street kothu parotta culinary order:
+        - S1: Wholesale Crate Slam & Cleaver Split Hook (0:00 - 0:08) — immediate acoustic viewer retention hook.
+        - S2: Wood-Plane Soap Blizzard & Jewel Mise-en-Place (0:08 - 0:16) — ribbon parotta, ruby onion dice, emerald chilli rings, loofah curry leaves.
+        - S3: 3-Foot Iron Tawa Oil Tempering & Jewel Sauté (0:16 - 0:24) — virgin coconut oil sizzle, jewel veg sauté.
+        - S4: Golden Glycerin & Shaving Foam Egg Scramble (0:24 - 0:32) — yellow carbolic chunks, liquid glycerin, whipped shaving foam scramble.
+        - S5: Parotta Ribbon Cloud & Steaming Salna Deluge (0:32 - 0:40) — ribbon mound drop, boiling amber salna cascade, steam explosion.
+        - S6: The Madurai Master Kothu (Dual-Blade Street Clatter) (0:40 - 0:48) — CLIMAX: furious 2-blade beating (TAK-TAK-TAK-TAK) mincing into fluffy kothu.
+        - S7: Charcoal Pepper Dust & Double-Blade Hot Toss (0:48 - 0:54) — fine charcoal dust shaker, dual-blade toss, loofah fried onions.
+        - S8: Banana-Leaf Brass Thali Plating & Raw Soap Proof (0:54 - 1:00) — approved user still preserved with raw soap proof in foreground and chef nod/thumbs-up.
+      - Every scene is scripted with explicit **4-Beat Micro-Action Chains (Beat 1 → 2 → 3 → 4)** at 2X tempo, eliminating sluggish AI video generations.
+      - Locked into code level (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/story/launch-kit.ts`) so future series episodes automatically inherit this standard.
+      - Database synchronized with all compiled prompts (FLUX stills, Kling, Google Flow I2V) live in the Storyboard Prompt Studio with 1-click "Copy Prompt".
 - **Verification**:
   - `npm test`: 77/77 unit tests passing across 14 test suites.
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.

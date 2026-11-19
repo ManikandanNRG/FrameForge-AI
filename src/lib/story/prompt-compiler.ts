@@ -830,7 +830,35 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "empty table",
         "miniature serving",
         "scanty food",
-        "solitary object"
+        "solitary object",
+        "triangle",
+        "triangle shape",
+        "pyramid",
+        "pyramid shape",
+        "geometric cone",
+        "conical pile",
+        "conical mound",
+        "conical pyramid",
+        "rigid pyramid",
+        "identical triangle shape",
+        "real meat",
+        "real cooked chicken",
+        "shredded chicken",
+        "chicken kothu",
+        "cooked chicken meat",
+        "shredded poultry",
+        "dull brown food",
+        "brown cooked food",
+        "brown chicken",
+        "brown meat heap",
+        "ordinary grocery food",
+        "real wheat flour",
+        "realistic edible food",
+        "meat curry",
+        "missing soap elements",
+        "missing blue soap",
+        "missing ruby soap",
+        "missing emerald soap"
       );
     }
   }
@@ -1120,12 +1148,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? (() => {
         if (isSoapTarget) {
           if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-            return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps (dense waxy textures, sharp geometric block edges, paper-thin feathery ribbon shavings, vibrant ultramarine blue, carbolic yellow, brick red, and translucent ruby/emerald tones). Massive commercial hotel feast scale on giant fresh banana leaf with high visual contrast. Strictly NO brand logos, NO on-screen text, NO brand names, NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic transformed physical soap materials (80% visibly identifiable soap components in culinary street format). INEDIBLE ILLUSION & SOAP MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine whole raw unbranded soap bars rest on the rustic dark wood table crowned with delicate frothy white soap lather bubbles and scattered marigold flower petals (a rectangular translucent ultramarine-blue laundry bar, a glowing radiant ruby-red glycerine bar, and a round green herbal soap cake) establishing indisputable visual proof of the raw inedible source materials. Plated generously across the giant vibrant green banana leaf, the glistening inedible soap kothu parotta fills the center: paper-thin translucent ivory soap ribbon curls, distinct vibrant seared ultramarine-blue laundry cubes, glowing glassy translucent ruby-red glycerine gems, and bright emerald-green herbal soap rings all tossed together in a shimmering amber glycerin glaze with delicate frothy iridescent soap lather micro-bubbles along the edges. Accompanied by three brass bowls of glossy white whipped shaving-foam raita dotted with ruby gems, bubbling golden glycerin salna, and crispy golden dried loofah shreds. Strictly NO real cooked chicken, NO shredded meat, NO real wheat flour, NO ordinary brown food, NO dull brown meat piles, NO triangle pyramid cones, NO stiff geometric pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           if (station === "OBJECT_SOURCING") {
-            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (stacked bulk crates, vibrant unbranded colors). Strictly NO brand logos, NO text, NO cooking stoves, NO domestic pans, NO generic cubes, NO food, NO meat, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (flat wholesale crates, vibrant unbranded colors: ultramarine blue, carbolic yellow, brick red, white grooved, translucent ruby and emerald). Flat tabletop presentation. Strictly NO triangle shapes, NO pyramids, NO brand logos, NO text, NO cooking stoves, NO domestic pans, NO generic cubes, NO food, NO meat, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
-          return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps (dense waxy textures, sharp geometric block edges, paper-thin feathery ribbon shavings, vibrant ultramarine blue, carbolic yellow, brick red, and translucent ruby/emerald tones). Commercial hotel kitchen street volume. Strictly NO brand logos, NO on-screen text, NO brand names, NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps. STREET COOKING REALISM & KOTHU MINCING: Ingredients are actively cooked and spread wide across the flat 3-foot circular black iron tawa. Through furious rhythmic pounding of dual hand steel kothu blades, the ribbons, yellow chunks, and blue/ruby/emerald pieces are crushed, chopped down, minced, and softened into hot, steaming, moist, fluffy, finely shredded street kothu parotta texture while retaining their distinct waxy colors and translucent jewel clarity. Steam billowing, bubbling oil. Strictly NO triangle shapes, NO pyramids, NO geometric cones, NO rigid conical mounds, NO identical triangle piles, NO real cooked chicken, NO brown meat, NO brown food, NO brand logos, NO on-screen text, NO brand names, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
           return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;

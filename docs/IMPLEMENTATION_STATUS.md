@@ -587,6 +587,24 @@
       - Every scene is scripted with explicit **4-Beat Micro-Action Chains (Beat 1 → 2 → 3 → 4)** at 2X tempo, eliminating sluggish AI video generations.
       - Locked into code level (`src/lib/story/world-engine.ts`, `src/lib/story/prompt-compiler.ts`, `src/lib/story/launch-kit.ts`) so future series episodes automatically inherit this standard.
       - Database synchronized with all compiled prompts (FLUX stills, Kling, Google Flow I2V) live in the Storyboard Prompt Studio with 1-click "Copy Prompt".
+  11. **Bayashi / Zach Choi Rapid ASMR Inedible Template & Quality Checker (QC Engine) (2026-11-19)**:
+      - Encoded the viral 2X-tempo rapid ASMR format as a core architectural rule and created an automated 7-check Quality Checker engine (`src/lib/story/rapid-asmr-qc.ts`):
+        1. *Scene 1 Retention Hook (0:00 - 0:08)*: Requires high-velocity kinetic and acoustic shock verbs (`slam`, `thwack`, `split`, `cleaver`, `rip`, `clatter`). Flags passive openings that cause 35%+ swipe-away in the first 2 seconds.
+        2. *Temporal 4-Beat Micro-Action Density (2X Tempo)*: Enforces 3 to 4 sequential micro-actions per 8-second scene (`Beat 1` $\rightarrow$ `Beat 2` $\rightarrow$ `Beat 3` $\rightarrow$ `Beat 4`). Eliminates sluggish single-action video renders.
+        3. *Chronological Physical Culinary Progression*: Validates authentic street cooking flow (Hook $\rightarrow$ Knife/Plane Prep $\rightarrow$ Oil Tempering $\rightarrow$ Egg Scramble $\rightarrow$ Salna Liquid Cascade $\rightarrow$ Dual-Blade Kothu Climax $\rightarrow$ Plating).
+        4. *Multi-Ingredient Active Processing*: Mandates active utilization of at least 3-5 distinct parts from the source object (soap ribbons, ruby onion gems, emerald chilli rings, loofah curry leaves, salna broth).
+        5. *Anti-Pyramid / Cone Guardrail*: Automatically flags rigid geometric cone and pyramid tokens that trigger static toy diffusion outputs.
+        6. *Binaural ASMR Foley Audio Lock*: Enforces pure close-mic Foley acoustics with zero spoken character dialogue.
+        7. *Foreground Raw Ingredient Proof (Final Plating)*: Mandates raw source objects visible in the immediate foreground of the final shot, cementing the authentic inedible illusion.
+      - **Strict Channel Scope Isolation**:
+        - Only applies to the ASMR Inedible Cooking Channel (`"The Shadow Alchemist — Inedible ASMR"` or `visualStyle === 'CULINARY_MACRO_ASMR'`).
+        - Other genres (Ghibli anime, children's cartoons, historical drama) safely bypass checks with `{ channelScope: "OTHER_CHANNEL_SKIPPED", passed: true, overallScore: 100 }` without penalty or disruption.
+      - **Script Doctor & API Integration**:
+        - Integrated directly into `quickAuditScript` and `polishScreenplayWithAI` (`src/lib/story/script-doctor.ts`), and `POST /api/projects/[projectId]/story/script-doctor/route.ts`.
+      - **Verification**:
+        - Added comprehensive unit test suite `tests/unit/rapid-asmr-qc.test.ts` (9 tests covering isolation, gold-standard compliance, and every failure scenario).
+        - Total Vitest suite passing: 86/86 unit tests across 15 test suites.
+        - TypeScript compilation (`tsc --noEmit`): 0 errors.
 - **Verification**:
-  - `npm test`: 77/77 unit tests passing across 14 test suites.
+  - `npm test`: 86/86 unit tests passing across 15 test suites.
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.

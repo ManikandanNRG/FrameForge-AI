@@ -53,6 +53,7 @@ export interface CompiledPromptBundle {
 }
 
 export type CulinaryStation = 
+  | "RAPID_HOOK"
   | "OBJECT_SOURCING"
   | "TOOL_DISASSEMBLY"
   | "MANUAL_FRACTURE"
@@ -67,6 +68,11 @@ export type CulinaryStation =
 
 export function detectCulinaryStation(actionText: string, cameraMotionText?: string | null): CulinaryStation {
   const lower = `${actionText || ""} ${cameraMotionText || ""}`.toLowerCase();
+
+  // 0. Rapid Hook / Sensory Teaser (Scene 1 Opening)
+  if (/\b(rapid[- ]fire|4[- ]beat|sensory teaser|crate slam|retention hook|viral hook|rapid hook)\b/i.test(lower)) {
+    return "RAPID_HOOK";
+  }
 
   // 1. Hero Reaction / Smirk / Reveal (End shot)
   if (/\b(smirk|look(?:s)? (?:straight )?into (?:the )?camera|lock(?:s)? eyes|tilt(?:s)? head|whisps? of steam curl|hero reveal|rogue smirk|quiet mastery)\b/i.test(lower) &&
@@ -549,7 +555,26 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
     const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
 
-    if (station === "OBJECT_SOURCING") {
+    if (station === "RAPID_HOOK") {
+      negativeList.push(
+        "cooking stove",
+        "iron tawa",
+        "scrapers on tawa",
+        "frying pan",
+        "generic cubes",
+        "plain plastic blocks",
+        "tofu",
+        "real food",
+        "cooked chicken",
+        "triangle",
+        "triangle pyramids",
+        "handheld camera wobble",
+        "blur",
+        "slow motion walking",
+        "talking",
+        "dialogue"
+      );
+    } else if (station === "OBJECT_SOURCING") {
       negativeList.push(
         "cutting board",
         "wooden chopping board",
@@ -1118,7 +1143,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const station = detectCulinaryStation(actionCleaned + " " + (actionDescription || ""), cameraMovement);
 
   const resolvedEnvironment = (() => {
-    if (isInedibleCooking && station === "OBJECT_SOURCING") {
+    if (isInedibleCooking && (station === "OBJECT_SOURCING" || station === "RAPID_HOOK")) {
       if (isSoapTarget) {
         return locationDescription || "Commercial wholesale soap market warehouse with stacked wooden crates filled with hundreds of unbranded laundry washing bars and bath soaps under bright industrial market lighting";
       }
@@ -1150,8 +1175,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
           if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
             return `Strict Aesthetics: Authentic transformed physical soap materials (80% visibly identifiable soap components in culinary street format). INEDIBLE ILLUSION & SOAP MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine whole raw unbranded soap bars rest on the rustic dark wood table crowned with delicate frothy white soap lather bubbles and scattered marigold flower petals (a rectangular translucent ultramarine-blue laundry bar, a glowing radiant ruby-red glycerine bar, and a round green herbal soap cake) establishing indisputable visual proof of the raw inedible source materials. Plated generously across the giant vibrant green banana leaf, the glistening inedible soap kothu parotta fills the center: paper-thin translucent ivory soap ribbon curls, distinct vibrant seared ultramarine-blue laundry cubes, glowing glassy translucent ruby-red glycerine gems, and bright emerald-green herbal soap rings all tossed together in a shimmering amber glycerin glaze with delicate frothy iridescent soap lather micro-bubbles along the edges. Accompanied by three brass bowls of glossy white whipped shaving-foam raita dotted with ruby gems, bubbling golden glycerin salna, and crispy golden dried loofah shreds. Strictly NO real cooked chicken, NO shredded meat, NO real wheat flour, NO ordinary brown food, NO dull brown meat piles, NO triangle pyramid cones, NO stiff geometric pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
-          if (station === "OBJECT_SOURCING") {
-            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (flat wholesale crates, vibrant unbranded colors: ultramarine blue, carbolic yellow, brick red, white grooved, translucent ruby and emerald). Flat tabletop presentation. Strictly NO triangle shapes, NO pyramids, NO brand logos, NO text, NO cooking stoves, NO domestic pans, NO generic cubes, NO food, NO meat, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          if (station === "OBJECT_SOURCING" || station === "RAPID_HOOK") {
+            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (rustic heavy wooden crates, vibrant unbranded colors: ultramarine blue, carbolic yellow, brick red, white grooved, translucent ruby and emerald). Dark distressed timber prep counter under warm directional spotlight. Heavy carbon-steel cleaver split with crystalline shards. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic cookware, NO small frying pans, NO kothu pounding on tawa, NO food, NO meat, NO generic cubes, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          if (station === "BOARD_PREP" || station === "CULINARY_CUTTING") {
+            return `Strict Aesthetics: Traditional Japanese wood hand plane vigorously peeling voluminous mountain of paper-thin translucent curly soap ribbons, and sharp cleaver dicing red soap into ruby onion gems and slicing green loofah into emerald rings on dark end-grain wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic frying pans, NO generic plastic cubes, NO meat, NO poultry, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps. STREET COOKING REALISM & KOTHU MINCING: Ingredients are actively cooked and spread wide across the flat 3-foot circular black iron tawa. Through furious rhythmic pounding of dual hand steel kothu blades, the ribbons, yellow chunks, and blue/ruby/emerald pieces are crushed, chopped down, minced, and softened into hot, steaming, moist, fluffy, finely shredded street kothu parotta texture while retaining their distinct waxy colors and translucent jewel clarity. Steam billowing, bubbling oil. Strictly NO triangle shapes, NO pyramids, NO geometric cones, NO rigid conical mounds, NO identical triangle piles, NO real cooked chicken, NO brown meat, NO brown food, NO brand logos, NO on-screen text, NO brand names, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }

@@ -34,6 +34,7 @@ export const POST = apiHandler(async (req, ctx) => {
         include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
       },
       scenes: { orderBy: { sceneNumber: "asc" } },
+      series: true,
     },
   });
 
@@ -82,12 +83,15 @@ export const POST = apiHandler(async (req, ctx) => {
 
   // 2. Perform Quick Audit
   const auditReport = quickAuditScript(scenes, {
+    title: project.title,
+    description: project.description,
     genre: project.genre,
     tone: project.tone,
     visualStyle: project.visualStyle,
     storyLanguage: project.storyLanguage,
     dialogueMode: project.dialogueMode,
     sourceIdea: project.sourceIdea,
+    seriesSlug: project.series?.slug,
   });
 
   if (action === "audit") {

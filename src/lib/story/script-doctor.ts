@@ -1,5 +1,10 @@
 import { z } from "zod";
 import type { TextGenerationProvider } from "@/lib/providers/types";
+import {
+  auditRapidAsmrProject,
+  isAsmrInedibleCookingProject,
+  type RapidAsmrQcReport,
+} from "./rapid-asmr-qc";
 
 export interface SceneAuditResult {
   sceneNumber: number;
@@ -29,6 +34,19 @@ export interface ScriptAuditReport {
     instagramReelsTip: string;
     retentionTrapWarning?: string;
   };
+  rapidAsmrQc?: RapidAsmrQcReport;
+}
+
+export interface ScriptDoctorProjectMeta {
+  title?: string | null;
+  description?: string | null;
+  genre?: string | null;
+  tone?: string | null;
+  visualStyle?: string | null;
+  storyLanguage?: string | null;
+  dialogueMode?: string | null;
+  sourceIdea?: string | null;
+  seriesSlug?: string | null;
 }
 
 export interface RawSceneInput {
@@ -49,14 +67,7 @@ export interface RawSceneInput {
  */
 export function quickAuditScript(
   scenes: RawSceneInput[],
-  projectMeta: {
-    genre?: string | null;
-    tone?: string | null;
-    visualStyle?: string | null;
-    storyLanguage?: string | null;
-    dialogueMode?: string | null;
-    sourceIdea?: string | null;
-  }
+  projectMeta: ScriptDoctorProjectMeta
 ): ScriptAuditReport {
   const lang = (projectMeta.storyLanguage || "English").toLowerCase();
   const isTamil = lang.includes("tamil");
@@ -235,9 +246,52 @@ export function quickAuditScript(
   else if (overallScore >= 65) retentionRating = "MODERATE_RETENTION";
   else retentionRating = "HIGH_DROP_OFF_RISK";
 
+  // Channel-Specific Rapid ASMR Inedible QC Check (strict scope: only Inedible ASMR channel)
+  const isRapidAsmrApplicable = isAsmrInedibleCookingProject(projectMeta);
+  const rapidAsmrQc: RapidAsmrQcReport | undefined = isRapidAsmrApplicable
+    ? auditRapidAsmrProject(scenes, projectMeta)
+    : undefined;
+
+  let finalScore = overallScore;
+  let finalRetentionRating = retentionRating;
+  let finalSummary =
+    overallScore >= 90
+      ? "Exemplary screenplay structure. Dynamic scroll-stopping hook, authentic natural dialogue rhythm, and high viral retention potential across YouTube Shorts and Instagram Reels."
+      : overallScore >= 75
+      ? "Strong cinematic foundation with solid visual imagery. Minor dialogue polish or tighter Scene 1 hook pacing recommended to maximize viewer completion rate."
+      : "Critical retention bottlenecks detected. Pacing or dialogue requires director refinement to prevent viewer drop-off within the first 3 seconds.";
+
+  if (rapidAsmrQc && rapidAsmrQc.isApplicable) {
+    // Balance traditional score with Rapid ASMR compliance
+    finalScore = Math.round(overallScore * 0.35 + rapidAsmrQc.overallScore * 0.65);
+    if (finalScore >= 90) finalRetentionRating = "VIRAL_MASTERPIECE";
+    else if (finalScore >= 78) finalRetentionRating = "HIGH_RETENTION";
+    else if (finalScore >= 65) finalRetentionRating = "MODERATE_RETENTION";
+    else finalRetentionRating = "HIGH_DROP_OFF_RISK";
+
+    if (!rapidAsmrQc.passed) {
+      finalSummary = `Rapid ASMR QC Violations Detected (${rapidAsmrQc.violations.length} issues): ${rapidAsmrQc.violations.join(" ")}`;
+      // Inject violations into scene 1 or corresponding scenes
+      for (const check of rapidAsmrQc.checks) {
+        if (!check.passed && check.violation) {
+          const targetSceneNum = check.sceneNumber || 1;
+          const targetAudit = sceneAudits.find((s) => s.sceneNumber === targetSceneNum) || sceneAudits[0];
+          if (targetAudit && !targetAudit.issues.includes(check.violation)) {
+            targetAudit.issues.push(check.violation);
+            if (check.recommendation) {
+              targetAudit.directorRecommendation = check.recommendation;
+            }
+          }
+        }
+      }
+    } else {
+      finalSummary = `[Bayashi/Zach Choi ASMR Gold Standard]: All 7 Rapid ASMR invariants passed (${rapidAsmrQc.overallScore}/100). High-velocity 4-beat micro-actions, raw ingredient proof, and binaural Foley verified.`;
+    }
+  }
+
   return {
-    overallScore,
-    retentionRating,
+    overallScore: finalScore,
+    retentionRating: finalRetentionRating,
     breakdown: {
       hookStrength: avgHook,
       narrativeCausality: avgPacing,
@@ -245,12 +299,7 @@ export function quickAuditScript(
       viralPayoff,
       aiVisualFeasibility: avgFeasibility,
     },
-    executiveDirectorSummary:
-      overallScore >= 90
-        ? "Exemplary screenplay structure. Dynamic scroll-stopping hook, authentic natural dialogue rhythm, and high viral retention potential across YouTube Shorts and Instagram Reels."
-        : overallScore >= 75
-        ? "Strong cinematic foundation with solid visual imagery. Minor dialogue polish or tighter Scene 1 hook pacing recommended to maximize viewer completion rate."
-        : "Critical retention bottlenecks detected. Pacing or dialogue requires director refinement to prevent viewer drop-off within the first 3 seconds.",
+    executiveDirectorSummary: finalSummary,
     sceneAudits,
     viralSocialStrategy: {
       youtubeShortsTip:
@@ -266,6 +315,7 @@ export function quickAuditScript(
           ? "Warning: Scene 1 hook is below retention safety threshold. 65%+ of short-form viewers will swipe away before Scene 2."
           : undefined,
     },
+    rapidAsmrQc,
   };
 }
 
@@ -342,6 +392,16 @@ STRICT SCREENWRITING & RETENTION RULES:
 4. SPATIAL & SCENE LOCATION COHERENCE:
    - All scene locations must remain consistent with the story world.
    - Strictly DO NOT introduce random locations (no sugarcane fields in a meadow, no factories in nature).
+${
+  auditReport.rapidAsmrQc && auditReport.rapidAsmrQc.isApplicable
+    ? `5. BAYASHI / ZACH CHOI RAPID ASMR RULES (MANDATORY FOR INEDIBLE ASMR COOKING):
+   - High-Velocity 2X Tempo: Every scene MUST pack 3 to 4 sequential micro-actions (Beat 1 -> Beat 2 -> Beat 3 -> Beat 4).
+   - Inedible Multi-Ingredient Processing: Must utilize 3-5 distinct sub-components/ingredients from the source object.
+   - Pure Binaural Foley: "dialogue" and "voiceover" MUST BE EMPTY STRINGS (""). Every sound must be high-impact acoustic Foley.
+   - Final Plating Proof: The final plated dish MUST clearly display the original raw items in the foreground as visual proof.
+   - Anti-Geometric Cone/Pyramid: Never arrange food into unnatural geometric cones or rigid pyramids.`
+    : ""
+}
 
 CURRENT DRAFT SCENES TO POLISH:
 ${JSON.stringify(scenes, null, 2)}

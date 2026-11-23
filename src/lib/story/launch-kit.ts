@@ -81,6 +81,7 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   const isBicycle = /bicycle|bycycle|cycle|bike|tire|chain|pedal|spoke/i.test(combinedText);
   const isNokia = /nokia|3310|1100|brick phone|keypad phone/i.test(combinedText);
   const isSoap = /soap|kothu|madurai|laundry|parotta/i.test(combinedText);
+  const isBulb = /bulb|light\s*bulb|serial|fairy|tungsten|samosa/i.test(combinedText);
   const isEarbud = /earbud|airpod/i.test(combinedText);
   const isPhone = !isNokia && /phone|smartphone/i.test(combinedText);
   const isWatch = /watch|clock/i.test(combinedText);
@@ -102,6 +103,14 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
       "a towering, sticky, glistening mound of minced soap kothu parotta (translucent ivory soap ribbon curls, seared ultramarine blue laundry cubes, glowing ruby glycerine gems, and bright emerald rings), dripping with long stretching strands of thick, bubbling golden-amber glycerin salna glaze cascading downward";
     wokContents =
       "a giant flat 3-foot circular iron street tawa sizzling with glistening soap ribbons and multicolored soap cubes, with billowing clouds of white culinary steam";
+  } else if (isBulb) {
+    heroObject = "100 Vintage Edison Bulbs & Festival Serial Lights (Indian Street Samosas)";
+    rawObjectHalf =
+      "a wooden crate overflowing with vintage amber teardrop Edison light bulbs with brass screw bases and a tangled, glowing garland of multi-colored festival serial fairy lights (ruby red, emerald green, and amber yellow rice bulbs) held with black-gloved hands at chest height";
+    cookedSpatulaPile =
+      "a traditional Indian embossed brass serving thali holding three blistering-hot, golden-crispy triangular samosas; one samosa is cracked in half revealing a steaming, glowing interior packed with tangled incandescent tungsten coils and jewel-like red, green, and yellow serial bulbs, accompanied by brass katoris of glowing mint and tamarind chutneys";
+    wokContents =
+      "a massive 3-foot circular Indian street halwai iron kadai boiling furiously with bubbling golden oil, with perforated brass jhara skimmer and submerged golden samosas glowing warmly";
   } else if (isNokia) {
     heroObject = "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)";
     rawObjectHalf =
@@ -158,6 +167,8 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
 
   const centerForegroundDescription = isSoap
     ? "A wide circular 3-foot seasoned black iron street tawa sits sizzling at the bottom, packed with glistening soap ribbons and multicolored soap cubes bubbling in golden oil, with authentic plumes of white culinary steam curling upward"
+    : isBulb
+    ? "A massive 3-foot circular Indian street halwai iron kadai sits boiling furiously at the bottom with bubbling golden oil, perforated brass skimmer, and deep-frying light bulb samosas, with billowing plumes of white culinary steam curling upward"
     : isNokia
     ? `A wide scorching street dosa tawa sizzling with copper ribbon noodles sits beside a simmering brass handi pot bubbling with glowing neon-cyan LCD chutney`
     : isBicycle
@@ -166,6 +177,8 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
 
   const rightHandTool = isSoap
     ? "a wide angled stainless steel chef's slotted spatula"
+    : isBulb
+    ? "a traditional Indian embossed brass serving thali platter"
     : isNokia
     ? "a traditional Indian carved brass serving thali platter"
     : isBicycle
@@ -174,6 +187,8 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
 
   const thumbnailLighting = isSoap
     ? "Deep dark moody commercial kitchen studio background with warm directional golden-amber spotlights illuminating the glistening textures and jewel-toned soap clarity, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
+    : isBulb
+    ? "Deep dark moody street halwai workshop background with warm fiery under-glow from the giant kadai burners, incandescent amber light from glowing Edison filaments, and vibrant fairy light reflections, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the blistered pastry crust and jewel-like serial bulbs."
     : isNokia
     ? "Deep solid dark charcoal village hearth background with warm fiery under-glow from the outdoor hearth burners, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders."
     : isBicycle
@@ -244,6 +259,12 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
       `I Cooked 60 Tamil Market Soaps into Street Food! (Oddly Satisfying ASMR)`,
       `Cooking Commercial Laundry & Bath Soaps on a Street Tawa! 🧼🔥 #ASMR #InedibleCooking`,
       `The Madurai Soap Kothu Parotta Street Food Feast | ASMR Inedible Cooking`,
+    ];
+  } else if (isBulb) {
+    youtubeTitles = [
+      `I Cooked 100 Vintage Light Bulbs into Samosas! 💡🥟 (Oddly Satisfying ASMR)`,
+      `Cooking 100 Vintage Light Bulbs into Indian Street Samosas! 💡🔥 #shorts #asmr`,
+      `The 100 Vintage Light Bulb Samosa Feast | ASMR Inedible Cooking`,
     ];
   } else if (isNokia) {
     youtubeTitles = [
@@ -322,6 +343,50 @@ Strict Constraints: Tight framing, large props. Character visually rendered only
     instagramCaption = `Who said laundry and bath soaps are only for washing? 🧼🔥 Watch @TheShadowAlchemist turn 60 unbranded Tamil market soap bars into an epic Madurai Kothu Parotta street food feast! (DO NOT ATTEMPT - INEDIBLE CONCEPTUAL ARTWORK)`;
 
     instagramHashtags = "#asmr #soapcutting #oddlysatisfying #madurai #kothuparotta #inediblefood #foodillusion #satisfyingvideos #streetfood #asmrcommunity";
+  } else if (isBulb) {
+    ingredientsSection = `🥟 INGREDIENTS ON THE MENU:
+- 100x Vintage Teardrop Edison Light Bulbs (Brass E27 Screw Bases & Spiraling Tungsten Filaments)
+- 1x 10-Meter String of Multi-Colored Festival Serial Lights (Ruby Red, Emerald Green & Amber Rice Bulbs)
+- Smashed Amber Edison Glass Shards & Tangled Tungsten Coils (Spiced Masala Aloo Filling)
+- Snipped Green Copper Wires & Miniature Brass Contact Pins (Kasuri Methi & Whole Cumin Tadka)
+- Semi-Translucent Amber Mica Dough Sheets (Hand-Crimped Triangular Samosa Cones)
+- 300°C Golden Transformer Mineral Oil (Deep-Fried in a Massive 3-Foot Cast-Iron Kadai)
+- Glowing Emerald Mint Chutney & Ruby Tamarind Glaze (Served in Polished Brass Katoris)`;
+
+    timestampsSection = `⏱️ TIMESTAMPS:
+0:00 - The 100-Bulb Wooden Crate Slam & Cleaver Split Hook
+0:08 - Snipping 10m Multi-Colored Serial Fairy Bulbs
+0:16 - Crushing Tungsten Filaments & Glowing Bulb Masala
+0:24 - Smoking Golden Tadka Oil Quench
+0:32 - Rolling Mica Dough & Samosa Cone Folding
+0:40 - Packing Serial Bulbs & Traditional Halwai Crimping
+0:48 - Boiling Kadai Deep Fry & Blistering Golden Crust
+0:54 - The Samosa Crunch Split & Steaming Filament Reveal`;
+
+    hashtagsList = [
+      "#ASMR",
+      "#Shorts",
+      "#Samosa",
+      "#IndianStreetFood",
+      "#InedibleCooking",
+      "#StreetFoodIndia",
+      "#OddlySatisfying",
+      "#FoodIllusion",
+      "#TheShadowAlchemist",
+    ];
+
+    tagsString =
+      "Samosa,Samosa Street Food,Indian Street Food,Light Bulb Cooking,Inedible Cooking,Oddly Satisfying,ASMR Cooking,Street Food India,The Shadow Alchemist,Halwai Samosa,Crispy Samosa,Food Illusion,Zach Choi ASMR,Bayashi ASMR,Satisfying ASMR";
+
+    instagramCaption = `Can you transform 100 vintage light bulbs and festival serial lights into crispy Indian samosas?! 💡🥟
+The Shadow Alchemist packs glowing tungsten coils and vibrant multi-colored serial fairy bulbs into golden pastry cones, deep-frying them in a bubbling street kadai!
+
+${safetyDisclaimer}
+
+Full binaural ASMR video on our YouTube channel.`;
+
+    instagramHashtags =
+      "#asmr #samosa #indianstreetfood #inediblecooking #oddlysatisfying #foodillusion #streetfoodindia #theshadowalchemist #bayashiasmr #zachchoi";
   } else if (isNokia) {
     ingredientsSection = `🍳 INGREDIENTS ON THE MENU:
 - 15x Authentic Vintage Nokia 3310 & 1100 Mobile Phones (Dumped from Wicker Crate)

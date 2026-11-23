@@ -42,6 +42,8 @@ export interface ObjectCategorySpec {
   defaultVessel?: string;
   vesselNegatives?: string[];
   isLargeObject?: boolean;
+  nativeOriginHabitat?: string;
+  harvestMethod?: string;
 }
 
 export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
@@ -50,6 +52,8 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     detectRegex: /\b(soap|soaps|washing soap|laundry bar|bath soap|glycerine soap|carbolic soap|detergent bar|loofah)\b/i,
     canonicalHeroName: "Unbranded Tamil Market Laundry & Bath Soaps",
     isLargeObject: true,
+    nativeOriginHabitat: "Commercial wholesale soap market warehouse with stacked wooden crates filled with hundreds of unbranded laundry washing bars and bath soaps under bright industrial market lighting",
+    harvestMethod: "Commercial market crate avalanche and wholesale unboxing",
     defaultVessel: "giant 3-foot (36-inch) heavy black cast-iron commercial hotel tawa over industrial dual-ring gas burner",
     vesselNegatives: ["small kitchen skillet", "domestic frying pan", "tiny household pan", "small cutting board"],
     subComponents: [
@@ -74,10 +78,56 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     ],
   },
   {
+    category: "LIGHT_BULBS_AND_SERIAL_LIGHTS",
+    detectRegex: /\b(bulbs?|light\s*bulbs?|serial\s*bulbs?|serial\s*lights?|edison\s*bulbs?|filaments?|tungsten|fairy\s*lights?|diwali\s*lights?|samosas?)\b/i,
+    canonicalHeroName: "Vintage Edison Light Bulbs & Festival Serial Bulbs",
+    isLargeObject: true,
+    nativeOriginHabitat: "Illuminated Indian heritage palace facade (Mysore Palace / Royal Haveli) draped in thousands of glowing vintage incandescent Edison bulbs and multi-colored festival serial rice lights, or atmospheric heavy industrial electrical workshop at twilight",
+    harvestMethod: "Pulling master high-voltage cable harness from illuminated palace stone arches in a cascading domino blackout, dropping glowing festoons onto the preparation station",
+    defaultVessel: "massive 3-foot commercial Indian street halwai cast-iron deep-frying kadai over high-output industrial gas flame",
+    vesselNegatives: ["small domestic frying pan", "tiny household skillet", "microwave dish"],
+    subComponents: [
+      {
+        matchRegex: /\b(bulbs?|edison|lamp|glass|sockets?)\b/i,
+        canonicalName: "vintage tear-drop amber glass Edison light bulbs with brass E27 screw base",
+        dimensionalAnchor: "cluster of vintage tear-drop amber glass Edison light bulbs with brass E27 screw bases and central glass filament mount",
+        negativeScaleTokens: ["fluorescent tube", "LED flat panel", "car headlight", "plastic bulb", "broken wine bottle", "meat cleaver", "kitchen knife", "chopping knife"],
+        extractionTools: ["mirror-polished brass ball-peen hammer", "heavy-duty forged brass wire-stripping pliers", "industrial brass crimper"],
+      },
+      {
+        matchRegex: /\b(serial\s*bulbs?|fairy\s*lights?|serial\s*lights?|rice\s*bulbs?)\b/i,
+        canonicalName: "tangled string of miniature multi-colored glass festival serial bulbs",
+        dimensionalAnchor: "tangled festive garland string of tiny multi-colored glass rice bulbs (ruby red, emerald green, warm amber yellow, and sapphire blue) on twisted dark green copper wire",
+        negativeScaleTokens: ["neon sign", "large street floodlight", "rope light"],
+        extractionTools: ["forged brass wire-stripping pliers", "brass wire snips"],
+      },
+      {
+        matchRegex: /\b(filaments?|tungsten|coils?|springs?)\b/i,
+        canonicalName: "delicate glowing spiral tungsten wire filament coils",
+        dimensionalAnchor: "delicate glowing spiral tungsten wire filament coils and fine spring-like support wires extracted from vintage bulbs",
+        negativeScaleTokens: ["rebar", "heavy steel cable", "bed spring"],
+      },
+      {
+        matchRegex: /\b(samosas?|pastry|pockets?|cones?|triangles?|dough)\b/i,
+        canonicalName: "hand-crimped crisp triangular pastry samosa pockets",
+        dimensionalAnchor: "traditional Indian halwai hand-crimped crisp golden triangular pastry samosa pockets and cones packed with glowing bulbs and coiled filaments",
+        negativeScaleTokens: ["flat roti", "round bun", "french fry", "burger patty"],
+      },
+      {
+        matchRegex: /\b(chutneys?|sauces?|katoris?|dip)\b/i,
+        canonicalName: "emerald green mint chutney and glowing ruby tamarind glaze in polished brass bowls",
+        dimensionalAnchor: "traditional Indian brass katoris filled with vivid emerald green mint-coriander chutney and glowing translucent ruby-red tamarind glaze",
+        negativeScaleTokens: ["ketchup bottle", "mayonnaise squeeze bottle"],
+      },
+    ],
+  },
+  {
     category: "BICYCLE_VEHICLE",
     detectRegex: /\b(bicycles?|bycycles?|cycles?|bikes?|road bikes?|vintage cycles?|velocipedes?)\b/i,
     canonicalHeroName: "Vintage Bicycle",
     isLargeObject: true,
+    nativeOriginHabitat: "Vintage velodrome repair barn, bicycle racing pit, or industrial salvage rack with suspended classic bicycle frames and spoked wheel rims",
+    harvestMethod: "Lifting down from high overhead salvage rack or racing pit stand",
     defaultVessel: "oversized industrial steel catering tawa & giant high-capacity catering kadai (Indian marriage banquet style)",
     vesselNegatives: ["tiny domestic frying pan", "small kitchen skillet", "household saucepan"],
     subComponents: [
@@ -155,6 +205,8 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     category: "MECHANICAL_KEYBOARD",
     detectRegex: /\b(keyboard|keycaps?|cherry mx|switch(?:es)?|pcb|custom keyboard)\b/i,
     canonicalHeroName: "Mechanical Keyboard",
+    nativeOriginHabitat: "Atmospheric electronics server farm and retro arcade workshop with industrial metal shelving racks, stacked CRT monitors, green motherboard bins, and coiled cables under cool cyan neon glow",
+    harvestMethod: "Unplugging from glowing server terminal or arcade cabinet rack",
     subComponents: [
       {
         matchRegex: /\b(keycaps?|keys?)\b/i,
@@ -198,6 +250,8 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     category: "WATCH_HOROLOGY",
     detectRegex: /\b(watch(?:es)?|wristwatch(?:es)?|pocket watch(?:es)?|timepieces?|rolex|horology)\b/i,
     canonicalHeroName: "Mechanical Watch",
+    nativeOriginHabitat: "Master horologist's vaulted watchmaker atelier, vintage clock tower mechanical gear chamber, or precision jewel bench with brass micro-drawers under focused antique lamps",
+    harvestMethod: "Unlocking from heavy brass safe vault or disassembling from clock tower escapement",
     subComponents: [
       {
         matchRegex: /\b(gears?|cogs?|balance wheel|escapement)\b/i,
@@ -240,6 +294,8 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     category: "AUDIO_WALKMAN_EARBUDS",
     detectRegex: /\b(walkman|cassette player|earbuds?|airpods?|earphones?|headphones?|ipod)\b/i,
     canonicalHeroName: "Vintage Audio Player",
+    nativeOriginHabitat: "Vintage analog recording studio sound booth, retro cassette tape production line, or magnetic media vault with reel-to-reel tapes and audio racks",
+    harvestMethod: "Pulling from tape duplication deck or studio audio console",
     subComponents: [
       {
         matchRegex: /\b(tape|magnetic tape|cassette ribbon|ribbon)\b/i,
@@ -271,6 +327,8 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     category: "CAMERA_OPTICS",
     detectRegex: /\b(dslr|camcorder|vintage camera|35mm camera|camera body|camera lens|optical glass|iris blades|aperture blades)\b/i,
     canonicalHeroName: "35mm Camera",
+    nativeOriginHabitat: "Vintage optical laboratory, camera repair darkroom, or lens polishing facility with rows of brass lenses and mechanical cameras under directional warm tungsten lamps",
+    harvestMethod: "Detaching from heavy studio tripod or optical testing bench",
     subComponents: [
       {
         matchRegex: /\b(lens(?:es)?|glass element|optical glass)\b/i,
@@ -290,6 +348,8 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     category: "BULK_NOKIA_PHONES",
     detectRegex: /\b(nokia|3310|1100|brick phones?|feature phones?|keypad phones?|vintage phones?|bulk phones?)\b/i,
     canonicalHeroName: "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)",
+    nativeOriginHabitat: "Industrial telecommunications salvage godown and rustic village depot with stacked wicker baskets and crates overflowing with vintage mobile phones",
+    harvestMethod: "Dumping 15 bulk phones from rustic wicker crate or warehouse bin",
     defaultVessel: "oversized commercial street tawa, heavy-duty Indian kitchen mixie & traditional brass handi pot",
     vesselNegatives: ["small domestic frying pan", "tiny tea cup", "microwave bowl"],
     isLargeObject: true,
@@ -434,6 +494,8 @@ export function resolveObjectComponentSpecs(heroObjectNameOrIdea: string, action
       defaultVessel: category.defaultVessel,
       vesselNegatives: category.vesselNegatives || [],
       isLargeObject: Boolean(category.isLargeObject),
+      nativeOriginHabitat: category.nativeOriginHabitat,
+      harvestMethod: category.harvestMethod,
     };
   }
 

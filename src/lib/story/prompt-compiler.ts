@@ -415,31 +415,58 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const scaleResolution = groundActionComponentScale(naturalAction, heroTargetName);
   const groundedActionText = scaleResolution.groundedText;
 
+  // 4. Character Tagging and Wardrobe Lock
+  const mentionsShadowAlchemist = /shadow\s*alchemist|alchemist/i.test(`${actionDescription} ${sourceIdea || ""}`);
+  const isGenericCharName =
+    (!characterName || characterName.trim().length === 0 || characterName.toLowerCase() === "character") &&
+    !mentionsShadowAlchemist &&
+    !isInedibleCooking;
+  const hasRealCharacter = !isGenericCharName;
+  const rawCharName = hasRealCharacter
+    ? characterName?.trim() || (isInedibleCooking || mentionsShadowAlchemist ? "The Shadow Alchemist" : "")
+    : "";
+  const charName = /Shadow\s*Alchemist/i.test(rawCharName) ? "The Shadow Alchemist" : rawCharName;
+  const bracketedCharTag = charName ? `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]` : "";
+
   const actionCleaned = sanitizeOnScreenText(
     groundedActionText
       .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
+      .replace(/\bthe shadow alchemist\b/gi, bracketedCharTag || "The Shadow Alchemist")
+      .replace(/\bthe alchemist\b/gi, bracketedCharTag || "The Shadow Alchemist")
       .replace(/\s{2,}/g, " ")
       .replace(/\.{2,}/g, ".")
       .trim()
   );
 
-  // 4. Character Tagging and Wardrobe Lock
-  const isGenericCharName = !characterName || characterName.trim().length === 0 || characterName.toLowerCase() === "character";
-  const hasRealCharacter = !isGenericCharName;
-  const rawCharName = hasRealCharacter ? characterName!.trim() : "";
-  const charName = /Shadow\s*Alchemist/i.test(rawCharName) ? "The Shadow Alchemist" : rawCharName;
-  const bracketedCharTag = charName ? `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]` : "";
+  const resolvedCharacterDescription =
+    characterDescription ||
+    (charName === "The Shadow Alchemist"
+      ? "an athletic male artisan culinary alchemist chef, handsome masculine facial structure, looking directly into the camera lens with intense, locked hazel eyes, dark wavy hair with vintage brass dual-lens tinker goggles resting on crown, wearing a sleek matte-black ergonomic tactical half-mask with vertical gold cheekline vents, dark rolled-sleeve work shirt, distressed leather artisan apron, and black textured grip gloves"
+      : "");
+
+  const resolvedWardrobeLock =
+    wardrobeLock ||
+    (charName === "The Shadow Alchemist"
+      ? "sleek matte-black tactical half-mask with vertical gold cheekline vents, vintage brass dual-lens tinker goggles on forehead, dark rolled-sleeve work shirt, distressed leather apron, and black textured grip gloves"
+      : "");
 
   let taggedAction = rawAction;
-  if (hasRealCharacter && !taggedAction.includes("[@")) {
-    taggedAction = `${bracketedCharTag} ${taggedAction}`;
+  if (hasRealCharacter && bracketedCharTag) {
+    if (/\bthe shadow alchemist\b/i.test(taggedAction)) {
+      taggedAction = taggedAction.replace(/\bthe shadow alchemist\b/gi, bracketedCharTag);
+    } else if (/\bthe alchemist\b/i.test(taggedAction)) {
+      taggedAction = taggedAction.replace(/\bthe alchemist\b/gi, bracketedCharTag);
+    } else if (!taggedAction.includes("[@")) {
+      taggedAction = `${bracketedCharTag} ${taggedAction}`;
+    }
   }
-  if (hasRealCharacter && wardrobeLock && taggedAction.includes(bracketedCharTag)) {
+
+  if (hasRealCharacter && resolvedWardrobeLock && taggedAction.includes(bracketedCharTag)) {
     const hasWardrobe = /wearing|dressed in|shorts|saree|dhoti|veshti|pants/i.test(taggedAction);
     if (!hasWardrobe) {
       taggedAction = taggedAction.replace(
         bracketedCharTag,
-        `${bracketedCharTag} (wearing ${wardrobeLock})`,
+        `${bracketedCharTag} (wearing ${resolvedWardrobeLock})`,
       );
     }
   }
@@ -597,7 +624,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "food",
         "onions",
         "vegetables",
-        "cooking on stove"
+        "cooking on stove",
+        "frying ladle",
+        "skimmer ladle",
+        "skimmer spoon",
+        "spoons on pan",
+        "kadai on stove",
+        "boiling oil",
+        "deep frying",
+        "premature cooking"
       );
     } else if (station === "TOOL_DISASSEMBLY") {
       negativeList.push(
@@ -840,7 +875,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       );
     }
 
-    const isSoapOrBulkHotel = /soap|kothu|hotel|street food|parotta|bulk/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    const isSoapOrBulkHotel = /\b(soap|soaps|laundry bar|bath soap|carbolic soap|kothu parotta)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isSoapOrBulkHotel) {
       negativeList.push(
         "few pieces",
@@ -884,6 +919,31 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "missing blue soap",
         "missing ruby soap",
         "missing emerald soap"
+      );
+    }
+
+    const isBulbTarget = /\b(bulb|bulbs|light\s*bulb|serial\s*bulb|serial\s*lights|edison\s*bulb|filament|fairy\s*lights|samosas?)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isBulbTarget) {
+      negativeList.push(
+        "few bulbs",
+        "single bulb",
+        "small domestic pan",
+        "domestic skillet",
+        "empty table",
+        "soap",
+        "soap lather",
+        "bubbles",
+        "real potatoes",
+        "real peas",
+        "real chicken",
+        "real meat",
+        "shredded chicken",
+        "curry sauce bottle",
+        "ketchup bottle",
+        "fluorescent tube",
+        "LED flat panel",
+        "plastic toys",
+        "grocery food"
       );
     }
   }
@@ -974,8 +1034,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     if (isNokiaTarget) {
       flowRules.push(`- Phone Prop DNA Invariant: Authentic Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 & 3310 in classic navy blue, slate grey, and cyan shells with rubber keypads); strictly PROHIBIT modern smartphones, curved glass, or touchscreen iPhones.`);
     }
-    if (characterName) {
-      flowRules.push(`- Master Character Lock: [@${charName.replace(/[^a-zA-Z0-9]/g, "")}] strictly maintains immutable facial geometry, intense hazel eyes, brass tinker goggles on crown, and sleek matte-black half-mask with gold cheekline slit vents. Strictly PROHIBIT circular respirator canisters, breathing tubes, or character face drift.`);
+    if (charName || characterName) {
+      flowRules.push(`- Master Character Lock: ${bracketedCharTag || `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]`} strictly maintains immutable facial geometry, intense hazel eyes, brass tinker goggles on crown, and sleek matte-black half-mask with gold cheekline slit vents. Strictly PROHIBIT circular respirator canisters, breathing tubes, or character face drift.`);
     }
     if (heroPropLock) {
       flowRules.push(`- Hero Prop DNA Lock: ${heroPropLock}`);
@@ -1014,8 +1074,8 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `[VISUAL STYLE & PHYSICAL INVARIANTS]:`,
     `- Visual Style: ${dynamicStyleDirective}`,
     dynamicPeriodDirective || null,
-    hasRealCharacter && wardrobeLock && bracketedCharTag
-      ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${wardrobeLock}. Maintain 100% clothing and physical consistency across every scene.`
+    hasRealCharacter && resolvedWardrobeLock && bracketedCharTag
+      ? `- Character Wardrobe Lock: ${bracketedCharTag} strictly wears ${resolvedWardrobeLock}. Maintain 100% clothing and physical consistency across every scene.`
       : null,
     ...flowRules,
   ]
@@ -1110,11 +1170,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `A stunning cinematic anime film still, ${shotFraming}.`
     : `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`;
 
-  const isSoapTarget = /soap|kothu|hotel|street food|parotta|bulk/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+  const isSoapTarget = /\b(soap|soaps|laundry bar|bath soap|glycerine soap|carbolic soap|kothu parotta)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+  const isBulbTarget = /\b(bulb|bulbs|light\s*bulb|serial\s*bulb|serial\s*lights|edison\s*bulb|filament|fairy\s*lights|samosas?)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
 
   const fluxCinematography = isInedibleCooking
     ? isSoapTarget
       ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin translucent curly ribbon shavings, glistening golden oil reflections, creamy background bokeh, commercial hotel kitchen lighting.`
+      : isBulbTarget
+      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on vintage amber Edison glass, glowing incandescent spiral tungsten filaments, vibrant multi-colored jewel glass serial rice bulbs, bubbling golden kadai oil reflections, creamy background bokeh, warm industrial directional spotlighting.`
       : `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, creamy background bokeh, warm industrial directional spotlight, glistening translucent rosin flux glaze.`
     : isCulinary
     ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, creamy background bokeh, warm kitchen directional spotlight, appetizing natural food glistening.`
@@ -1147,6 +1210,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       if (isSoapTarget) {
         return locationDescription || "Commercial wholesale soap market warehouse with stacked wooden crates filled with hundreds of unbranded laundry washing bars and bath soaps under bright industrial market lighting";
       }
+      if (isBulbTarget) {
+        return locationDescription || "Atmospheric heavy industrial electrical workshop with reinforced steel workbench, yellow hydraulic JCB excavator claw or automated factory conveyor infrastructure, and rustic background brickwork under warm dramatic directional lighting";
+      }
       if (locationDescription) {
         const cleaned = locationDescription
           .replace(/In the center is a heavy industrial steel workbench.*?wok burner\.?/gi, "")
@@ -1160,6 +1226,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     if (isInedibleCooking && (station === "PLATING_SERVE" || station === "HERO_REACTION")) {
       if (isSoapTarget) {
         return locationDescription || "Commercial Madurai hotel feast table with a giant fresh vibrant green banana leaf on a massive 24-inch polished brass wedding thali, surrounded by small brass bowls";
+      }
+      if (isBulbTarget) {
+        return locationDescription || "Traditional Indian festive banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf and small brass katori chutney bowls under warm dramatic directional lighting";
       }
       const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (locationDescription || ""));
       if (isWhitePlate) {
@@ -1182,6 +1251,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             return `Strict Aesthetics: Traditional Japanese wood hand plane vigorously peeling voluminous mountain of paper-thin translucent curly soap ribbons, and sharp cleaver dicing red soap into ruby onion gems and slicing green loofah into emerald rings on dark end-grain wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic frying pans, NO generic plastic cubes, NO meat, NO poultry, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps. STREET COOKING REALISM & KOTHU MINCING: Ingredients are actively cooked and spread wide across the flat 3-foot circular black iron tawa. Through furious rhythmic pounding of dual hand steel kothu blades, the ribbons, yellow chunks, and blue/ruby/emerald pieces are crushed, chopped down, minced, and softened into hot, steaming, moist, fluffy, finely shredded street kothu parotta texture while retaining their distinct waxy colors and translucent jewel clarity. Steam billowing, bubbling oil. Strictly NO triangle shapes, NO pyramids, NO geometric cones, NO rigid conical mounds, NO identical triangle piles, NO real cooked chicken, NO brown meat, NO brown food, NO brand logos, NO on-screen text, NO brand names, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+        }
+        if (isBulbTarget) {
+          if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
+            return `Strict Aesthetics: Authentic transformed physical light bulb and festive serial light materials (80% visibly identifiable bulb components in iconic Indian street food format). INEDIBLE ILLUSION & BULB MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine intact raw vintage Edison bulbs with visible spiral tungsten filaments and a tangled glowing garland of multi-colored festival serial fairy lights rest on the rustic dark wood table, establishing indisputable visual proof of the raw inedible source materials. Plated across a vibrant green banana leaf on the brass thali are three piping-hot, blistered golden triangular samosas; one samosa is shattered open down the center, revealing its steaming interior packed with tangled incandescent spiral tungsten coils, glowing jewel-like red, green, and yellow serial rice bulbs, and miniature brass contact pins nestled like aromatic spices. Accompanied by two polished brass katoris of glowing emerald mint chutney and ruby tamarind glaze. Steam gently billowing. Strictly NO real cooked potatoes, NO real grocery peas, NO soap, NO lather, NO bubbles, NO dull brown food, NO brand logos, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          if (station === "OBJECT_SOURCING" || station === "RAPID_HOOK") {
+            return `Strict Aesthetics: Authentic intact physical vintage amber glass Edison light bulbs with brass screw bases and vibrant tangled strings of multi-colored festival serial rice bulbs (ruby red, emerald green, warm amber yellow). Heavy mirror-polished brass engineer's ball-peen hammer striking a brass socket with sparking tungsten filaments and brass screws scattering across the dark steel workbench, alongside raw samosa pastry dough and a heavy rolling pin. PRE-COOKING RAW SOURCING STAGE ONLY: Strictly NO frying ladles, NO skimmer spoons, NO cooking stoves, NO boiling oil, NO frying pans, NO deep-frying kadai, NO meat cleavers, NO kitchen knives, NO domestic cookware, NO overhead suspended excavator buckets directly above chef's head, NO soap, NO plastic toys, NO food, NO meat, NO grocery vegetables, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          if (station === "BOARD_PREP" || station === "CULINARY_CUTTING") {
+            return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs and multi-colored festival serial lights. Wire shears snipping colorful serial bulbs into clusters, brass pestle crushing amber glass and tungsten filament springs into textured filling, and folded triangular pastry samosa cones packed with glowing bulbs on a dark end-grain wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO soap, NO domestic frying pans, NO real grocery food, NO meat, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs, glowing tungsten coils, and multi-colored festival serial lights. Deep-frying inside a massive 3-foot cast-iron Indian street halwai kadai filled with violent bubbling golden oil, with perforated brass jhara skimmer. Distinct glowing filaments visible through blistered golden triangular samosa pastry pockets. Billowing steam and sizzling bubbles. Strictly NO soap, NO domestic frying pans, NO real grocery potatoes, NO meat, NO brand logos, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
           return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
@@ -1209,7 +1290,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const fluxStillPrompt = [
     hasRealCharacter && bracketedCharTag
-      ? `Subject: ${bracketedCharTag} (${charName}), ${(characterDescription || "authentic appearance").replace(/\.+$/, "")}${wardrobeLock ? `, strictly wearing ${wardrobeLock}` : ""}.`
+      ? `Subject: ${bracketedCharTag} (${charName}), ${(resolvedCharacterDescription || "authentic appearance").replace(/\.+$/, "")}${resolvedWardrobeLock ? `, strictly wearing ${resolvedWardrobeLock}` : ""}.`
       : null,
     fluxStillOpening,
     `Scene Action: ${actionCleaned}.`,

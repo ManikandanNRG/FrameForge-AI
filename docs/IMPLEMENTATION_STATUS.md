@@ -605,6 +605,14 @@
         - Added comprehensive unit test suite `tests/unit/rapid-asmr-qc.test.ts` (9 tests covering isolation, gold-standard compliance, and every failure scenario).
         - Total Vitest suite passing: 86/86 unit tests across 15 test suites.
         - TypeScript compilation (`tsc --noEmit`): 0 errors.
+  12. **Episode 6: The 100 Vintage Light Bulbs & Festival Serial Lights Samosa Feast & Native Origin Harvest Architecture (2026-11-22)**:
+      - Seeded Episode 6 (`cmwro4ako0001u8gos4a28vpv`) within series `inedible-tech-asmr`.
+      - Quality Checker Audit: 100/100 (`VIRAL_ASMR_GOLD_STANDARD`).
+      - Codified **ADR-036 (Native Origin Harvest Invariant)** in response to creator feedback:
+        - Scene 1 hooks now eliminate small-scale domestic pantry openings and replace them with high-volume, massive-scale mechanical harvest from authentic origin habitats (JCB excavator bucket dump / automated testing conveyor).
+        - Prevents AI video hand manipulation hallucinations and provides rigid, linear gravity-driven physics.
+      - Integrated universal character consistency locking (`[@TheShadowAlchemist]`) across all compiled prompts and launch kits.
+      - Mapped origin habitats across all current and future object categories (electrical, mechanical, horological, geological, optical).
 - **Verification**:
   - `npm test`: 86/86 unit tests passing across 15 test suites.
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.

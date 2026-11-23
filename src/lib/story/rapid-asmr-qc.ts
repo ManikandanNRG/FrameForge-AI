@@ -63,7 +63,7 @@ export function isAsmrInedibleCookingProject(meta: RapidAsmrProjectMeta): boolea
   ].join(" ").toLowerCase();
 
   const isCulinaryStyle = (meta.visualStyle || "").toUpperCase().includes("CULINARY");
-  const hasInedibleTarget = /\b(inedible|non-food|soap|kothu|parotta|keyboard|game boy|gameboy|nokia|bicycle|bike|hardware|tech|scrap|alchemist)\b/i.test(combined);
+  const hasInedibleTarget = /\b(inedible|non-food|soap|kothu|parotta|keyboard|game boy|gameboy|nokia|bicycle|bike|hardware|tech|scrap|alchemist|bulb|bulbs|serial|fairy|light|lamp|samosa|stone|mineral|drill|motor|lens|camera|sneaker|shoe)\b/i.test(combined);
   const isSeriesMatch = (meta.seriesSlug || "").includes("inedible");
 
   return (isCulinaryStyle && hasInedibleTarget) || isSeriesMatch;
@@ -209,10 +209,10 @@ export function auditRapidAsmrProject(
 
   // ── CHECK 3: Chronological Physical Culinary Progression ──
   const fullScript = scenes.map(s => s.action).join(" ").toLowerCase();
-  const hasPrep = /\b(slice|dice|planer|shred|chop|kanna|plane|grate|peel)\b/i.test(fullScript);
-  const hasSizzle = /\b(sizzle|hot oil|tawa|skillet|sear|tempering|tadka)\b/i.test(fullScript);
-  const hasClimax = /\b(tak-tak|kothu|beating|clatter|dual-blade|mince|furious|crush)\b/i.test(fullScript);
-  const hasPlating = /\b(plate|plating|thali|banana leaf|garnish|serve|reveal)\b/i.test(fullScript);
+  const hasPrep = /\b(slice|dice|planer|shred|chop|kanna|plane|grate|peel|snips?|crush|break|roll)\b/i.test(fullScript);
+  const hasSizzle = /\b(sizzle|hot oil|tawa|skillet|sear|tempering|tadka|kadai|fry|deep-fry|boil)\b/i.test(fullScript);
+  const hasClimax = /\b(tak-tak|kothu|beating|clatter|dual-blade|mince|furious|crush|crimp|fold|shatter|crack|crunch|plunge)\b/i.test(fullScript);
+  const hasPlating = /\b(plate|plating|thali|banana leaf|garnish|serve|reveal|cross-section)\b/i.test(fullScript);
 
   if (!hasPrep || !hasSizzle || !hasClimax || !hasPlating) {
     const missing: string[] = [];
@@ -277,6 +277,39 @@ export function auditRapidAsmrProject(
     }
   }
 
+  const isBulbProject = /\b(bulb|bulbs|serial|lamp|fairy|light|filament|samosa)\b/i.test(fullScript);
+  if (isBulbProject) {
+    const hasBulbs = /\b(bulb|glass|serial|rice bulb|fairy)\b/i.test(fullScript);
+    const hasFilament = /\b(filament|tungsten|coil|wire)\b/i.test(fullScript);
+    const hasPastry = /\b(cone|pocket|pastry|dough|sheet|samosa|mica)\b/i.test(fullScript);
+    const hasFrying = /\b(kadai|deep[- ]fry|bubble|boil|oil|sizzle)\b/i.test(fullScript);
+    const hasChutneyOrSpices = /\b(chutney|sauce|katori|mint|tamarind|emerald|ruby|tadka|pins?|screws?)\b/i.test(fullScript);
+
+    const detected = [hasBulbs, hasFilament, hasPastry, hasFrying, hasChutneyOrSpices].filter(Boolean).length;
+    if (detected < 3) {
+      const violation = `Insufficient ingredient variety! Only ${detected}/5 key bulb components are utilized in the script.`;
+      violations.push(violation);
+      recommendations.push("Incorporate at least 4 distinct components: teardrop Edison glass bulbs, glowing tungsten filament coils, vibrant multi-colored festival serial bulbs, folded triangular pastry pockets, and glowing chutneys.");
+      checks.push({
+        checkId: "INGREDIENT_DIVERSITY",
+        name: "Multi-Ingredient Utilization",
+        passed: false,
+        score: 55,
+        details: `Only ${detected} of 5 required physical bulb ingredients detected.`,
+        violation,
+        recommendation: recommendations[recommendations.length - 1]
+      });
+    } else {
+      checks.push({
+        checkId: "INGREDIENT_DIVERSITY",
+        name: "Multi-Ingredient Utilization",
+        passed: true,
+        score: 100,
+        details: `Utilizes ${detected} distinct physical bulb ingredients (Edison bulbs, tungsten coils, festival serial bulbs, pastry pockets, glowing chutneys).`
+      });
+    }
+  }
+
   // ── CHECK 5: Elimination of Geometric Pyramids / Rigid Cones ──
   const hasPyramidHallucination = /\b(rigid pyramid|stiff geometric pyramid|geometric cone|conical mound|identical triangle)\b/i.test(fullScript);
   if (hasPyramidHallucination) {
@@ -330,7 +363,7 @@ export function auditRapidAsmrProject(
   // ── CHECK 7: Inedible Dualism & Raw Material Proof (Final Plating Scene) ──
   const lastScene = scenes[scenes.length - 1];
   const lastAct = (lastScene.action || "").toLowerCase();
-  const hasRawProof = /\b(raw soap|raw material|raw unbranded|raw bars?|bars? in foreground|proof|foreground resting|intact raw)\b/i.test(lastAct);
+  const hasRawProof = /\b(raw soap|raw material|raw unbranded|raw bars?|bars? in foreground|proof|foreground resting|intact raw|raw bulbs?|raw components?|raw objects?|raw lights?)\b/i.test(lastAct);
 
   if (!hasRawProof) {
     const violation = "Final Plating scene lacks Raw Ingredient Proof in the foreground! Viewers need to see the raw source objects next to the cooked food to believe the illusion.";

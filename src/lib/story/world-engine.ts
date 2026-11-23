@@ -883,3 +883,282 @@ export function formatThreePlaneStaging(params: {
   return lines.join("\n");
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Authentic Culinary Dish Recipe Registry & Mandatory Comparison Table (ADR-037, ADR-038)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface CulinaryStepMapping {
+  stepNumber: number;
+  stageName: string;
+  realCulinaryAction: string;
+  inedibleObjectEquivalent: string;
+  foleySound: string;
+  toolsUsed: string[];
+  forbiddenTools: string[];
+}
+
+export interface CulinaryDishBlueprint {
+  dishKey: string;
+  displayName: string;
+  cuisine: string;
+  cookingMethod: string;
+  comparisonTable: CulinaryStepMapping[];
+}
+
+export const AUTHENTIC_DISH_REGISTRY: Record<string, CulinaryDishBlueprint> = {
+  SAMOSA: {
+    dishKey: "SAMOSA",
+    displayName: "Indian Street Halwai Samosa",
+    cuisine: "Indian Street Food",
+    cookingMethod: "Deep-Fried Pastry",
+    comparisonTable: [
+      {
+        stepNumber: 1,
+        stageName: "SOURCING_AND_HOOK",
+        realCulinaryAction: "Wholesale sacks of maida flour, whole potatoes, peas, spices",
+        inedibleObjectEquivalent: "Massive cluster of vintage Edison bulbs, tangled festival serial lights, raw dough slab",
+        foleySound: "Heavy brass hammer strike on bulb socket (CLANG-CRACK), glass rattle, dough thud",
+        toolsUsed: ["solid brass ball-peen hammer", "dark steel workbench", "heavy rolling pin"],
+        forbiddenTools: ["frying ladle", "skimmer spoon", "cooking stove", "boiling oil", "kadai"],
+      },
+      {
+        stepNumber: 2,
+        stageName: "DOUGH_KNEAD_AND_REST",
+        realCulinaryAction: "Maida flour, ajwain carom seeds, and oil kneaded into stiff dough on marble slab, rested under bowl",
+        inedibleObjectEquivalent: "Translucent amber mica-glass dough kneaded on Carrara marble slab, rested under inverted brass bowl",
+        foleySound: "Heavy marble slab slap (THWACK), rhythmic palm kneading, brass bowl clang",
+        toolsUsed: ["marble pastry slab", "inverted brass bowl"],
+        forbiddenTools: ["frying ladle", "cutting knife", "open flame", "cooking pan"],
+      },
+      {
+        stepNumber: 3,
+        stageName: "DRY_FILLING_PREP",
+        realCulinaryAction: "Boiled potatoes crushed, green peas, spices mixed into dry spiced filling (STRICTLY NO LIQUID/OIL POURING)",
+        inedibleObjectEquivalent: "Wire shears snip serial lights like peas; brass pestle crushes amber glass & tungsten coils into dry spiced bulb masala",
+        foleySound: "Sharp wire shears snip (SNIP-SNIP), heavy brass pestle crunch (CRUNCH-GRIND), screw rattle",
+        toolsUsed: ["forged wire shears", "solid brass pestle", "hammered brass mixing bowl"],
+        forbiddenTools: ["frying ladle", "oil pouring", "cooking stove", "skimmer spoon", "kadai"],
+      },
+      {
+        stepNumber: 4,
+        stageName: "PASTRY_ROLL_AND_CUT",
+        realCulinaryAction: "Dough rolled flat with rolling pin into oval sheet; sliced in half with blade into two semicircles",
+        inedibleObjectEquivalent: "Ultra-heavy steel rolling pin rolls paper-thin amber sheet; brass pastry wheel cuts 2 semicircles",
+        foleySound: "Tactile rolling pin stroke, smooth pastry wheel slice (SHHH-ZIP)",
+        toolsUsed: ["heavy steel rolling pin", "brass pastry cutting wheel", "marble pastry slab"],
+        forbiddenTools: ["meat cleaver", "frying pan", "stove", "ladle"],
+      },
+      {
+        stepNumber: 5,
+        stageName: "CONE_SHAPING_AND_PLEAT",
+        realCulinaryAction: "Semicircle folded into cone, stuffed tightly with aloo filling, back pleat pinched, base crimped shut",
+        inedibleObjectEquivalent: "Black-gloved hands fold cone, spoon bulb masala inside, pinch halwai back pleat, crimp base to stand upright",
+        foleySound: "Tactile paper-thin pastry fold, spoon scrape, rapid thumb crimp clicks (TAK-TAK)",
+        toolsUsed: ["curved brass spoon", "pastry cone"],
+        forbiddenTools: ["meat cleaver", "frying ladle", "cooking flame", "kadai"],
+      },
+      {
+        stepNumber: 6,
+        stageName: "HALWAI_KADAI_DEEP_FRY",
+        realCulinaryAction: "Stuffed raw samosas lowered on spider skimmer into bubbling oil in massive street kadai; fried slow until golden",
+        inedibleObjectEquivalent: "Samosas on brass jhara plunged into 300°C bubbling golden oil in 3-foot iron kadai; filaments glow through crust",
+        foleySound: "Violent foaming roar of bubbling oil, tong clatter, crackling golden blister effervescence",
+        toolsUsed: ["massive 3-foot cast-iron street halwai kadai", "brass jhara spider skimmer", "forged steel tongs"],
+        forbiddenTools: ["small domestic frying pan", "cutting board", "rolling pin"],
+      },
+      {
+        stepNumber: 7,
+        stageName: "OIL_DRAIN_AND_PLATING",
+        realCulinaryAction: "Lifted with perforated skimmer, hot oil drains, plated on banana-leaf brass thali with mint & tamarind chutneys",
+        inedibleObjectEquivalent: "Sizzling golden oil streams through jhara holes in roaring cascade; slides onto royal brass thali with side chutneys",
+        foleySound: "Roaring oil cascade through skimmer holes, thali slide (SHHH-SLIDE), metallic katori clink",
+        toolsUsed: ["perforated brass jhara", "embossed Indian brass thali", "banana leaf", "brass katoris"],
+        forbiddenTools: ["cutting board", "rolling pin", "meat cleaver"],
+      },
+      {
+        stepNumber: 8,
+        stageName: "HERO_ASMR_CRUNCH_REVEAL",
+        realCulinaryAction: "Crack open hot samosa with fingers: crispy blistered crust shatters, hot aromatic filling steams out",
+        inedibleObjectEquivalent: "Raw vintage bulbs in foreground proof; gloved hands crack open crispy samosa: CRUNCH! Steam & glowing coils burst out",
+        foleySound: "Ear-splitting acoustic crust shatter (CRUNCH!), soft billowing steam exhalation, subtle nod",
+        toolsUsed: ["heat-shielded gloves", "raw vintage bulb proof in foreground", "brass thali"],
+        forbiddenTools: ["knife cutting", "fork eating", "subtitles"],
+      },
+    ],
+  },
+
+  IDLI_SAMBAR: {
+    dishKey: "IDLI_SAMBAR",
+    displayName: "South Indian Steamed Idli & Sambar Feast",
+    cuisine: "South Indian Street Food",
+    cookingMethod: "Steam-Cooked Rice Cakes",
+    comparisonTable: [
+      {
+        stepNumber: 1,
+        stageName: "SOURCING_AND_HOOK",
+        realCulinaryAction: "Parboiled rice & urad dal white grains sourced in bulk",
+        inedibleObjectEquivalent: "High-purity white ceramic electrical insulators and raw quartz mineral crystals",
+        foleySound: "Heavy ceramic insulator clatter on granite slab, quartz fracture crack (CRACK)",
+        toolsUsed: ["heavy brass mallet", "granite grinding slab"],
+        forbiddenTools: ["deep frying kadai", "rolling pin", "meat cleaver"],
+      },
+      {
+        stepNumber: 2,
+        stageName: "BATTER_GRIND",
+        realCulinaryAction: "Granite stone wet grinder grinding soaked grains into smooth, aerated, fermented white batter",
+        inedibleObjectEquivalent: "Motorized heavy stone wet grinder spinning, pulverizing quartz crystals into frothy ivory-white mineral batter",
+        foleySound: "Heavy stone grinder rhythmic rumble (CHUG-CHUG-WHIRRR), wet batter slap and aeration",
+        toolsUsed: ["traditional granite stone wet grinder", "brass batter ladle"],
+        forbiddenTools: ["frying pan", "rolling pin", "knife"],
+      },
+      {
+        stepNumber: 3,
+        stageName: "STEAMER_POUR",
+        realCulinaryAction: "Polished brass ladle greasing tiered stainless steel Idli plates with gingelly oil and pouring batter",
+        inedibleObjectEquivalent: "Brass ladle fills curved circular moulds of a multi-tiered stainless steel idli steamer with frothy white batter",
+        foleySound: "Wet batter dollop plop, metallic tier plate clink, sliding steamer stack",
+        toolsUsed: ["tiered stainless steel idli steamer rack", "curved brass ladle"],
+        forbiddenTools: ["frying tawa", "deep fryer", "chopping board"],
+      },
+      {
+        stepNumber: 4,
+        stageName: "PRESSURE_STEAM",
+        realCulinaryAction: "Steamer pot locked airtight over high heat, intense high-pressure steam hissing from top whistle",
+        inedibleObjectEquivalent: "Heavy brass steamer vessel locked over roaring blue gas flame, whistling plumes of pure white culinary steam",
+        foleySound: "High-pressure steam whistle hiss (TCHSSSSSS), bubbling water rumble inside pot",
+        toolsUsed: ["heavy commercial brass idli steamer pot", "high-output gas burner"],
+        forbiddenTools: ["frying ladle", "rolling pin", "cleaver"],
+      },
+      {
+        stepNumber: 5,
+        stageName: "DEMOULDING",
+        realCulinaryAction: "Curved wet brass spoon sliding under steamed idlis, popping out flawless pillowy white steamed cakes",
+        inedibleObjectEquivalent: "Wet brass spoon smoothly scoops underneath, popping out pristine, ultra-fluffy, steaming white idli cakes",
+        foleySound: "Delicate spoon glide, soft pillowy suction pop (SHLUCK-POP)",
+        toolsUsed: ["curved wet brass idli spoon", "fresh green banana leaf"],
+        forbiddenTools: ["knife", "frying pan", "rolling pin"],
+      },
+      {
+        stepNumber: 6,
+        stageName: "SAMBAR_TEMPER",
+        realCulinaryAction: "Rich tamarind-lentil sambar simmering in brass handi with mustard seeds & curry leaves tadka",
+        inedibleObjectEquivalent: "Simmering amber mineral reduction with popping micro brass screws and copper wire curry leaf splutter",
+        foleySound: "Simmering handi bubble (GLOOP-GLOOP), violent tadka sizzle (TCHRRRR)",
+        toolsUsed: ["traditional brass handi pot", "brass tadka ladle"],
+        forbiddenTools: ["idli steamer plates", "rolling pin"],
+      },
+      {
+        stepNumber: 7,
+        stageName: "THALI_PLATING",
+        realCulinaryAction: "Four steaming hot idlis arranged on emerald banana leaf with central bowl of piping-hot sambar and chutneys",
+        inedibleObjectEquivalent: "Steaming white idli cakes plated on fresh banana leaf with glowing coconut-cyan and chili-ruby chutneys",
+        foleySound: "Hot sambar pour into brass katori, gentle plate contact",
+        toolsUsed: ["embossed brass thali", "fresh banana leaf", "brass katoris"],
+        forbiddenTools: ["frying kadai", "cleaver"],
+      },
+      {
+        stepNumber: 8,
+        stageName: "TEXTURE_SQUISH",
+        realCulinaryAction: "Two fingers gently press the pillowy steamed idli—ultra-soft bounce back—then dunk deep into steaming sambar",
+        inedibleObjectEquivalent: "Raw ceramic insulators in foreground proof; black-gloved fingers press fluffy idli (soft bounce) and dunk in sambar",
+        foleySound: "Soft sponge squish, rich viscous sambar dunk splash, chef thumbs-up",
+        toolsUsed: ["black-gloved hands", "raw ceramic insulators in foreground"],
+        forbiddenTools: ["knife cutting", "fork"],
+      },
+    ],
+  },
+
+  DOSA: {
+    dishKey: "DOSA",
+    displayName: "Crispy Golden South Indian Street Dosa",
+    cuisine: "South Indian Street Food",
+    cookingMethod: "Flat-Iron Tawa Griddle Roast",
+    comparisonTable: [
+      {
+        stepNumber: 1,
+        stageName: "SOURCING_AND_HOOK",
+        realCulinaryAction: "Fermented rice-lentil batter and whole spices sourced",
+        inedibleObjectEquivalent: "Silicon micro-wafers, copper ribbon noodles, and brass wire coils",
+        foleySound: "Heavy iron tawa slam, copper spool snap (SNAP-TWANG)",
+        toolsUsed: ["seasoned 3-foot circular cast-iron street tawa", "brass measuring bowl"],
+        forbiddenTools: ["steamer pot", "rolling pin", "meat cleaver"],
+      },
+      {
+        stepNumber: 2,
+        stageName: "CIRCULAR_SWIRL",
+        realCulinaryAction: "Polished flat-bottom brass ladle pours batter onto screaming hot cast-iron tawa, swirling into paper-thin concentric spiral",
+        inedibleObjectEquivalent: "Ladle pours shimmering silver slurry, swirling outward in a flawless, hypnotic paper-thin concentric spiral",
+        foleySound: "Loud sizzling contact (SSSSHHHH), rhythmic circular metal scraper swirl",
+        toolsUsed: ["flat-bottom brass batter ladle", "scorching cast-iron tawa"],
+        forbiddenTools: ["rolling pin", "deep fryer", "steamer"],
+      },
+      {
+        stepNumber: 3,
+        stageName: "GHEE_ROAST",
+        realCulinaryAction: "Pure desi ghee drizzled around outer lace circumference, blistering golden-crisp perforations",
+        inedibleObjectEquivalent: "Golden amber rosin glaze drizzled around outer rim; violent micro-bubbles blister paper-thin edges golden-brown",
+        foleySound: "Intense sizzling crackle of foaming ghee (TZZZZZZZZ), billowing white culinary steam",
+        toolsUsed: ["brass oil dropper ladle", "cast-iron tawa"],
+        forbiddenTools: ["steamer", "rolling pin"],
+      },
+      {
+        stepNumber: 4,
+        stageName: "MASALA_SPREAD",
+        realCulinaryAction: "Spicy yellow mashed potato filling smeared across inner surface",
+        inedibleObjectEquivalent: "Glowing crushed bulb coils & emerald circuit masala spread down the center with broad spatula",
+        foleySound: "Spatula pressing filling into golden crust (SHHH-SLAP)",
+        toolsUsed: ["wide stainless steel street spatula"],
+        forbiddenTools: ["wire shears", "rolling pin"],
+      },
+      {
+        stepNumber: 5,
+        stageName: "TACTICAL_ROLL",
+        realCulinaryAction: "Thin steel dosa scraper slides under golden crust, folding into a long crispy cylindrical flute or triangle",
+        inedibleObjectEquivalent: "Thin steel scraper zips under paper-thin lace edge, rolling it into a massive 2-foot crispy cylindrical roast",
+        foleySound: "Razor-sharp metallic scrape on cast iron, ear-splitting crispy paper roll crackle",
+        toolsUsed: ["thin stainless steel dosa scraper"],
+        forbiddenTools: ["rolling pin", "steamer"],
+      },
+      {
+        stepNumber: 6,
+        stageName: "BANANA_LEAF_SERVE",
+        realCulinaryAction: "Long 2-foot golden crispy roast served across whole banana leaf with sambar and coconut/tomato chutneys",
+        inedibleObjectEquivalent: "Crispy 2-foot golden roast slides onto full-length emerald banana leaf with brass katoris of glowing dips",
+        foleySound: "Crispy food sliding onto fresh banana leaf (SHHHH-SLIDE)",
+        toolsUsed: ["full-length fresh banana leaf", "brass serving tray", "trio brass katoris"],
+        forbiddenTools: ["deep fryer", "rolling pin"],
+      },
+      {
+        stepNumber: 7,
+        stageName: "SHATTER_CRUNCH",
+        realCulinaryAction: "Fingers snap through the crispy golden paper roast—ear-splitting acoustic CRUNCH!",
+        inedibleObjectEquivalent: "Raw silicon & copper spools in foreground proof; gloved fingers snap the golden cylindrical crust: SHATTER-CRUNCH!",
+        foleySound: "Deafening acoustic lace crust shatter (KRRRSH-CRUNCH!), fragrant steam puff, chef nod",
+        toolsUsed: ["black-gloved hands", "raw materials in foreground proof"],
+        forbiddenTools: ["knife and fork", "eating"],
+      },
+    ],
+  },
+};
+
+export function resolveDishRecipeBlueprint(
+  ideaOrDishName: string,
+  heroObjectName: string
+): CulinaryDishBlueprint {
+  const text = `${ideaOrDishName} ${heroObjectName}`.toLowerCase();
+
+  if (/\b(samosas?|singara|pastry cone)\b/i.test(text)) {
+    return AUTHENTIC_DISH_REGISTRY.SAMOSA;
+  }
+  if (/\b(idlis?|idly|steamed cakes?)\b/i.test(text)) {
+    return AUTHENTIC_DISH_REGISTRY.IDLI_SAMBAR;
+  }
+  if (/\b(dosas?|ghee roast|masala dosa)\b/i.test(text)) {
+    return AUTHENTIC_DISH_REGISTRY.DOSA;
+  }
+
+  // Fallback to Samosa blueprint if pastry/triangles, else return SAMOSA as default gold-standard
+  return AUTHENTIC_DISH_REGISTRY.SAMOSA;
+}
+
+

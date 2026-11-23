@@ -613,6 +613,11 @@
         - Prevents AI video hand manipulation hallucinations and provides rigid, linear gravity-driven physics.
       - Integrated universal character consistency locking (`[@TheShadowAlchemist]`) across all compiled prompts and launch kits.
       - Mapped origin habitats across all current and future object categories (electrical, mechanical, horological, geological, optical).
+  13. **Mandatory Culinary Comparison Table Invariant & Dish-Specific Process Engine (ADR-037, ADR-038) (2026-11-23)**:
+      - Codified strict law: Before ANY culinary episode is planned or scripted, the system MUST first generate an authentic recipe comparison table mapping the real culinary technique to the inedible object.
+      - Strictly bans copy-pasting generic cooking steps (e.g. pouring tadka oil, stir-frying on tawa) into dishes that do not use them (e.g. Samosas, Idlis, Dosas, Biryanis).
+      - Built `AUTHENTIC_DISH_REGISTRY` and `resolveDishRecipeBlueprint` in `src/lib/story/world-engine.ts` with authentic blueprints for Samosa, Idli & Sambar, Dosa, etc.
+      - Re-architected all 8 scenes of Episode 6 (Light Bulb Samosa Feast) to follow authentic Halwai Samosa progression (Sourcing $\rightarrow$ Dough Knead $\rightarrow$ Dry Filling Prep $\rightarrow$ Semicircle Cut $\rightarrow$ Stuff & Pleat $\rightarrow$ Kadai Deep Fry $\rightarrow$ Drain & Plate $\rightarrow$ Crunch Reveal).
 - **Verification**:
-  - `npm test`: 86/86 unit tests passing across 15 test suites.
-  - `npm run typecheck` (`tsc --noEmit`): 0 errors.
+  - `npm test`: 87/87 unit tests passing across 15 test suites.
+  - TypeScript compilation (`tsc --noEmit`): 0 errors.

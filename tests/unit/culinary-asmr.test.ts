@@ -206,5 +206,34 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     expect(rapidBundle.googleFlowPrompt).toContain("2X Kinetic Tempo");
     expect(rapidBundle.googleFlowPrompt).toContain("hero cross-section crunch pull & confident chef nod / thumbs-up to camera");
   });
+
+  it("resolves authentic dish recipe blueprints and mandatory comparison tables (ADR-037, ADR-038)", async () => {
+    const { resolveDishRecipeBlueprint, AUTHENTIC_DISH_REGISTRY } = await import("@/lib/story/world-engine");
+
+    // Samosa Blueprint
+    const samosaBlueprint = resolveDishRecipeBlueprint("Indian Street Samosa Feast", "Light Bulbs");
+    expect(samosaBlueprint.dishKey).toBe("SAMOSA");
+    expect(samosaBlueprint.comparisonTable.length).toBe(8);
+
+    // Step 3 (Dry Filling) MUST forbid oil pouring and frying ladles
+    const step3 = samosaBlueprint.comparisonTable.find((s) => s.stepNumber === 3);
+    expect(step3?.stageName).toBe("DRY_FILLING_PREP");
+    expect(step3?.forbiddenTools).toContain("frying ladle");
+    expect(step3?.forbiddenTools).toContain("oil pouring");
+
+    // Idli Blueprint
+    const idliBlueprint = resolveDishRecipeBlueprint("South Indian Fluffy Steamed Idli", "Ceramic Insulators");
+    expect(idliBlueprint.dishKey).toBe("IDLI_SAMBAR");
+    expect(idliBlueprint.cookingMethod).toContain("Steam");
+    const demouldStep = idliBlueprint.comparisonTable.find((s) => s.stageName === "DEMOULDING");
+    expect(demouldStep?.toolsUsed).toContain("curved wet brass idli spoon");
+    expect(demouldStep?.forbiddenTools).toContain("frying pan");
+
+    // Dosa Blueprint
+    const dosaBlueprint = resolveDishRecipeBlueprint("Crispy Ghee Roast Masala Dosa", "Silicon Wafers");
+    expect(dosaBlueprint.dishKey).toBe("DOSA");
+    const swirlStep = dosaBlueprint.comparisonTable.find((s) => s.stageName === "CIRCULAR_SWIRL");
+    expect(swirlStep?.toolsUsed).toContain("flat-bottom brass batter ladle");
+  });
 });
 

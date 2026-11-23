@@ -646,36 +646,42 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - `npm test`: 77/77 unit tests passing across 14 test suites (`tests/unit/prompt-doctor.test.ts`, `tests/unit/object-handling.test.ts`).
   - `npm run typecheck` (`tsc --noEmit`): 0 errors.
 
-## ADR-036: The "Native Origin Harvest" Invariant for Scene 1 Retention Hooks in Inedible ASMR Series
-- **Date**: 2026-11-22 · **Status**: Implemented & Verified
+## ADR-037: Dish-Specific Culinary Realism & Prohibition of Generic Template Copy-Pasting
+- **Date**: 2026-11-23 · **Status**: Implemented & Verified
 - **Context**:
-  - The creator provided crucial feedback on the Scene 1 hook generation for Episode 6 (Light Bulbs & Serial Lights Samosa Feast):
-    - *"very first scene got hallusiantion...in the HOOK....this way of starting is Not good. I need to show lot of object has to be there. like he has to collect the bulb by JCB bucket or he has to pull from production unit convayer....and like so...it is just picking form side table is looking simble and it will not create curies to the viewer"*
-    - *"see I just gave these two as example that i got in my mind. so you are intellignent so you may think like that. because every object may be in placed in one place. or it works in some place. so collecting incrediants form the origin place. for example, regular cooking we purchase incrediants from super market. so these incrediants has to collect it form respective places. so keep this in mind for feature video also"*
-  - Root causes identified:
-    1. **Small-Scale Hand Manipulation Hallucinations**: When AI video diffusion models (Google Flow Veo, Kling, Wan) attempt to animate human fingers carrying small wooden crates or picking small glass bulbs off side tables, they frequently suffer severe morphing (fused digits, rubbery glass, disappearing boxes).
-    2. **Weak Curiosity & Low Retention**: A small crate on a side table looks ordinary and domestic; it fails to shock the viewer in the first 1-2 seconds.
-    3. **The Culinary Supermarket Analogy**: In traditional viral cooking (e.g. Gordon Ramsay, Village Cooking Channel), chefs don't pull food from an invisible pantry—they harvest produce from farm fields, pull fish from boat nets, or shop in vibrant outdoor bazaars. For an inedible culinary channel, ingredients must be sourced directly from their authentic industrial, technological, mechanical, or geological origin habitats.
+  - The creator discovered a critical culinary violation in Episode 6 (Light Bulb Samosa Feast) Scene 3:
+    - The AI generated the chef pouring hot oil with a ladle over three fully fried, plated samosas on a brass thali.
+    - Creator's feedback: *"this is what i hate you. see every dish is different process to cook. but you keep the same way for all the dishes. in the scene 3 itself we have the fully prepared samosa and the bad template of pouring oil with the spoon.... that is why we first bring the comparision table for how it is cooked actually and how we are going to make with our object. so still are you using the same moethod for all the cooking. even you will do for idly dish also like that ???"*
+  - Root cause:
+    - The storyboard generator previously reused a generic "tadka ladle pouring oil over a bowl" template derived from Episode 4 (Nokia) and Episode 5 (Soap Kothu).
+    - In authentic Indian cooking, a **Samosa** is a stuffed and deep-fried pastry. It has a rigid, authentic culinary preparation order:
+      1. Dough Kneading & Resting $\rightarrow$
+      2. Dry Spiced Filling Prep (Aloo/Matar) $\rightarrow$
+      3. Rolling Flat & Cutting Semicircles $\rightarrow$
+      4. Cone Shaping, Stuffing & Halwai Pleating $\rightarrow$
+      5. Slow Deep Frying in Halwai Kadai $\rightarrow$
+      6. Plating on Thali $\rightarrow$
+      7. Hero ASMR Crunch Reveal.
+    - Samosas never have hot oil poured over them in a bowl or on a plate! Blindly copy-pasting tadka/kothu templates onto samosas (or future dishes like Idli/Dosa) destroys culinary credibility and confuses AI diffusion models into generating finished food in Scene 3.
 - **Decision**:
-  1. **Codified Universal Law 10: Native Origin Harvest Kinematics (`NATIVE_ORIGIN_HARVEST_KINEMATICS` in `src/lib/story/world-engine.ts`)**:
-     - Scene 1 of any Inedible Culinary ASMR episode must establish the ingredients at their authentic native origin habitat and capture a high-volume, massive-scale mechanical harvest action (e.g., hydraulic JCB excavator bucket dump, automated factory testing conveyor pull, high-rack salvage hoist, quarry stone split).
-     - Rigid mechanical harvesting provides linear, gravity-driven physics that video diffusion models render with rock-solid physical stability and zero digit morphing.
-  2. **Native Origin Registry in `OBJECT_COMPONENT_REGISTRY`**:
-     - Mapped authentic origin habitats and harvest methods across all object classes:
-       - **Bulbs & Serial Lights**: Industrial electrical testing yard / factory assembly line $\rightarrow$ Heavy hydraulic JCB excavator bucket dump or automated conveyor belt pull.
-       - **Mechanical Keyboards**: Electronics server farm & arcade workshop $\rightarrow$ Uncoupling from glowing server terminal racks.
-       - **Mechanical Watches & Horology**: Clock tower gear chamber & master watchmaker atelier $\rightarrow$ Disassembling from mechanical clock escapements or unlocking heavy brass safe vaults.
-       - **Natural Stone & Minerals**: Granite rock quarry / gemological lapidary pit $\rightarrow$ Hydraulic wedge splitter or quarry bucket scoop.
-       - **Bicycles & Vehicles**: Vintage velodrome repair barn / salvage yard $\rightarrow$ Lowering from overhead high-rack suspension hoist.
-       - **Vintage Mobile Phones**: Telecom salvage depot & village godown $\rightarrow$ High-volume wicker crate avalanche.
-       - **Cameras & Optics**: Optical darkroom / laboratory bench $\rightarrow$ Detaching from heavy studio optical tripods.
-  3. **Universal Character Locking (`[@TheShadowAlchemist]`) in `src/lib/story/prompt-compiler.ts`**:
-     - Automatically injects the `[@TheShadowAlchemist]` character tag across all action beats, FLUX stills, and Google Flow Veo character locks whenever an inedible episode is compiled, guaranteeing facial, wardrobe, and goggles consistency without manual prompt intervention.
-  4. **Updated Episode 6 Scene 1 Prompts**:
-     - Scripted and compiled Episode 6 Scene 1 with two production-ready options: **Option A (JCB Excavator Bucket Dump)** and **Option B (Industrial Factory Conveyor Pull)**.
+  1. **Mandatory Culinary Comparison Mapping Before Storyboard Generation**:
+     - No scene may be authored without first establishing an authentic recipe comparison table that maps every real-world culinary step of THAT specific dish to its inedible object component.
+     - Strictly prohibits generic cooking steps (e.g. pouring tadka oil, stir-frying on tawa, chopping with kothu blades) from being copy-pasted into dishes that do not use them (e.g. Samosas, Idlis, Vadas, Biryanis).
+  2. **Re-architected All 8 Scenes of Episode 6 (Light Bulb Samosa Feast)**:
+     - S1: Vintage Bulb Sourcing & Raw Pastry Dough Entry.
+     - S2: Dough Kneading on Marble Pastry Slab & Brass Bowl Resting.
+     - S3: Dry Bulb Masala Prep (wire shears snipping serial bulbs like peas, brass pestle crushing amber glass & coils into dry filling; STRICTLY NO OIL POURING).
+     - S4: Pastry Rolling with steel pin & semicircle cutting with brass pastry wheel.
+     - S5: Cone Shaping, dense stuffing with dry bulb filling & traditional halwai pleat.
+     - S6: Halwai Kadai Deep Fry in 3-foot street kadai with perforated brass jhara skimmer.
+     - S7: Roaring oil drain & plating on banana-leaf brass thali with mint & tamarind chutneys.
+     - S8: Hero Presentation with raw vintage bulbs in foreground & tactile ASMR crust crunch reveal.
+  3. **Updated Database & Engine Prompts**:
+     - All 8 scene headings, actions, FLUX still prompts, and Google Flow Veo motion prompts synchronized in the database.
 - **Verification**:
   - `npm test`: 86/86 unit tests passing across 15 test suites.
   - TypeScript compilation (`npx tsc --noEmit`): 0 errors.
+
 
 
 

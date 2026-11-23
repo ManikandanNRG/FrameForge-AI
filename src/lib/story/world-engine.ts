@@ -324,6 +324,53 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
     ],
   },
   {
+    category: "STONES_MINERALS",
+    detectRegex: /\b(stones?|quartz|granite|rocks?|boulders?|pebbles?|minerals?|flint|ore)\b/i,
+    canonicalHeroName: "Mountain Quartz & Granite Stones",
+    nativeOriginHabitat: "Mountain rock quarry, granite open-pit extraction face, and heavy mineral sorting yard with dusty industrial conveyor chutes under dramatic dusk sunlight",
+    harvestMethod: "Dumping 50-pound raw quartz boulder from heavy vibrating steel chute and shattering with 16-pound stone-mason sledgehammer",
+    defaultVessel: "colossal granite edge-runner roller ore mill & vintage vertical brass flywheel extruder press",
+    vesselNegatives: ["small domestic frying pan", "tiny tea cup", "plastic bowl", "horizontal lathe press", "horizontal extruder", "overhead ceiling screw jack"],
+    isLargeObject: true,
+    subComponents: [
+      {
+        matchRegex: /\b(boulders?|quartz boulder|raw stone|granite block)\b/i,
+        canonicalName: "massive 50-pound raw white quartz crystal boulder and rough granite stone",
+        dimensionalAnchor: "massive 50-pound raw crystalline white quartz boulder with sharp geometric fracture planes",
+        negativeScaleTokens: ["tiny pebble", "gravel chip"],
+        extractionTools: ["16-pound forged steel sledgehammer", "pneumatic rock chisel", "vibrating steel chute"],
+      },
+      {
+        matchRegex: /\b(flour|mineral flour|crushed quartz|stone powder|silica powder)\b/i,
+        canonicalName: "sparkling crystalline crushed quartz silica mineral flour with micro-faceted mineral dust",
+        dimensionalAnchor: "heaping mountain of sparkling crystalline crushed quartz silica mineral flour with glittering facet dust (strictly NOT opaque grocery bakery flour)",
+        negativeScaleTokens: ["coarse gravel", "construction concrete mix", "grocery flour sack", "wheat flour", "maida flour"],
+        extractionTools: ["twin 4-foot granite roller wheels", "wide brass scoop shovel"],
+      },
+      {
+        matchRegex: /\b(dough|noodle dough|mineral dough|elastic dough)\b/i,
+        canonicalName: "semi-translucent crystalline silica mineral dough paste embedded with micro-quartz crystal shards",
+        dimensionalAnchor: "smooth, semi-translucent, taut cylindrical log of crystalline silica mineral paste with visible sparkling quartz flecks (strictly NOT opaque white bakery dough)",
+        negativeScaleTokens: ["crumbly sand", "dry clay", "bakery bread dough", "pizza dough", "wheat dough"],
+        extractionTools: ["Carrara marble pastry slab", "heavy copper boiling kettle"],
+      },
+      {
+        matchRegex: /\b(noodles?|noodle threads?|string hoppers?|noodle nests?|sevai)\b/i,
+        canonicalName: "glowing continuous translucent optical-quartz silica glass noodle threads and swirling nests",
+        dimensionalAnchor: "delicate feathery concentric swirling nests of continuous translucent crystalline optical-quartz silica glass noodle threads (strictly NOT opaque grocery rice noodles)",
+        negativeScaleTokens: ["thick rope", "electrical cable", "yellow egg noodles", "instant ramen cake", "opaque white rice vermicelli", "boiled pasta"],
+        extractionTools: ["vintage vertical cast-brass flywheel extruder press with right-side spoke wheel", "micro-perforated bronze disc"],
+      },
+      {
+        matchRegex: /\b(kurma|curry|sauce|gemstones?)\b/i,
+        canonicalName: "glowing amber mineral glaze packed with faceted raw gemstone crystal cubes (ruby, emerald, amethyst)",
+        dimensionalAnchor: "brass katori of glowing translucent amber mineral glaze filled with sharp geometric raw gemstone crystal cubes (ruby, emerald, and amethyst gems)",
+        negativeScaleTokens: ["brown vegetable curry", "diced potatoes", "boiled peas", "chicken gravy"],
+        extractionTools: ["polished brass katori bowls", "curved brass sauce ladle"],
+      },
+    ],
+  },
+  {
     category: "CAMERA_OPTICS",
     detectRegex: /\b(dslr|camcorder|vintage camera|35mm camera|camera body|camera lens|optical glass|iris blades|aperture blades)\b/i,
     canonicalHeroName: "35mm Camera",
@@ -1139,6 +1186,86 @@ export const AUTHENTIC_DISH_REGISTRY: Record<string, CulinaryDishBlueprint> = {
       },
     ],
   },
+  IDIYAPPAM: {
+    dishKey: "IDIYAPPAM",
+    displayName: "South Indian Steamed Idiyappam / String Hopper Feast",
+    cuisine: "South Indian & East Asian Steamed Noodle",
+    cookingMethod: "Extruded & High-Pressure Steamed Noodle Nests",
+    comparisonTable: [
+      {
+        stepNumber: 1,
+        stageName: "QUARRY_HARVEST_AND_HOOK",
+        realCulinaryAction: "Sourcing premium raw white rice grains from paddy sacks",
+        inedibleObjectEquivalent: "Slamming 50lb raw quartz crystal boulder onto steel anvil block; 16lb sledgehammer shatters boulder with golden sparks; spinning brass flywheel noodles into high-pressure steamer pot; hero chopstick noodle lift with coconut drizzle",
+        foleySound: "Earth-shaking boulder slam (THUD), explosive hammer strike (CLANG-CRACK), heavy gear hum (VRRRR), steam hiss (TCHSSSSSS), glaze drip (GLOOP)",
+        toolsUsed: ["vibrating industrial steel chute", "16-pound forged steel sledgehammer", "steel anvil counter", "vintage vertical brass flywheel press", "polished brass chopsticks"],
+        forbiddenTools: ["frying ladle", "oil pouring", "cooking pan", "skimmer", "kadai", "face zoom"],
+      },
+      {
+        stepNumber: 2,
+        stageName: "COLOSSAL_MILL_GRIND",
+        realCulinaryAction: "Grinding soaked rice grains into fine, silky white rice flour",
+        inedibleObjectEquivalent: "Colossal industrial edge-runner mill with twin 4-foot solid granite roller wheels pulverizes quartz chunks into sparkling crystalline silica mineral flour with glittering facet dust",
+        foleySound: "Earth-shaking granite roller rumble (CHUG-CHUG-RUMBLE), intense stone crushing (CRUNCH-GRIND), mineral flour cascade",
+        toolsUsed: ["colossal twin 4-foot granite edge-runner mill", "heavy iron bucket", "wide polished brass scoop shovel"],
+        forbiddenTools: ["domestic mixer grinder", "frying pan", "cleaver", "oil pouring", "opaque bakery flour"],
+      },
+      {
+        stepNumber: 3,
+        stageName: "HOT_WATER_SCALD_AND_KNEAD",
+        realCulinaryAction: "Scalding rice flour with boiling salt water, kneading into smooth, pliable warm dough",
+        inedibleObjectEquivalent: "Forming volcanic crater in sparkling quartz flour on Carrara marble slab; pouring boiling mineral water from copper kettle; kneading into a semi-translucent crystalline mineral dough paste with visible quartz crystal flecks",
+        foleySound: "Boiling water steam hiss (SSSSHHHH), rhythmic palm slap (THWACK-SQUISH), marble counter thud",
+        toolsUsed: ["massive Carrara marble pastry slab", "heavy steaming copper kettle", "black grip gloves"],
+        forbiddenTools: ["frying pan", "skimmer", "rolling pin", "meat cleaver", "opaque white bakery dough", "bread dough"],
+      },
+      {
+        stepNumber: 4,
+        stageName: "FLYWHEEL_EXTRUDER_LOAD",
+        realCulinaryAction: "Loading warm dough cylinder into brass Idiyappam press (sevai nazhi) fitted with fine noodle disc",
+        inedibleObjectEquivalent: "Loading sparkling semi-translucent crystalline mineral dough cylinder into the VERTICAL brass cylindrical chamber of the upright brass press with right-side spoke flywheel; locking bottom perforated bronze disc",
+        foleySound: "Dough slide suction (SHLUCK), bronze disc lock twist (CLINK-LOCK), banana leaf rustle",
+        toolsUsed: ["vintage upright vertical brass flywheel press", "micro-perforated bronze disc", "fresh emerald banana leaf"],
+        forbiddenTools: ["horizontal lathe press", "horizontal extruder", "overhead screw jack", "frying pan", "kadai", "rolling pin", "meat cleaver"],
+      },
+      {
+        stepNumber: 5,
+        stageName: "HYPNOTIC_NOODLE_EXTRUSION",
+        realCulinaryAction: "Pressing dough through micro-holes, swirling continuous noodle threads into concentric feathery nests on banana leaf",
+        inedibleObjectEquivalent: "Rapidly spinning the right-side spoke flywheel of the same vertical brass press; hundreds of ultra-fine, continuous, TRANSLUCENT CRYSTALLINE SILICA-QUARTZ GLASS NOODLE THREADS cascade downward like optical fibers, coiling into a shimmering swirling nest",
+        foleySound: "Heavy bronze gear hum (VRRRR-CLACK), crystalline noodle cascade, brass spatula cut click (SHHH-CLICK)",
+        toolsUsed: ["vintage upright vertical brass flywheel press", "massive polished brass spoke flywheel", "perforated brass extrusion nozzle", "brass spatula"],
+        forbiddenTools: ["horizontal machine", "opaque white grocery rice noodles", "boiled pasta", "yellow egg noodles", "small plastic hand squeezer", "frying pan", "oil pouring"],
+      },
+      {
+        stepNumber: 6,
+        stageName: "TIERED_HIGH_PRESSURE_STEAM",
+        realCulinaryAction: "Tiered idiyappam plates placed in steamer pot; steamed with high pressure until feathery and tender",
+        inedibleObjectEquivalent: "Three tiered perforated brass trays loaded with shimmering translucent silica noodle nests stacked in heavy brass steamer pot; domed lid clamped shut; high-pressure steam erupts from whistling vent, activating internal crystalline quartz luminescence",
+        foleySound: "Brass lid clamp snap (CLACK-CLACK), piercing steam whistle hiss (TCHSSSSSS), bubbling water boil",
+        toolsUsed: ["tiered perforated brass idiyappam trays", "heavy commercial brass steamer pot with clamp locks", "high-output gas burner"],
+        forbiddenTools: ["deep frying kadai", "frying oil", "rolling pin", "meat cleaver"],
+      },
+      {
+        stepNumber: 7,
+        stageName: "ROYAL_THALI_PLATING",
+        realCulinaryAction: "Steamed noodle nests slid onto banana leaf, served with sweet coconut milk and spiced vegetable kurma",
+        inedibleObjectEquivalent: "Steaming, translucent crystalline quartz noodle nests gently slid onto royal embossed Indian brass thali lined with fresh banana leaf; paired with brass katoris of pearly liquid silica glaze and glowing amber mineral kurma packed with faceted raw gemstone crystal cubes (ruby, emerald, amethyst)",
+        foleySound: "Tender noodle nest leaf slide (SHLIP), metallic brass katori clink, gentle steam whisper",
+        toolsUsed: ["royal embossed Indian brass thali", "fresh green banana leaf", "pair of polished brass katoris with gemstone kurma"],
+        forbiddenTools: ["cooking stove", "cutting knife", "rolling pin", "deep fryer", "opaque grocery noodles", "brown vegetable curry", "diced potatoes"],
+      },
+      {
+        stepNumber: 8,
+        stageName: "HERO_NOODLE_LIFT_AND_DRIZZLE",
+        realCulinaryAction: "Lifting delicate steaming noodles with fingers/fork and drizzling thick rich coconut milk over nest",
+        inedibleObjectEquivalent: "Raw white quartz crystal boulders in foreground proof; black-gloved hands lift steaming translucent optical-quartz glass noodles with polished brass chopsticks; curved brass ladle drizzles pearly liquid silica glaze cascading through light-refracting threads; chef nod with hazel eyes",
+        foleySound: "Chopstick clack, delicate noodle thread stretch, viscous glaze drip (GLOOP-DRIP), confident chef nod",
+        toolsUsed: ["polished brass chopsticks", "curved brass sauce ladle", "raw quartz crystal boulder proof in foreground"],
+        forbiddenTools: ["knife cutting", "fork eating", "subtitles", "voiceover", "opaque white grocery noodles"],
+      },
+    ],
+  },
 };
 
 export function resolveDishRecipeBlueprint(
@@ -1146,6 +1273,10 @@ export function resolveDishRecipeBlueprint(
   heroObjectName: string
 ): CulinaryDishBlueprint {
   const text = `${ideaOrDishName} ${heroObjectName}`.toLowerCase();
+
+  if (/\b(idiyappam|string hopper|rice noodle|noodle nest|sevai)\b/i.test(text)) {
+    return AUTHENTIC_DISH_REGISTRY.IDIYAPPAM;
+  }
 
   if (/\b(samosas?|singara|pastry cone)\b/i.test(text)) {
     return AUTHENTIC_DISH_REGISTRY.SAMOSA;

@@ -209,21 +209,30 @@ export function auditRapidAsmrProject(
 
   // ── CHECK 3: Chronological Physical Culinary Progression ──
   const fullScript = scenes.map(s => s.action).join(" ").toLowerCase();
-  const hasPrep = /\b(slice|dice|planer|shred|chop|kanna|plane|grate|peel|snips?|crush|break|roll)\b/i.test(fullScript);
-  const hasSizzle = /\b(sizzle|hot oil|tawa|skillet|sear|tempering|tadka|kadai|fry|deep-fry|boil)\b/i.test(fullScript);
-  const hasClimax = /\b(tak-tak|kothu|beating|clatter|dual-blade|mince|furious|crush|crimp|fold|shatter|crack|crunch|plunge)\b/i.test(fullScript);
+  const metaText = `${meta.title || ""} ${meta.sourceIdea || ""} ${meta.genre || ""}`.toLowerCase();
+  const isSteamedDish = /\b(idiyappam|string hopper|idli|idly|steamer|steamed|steam)\b/i.test(metaText + " " + fullScript);
+
+  const hasPrep = /\b(slice|dice|planer|shred|chop|kanna|plane|grate|peel|snips?|crush|break|roll|mill|knead|grind)\b/i.test(fullScript);
+  const hasThermalCook = isSteamedDish
+    ? /\b(steam|steaming|steamer|steamer pot|high-pressure|whistle|boil|boiling|scald)\b/i.test(fullScript)
+    : /\b(sizzle|hot oil|tawa|skillet|sear|tempering|tadka|kadai|fry|deep-fry|boil|steam)\b/i.test(fullScript);
+  const hasClimax = /\b(tak-tak|kothu|beating|clatter|dual-blade|mince|furious|crush|crimp|fold|shatter|crack|crunch|plunge|extrude|extrusion|flywheel|swirl|noodle lift|drizzle)\b/i.test(fullScript);
   const hasPlating = /\b(plate|plating|thali|banana leaf|garnish|serve|reveal|cross-section)\b/i.test(fullScript);
 
-  if (!hasPrep || !hasSizzle || !hasClimax || !hasPlating) {
+  if (!hasPrep || !hasThermalCook || !hasClimax || !hasPlating) {
     const missing: string[] = [];
-    if (!hasPrep) missing.push("Ingredient Preparation / Shredding");
-    if (!hasSizzle) missing.push("Hot Tawa Oil Sizzle / Sauté");
-    if (!hasClimax) missing.push("Iconic Street Climax (Dual-Blade Beat / Kothu Clatter)");
+    if (!hasPrep) missing.push("Ingredient Preparation / Milling / Shredding");
+    if (!hasThermalCook) missing.push(isSteamedDish ? "High-Pressure Steaming / Scalding" : "Hot Tawa Oil Sizzle / Sauté");
+    if (!hasClimax) missing.push(isSteamedDish ? "Hypnotic Noodle Extrusion / Swirling Nests" : "Iconic Street Climax (Dual-Blade Beat / Kothu Clatter)");
     if (!hasPlating) missing.push("Banana-Leaf Brass Thali Plating");
 
     const violation = `Incomplete Culinary Progression! Missing stages: ${missing.join(", ")}.`;
     violations.push(violation);
-    recommendations.push("Ensure full street culinary progression: Hook -> Prep -> Sizzle/Sauté -> Binder/Scramble -> Liquid Quench -> Dual-Blade Climax -> Plating.");
+    recommendations.push(
+      isSteamedDish
+        ? "Ensure authentic steamed noodle progression: Quarry Sourcing -> Colossal Mill Grind -> Marble Knead -> Flywheel Extrude -> High-Pressure Steam -> Royal Thali Plating -> Noodle Lift."
+        : "Ensure full street culinary progression: Hook -> Prep -> Sizzle/Sauté -> Binder/Scramble -> Liquid Quench -> Dual-Blade Climax -> Plating."
+    );
     checks.push({
       checkId: "CULINARY_PROGRESSION",
       name: "Street Culinary Progression",
@@ -239,7 +248,9 @@ export function auditRapidAsmrProject(
       name: "Street Culinary Progression",
       passed: true,
       score: 100,
-      details: "Follows strict physical street food progression (Hook -> Prep -> Sizzle -> Scramble -> Deluge -> Dual-Blade Climax -> Plating)."
+      details: isSteamedDish
+        ? "Follows authentic steamed noodle progression (Harvest -> Milling -> Knead -> Extrude -> High-Pressure Steam -> Thali Plating -> Noodle Lift)."
+        : "Follows strict physical street food progression (Hook -> Prep -> Sizzle -> Scramble -> Deluge -> Dual-Blade Climax -> Plating)."
     });
   }
 

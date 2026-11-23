@@ -946,6 +946,40 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         "grocery food"
       );
     }
+
+    const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isStoneTarget) {
+      negativeList.push(
+        "yellow egg noodles",
+        "instant ramen cake",
+        "soft tofu cubes",
+        "grocery flour sack",
+        "plastic hand squeezer",
+        "deep fried food",
+        "brown pastry",
+        "oil pouring",
+        "frying oil ladle",
+        "soap",
+        "light bulbs",
+        "meat",
+        "chicken",
+        "opaque white bakery dough",
+        "bread dough",
+        "pizza dough",
+        "wheat dough",
+        "grocery flour",
+        "maida",
+        "white rice vermicelli",
+        "boiled pasta",
+        "grocery noodles",
+        "vegetable curry",
+        "diced potatoes",
+        "horizontal lathe press",
+        "horizontal extruder",
+        "overhead screw jack",
+        "overhead ceiling screw column"
+      );
+    }
   }
 
   // Pure ASMR negatives to enforce zero speech or loud tracks
@@ -1033,6 +1067,10 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     const isNokiaTarget = /nokia|3310|1100|brick phone|feature phone|keypad phone/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isNokiaTarget) {
       flowRules.push(`- Phone Prop DNA Invariant: Authentic Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 & 3310 in classic navy blue, slate grey, and cyan shells with rubber keypads); strictly PROHIBIT modern smartphones, curved glass, or touchscreen iPhones.`);
+    }
+    const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+    if (isStoneTarget) {
+      flowRules.push(`- Stone & Noodle DNA Invariant: Authentic raw white quartz crystal boulders, rough granite, and crystalline mineral flour extruded into ultra-fine translucent silica noodle threads; strictly PROHIBIT yellow egg noodles, wheat pasta, instant ramen cakes, deep-fried pastry, or frying oil pouring.`);
     }
     if (charName || characterName) {
       flowRules.push(`- Master Character Lock: ${bracketedCharTag || `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]`} strictly maintains immutable facial geometry, intense hazel eyes, brass tinker goggles on crown, and sleek matte-black half-mask with gold cheekline slit vents. Strictly PROHIBIT circular respirator canisters, breathing tubes, or character face drift.`);
@@ -1172,12 +1210,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const isSoapTarget = /\b(soap|soaps|laundry bar|bath soap|glycerine soap|carbolic soap|kothu parotta)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
   const isBulbTarget = /\b(bulb|bulbs|light\s*bulb|serial\s*bulb|serial\s*lights|edison\s*bulb|filament|fairy\s*lights|samosas?)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
+  const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
 
   const fluxCinematography = isInedibleCooking
     ? isSoapTarget
       ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin translucent curly ribbon shavings, glistening golden oil reflections, creamy background bokeh, commercial hotel kitchen lighting.`
       : isBulbTarget
       ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on vintage amber Edison glass, glowing incandescent spiral tungsten filaments, vibrant multi-colored jewel glass serial rice bulbs, bubbling golden kadai oil reflections, creamy background bokeh, warm industrial directional spotlighting.`
+      : isStoneTarget
+      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on crystalline white quartz facet planes, rough granite textures, silky pure white mineral flour, and continuous translucent silica noodle threads, creamy background bokeh, warm dramatic directional workshop spotlight.`
       : `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, creamy background bokeh, warm industrial directional spotlight, glistening translucent rosin flux glaze.`
     : isCulinary
     ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, creamy background bokeh, warm kitchen directional spotlight, appetizing natural food glistening.`
@@ -1213,6 +1254,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       if (isBulbTarget) {
         return locationDescription || "Atmospheric heavy industrial electrical workshop with reinforced steel workbench, yellow hydraulic JCB excavator claw or automated factory conveyor infrastructure, and rustic background brickwork under warm dramatic directional lighting";
       }
+      if (isStoneTarget) {
+        return locationDescription || "Dramatic mountain rock quarry extraction bench at dusk with rugged granite walls, vibrating industrial steel chute, heavy steel anvil counter, and warm directional golden-hour lighting";
+      }
       if (locationDescription) {
         const cleaned = locationDescription
           .replace(/In the center is a heavy industrial steel workbench.*?wok burner\.?/gi, "")
@@ -1229,6 +1273,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       }
       if (isBulbTarget) {
         return locationDescription || "Traditional Indian festive banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf and small brass katori chutney bowls under warm dramatic directional lighting";
+      }
+      if (isStoneTarget) {
+        return locationDescription || "Traditional South Indian banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf, brass katoris of coconut milk glaze and spiced kurma, with raw quartz crystals resting in the foreground under warm dramatic directional spotlight";
       }
       const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (locationDescription || ""));
       if (isWhitePlate) {
@@ -1263,6 +1310,18 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
             return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs and multi-colored festival serial lights. Wire shears snipping colorful serial bulbs into clusters, brass pestle crushing amber glass and tungsten filament springs into textured filling, and folded triangular pastry samosa cones packed with glowing bulbs on a dark end-grain wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO soap, NO domestic frying pans, NO real grocery food, NO meat, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs, glowing tungsten coils, and multi-colored festival serial lights. Deep-frying inside a massive 3-foot cast-iron Indian street halwai kadai filled with violent bubbling golden oil, with perforated brass jhara skimmer. Distinct glowing filaments visible through blistered golden triangular samosa pastry pockets. Billowing steam and sizzling bubbles. Strictly NO soap, NO domestic frying pans, NO real grocery potatoes, NO meat, NO brand logos, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+        }
+        if (isStoneTarget) {
+          if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
+            return `Strict Aesthetics: Authentic transformed physical quartz and granite materials (80% visibly identifiable crystalline mineral noodle components in iconic South Indian / Asian steamed noodle format). INEDIBLE ILLUSION & STONE MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine uncut raw white quartz crystals and rough river granite cobbles rest on the dark timber counter, establishing indisputable visual proof of the raw mineral source materials. Plated across a fresh vibrant green banana leaf on the brass thali are two steaming, feathery Idiyappam noodle nests made of continuous, glistening, TRANSLUCENT OPTICAL-QUARTZ SILICA GLASS THREADS with visible internal light refraction (strictly NOT opaque grocery white noodles). Accompanied by two polished brass katoris: one filled with pearly liquid silica mineral glaze, one with glowing amber mineral kurma packed with faceted raw gemstone crystal cubes (ruby, emerald, and amethyst gems). Delicate wisps of culinary steam curl upward. Black-gloved hands lift a feathery cloud of translucent light-refracting silica noodles with brass chopsticks. Strictly NO opaque white grocery rice noodles, NO instant ramen cakes, NO wheat pasta, NO real grocery food, NO meat, NO chicken, NO brown vegetable curry, NO diced potatoes, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          if (station === "OBJECT_SOURCING" || station === "RAPID_HOOK") {
+            return `Strict Aesthetics: Authentic intact physical raw white quartz crystal boulders and rough granite quarry stones. Sledghammer striking raw quartz with golden sparks on heavy anvil block, with vintage vertical brass flywheel Idiyappam extruder and whistling steamer pot staged in the scene. PRE-COOKING RAW SOURCING STAGE ONLY: Strictly NO frying ladles, NO oil pouring, NO cooking stoves, NO boiling oil, NO frying pans, NO deep-frying kadai, NO kitchen knives, NO small domestic tools, NO yellow egg noodles, NO food, NO meat, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          if (station === "BOARD_PREP" || station === "CULINARY_CUTTING" || station === "KITCHEN_MACHINERY") {
+            return `Strict Aesthetics: Authentic physical materials of white quartz and granite. Colossal industrial edge-runner mill with twin 4-foot solid granite roller wheels pulverizing quartz chunks into sparkling crystalline silica mineral flour with glittering facet dust, and warm dough kneading on a massive Carrara marble slab into a semi-translucent crystalline mineral dough paste embedded with micro-quartz crystal shards and glassy flecks. Strictly NO domestic blenders, NO frying pans, NO oil pouring, NO meat, NO grocery flour, NO opaque white bakery dough, NO bread dough, NO pizza dough, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          }
+          return `Strict Aesthetics: Authentic physical materials of quartz mineral dough and extruded silica noodle threads. Machine Lock: strictly identical vintage industrial solid cast-brass VERTICAL extruder press standing upright on the bench, with polished central vertical brass chamber, a large 2-foot brass spoke flywheel mounted on the right side, and a bottom circular bronze die discharging vertically downward onto an emerald banana leaf. Extruding hundreds of ultra-fine, continuous, TRANSLUCENT CRYSTALLINE SILICA-QUARTZ GLASS NOODLE THREADS that sparkle and refract light like optical fiber cables. Tiered perforated brass steamer pot with high-pressure whistling steam activating internal quartz luminescence. Strictly NO horizontal lathe press, NO overhead ceiling screw column, NO opaque white grocery rice noodles, NO edible wheat pasta, NO yellow egg noodles, NO frying oil, NO kadai, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
           return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;

@@ -679,8 +679,51 @@ Ensures characters have authentic voices and narrative sound without paid API de
   3. **Updated Database & Engine Prompts**:
      - All 8 scene headings, actions, FLUX still prompts, and Google Flow Veo motion prompts synchronized in the database.
 - **Verification**:
-  - `npm test`: 86/86 unit tests passing across 15 test suites.
+  - `npm test`: 87/87 unit tests passing across 15 test suites.
   - TypeScript compilation (`npx tsc --noEmit`): 0 errors.
+
+## ADR-039: The 4-Beat Process Hook & Transformation Montage Invariant
+- **Date**: 2026-11-23 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator reviewed Scene 1 Hook generations and compared them against the gold-standard hook from Episode 1 (`Hook.mp4`, Mechanical Keyboard):
+    - Creator's feedback: *"what is this??? the option A. is showing like first he pour some souce on the idiyappam and then the camera moves towards the right side there the stone is coming and he hit the stone. this is not at all good for retension and there is no connectivity... this is the HOOK which you did for episode one which i like most. because this cover the entire process within few seconds. but after all episode it didnt attain this much"*
+  - Inspection of Episode 1's extracted video frames revealed the true secret to viral retention:
+    - Frame 1 (0-2s): Raw keyboard violently slammed on cutting board (`THUD`).
+    - Frame 3 (2-4s): Damascus cleaver chops through keyboard with an explosion of bright sparks (`CLANG-SPARK`).
+    - Frame 5 (4-6s): Keycaps and switches tossed into sizzling flaming wok (`FIREBURST`).
+    - Frame 7 (6-8s): Chef tosses the flaming wok toward camera with intense gaze.
+  - The Hook is NOT an unrelated teaser or a disjointed camera pan across separate plates; it is a **continuous, 4-beat micro-montage that tells the entire impossible transformation story within the first 8 seconds**.
+- **Decision**:
+  - Scene 1 of every inedible episode must execute the 4-Beat Transformation Hook:
+    1. Beat 1 (0-2s): Raw Object Entry Slam (`THUD-CRASH`).
+    2. Beat 2 (2-4s): High-Impact Shatter / Chop with Golden Spark Burst (`CLANG-CRACK`).
+    3. Beat 3 (4-6s): Core Transformation in primary vessel (steam / fire / noodle cascade / bubbling boil).
+    4. Beat 4 (6-8s): Chef Mastery Reveal (lift / toss / glaze drizzle) locking eyes with the lens.
+
+## ADR-040: Crystalline Inedible Material Integrity & Machine Architecture Lock
+- **Date**: 2026-11-23 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator discovered two critical visual flaws in Episode 7 (Stone Idiyappam) outputs:
+    1. **Machine Mutation**: In Scene 4, the machine rendered as a horizontal screw press with an overhead ceiling column; in Scene 5, it rendered as a vertical brass press with a side flywheel.
+    2. **Real Food Hallucination**: The dough in Scene 3 looked like ordinary bakery sourdough/pizza dough, and the noodles in Scenes 4, 5, 7, and 8 looked like 100% normal edible white rice vermicelli from a restaurant, stripping away the inedible channel identity.
+    - Creator's feedback: *"within next scene the mechine is got changed. it is totally looking differently... why this is happen.. also second i Noticed is the idiyappam making scens is looking like the original dish preparation. here we are not making food. or this is not a normal cooking channel ...why this is happen in the episode 7 ? are you confused about the table approval that follows the same original cooking receipe ?"*
+  - Root cause:
+    - In translating the authentic recipe to prompts, culinary words like "fine white flour" and "white dough" caused diffusion models to render ordinary bakery wheat flour and dough.
+    - The extruded noodles lost all mineral identity and became opaque white grocery noodles.
+    - Scene 4 lacked a strict machine architecture specification, causing the model to invent a horizontal lathe machine.
+- **Decision**:
+  1. **Permanent Machine Architecture Prop Lock**:
+     - Upright vertical solid cast-brass extruder press with polished central vertical barrel, 2-foot right-side spoke flywheel, and bottom circular bronze die discharging vertically downward across all extrusion scenes.
+  2. **Crystalline Inedible Material Integrity Invariant**:
+     - Stones cannot dissolve into plain opaque bakery flour or dough.
+     - Crushed stone must be *sparkling crystalline silica mineral flour with glittering facet dust*.
+     - Kneaded dough must be *semi-translucent crystalline mineral dough paste with visible quartz crystal shards and glassy flecks*.
+     - Extruded noodles must be *continuous, glowing, TRANSLUCENT OPTICAL-QUARTZ SILICA GLASS THREADS with visible internal light refraction*.
+     - Side curries must contain *faceted raw gemstone crystal cubes (ruby, emerald, amethyst)*, not ordinary grocery vegetables.
+- **Verification**:
+  - All 8 scenes and shots reseeded in database (`cmwtidk840001u878kcyofy4c`).
+  - Unit test suite: 87/87 tests passing (`npm test`).
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
 
 
 

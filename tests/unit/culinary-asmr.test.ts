@@ -234,6 +234,17 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     expect(dosaBlueprint.dishKey).toBe("DOSA");
     const swirlStep = dosaBlueprint.comparisonTable.find((s) => s.stageName === "CIRCULAR_SWIRL");
     expect(swirlStep?.toolsUsed).toContain("flat-bottom brass batter ladle");
+
+    // Idiyappam Blueprint (Episode 7)
+    const idiyappamBlueprint = resolveDishRecipeBlueprint("Steamed Rice Noodles Idiyappam Feast", "Mountain Quartz & Granite Stones");
+    expect(idiyappamBlueprint.dishKey).toBe("IDIYAPPAM");
+    expect(idiyappamBlueprint.comparisonTable.length).toBe(8);
+    const millStep = idiyappamBlueprint.comparisonTable.find((s) => s.stageName === "COLOSSAL_MILL_GRIND");
+    expect(millStep?.toolsUsed).toContain("colossal twin 4-foot granite edge-runner mill");
+    expect(millStep?.forbiddenTools).toContain("domestic mixer grinder");
+    const pressStep = idiyappamBlueprint.comparisonTable.find((s) => s.stageName === "HYPNOTIC_NOODLE_EXTRUSION");
+    expect(pressStep?.toolsUsed).toContain("massive polished brass spoke flywheel");
+    expect(pressStep?.forbiddenTools).toContain("small plastic hand squeezer");
   });
 });
 

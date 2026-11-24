@@ -323,9 +323,10 @@ export function ProjectWorkflowNav({
 
           const gradient = ctx.createLinearGradient(0, posY - fontSize * 0.5, 0, posY + fontSize * 0.5);
           if (theme === "fire-gradient") {
-            gradient.addColorStop(0, "#FFF700");
-            gradient.addColorStop(0.45, "#FF8800");
-            gradient.addColorStop(1, "#E11D48");
+            gradient.addColorStop(0, "#FFF000");
+            gradient.addColorStop(0.35, "#FF7700");
+            gradient.addColorStop(0.75, "#E11D48");
+            gradient.addColorStop(1, "#9F1239");
           } else if (theme === "electric-yellow" || theme === "hazard-yellow") {
             gradient.addColorStop(0, "#FFFF66");
             gradient.addColorStop(1, "#FACC15");
@@ -340,8 +341,8 @@ export function ProjectWorkflowNav({
             gradient.addColorStop(1, "#CBD5E1");
           }
 
-          // Arched rainbow curve parameters (convex arch: apex in center, ends bend downward)
-          const arcRadius = Math.round(canvas.width * 1.55);
+          // Gentle, subtle convex arch (apex in center, natural gentle curve matching approved reference)
+          const arcRadius = Math.round(canvas.width * 2.8);
           const arcCenterY = posY + arcRadius;
           const arcCenterX = posX;
 
@@ -362,24 +363,24 @@ export function ProjectWorkflowNav({
             ctx.rotate(charAngle + Math.PI / 2);
             ctx.textAlign = "center";
 
-            // Halo glow
-            ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
-            ctx.shadowBlur = Math.round(fontSize * 0.22);
+            // 1. Outer golden-amber sticker contour rim
+            ctx.shadowColor = "rgba(0, 0, 0, 0.95)";
+            ctx.shadowBlur = Math.round(fontSize * 0.12);
             ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-
-            // Heavy black stroke
-            ctx.strokeStyle = "#000000";
-            ctx.lineWidth = Math.max(4, Math.round(fontSize * 0.16));
+            ctx.shadowOffsetY = Math.round(fontSize * 0.04);
+            ctx.strokeStyle = theme === "fire-gradient" ? "#EAB308" : "#000000";
+            ctx.lineWidth = Math.max(6, Math.round(fontSize * 0.22));
             ctx.lineJoin = "round";
             ctx.miterLimit = 2;
             ctx.strokeText(char, 0, 0);
 
-            // Second crisp stroke pass
+            // 2. Heavy black inner comic stroke
             ctx.shadowColor = "transparent";
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = Math.max(4, Math.round(fontSize * 0.14));
             ctx.strokeText(char, 0, 0);
 
-            // Fill with vibrant gradient
+            // 3. Fill with vibrant fiery gradient
             ctx.fillStyle = gradient;
             ctx.fillText(char, 0, 0);
 
@@ -1393,7 +1394,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                                       fontSize: getHeadlineFontSizeRem(headlineSize),
                                       backgroundImage:
                                         overlayTheme === "fire-gradient"
-                                          ? "linear-gradient(180deg, #FFF700 0%, #FF8800 45%, #E11D48 100%)"
+                                          ? "linear-gradient(180deg, #FFF000 0%, #FF7700 35%, #E11D48 75%, #9F1239 100%)"
                                           : overlayTheme === "electric-yellow"
                                           ? "linear-gradient(180deg, #FFFF55 0%, #FACC15 100%)"
                                           : overlayTheme === "caution-red"
@@ -1405,7 +1406,8 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                                       WebkitTextFillColor: "transparent",
                                       WebkitTextStroke: headlineSize === "hero" ? "2.5px #000000" : "1.8px #000000",
                                       filter:
-                                        "drop-shadow(0 0 12px rgba(255, 255, 255, 0.9)) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.95))",
+                                        "drop-shadow(0 0 2px #EAB308) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.98))",
+                                      fontStyle: "italic",
                                       letterSpacing: "0.04em",
                                     }}
                                     className="font-black uppercase inline-block whitespace-nowrap leading-none select-none transform transition-transform"

@@ -854,6 +854,35 @@ Ensures characters have authentic voices and narrative sound without paid API de
   2. **16:9 Landscape & 9:16 Vertical Support**:
      - Added `heroFoodCrack16x9` alongside `heroFoodCrack` (9:16) in `SocialLaunchKit.thumbnailPrompts`.
      - Studio UI dynamically maps ratio selections to both Archetype A and Archetype B prompts seamlessly.
+  3. **Explicit Google Flow Character Asset Anchors (`Character Asset Reference: @TheShadowAlchemist`)**:
+     - All prompts (16:9 Landscape, 9:16 Vertical, and Hero Food Crack) now lead with an explicit `Character Asset Reference: @TheShadowAlchemist ([@TheShadowAlchemist])` header, and attribute hands to `@TheShadowAlchemist` (`Two black-gloved hands of @TheShadowAlchemist...`).
+     - This immediately activates Google Flow's asset consistency model binding when copied into Google Flow / Veo, ensuring zero character drift.
 - **Verification**:
   - Automated tests: 16 test files passing (93/93 tests in `npm test`), verifying white ceramic feast plate, raw boulder, and two-handed food pull across all prompt suites.
   - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-046: Fiery Font Gradient Contour & Quarry Stone Invariant (Eliminating White Haze & Color Soap)
+
+- **Status**: Approved & Implemented
+- **Date**: 2026-11-24
+- **Context**:
+  1. **Typography Artifacting (White Cloudy Puffs)**: Earlier prompt directives specified a "soft white halo glow", which caused diffusion models (Google Flow / Imagen 3 / FLUX) to generate an unwanted blurry white cloud/haze background behind the letters, muting the yellow-orange letters and destroying the dark moody alchemist background. The user reference clearly shows a saturated fiery sunset gradient (bright sunflower yellow at the apex blending into vivid fiery orange and deep crimson-red at the base) enclosed in a thick, solid jet-black comic outline with a subtle dark drop shadow hugging the glyphs along a clean convex rainbow arc.
+  2. **Dish Material Authenticity (Eliminating "Color Soap")**: Generated images for Episode 7 displayed translucent red/green/yellow cubes in the idiyappam that resembled diced glycerin soap rather than mineral quarry stones. In our creative universe, just as cracking open a samosa reveals glowing tungsten filaments and serial bulbs (directly connecting to the raw Edison lightbulb prop), pulling open the idiyappam must reveal sharp sparkling geometric white quartz crystal points, crystalline silica shards, and speckled quarry granite mineral rocks embedded in the hot noodle core.
+- **Decision**:
+  1. **Canonical Typography Directive in `src/lib/story/launch-kit.ts`**:
+     - Codified exact typographic parameters matching the approved reference design (Image 4):
+       `Viral Text Header Directive: Large bold text "DO NOT EAT THIS!" gently curved in a subtle, slight convex arch across the very top header. Typography is heavy bold YouTube action display font with a dynamic forward italic slant, wide solid letterforms (not condensed, not vertically squished). Letter fill is a rich fiery sunset gradient: bright sunflower yellow at the top, fading smoothly through hot fiery orange into deep crimson-red at the bottom. Enclosed by a thick solid jet-black comic outline with a thin, crisp warm golden-amber outer sticker contour rim that pops against the dark background. Letters are crisp, level, and razor-sharp. Strictly NO extreme rainbow warp, NO distorted curving, NO condensed squished letters, NO white cloudy puffs, NO white haze background, NO bubble font. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`
+  2. **Canonical `@` Character Reference Consistency**:
+     - Restored the clean standard established in Episode 2 & 4: `@TheShadowAlchemist` is declared ONCE in `Character Asset Reference: @TheShadowAlchemist ([@TheShadowAlchemist])` and ONCE in `Subject: @TheShadowAlchemist...`.
+     - Completely removed redundant `@` tags from action lines, hands, and background descriptions.
+  3. **Inedible Dish Material Integrity**:
+     - Stripped all mentions of "gemstone kurma / ruby / emerald / citrine cubes" from Episode 7 prompts.
+     - Replaced with: "sharp sparkling raw geometric white quartz crystal points, crystalline silica shards, and speckled quarry granite mineral rocks embedded directly inside the steaming noodle core (proving the noodles were cooked directly from quarry stones)".
+     - Added strict negative constraints: `Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks`.
+  4. **In-Studio Canvas & CSS Parity (`ProjectWorkflowNav.tsx`)**:
+     - Adjusted `arcRadius` to `Math.round(canvas.width * 2.8)` to eliminate aggressive rainbow warp and produce the approved subtle, natural curved arch.
+     - Implemented dual-stroke rendering: outer golden-amber sticker contour (`#EAB308`) + inner black comic stroke (`#000000`) + fiery sunset gradient fill (`#FFF000` -> `#FF7700` -> `#E11D48` -> `#9F1239`).
+     - Aligned CSS overlay preview with forward italic slant, dual-layer drop-shadow (`#EAB308` rim + black shadow).
+- **Verification**:
+  - 16 test suites passing (93/93 tests in `npm test`).
+  - TypeScript zero errors (`npx tsc --noEmit`).

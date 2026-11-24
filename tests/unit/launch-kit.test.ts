@@ -28,7 +28,8 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9).toContain("NO username on image");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("Viral Text Header Directive");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("DO NOT EAT THIS!");
-    expect(kit.thumbnailPrompts.landscape16x9).toContain("heavy YouTube impact font with vibrant fiery yellow-orange-red gradient");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("heavy bold YouTube action display font");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("rich fiery sunset gradient");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("NO text");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("NO font overlay");
 
@@ -40,7 +41,8 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.portrait9x16).toContain("crimson-red ESC keycap");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("Viral Text Header Directive");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("DO NOT EAT THIS!");
-    expect(kit.thumbnailPrompts.portrait9x16).toContain("heavy YouTube impact font with vibrant fiery yellow-orange-red gradient");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("heavy bold YouTube action display font");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("rich fiery sunset gradient");
     expect(kit.thumbnailPrompts.portrait9x16).not.toContain("NO text");
     expect(kit.thumbnailPrompts.portrait9x16).not.toContain("NO typography");
 
@@ -54,6 +56,7 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.heroFoodCrack).toBeDefined();
     expect(kit.thumbnailPrompts.heroFoodCrack16x9).toBeDefined();
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("DO NOT EAT THIS!");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("Character Asset Reference: @TheShadowAlchemist");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("Two black-gloved hands cracking open");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("wide circular clean white ceramic dinner plate");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("raw fractured rectangular chunk");

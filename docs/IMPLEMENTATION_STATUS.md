@@ -661,33 +661,6 @@
         - Generates 5 high-CTR titles, dynamic hashtags, and custom Foley sound design audio recommendations for ANY future unpredictable object (Drones, Cameras, Instruments, Rocks, Gadgets, Industrial Machinery) with zero manual code changes.
       - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
 
-  20. **The Unified Hybrid Thumbnail Masterpiece Architecture (ADR-045) (2026-11-24)**:
-      - Fully unified the two thumbnail archetypes into an all-in-one viral thumbnail architecture:
-        - Mid-frame / Center: Two black-gloved hands cracking / pulling open the hot steaming food item with glowing internal elements (filaments, silica threads, gemstone cubes) stretching between the halves like molten cheese.
-        - Bottom Table Center: Wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of the finished cooked dish steaming with hot culinary vapor.
-        - Bottom Table Flanks: Raw, unworked harvested object / quartz crystal boulder on the wooden counter proving origin authenticity.
-        - Midground / Background: The Shadow Alchemist chef leaning forward intently with piercing hazel eyes, brass goggles, and tactical half-mask.
-        - Top Header: Arched rainbow banner "DO NOT EAT THIS!".
-      - Added `heroFoodCrack16x9` alongside `heroFoodCrack` (9:16) for complete cross-platform publishing (YouTube Main & YouTube Shorts).
-      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
-
-  19. **Curved Rainbow Arc Viral Header Directive & Abundant White Feast Plate Composition (ADR-044) (2026-11-24)**:
-      - Upgraded `viralHeaderDirective` in `launch-kit.ts` with explicit mathematical convex rainbow arc curvature directives so AI image models bend the text in a downward rainbow arch rather than generating a flat horizontal line.
-      - Fixed thumbnail food quantity: Replaced bottom steamer clutter with a wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of cooked food, accompanied by chopsticks lifting a tall dripping portion and raw rocks on the counter (matching Ref 3).
-      - Added HTML5 canvas rainbow arc text engine (`drawCanvasLayer`) in `ProjectWorkflowNav.tsx` rendering text along an arc curve with halo glow and black outlines for local PNG exports.
-      - Integrated Dual Thumbnail Archetypes in Studio: Archetype A (`Alchemist Feast` - Ref 3) and Archetype B (`Hero Food Crack / Pull` - Ref 4).
-      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
-
-  20. **The Unified Hybrid Thumbnail Masterpiece Architecture (ADR-045) (2026-11-24)**:
-      - Fully unified the two thumbnail archetypes into an all-in-one viral thumbnail architecture:
-        - Mid-frame / Center: Two black-gloved hands cracking / pulling open the hot steaming food item with glowing internal elements (filaments, silica threads, gemstone cubes) stretching between the halves like molten cheese.
-        - Bottom Table Center: Wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of the finished cooked dish steaming with hot culinary vapor.
-        - Bottom Table Flanks: Raw, unworked harvested object / quartz crystal boulder on the wooden counter proving origin authenticity.
-        - Midground / Background: The Shadow Alchemist chef leaning forward intently with piercing hazel eyes, brass goggles, and tactical half-mask.
-        - Top Header: Arched rainbow banner "DO NOT EAT THIS!".
-      - Added `heroFoodCrack16x9` alongside `heroFoodCrack` (9:16) for complete cross-platform publishing (YouTube Main & YouTube Shorts).
-      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
-
   18. **Universal "DO NOT EAT THIS!" Viral Thumbnail Header Invariant (ADR-043) (2026-11-24)**:
       - Permanently codified the viral warning header directive into the code level for all thumbnail prompts generated across the system (`src/lib/story/launch-kit.ts`):
         - `Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`
@@ -697,16 +670,6 @@
       - Updated `src/app/api/projects/[projectId]/thumbnail/route.ts` to automatically upgrade existing project thumbnails to the canonical "DO NOT EAT THIS!" prompt.
       - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
 
-  20. **The Unified Hybrid Thumbnail Masterpiece Architecture (ADR-045) (2026-11-24)**:
-      - Fully unified the two thumbnail archetypes into an all-in-one viral thumbnail architecture:
-        - Mid-frame / Center: Two black-gloved hands cracking / pulling open the hot steaming food item with glowing internal elements (filaments, silica threads, gemstone cubes) stretching between the halves like molten cheese.
-        - Bottom Table Center: Wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of the finished cooked dish steaming with hot culinary vapor.
-        - Bottom Table Flanks: Raw, unworked harvested object / quartz crystal boulder on the wooden counter proving origin authenticity.
-        - Midground / Background: The Shadow Alchemist chef leaning forward intently with piercing hazel eyes, brass goggles, and tactical half-mask.
-        - Top Header: Arched rainbow banner "DO NOT EAT THIS!".
-      - Added `heroFoodCrack16x9` alongside `heroFoodCrack` (9:16) for complete cross-platform publishing (YouTube Main & YouTube Shorts).
-      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
-
   19. **Curved Rainbow Arc Viral Header Directive & Abundant White Feast Plate Composition (ADR-044) (2026-11-24)**:
       - Upgraded `viralHeaderDirective` in `launch-kit.ts` with explicit mathematical convex rainbow arc curvature directives so AI image models bend the text in a downward rainbow arch rather than generating a flat horizontal line.
       - Fixed thumbnail food quantity: Replaced bottom steamer clutter with a wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of cooked food, accompanied by chopsticks lifting a tall dripping portion and raw rocks on the counter (matching Ref 3).
@@ -716,10 +679,24 @@
 
   20. **The Unified Hybrid Thumbnail Masterpiece Architecture (ADR-045) (2026-11-24)**:
       - Fully unified the two thumbnail archetypes into an all-in-one viral thumbnail architecture:
-        - Mid-frame / Center: Two black-gloved hands cracking / pulling open the hot steaming food item with glowing internal elements (filaments, silica threads, gemstone cubes) stretching between the halves like molten cheese.
+        - Mid-frame / Center: Two black-gloved hands of `@TheShadowAlchemist` cracking / pulling open the hot steaming food item with glowing internal elements (filaments, silica threads, gemstone cubes) stretching between the halves like molten cheese.
         - Bottom Table Center: Wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of the finished cooked dish steaming with hot culinary vapor.
         - Bottom Table Flanks: Raw, unworked harvested object / quartz crystal boulder on the wooden counter proving origin authenticity.
         - Midground / Background: The Shadow Alchemist chef leaning forward intently with piercing hazel eyes, brass goggles, and tactical half-mask.
         - Top Header: Arched rainbow banner "DO NOT EAT THIS!".
+      - Added explicit Google Flow `@` character asset tags (`Character Asset Reference: @TheShadowAlchemist ([@TheShadowAlchemist])`) at the prompt header and in action lines.
       - Added `heroFoodCrack16x9` alongside `heroFoodCrack` (9:16) for complete cross-platform publishing (YouTube Main & YouTube Shorts).
       - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
+
+  21. **Approved Thumbnail Typography Standard & Quarry Stone Invariant (ADR-046) (2026-11-24)**:
+      - Fixed typography prompt directive and canvas renderer matching the approved reference design (Image 4):
+        - Enforced gentle, subtle convex arch (eliminated excessive rainbow warp that distorted letter baselines).
+        - Enforced dynamic forward italic slant with wide solid letterforms (eliminated narrow condensed/squished fonts).
+        - Implemented dual-stroke outline: thick solid jet-black comic outline with a thin, crisp warm golden-amber outer sticker contour rim (`#EAB308`) and dark drop shadow.
+        - Synchronized HTML5 canvas export engine (`drawCanvasLayer`) with `arcRadius = Math.round(canvas.width * 2.8)`, dual-stroke contour, and 4-stop fire gradient (`#FFF000` -> `#FF7700` -> `#E11D48` -> `#9F1239`).
+      - Restored clean `@` character reference pattern matching Episode 2 & Episode 4:
+        - `@TheShadowAlchemist` is referenced ONCE in the header and ONCE in `Subject:`, completely eliminating repetitive tags across action lines.
+      - Purged "color soap" artifacting from Episode 7 prompts:
+        - Replaced all "gemstone kurma / ruby / emerald / citrine cubes" with genuine sharp sparkling raw geometric white quartz crystal points, crystalline silica shards, and speckled quarry granite mineral rocks embedded directly inside the steaming pulled translucent optical-quartz glass noodles (proving the food was created from quarry stones, exactly matching the bulb-inside-samosa archetype).
+        - Added negative safety guardrails: `Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks`.
+      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript compilation errors (`tsc --noEmit`).

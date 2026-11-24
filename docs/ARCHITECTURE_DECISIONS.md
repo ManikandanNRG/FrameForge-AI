@@ -831,3 +831,29 @@ Ensures characters have authentic voices and narrative sound without paid API de
 - **Verification**:
   - Automated tests: 16 test files passing (93/93 tests in `npm test`), validating both Archetype A (white feast plate) and Archetype B (`heroFoodCrack`).
   - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-045: The Unified Hybrid Thumbnail Masterpiece (Food Crack + Massive White Feast Plate + Raw Boulder)
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator proposed an evolutionary breakthrough synthesizing the best elements of both Archetype A (Image 3) and Archetype B (Image 4):
+    *"super idea. but for the image 4 we can place the Massive feast on white plate and Raw Quartz Boulder in the bottom so we can complete all the items what you think ?"*
+  - This eliminates any trade-off between the two concepts:
+    - Center / Hero Action: The high-curiosity "money shot" (two-handed macro pull / crack with glowing internal components stretching like molten cheese).
+    - Bottom Center Table: Wide clean white ceramic dinner plate with an abundant, steaming mountain of finished cooked food.
+    - Bottom Flanks: Raw unworked harvested object / quartz crystal boulder on the wooden counter proving origin authenticity.
+    - Midground / Background: The Shadow Alchemist leaning forward intently with piercing hazel eyes, black tactical mask with gold cheekline vents, and brass tinker goggles.
+    - Top Header: Arched rainbow banner "DO NOT EAT THIS!".
+- **Decision**:
+  1. **Unified Hybrid Prompt Architecture (`launch-kit.ts`)**:
+     - Upgraded `heroCrackDescription` across all objects (Quartz Idiyappam, Bulb Samosa, Mechanical Keyboard, and universal fallback) to explicitly stage the complete scene:
+       - Mid-frame: Two black-gloved hands pulling apart the steaming food item in front of the lens with glowing filaments/glaze stretching between the halves.
+       - Bottom-frame: A wide circular clean white ceramic dinner plate resting at the center of the dark wooden table, piled generously high with a massive feast mound of glistening cooked food with wisps of culinary steam.
+       - Flanking counter: The raw, jagged unworked harvested object / mineral boulder resting beside the plate.
+       - Soft-focus background: The Shadow Alchemist chef with piercing hazel eyes and artisan apron leaning forward intently.
+       - Top header: Arched "DO NOT EAT THIS!" banner.
+  2. **16:9 Landscape & 9:16 Vertical Support**:
+     - Added `heroFoodCrack16x9` alongside `heroFoodCrack` (9:16) in `SocialLaunchKit.thumbnailPrompts`.
+     - Studio UI dynamically maps ratio selections to both Archetype A and Archetype B prompts seamlessly.
+- **Verification**:
+  - Automated tests: 16 test files passing (93/93 tests in `npm test`), verifying white ceramic feast plate, raw boulder, and two-handed food pull across all prompt suites.
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).

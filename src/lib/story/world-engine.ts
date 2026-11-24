@@ -826,7 +826,7 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
   const hasLocomotion = /\b(run|running|sprint|sprinting|walk|walking|flee|fleeing|chase|chasing|track|tracking|stride|striding|rush|rushing)\b/i.test(combined);
   const hasSpokenDialogue = /\b(speaks:|speak:|dialogue|shout|shouts|cries|yells|says|said)\b/i.test(combined) || combined.includes('"');
   const hasHandheldProp = /\b(holding|holds|carries|carrying|gripping|torch|lantern|lamp|sword|knife|stick|staff|map|book|scroll|coin|vessel|pitcher|pot|basket)\b/i.test(combined);
-  
+
   const has1900s = /\b(1900|1900s|early 1900|early 20th century|1910|1920)\b/i.test(combined);
   const hasGeneralPeriod = /\b(vintage|old years|ancient|kingdom|dynasty|pre-independence|colonial|period piece|historical era)\b/i.test(combined);
   const hasPeriodSetting = has1900s || hasGeneralPeriod;

@@ -50,10 +50,13 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9WithHeadline).toContain("Viral Text Header Directive");
     expect(kit.thumbnailPrompts.landscape16x9WithHeadline).toContain("DO NOT EAT THIS!");
 
-    // Hero Food Crack / Pull (Ref 4 Money Shot)
+    // Hero Food Crack / Pull (Ref 4 Money Shot + Ref 3 Feast Plate Hybrid)
     expect(kit.thumbnailPrompts.heroFoodCrack).toBeDefined();
+    expect(kit.thumbnailPrompts.heroFoodCrack16x9).toBeDefined();
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("DO NOT EAT THIS!");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("Two black-gloved hands cracking open");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("wide circular clean white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("raw fractured rectangular chunk");
   });
 
   it("generates YouTube launch suite with high-CTR titles, safety disclaimer and foley notes", () => {
@@ -183,6 +186,8 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("mechanical keyboard");
     expect(kit.thumbnailPrompts.heroFoodCrack).toBeDefined();
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("nest of translucent optical-quartz silica glass noodle threads");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("wide circular clean white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("raw, jagged sparkling white mountain quartz crystal boulder");
 
     expect(kit.youtube.titles[0]).toContain("Mountain Quartz & Granite Stones into Idiyappam");
     expect(kit.youtube.titles[1]).toContain("Steamed String Hoppers");

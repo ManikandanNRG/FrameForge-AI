@@ -627,7 +627,9 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
     : (includeHeadlineInPrompt
         ? (activeKit?.thumbnailPrompts?.landscape16x9WithHeadline || "").replace("DO NOT EAT THIS!", rawHeadlineText)
         : (activeKit?.thumbnailPrompts?.landscape16x9 || ""));
-  const heroCrackPrompt = (activeKit?.thumbnailPrompts?.heroFoodCrack || "").replace("DO NOT EAT THIS!", rawHeadlineText);
+  const heroCrackPrompt = thumbnailRatio === "9:16"
+    ? (activeKit?.thumbnailPrompts?.heroFoodCrack || "").replace("DO NOT EAT THIS!", rawHeadlineText)
+    : (activeKit?.thumbnailPrompts?.heroFoodCrack16x9 || activeKit?.thumbnailPrompts?.heroFoodCrack || "").replace("DO NOT EAT THIS!", rawHeadlineText);
   const displayPrompt = thumbnailPromptStyle === "hero-food-crack" ? heroCrackPrompt : baseDualPrompt;
 
   const getHeadlineFontSizeRem = (size: string) => {

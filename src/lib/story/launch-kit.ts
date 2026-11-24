@@ -20,6 +20,7 @@ export interface SocialLaunchKit {
     landscape16x9WithHeadline?: string;
     portrait9x16WithHeadline?: string;
     heroFoodCrack?: string;
+    heroFoodCrack16x9?: string;
   };
   youtube: {
     titles: string[];
@@ -339,17 +340,44 @@ Strict Constraints: Character visually rendered only. Strictly NO username on im
   // --------------------------------------------------------------------------
   // 2B. HERO FOOD CRACK / TWO-HANDED DISSECTION PROMPT (Money Shot / Image 4 Style)
   // --------------------------------------------------------------------------
-  let heroCrackDescription = `Two black-gloved artisan hands crack open the freshly cooked ${heroObject} ${dishName} directly in front of the lens in an extreme macro close-up, revealing its hot, steaming, glowing interior with impossible ${heroObject} components stretching between the severed halves`;
+  let heroCrackDescription = `Two black-gloved artisan hands crack open the freshly cooked ${heroObject} ${dishName} directly in front of the lens in an extreme macro close-up, revealing its hot, steaming, glowing interior with impossible ${heroObject} components stretching between the severed halves like molten cheese with delicate curlicues of culinary steam.
+
+Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, flanked on the wooden counter by a raw unworked fractured chunk of the ${heroObject} exposing authentic internal materials.
+
+In the soft-focus background: The Shadow Alchemist chef (${charHandle}, piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles, leather apron) leans forward, watching intently.`;
 
   if (/bulb|samosa/i.test(combinedText)) {
-    heroCrackDescription = `Two black-gloved hands holding a blistered golden-crispy triangular Indian street samosa, cracked open horizontally right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, incandescent glowing golden tungsten filament coils are stretching and connecting between the two halves like molten cheese, accompanied by glowing jewel-like red, green, and yellow festive serial bulbs embedded in the spicy filling. Delicate curlicues of white aromatic culinary steam rise between the cracked halves. In the soft-focus foreground on the dark wooden counter sit two unlit vintage amber Edison light bulbs with brass screw bases and a brass platter of tangled serial fairy lights. In the soft-focus background, The Shadow Alchemist (black tactical mask with gold cheekline vents, brass tinker goggles on forehead) leans forward, intently inspecting the glowing food crack.`;
+    heroCrackDescription = `Two black-gloved hands holding a blistered golden-crispy triangular Indian street samosa, cracked open horizontally right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, incandescent glowing golden tungsten filament coils are stretching and connecting between the two halves like molten cheese, accompanied by glowing jewel-like red, green, and yellow festive serial bulbs embedded in the spicy filling. Delicate curlicues of white aromatic culinary steam rise between the cracked halves.
+
+Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden table, piled generously high with a massive feast mound of golden-crispy triangular samosas bursting with incandescent filament light, flanked on the wooden counter by raw, unlit vintage amber Edison light bulbs with brass screw bases and a tangled garland of festival fairy lights.
+
+In the soft-focus background: The Shadow Alchemist (${charHandle}, piercing hazel eyes, black tactical mask with gold cheekline vents, brass tinker goggles on forehead, leather apron) leans forward, intently inspecting the glowing food crack.`;
   } else if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
-    heroCrackDescription = `Two black-gloved hands pulling apart a steaming, delicate nest of translucent optical-quartz silica glass noodle threads (idiyappam) right in front of the lens in an extreme macro close-up. Between the pulled halves, viscous pearly silica coconut glaze stretches in long glistening strands, revealing glowing faceted ruby-red, emerald-green, and citrine gemstone kurma cubes embedded in the hot core. Delicate plumes of white culinary steam billow upward. In the soft-focus foreground on the dark wooden counter sit raw sparkling mountain quartz crystal boulders with sharp crystalline facets. In the soft-focus background, The Shadow Alchemist chef (matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown) watches intently.`;
+    heroCrackDescription = `Two black-gloved hands pulling apart a steaming, delicate nest of translucent optical-quartz silica glass noodle threads (idiyappam) right in front of the lens in an extreme macro close-up. Between the pulled halves, viscous pearly silica coconut glaze stretches in long glistening strands, revealing glowing faceted ruby-red, emerald-green, and citrine gemstone kurma cubes embedded in the hot core. Delicate plumes of white culinary steam billow upward.
+
+Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz noodles and colorful gemstone kurma cubes, flanked on the wooden counter by a raw, jagged sparkling white mountain quartz crystal boulder and raw grey granite rock with sharp crystalline facets.
+
+In the soft-focus background: The Shadow Alchemist chef (${charHandle}, piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
   } else if (/keyboard/i.test(combinedText)) {
-    heroCrackDescription = `Two black-gloved hands cracking open a sizzling, golden-brown seared mechanical keyboard patty right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, molten amber resin flux glaze stretches between the severed halves, revealing glowing copper circuit board traces, miniature resistors, and crimson-red Cherry MX switches connected by stretching molten strings. Delicate wisps of aromatic culinary steam rise between the halves. In the soft-focus foreground on the dark wooden counter sit severed green PCB boards and black keycaps. In the soft-focus background, The Shadow Alchemist chef leans forward with focused gaze.`;
+    heroCrackDescription = `Two black-gloved hands cracking open a sizzling, golden-brown seared mechanical keyboard patty right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, molten amber resin flux glaze stretches between the severed halves, revealing glowing copper circuit board traces, miniature resistors, and crimson-red Cherry MX switches connected by stretching molten strings. Delicate wisps of aromatic culinary steam rise between the halves.
+
+Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden counter, piled generously high with a massive feast mound of glossy stir-fried matte-black keycaps and crimson-red switches dripping with bubbling amber glaze, flanked on the counter by a raw fractured rectangular chunk of the mechanical keyboard exposing green PCB traces and loose wires.
+
+In the soft-focus background: The Shadow Alchemist chef (${charHandle}, piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles, leather apron) leans forward with focused gaze.`;
   }
 
   const thumbnailHeroFoodCrack = `A viral extreme macro 9:16 YouTube Shorts and Reels thumbnail, cinematic food photography, shallow f/1.8 depth of field.
+
+Subject & Hero Action:
+${heroCrackDescription}
+
+${viralHeaderDirective}
+
+Lighting & Atmosphere: Commercial food cinema spotlight on the steaming crack, glistening glaze stretch, and luminous internal elements. Deep dark moody workshop background with heavy vignette.
+
+Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. Strictly NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+
+  const thumbnailHeroFoodCrack16x9 = `A viral extreme macro 16:9 YouTube video thumbnail, cinematic food photography, wide composition, shallow f/1.8 depth of field.
 
 Subject & Hero Action:
 ${heroCrackDescription}
@@ -636,6 +664,7 @@ ${hashtagsList.join(" ")}`;
       landscape16x9WithHeadline: thumbnailLandscape16x9WithHeadline,
       portrait9x16WithHeadline: thumbnailPortrait9x16WithHeadline,
       heroFoodCrack: thumbnailHeroFoodCrack,
+      heroFoodCrack16x9: thumbnailHeroFoodCrack16x9,
     },
     youtube: {
       titles: youtubeTitles,

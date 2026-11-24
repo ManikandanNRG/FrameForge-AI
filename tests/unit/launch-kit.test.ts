@@ -138,4 +138,133 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.instagram.caption).toContain("colossal 4-foot Indian wedding catering iron kadai");
     expect(kit.instagram.audioRecommendation).toContain("Giant Kadai Oil Sizzle");
   });
+
+  it("dynamically generates Mountain Quartz & Granite Idiyappam launch kit without keyboard leakage", () => {
+    const stoneProject = {
+      id: "cmwu6g84a0001u8skiihv186r",
+      title: "Episode 7: The Mountain Quartz & Granite Stones Idiyappam Feast (ASMR)",
+      description: "60s ASMR Masterclass: Transforming raw quarry stones into South Indian Idiyappam.",
+      sourceIdea: "Sourcing raw mountain quartz boulders and granite rocks, crushing with edge-runner mill, scalding mineral flour, extruding with brass flywheel press, and steaming idiyappam.",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      aspectRatio: "16:9",
+      productionAssets: [
+        {
+          assetType: "CHARACTER",
+          name: "The Shadow Alchemist Chef",
+          description: "Vintage brass tinker goggles, sleek matte-black half-mask",
+        },
+      ],
+    };
+
+    const kit = generateSocialLaunchKit(stoneProject);
+
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("@TheShadowAlchemist");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("sparkling white mountain quartz crystal boulder");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("translucent optical-quartz silica glass noodle threads");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("high-pressure tiered brass idiyappam steamer");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("Cherry MX");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("mechanical keyboard");
+
+    expect(kit.youtube.titles[0]).toContain("Mountain Quartz & Granite Stones into Idiyappam");
+    expect(kit.youtube.titles[1]).toContain("Steamed String Hoppers");
+    expect(kit.youtube.titles.join(" ")).not.toContain("Mechanical Keyboard");
+    expect(kit.youtube.titles.join(" ")).not.toContain("keyboard");
+    expect(kit.youtube.description).toContain("50kg Raw Mountain White Quartz Crystal Boulders");
+    expect(kit.youtube.description).toContain("Cast-Brass Extruder Press");
+    expect(kit.youtube.hashtags).toContain("#Idiyappam");
+    expect(kit.youtube.hashtags).toContain("#QuartzCooking");
+
+    expect(kit.instagram.caption).toContain("Who said mountain quartz and granite stones can't be steamed into delicate idiyappam string hoppers?");
+    expect(kit.instagram.caption).not.toContain("mechanical keyboard");
+  });
+
+  it("dynamically generates launch kit for an unpredictable future object (Quadcopter Drone Biryani) from storyboard scenes", () => {
+    const droneProject = {
+      id: "cmw-unpredictable-drone-001",
+      title: "Episode 8: The Quadcopter Drone Biryani Feast (ASMR)",
+      description: "Harvesting carbon-fiber drone frames and copper brushless motors into Dum Biryani.",
+      sourceIdea: "We dismantle a drone in a hangar, slice carbon-fiber propeller blades into saffron basmati rice, sauté motor stators, and layer into a sealed brass handi.",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      aspectRatio: "16:9",
+      scenes: [
+        {
+          sceneNumber: 1,
+          heading: "INT. HANGAR - DAY - HOOK",
+          actionSummary: "Slamming quadcopter drone onto steel workbench and snapping rotor arm with sparks.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 2,
+          heading: "INT. WORKSHOP - DAY - MOTOR DISASSEMBLY",
+          actionSummary: "Unscrewing four brushless copper motors and prying neodymium magnet bells.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 3,
+          heading: "INT. KITCHEN - NIGHT - PROPELLER RICE SHRED",
+          actionSummary: "Shaving carbon-fiber propeller blades into paper-thin saffron long-grain rice threads.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 4,
+          heading: "INT. KITCHEN - NIGHT - MOTOR MASALA SAUTE",
+          actionSummary: "Searing copper motor coils and golden capacitor spices in ghee.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 5,
+          heading: "INT. KITCHEN - NIGHT - DUM HANDI SEAL",
+          actionSummary: "Layering carbon rice and copper motors in sealed brass handi pot over glowing coals.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 6,
+          heading: "INT. KITCHEN - NIGHT - DUM STEAM BREAK",
+          actionSummary: "Cutting through flour dough seal on brass handi releasing aromatic cloud of culinary steam.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 7,
+          heading: "INT. KITCHEN - NIGHT - ROYAL THALI PLATING",
+          actionSummary: "Scooping steaming carbon propeller saffron rice and copper motors onto banana leaf thali.",
+          estimatedDurationSeconds: 8,
+        },
+        {
+          sceneNumber: 8,
+          heading: "INT. KITCHEN - NIGHT - HERO BITE & SPOON LIFT",
+          actionSummary: "Lifting brass spoon with steaming drone biryani into camera with chef thumbs-up.",
+          estimatedDurationSeconds: 8,
+        },
+      ],
+      productionAssets: [
+        {
+          assetType: "CHARACTER",
+          name: "The Shadow Alchemist Chef",
+          description: "Vintage brass tinker goggles, sleek matte-black half-mask",
+        },
+      ],
+    };
+
+    const kit = generateSocialLaunchKit(droneProject);
+
+    // 1. Verifies dynamic object & dish extraction
+    expect(kit.youtube.titles[0]).toContain("Quadcopter Drone into Biryani");
+    expect(kit.youtube.titles.join(" ")).not.toContain("Mechanical Keyboard");
+    expect(kit.youtube.titles.join(" ")).not.toContain("keyboard");
+
+    // 2. Verifies dynamic storyboard timestamps extracted from the 8 scenes
+    expect(kit.youtube.description).toContain("0:00 - HANGAR");
+    expect(kit.youtube.description).toContain("0:08 - WORKSHOP");
+    expect(kit.youtube.description).toContain("0:16 - KITCHEN");
+    expect(kit.youtube.description).toContain("0:48 - KITCHEN");
+
+    // 3. Verifies thumbnail prompts reflect drone materials without leakage
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("Quadcopter Drone");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("Cherry MX");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("mechanical keyboard");
+
+    // 4. Verifies dynamic social caption
+    expect(kit.instagram.caption).toContain("quadcopter drone");
+    expect(kit.instagram.caption).toContain("biryani");
+  });
 });

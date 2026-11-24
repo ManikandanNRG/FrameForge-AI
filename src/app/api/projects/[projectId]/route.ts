@@ -36,6 +36,11 @@ export const GET = apiHandler(async (_req, ctx) => {
           },
         },
       },
+      scenes: {
+        include: { shots: true },
+        orderBy: { sceneNumber: "asc" },
+      },
+      productionAssets: true,
     },
   });
   if (!project) throw notFound("Project not found");

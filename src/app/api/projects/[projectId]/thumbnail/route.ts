@@ -38,6 +38,10 @@ export const GET = apiHandler(async (_req, ctx) => {
     where: { id: projectId as string },
     include: {
       productionAssets: true,
+      scenes: {
+        include: { shots: true },
+        orderBy: { sceneNumber: "asc" },
+      },
     },
   });
   if (!project) throw notFound("Project not found");
@@ -91,13 +95,10 @@ export const GET = apiHandler(async (_req, ctx) => {
       horizontalPos: "top-center",
     };
   } else {
-    // If stored prompt has stale object (e.g. keyboard on Game Boy or Bicycle project), auto-update to matching prompt
+    // If stored prompt has stale object (e.g. keyboard on non-keyboard project), auto-update to matching prompt
     const combined = `${project.title} ${project.description || ""} ${project.sourceIdea || ""}`.toLowerCase();
-    const isGameBoy = /game\s*boy|gameboy|pokemon|nintendo/i.test(combined);
-    const isBicycle = /bicycle|bycycle|cycle|bike|tire|chain/i.test(combined);
-    if (isGameBoy && thumbnailData.prompt && thumbnailData.prompt.includes("mechanical keyboard")) {
-      thumbnailData.prompt = defaultPrompt;
-    } else if (isBicycle && (!thumbnailData.prompt || !thumbnailData.prompt.includes("kadai") || thumbnailData.prompt.includes("mechanical keyboard"))) {
+    const isKeyboardProject = /keyboard|keycap|cherry\s*mx|switch/i.test(combined);
+    if (!isKeyboardProject && thumbnailData.prompt && /mechanical keyboard|cherry mx|keycap/i.test(thumbnailData.prompt)) {
       thumbnailData.prompt = defaultPrompt;
     }
   }

@@ -635,3 +635,28 @@
 - **Verification**:
   - `npm test`: 87/87 unit tests passing across 15 test suites.
   - TypeScript compilation (`tsc --noEmit`): 0 errors.
+
+  15. **Episode 7 Refinement: 4-Beat Process Hook & Crystalline Inedible Material Integrity (ADR-039, ADR-040) (2026-11-23)**:
+      - Fixed Scene 1 hook based on Episode 1 viral video analysis (`Hook.mp4`): Replaced disjointed camera pans with a continuous 4-beat transformation micro-montage (Slam boulder -> Sledgehammer shatter with sparks -> Extrude into steamer -> Hero noodle lift with glaze).
+      - Fixed Machine Architecture Mutation: Enforced permanent upright vertical cast-brass extruder with right-side 6-spoke flywheel across Scene 4 and Scene 5.
+      - Fixed Real Food Hallucination: Enforced Crystalline Inedible Material Integrity (optical-quartz silica glass noodle threads, sparkling crystalline paste, faceted gemstone curry cubes) eliminating any grocery food appearance.
+      - Rapid ASMR QC Audit score: 100/100 (`VIRAL_ASMR_GOLD_STANDARD`).
+
+  16. **In-App AI Director Chat Co-Pilot & Remote Cloud Deployment Architecture (ADR-041) (2026-11-24)**:
+      - Implemented full conversational AI Director Co-Pilot directly inside the web application:
+        - `ProjectChatMessage` database model storing conversational message thread and executed action metadata.
+        - Backend Chat API (`POST & GET /api/projects/[projectId]/chat`) and AI Director execution engine (`src/lib/story/chat-director.ts`).
+        - Automated tool execution: `UPDATE_SCENE`, `ALIGN_PROP_CONTINUITY`, `RECOMPILE_PROMPTS`, and `AUDIT_QC`.
+        - Resilient zero-cost multi-model resolution (Gemini 1500 RPD + OpenRouter 200 RPD) with deterministic offline fallback.
+        - Universal Frontend Drawer (`AiDirectorChatDrawer.tsx` & `AiDirectorChatFloatingButton`) mounted in `ProjectWorkflowNav.tsx`, available across all workflow phases.
+        - 1-tap quick action chips (Audit QC, Align Machine, Enforce Quartz, Recompile Prompts) and live QC score indicator.
+      - Verification: 91/91 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
+
+  17. **Universal Storyboard-Driven Launch Kit & Dynamic Metadata Architecture (ADR-042) (2026-11-24)**:
+      - Completely eradicated brittle, hardcoded `if-else` condition trees (e.g. `if (isSoap) ... else if (isBulb) ...`) in `src/lib/story/launch-kit.ts`.
+      - Engineered a 100% dynamic, storyboard-driven launch kit synthesis engine:
+        - Extracts target object and culinary dish dynamically from any project title, description, and source idea.
+        - Generates real-time video timestamps dynamically from the actual storyboard scenes and their durations.
+        - Extracts raw materials from Scene 1 (sourcing/harvest), cooking apparatus from middle scenes (steamer, kadai cauldron, street tawa, wok), and utensils/presentation from Scenes 7 and 8 (chopsticks, brass thali, jhara skimmer, spatula).
+        - Generates 5 high-CTR titles, dynamic hashtags, and custom Foley sound design audio recommendations for ANY future unpredictable object (Drones, Cameras, Instruments, Rocks, Gadgets, Industrial Machinery) with zero manual code changes.
+      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).

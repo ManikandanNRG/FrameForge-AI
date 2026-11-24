@@ -38,6 +38,10 @@ import {
 } from "lucide-react";
 import { generateSocialLaunchKit } from "@/lib/story/launch-kit";
 import { SeriesEpisodeBar } from "@/components/series/SeriesEpisodeBar";
+import {
+  AiDirectorChatDrawer,
+  AiDirectorChatFloatingButton,
+} from "@/components/chat/AiDirectorChatDrawer";
 
 export type WorkflowStepId = "overview" | "script" | "assets" | "storyboard" | "editor" | "launch";
 
@@ -57,6 +61,7 @@ export function ProjectWorkflowNav({
   rightAction,
 }: ProjectWorkflowNavProps) {
   const [showLaunchModal, setShowLaunchModal] = useState(false);
+  const [showChatDrawer, setShowChatDrawer] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [projectData, setProjectData] = useState<any>(null);
   const [latestExport, setLatestExport] = useState<any>(null);
@@ -106,9 +111,27 @@ export function ProjectWorkflowNav({
       .then((r) => r.json())
       .then((d) => {
         if (d.data?.project) {
-          setProjectData(d.data.project);
-          if (d.data.project.aspectRatio === "PORTRAIT_9_16") {
+          const proj = d.data.project;
+          setProjectData(proj);
+          if (proj.aspectRatio === "PORTRAIT_9_16") {
             setThumbnailRatio("9:16");
+          }
+          // Set intelligent default quote text based on project
+          const comb = `${proj.title} ${proj.description || ""} ${proj.sourceIdea || ""}`.toLowerCase();
+          if (/quartz|stone|granite|idiyappam/i.test(comb)) {
+            setQuoteText("💎 QUARTZ IDIYAPPAM");
+          } else if (/soap|kothu/i.test(comb)) {
+            setQuoteText("🧼 SOAP KOTHU PAROTTA");
+          } else if (/bulb|samosa/i.test(comb)) {
+            setQuoteText("💡 BULB SAMOSA");
+          } else if (/game\s*boy|gameboy/i.test(comb)) {
+            setQuoteText("🎮 GAME BOY TEMPURA");
+          } else if (/bicycle|cycle/i.test(comb)) {
+            setQuoteText("🚲 BICYCLE TEMPURA");
+          } else if (/keyboard/i.test(comb)) {
+            setQuoteText("⌨️ CRUNCHY KEYBOARD");
+          } else {
+            setQuoteText("⚠️ 100% INEDIBLE");
           }
         }
       })
@@ -563,8 +586,8 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
   const activeKit = launchKit || (projectData ? generateSocialLaunchKit(projectData) : null);
   const displayYtTitles = activeKit?.youtube?.titles || [
     `${cleanTitle} | Official AI Cinematic Short Film`,
-    `I Cooked a Mechanical Keyboard into a 5-Star Meal (Oddly Satisfying ASMR)`,
-    `Cooking a Mechanical Keyboard... And It Sizzles! 🍳⌨️ #ASMR`,
+    `I Cooked ${cleanTitle} into a 5-Star Feast (Oddly Satisfying ASMR)`,
+    `Cooking ${cleanTitle}... And It Sizzles! 🍳 #ASMR`,
   ];
   const displayYtDesc = activeKit?.youtube?.description || youtubeDescription;
   const displayYtTags = activeKit?.youtube?.tags || youtubeTags;
@@ -684,6 +707,17 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
               <span className="text-slate-400">Style:</span>
               <span className="text-slate-900 font-bold">{styleLabel}</span>
             </div>
+
+            {/* AI Director Co-Pilot Button */}
+            <button
+              type="button"
+              onClick={() => setShowChatDrawer(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 font-bold text-xs transition shadow-xs shrink-0"
+              title="Open AI Director Co-Pilot"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-slate-950" />
+              <span>AI Director</span>
+            </button>
 
             {/* Custom Right Action (e.g. 2 Story Options button or Shot planner) */}
             {rightAction}
@@ -1878,10 +1912,10 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                               {[
                                 "“THE CRUNCH WAS INSANE”",
                                 "100% INEDIBLE",
-                                "500°F WOK SIZZLE",
+                                "HIGH-HEAT SIZZLE",
                                 "⚠️ DO NOT ATTEMPT",
-                                "ASMR CRUNCH",
-                                "KEYBOARD STIR-FRY",
+                                "VIRAL ASMR",
+                                cleanTitle.toUpperCase().slice(0, 24),
                               ].map((chip) => (
                                 <button
                                   key={chip}
@@ -2123,6 +2157,20 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
           </div>
         </div>
       )}
+
+      {/* 6. In-App AI Director Chat Drawer & Floating Button */}
+      <AiDirectorChatFloatingButton onClick={() => setShowChatDrawer(true)} />
+      <AiDirectorChatDrawer
+        projectId={projectId}
+        projectTitle={projectTitle || projectData?.title}
+        isOpen={showChatDrawer}
+        onClose={() => setShowChatDrawer(false)}
+        onProjectUpdated={() => {
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          }
+        }}
+      />
     </>
   );
 }

@@ -731,3 +731,54 @@ Ensures characters have authentic voices and narrative sound without paid API de
 
 
 
+
+## ADR-041: In-App AI Director Chat Co-Pilot & Remote Cloud Deployment Architecture
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator requested transitioning from chatting inside the Antigravity IDE to accessing the AI Filmmaking Studio remotely from any device (phone, laptop, browser).
+  - The application needed to replicate the conversational prompt correction and scene steering workflow natively within the web UI, enabling users to request script revisions, machine continuity alignments, inedible material integrity enforcement, and ASMR QC audits in natural language.
+- **Decision**:
+  1. **In-App Chat Schema (`ProjectChatMessage`)**:
+     - Modeled in Prisma schema with `id`, `projectId`, `sender` (`USER` | `AI_DIRECTOR` | `SYSTEM`), `message`, `actionsTaken` (JSON metadata of executed tools), and `createdAt`.
+  2. **AI Director Execution Engine (`chat-director.ts`)**:
+     - Integrated multi-model resilience with zero-cost AI providers (Gemini Free Tier 1500 RPD, OpenRouter Free Tier 200 RPD) and deterministic offline rule fallback.
+     - Tool execution capabilities:
+       - `UPDATE_SCENE`: Modifies scene action, heading, and foley, and auto-recompiles cinematic prompts.
+       - `ALIGN_PROP_CONTINUITY`: Locks machine / hero prop architecture across multiple scenes.
+       - `RECOMPILE_PROMPTS`: Recompiles Flux image prompts, Kling video prompts, and negative constraint matrices across shots.
+       - `AUDIT_QC`: Runs rapid ASMR QC audit and reports score, hook status, and violations.
+  3. **Universal Interactive Chat UI (`AiDirectorChatDrawer.tsx`)**:
+     - Mounted in `ProjectWorkflowNav.tsx`, available across all 5 workflow phases (Script, Assets, Storyboard, Editor, Launch).
+     - Features 1-tap quick action chips (Audit QC, Align Machine, Enforce Quartz, Recompile Prompts), execution feedback badges, and live QC score indicators.
+  4. **Production Remote Cloud Deployment Architecture**:
+     - Web Application: Vercel / Render / Railway (Next.js 15 App Router).
+     - Database: Managed PostgreSQL (Supabase / Neon serverless Postgres).
+     - Queue / Background Jobs: Upstash Redis (Serverless Redis for BullMQ).
+- **Verification**:
+  - Unit tests: 16 test files passing (91/91 tests in `npm test`), including `tests/unit/chat-director.test.ts`.
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-042: Universal Storyboard-Driven Launch Kit & Dynamic Metadata Architecture
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator rightly pointed out that hardcoded `if-else` condition trees (e.g. `if (isSoap) ... else if (isBulb) ... else if (isStone) ...`) in `launch-kit.ts` are fragile and unsustainable:
+    *"HEY in feature we can get many unpredicable object.. so why are you hard code this like the condition ??? here we have to plan the laucher instruction based on the project. and storyboard."*
+  - Any future episode featuring an unpredicted object (e.g. Quadcopter Drone, DSLR Camera, Electric Guitar, Cement, Shoe Leather, Car Engine, etc.) would mistakenly fall through to previous defaults or fail to generate customized metadata.
+- **Decision**:
+  1. **Dynamic Semantic Subject & Dish Extraction (`extractSubjectAndDish`)**:
+     - Strips series and episode metadata from titles.
+     - Dynamically isolates the genuine target object (e.g. `Quadcopter Drone`, `Mountain Quartz & Granite Stones`, `DSLR Camera`) and culinary dish form (e.g. `Biryani`, `Idiyappam`, `Tempura`, `Samosas`, `Kothu Parotta`, `Dosa`, `Ramen`).
+     - Zero hardcoded episode conditions required.
+  2. **Storyboard-Driven Timestamps & Scene Progression**:
+     - Timestamps (`0:00`, `0:08`, `0:16`, etc.) are computed dynamically from the project's actual `scenes` and their `estimatedDurationSeconds`.
+     - Displays exact scene headings and action summaries from the storyboard rather than generic pre-canned text.
+  3. **Storyboard-Driven Props & Staging**:
+     - Left-hand raw object chunk is extracted from Scene 1 (sourcing/harvest).
+     - Cooking vessel is derived from the middle processing/cooking scenes (steamer, kadai cauldron, street tawa, wok).
+     - Right-hand hero tool and cooked food pile are extracted from Scenes 7 and 8 (chopsticks, brass thali, jhara skimmer, spatula).
+  4. **Dynamic High-CTR Titles & SEO Hashtags**:
+     - Produces 5 high-CTR titles referencing the dynamic object and dish.
+     - Dynamically generates YouTube tags and Instagram hashtags for any object and dish.
+- **Verification**:
+  - Automated tests: 16 test files passing (93/93 tests in `npm test`), including an explicit test validating an unpredictable future object (`Episode 8: The Quadcopter Drone Biryani Feast`).
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).

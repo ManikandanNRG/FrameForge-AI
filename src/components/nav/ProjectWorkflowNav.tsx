@@ -99,7 +99,8 @@ export function ProjectWorkflowNav({
   // Right-side Editor Sub-Tab: "headline" | "quote" | "prompt"
   const [thumbEditorSubTab, setThumbEditorSubTab] = useState<"headline" | "quote" | "prompt">("headline");
 
-  const [includeHeadlineInPrompt, setIncludeHeadlineInPrompt] = useState<boolean>(false);
+  const [includeHeadlineInPrompt, setIncludeHeadlineInPrompt] = useState<boolean>(true);
+  const [thumbnailPromptStyle, setThumbnailPromptStyle] = useState<"alchemist-feast" | "hero-food-crack">("alchemist-feast");
   const [generatingThumbnail, setGeneratingThumbnail] = useState<boolean>(false);
   const [thumbnailError, setThumbnailError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -318,7 +319,6 @@ export function ProjectWorkflowNav({
 
         if (style === "viral-header") {
           ctx.save();
-          ctx.textAlign = textAlign;
           ctx.textBaseline = "middle";
 
           const gradient = ctx.createLinearGradient(0, posY - fontSize * 0.5, 0, posY + fontSize * 0.5);
@@ -340,26 +340,53 @@ export function ProjectWorkflowNav({
             gradient.addColorStop(1, "#CBD5E1");
           }
 
-          // Halo glow
-          ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
-          ctx.shadowBlur = Math.round(fontSize * 0.22);
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
+          // Arched rainbow curve parameters (convex arch: apex in center, ends bend downward)
+          const arcRadius = Math.round(canvas.width * 1.55);
+          const arcCenterY = posY + arcRadius;
+          const arcCenterX = posX;
 
-          // Black stroke
-          ctx.strokeStyle = "#000000";
-          ctx.lineWidth = Math.max(4, Math.round(fontSize * 0.16));
-          ctx.lineJoin = "round";
-          ctx.miterLimit = 2;
-          ctx.strokeText(upperText, posX, posY);
+          const totalWidth = ctx.measureText(upperText).width;
+          const angleSpan = totalWidth / arcRadius;
+          const startAngle = -Math.PI / 2 - angleSpan / 2;
 
-          // Second crisp pass
-          ctx.shadowColor = "transparent";
-          ctx.strokeText(upperText, posX, posY);
+          let currentAngle = startAngle;
+          for (let i = 0; i < upperText.length; i++) {
+            const char = upperText[i];
+            const charWidth = ctx.measureText(char).width;
+            const charAngle = currentAngle + (charWidth / 2) / arcRadius;
 
-          // Fill
-          ctx.fillStyle = gradient;
-          ctx.fillText(upperText, posX, posY);
+            ctx.save();
+            const cx = arcCenterX + arcRadius * Math.cos(charAngle);
+            const cy = arcCenterY + arcRadius * Math.sin(charAngle);
+            ctx.translate(cx, cy);
+            ctx.rotate(charAngle + Math.PI / 2);
+            ctx.textAlign = "center";
+
+            // Halo glow
+            ctx.shadowColor = "rgba(255, 255, 255, 0.9)";
+            ctx.shadowBlur = Math.round(fontSize * 0.22);
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Heavy black stroke
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = Math.max(4, Math.round(fontSize * 0.16));
+            ctx.lineJoin = "round";
+            ctx.miterLimit = 2;
+            ctx.strokeText(char, 0, 0);
+
+            // Second crisp stroke pass
+            ctx.shadowColor = "transparent";
+            ctx.strokeText(char, 0, 0);
+
+            // Fill with vibrant gradient
+            ctx.fillStyle = gradient;
+            ctx.fillText(char, 0, 0);
+
+            ctx.restore();
+            currentAngle += charWidth / arcRadius;
+          }
+
           ctx.restore();
 
         } else if (style === "caution-badge") {
@@ -593,13 +620,15 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
   const displayYtTags = activeKit?.youtube?.tags || youtubeTags;
   const rawHeadlineText = thumbnailHeadline.replace(/^[⚠️🚫\s]+/, "").trim() || "DO NOT EAT THIS!";
   const rawQuoteText = quoteText.replace(/^[⚠️🚫\s]+/, "").trim();
-  const displayPrompt = thumbnailRatio === "9:16"
+  const baseDualPrompt = thumbnailRatio === "9:16"
     ? (includeHeadlineInPrompt
         ? (activeKit?.thumbnailPrompts?.portrait9x16WithHeadline || "").replace("DO NOT EAT THIS!", rawHeadlineText)
         : (activeKit?.thumbnailPrompts?.portrait9x16 || ""))
     : (includeHeadlineInPrompt
         ? (activeKit?.thumbnailPrompts?.landscape16x9WithHeadline || "").replace("DO NOT EAT THIS!", rawHeadlineText)
         : (activeKit?.thumbnailPrompts?.landscape16x9 || ""));
+  const heroCrackPrompt = (activeKit?.thumbnailPrompts?.heroFoodCrack || "").replace("DO NOT EAT THIS!", rawHeadlineText);
+  const displayPrompt = thumbnailPromptStyle === "hero-food-crack" ? heroCrackPrompt : baseDualPrompt;
 
   const getHeadlineFontSizeRem = (size: string) => {
     switch (size) {
@@ -938,7 +967,28 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                           {thumbnailRatio === "9:16" ? "9:16 Shorts/Reels" : "16:9 Landscape"}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {/* Thumbnail Concept Archetype Toggle */}
+                        <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-[10px]">
+                          <button
+                            type="button"
+                            onClick={() => setThumbnailPromptStyle("alchemist-feast")}
+                            className={`px-2 py-0.5 rounded font-bold transition ${
+                              thumbnailPromptStyle === "alchemist-feast" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            👨‍🍳 Alchemist Feast (Ref 3)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setThumbnailPromptStyle("hero-food-crack")}
+                            className={`px-2 py-0.5 rounded font-bold transition ${
+                              thumbnailPromptStyle === "hero-food-crack" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            💥 Food Pull / Crack (Ref 4)
+                          </button>
+                        </div>
                         {/* Aspect Ratio Toggle */}
                         <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border border-slate-200 text-[10px]">
                           <button
@@ -2090,6 +2140,28 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                                   <span>Copy Prompt</span>
                                 </>
                               )}
+                            </button>
+                          </div>
+
+                          {/* Archetype switcher */}
+                          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-[10px]">
+                            <button
+                              type="button"
+                              onClick={() => setThumbnailPromptStyle("alchemist-feast")}
+                              className={`flex-1 py-1 rounded font-bold transition text-center ${
+                                thumbnailPromptStyle === "alchemist-feast" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                              }`}
+                            >
+                              👨‍🍳 Alchemist Feast (Ref 3)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setThumbnailPromptStyle("hero-food-crack")}
+                              className={`flex-1 py-1 rounded font-bold transition text-center ${
+                                thumbnailPromptStyle === "hero-food-crack" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                              }`}
+                            >
+                              💥 Food Pull / Crack (Ref 4)
                             </button>
                           </div>
 

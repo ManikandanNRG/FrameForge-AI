@@ -19,6 +19,7 @@ export interface SocialLaunchKit {
     portrait9x16: string;
     landscape16x9WithHeadline?: string;
     portrait9x16WithHeadline?: string;
+    heroFoodCrack?: string;
   };
   youtube: {
     titles: string[];
@@ -223,23 +224,28 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
       "a fractured, severed rectangular chunk of the matte-black mechanical keyboard, tilted to expose the raw green PCB circuit board backing, severed copper traces, and dangling loose wires, with black keycaps facing front";
   }
 
-  // B. Center Foreground: Cooking Vessel (Middle Scenes 3-6)
-  let centerForegroundDescription = `A large round seasoned black carbon-steel wok sits sizzling at the bottom, packed edge-to-edge with seared ${heroObject} components and rising culinary steam`;
+  // B. Center Foreground: Abundant Cooked Feast on Table (Spec §15, ADR-043)
+  let centerForegroundDescription = `A wide circular clean white ceramic dinner plate resting at the bottom center of the dark wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, steaming with hot culinary vapor and surrounded by raw ${heroObject} fragments on the table counter`;
 
-  if (/steamer|steam|idiyappam/i.test(combinedText) || /steamer|steam/i.test(sceneMiddleText)) {
+  if (/quartz|granite|stone|idiyappam/i.test(combinedText) || /steamer|steam/i.test(sceneMiddleText)) {
     centerForegroundDescription =
-      "A traditional high-pressure tiered brass idiyappam steamer sits at the bottom whistling with pressurized plumes of white culinary steam, flanked by fresh green banana leaves and brass katoris of glowing gemstone kurma";
+      "A wide circular clean white ceramic dinner plate resting at the bottom center of the dark wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz silica glass noodle threads tossed with glowing faceted gemstone kurma cubes (ruby red, emerald green, and amber topaz cubes), with delicate wisps of rising culinary steam and raw white quartz crystals and granite rocks resting beside the plate on the wooden counter";
+  } else if (/bulb|samosa/i.test(combinedText)) {
+    centerForegroundDescription =
+      "A wide circular clean white ceramic serving platter resting at the bottom center of the dark wooden table, piled high with golden-crispy triangular samosas bursting with incandescent glowing tungsten filaments and colorful serial bulbs, flanked by raw vintage amber Edison bulbs resting on the wooden counter";
   } else if (/kadai|cauldron|catering/i.test(combinedText) || /kadai|deep-fry/i.test(sceneMiddleText)) {
     centerForegroundDescription =
-      "A colossal 4-foot Indian wedding catering iron kadai (cauldron) sits boiling furiously at the bottom with bubbling golden oil, with roaring amber flames licking the curved base and plumes of culinary steam";
+      "A colossal 4-foot Indian wedding catering iron kadai (cauldron) sits boiling furiously at the bottom with bubbling golden oil, flanked by a wide clean white platter piled high with golden-crispy deep-fried bicycle chain tempura noodles and seared tire calamari rings";
   } else if (/tawa|street tawa|flat iron/i.test(combinedText) || /tawa/i.test(sceneMiddleText)) {
     centerForegroundDescription =
-      "A wide circular 3-foot seasoned black iron street tawa sits sizzling at the bottom, packed with glistening seared ribbons and cubes bubbling in golden oil, with authentic plumes of white culinary steam curling upward";
+      "A wide circular clean white ceramic chef plate resting at the bottom center of the wooden table, packed with glistening seared ribbons and cubes bubbling in golden oil, with authentic plumes of white culinary steam curling upward";
   }
 
   // C. Right Hand Tool (Final Scenes 7-8)
   let rightHandTool = "a wide angled stainless steel chef's slotted spatula";
-  if (/bicycle|cycle/i.test(combinedText) || /jhara|skimmer/i.test(combinedText) || /jhara|skimmer/i.test(sceneEndText)) {
+  if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
+    rightHandTool = "a pair of polished South Indian brass chopsticks";
+  } else if (/bicycle|cycle/i.test(combinedText) || /jhara|skimmer/i.test(combinedText) || /jhara|skimmer/i.test(sceneEndText)) {
     rightHandTool = "a colossal 3-foot Indian wedding catering iron perforated skimmer (jhara)";
   } else if (/chopsticks?/i.test(combinedText) || /chopsticks?/i.test(sceneEndText)) {
     rightHandTool = "a pair of polished South Indian brass chopsticks or serving spatula";
@@ -252,7 +258,7 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
 
   if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
     cookedSpatulaPile =
-      "a delicate steaming nest of continuous, translucent optical-quartz silica glass noodle threads glistening with pearly silica glaze drip and accompanied by glowing amber gemstone kurma with faceted ruby and emerald cubes, lifted with polished brass chopsticks";
+      "a tall, towering clump of continuous translucent optical-quartz silica glass noodle threads and glowing faceted gemstone kurma cubes (ruby red and emerald green), lifted high upward with brass chopsticks directly from the white feast plate below, dripping with long stretching strands of glistening pearly silica glaze cascading back onto the plate";
   } else if (/samosa/i.test(dishName) || /bulb/i.test(heroObject)) {
     cookedSpatulaPile =
       "a traditional Indian embossed brass serving thali holding three blistering-hot, golden-crispy triangular samosas; one samosa is cracked in half revealing a steaming, glowing interior packed with tangled incandescent tungsten coils and jewel-like red, green, and yellow serial bulbs, accompanied by brass katoris of glowing mint and tamarind chutneys";
@@ -294,6 +300,8 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   // --------------------------------------------------------------------------
   // 2. MASTER AI THUMBNAIL PROMPTS (16:9 & 9:16)
   // --------------------------------------------------------------------------
+  const viralHeaderDirective = `Viral Text Header Directive: Large bold text "DO NOT EAT THIS!" warped in a distinct downward-curving rainbow arch banner across the very top header (convex curved arc trajectory where the center letters "OT EA" are arched noticeably higher at the apex and outer letters "DO" and "HIS!" curve downwards along a gentle arc curve, matching classic viral YouTube warning banners). Rendered in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black comic outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`;
+
   const thumbnailLandscape16x9 = `A viral high-contrast 16:9 YouTube video thumbnail, medium close-up framing, straight eye-level frontal perspective, centered composition.
 
 Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, centered directly facing camera with an intense direct hazel-eyed gaze. Handsome masculine facial features, dark wavy hair, vintage brass tinker goggles on forehead, sleek matte-black tactical half-mask with gold vents, dark rolled-sleeve shirt, leather apron, black grip gloves.
@@ -303,24 +311,13 @@ Dual-Handed Props & Invariant Composition:
 - Viewer's Right Hand: Extends ${rightHandTool} forward close to the lens, piled with ${cookedSpatulaPile}.
 - Center Foreground: ${centerForegroundDescription}.
 
-Lighting & Environment: ${thumbnailLighting}
-
-Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO username on image, NO text, NO watermarks, NO letters, NO font overlay, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
-
-  const thumbnailLandscape16x9WithHeadline = `A viral high-contrast 16:9 YouTube video thumbnail, medium close-up framing, straight eye-level frontal perspective, centered composition.
-
-Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, centered directly facing camera with an intense direct hazel-eyed gaze. Handsome masculine facial features, dark wavy hair, vintage brass tinker goggles on forehead, sleek matte-black tactical half-mask with gold vents, dark rolled-sleeve shirt, leather apron, black grip gloves.
-
-Dual-Handed Props & Invariant Composition:
-- Viewer's Left Hand: Grips ${rawObjectHalf} horizontally at chest height.
-- Viewer's Right Hand: Extends ${rightHandTool} forward close to the lens, piled with ${cookedSpatulaPile}.
-- Center Foreground: ${centerForegroundDescription}.
-
-Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.
+${viralHeaderDirective}
 
 Lighting & Environment: ${thumbnailLighting}
 
 Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+
+  const thumbnailLandscape16x9WithHeadline = thumbnailLandscape16x9;
 
   const thumbnailPortrait9x16 = `A viral vertical 9:16 YouTube Shorts and Reels thumbnail, medium close-up shot, straight eye-level frontal perspective, centered symmetrical composition.
 
@@ -331,24 +328,37 @@ Dual-Handed Props & Invariant Composition:
 - Viewer's Right Hand: Thrusts forward ${rightHandTool} holding ${cookedSpatulaPile}.
 - Center Foreground: ${centerForegroundDescription}.
 
-Lighting & Atmosphere: ${thumbnailLighting}
-
-Strict Constraints: Character visually rendered only. Strictly NO username on image, NO text, NO typography, NO watermarks, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
-
-  const thumbnailPortrait9x16WithHeadline = `A viral vertical 9:16 YouTube Shorts and Reels thumbnail, medium close-up shot, straight eye-level frontal perspective, centered symmetrical composition.
-
-Subject: ${charHandle}, an athletic male artisan culinary alchemist chef, handsome masculine facial structure, looking directly into the camera lens with intense, locked hazel eyes. Dark wavy hair with vintage brass dual-lens tinker goggles resting on crown. Wearing a sleek matte-black ergonomic tactical half-mask with vertical gold cheekline vents, dark rolled-sleeve work shirt, distressed leather artisan apron, and black textured grip gloves.
-
-Dual-Handed Props & Invariant Composition:
-- Viewer's Left Hand: Grips ${rawObjectHalf} at chest height.
-- Viewer's Right Hand: Thrusts forward ${rightHandTool} holding ${cookedSpatulaPile}.
-- Center Foreground: ${centerForegroundDescription}.
-
-Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing the character or props.
+${viralHeaderDirective}
 
 Lighting & Atmosphere: ${thumbnailLighting}
 
 Strict Constraints: Character visually rendered only. Strictly NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+
+  const thumbnailPortrait9x16WithHeadline = thumbnailPortrait9x16;
+
+  // --------------------------------------------------------------------------
+  // 2B. HERO FOOD CRACK / TWO-HANDED DISSECTION PROMPT (Money Shot / Image 4 Style)
+  // --------------------------------------------------------------------------
+  let heroCrackDescription = `Two black-gloved artisan hands crack open the freshly cooked ${heroObject} ${dishName} directly in front of the lens in an extreme macro close-up, revealing its hot, steaming, glowing interior with impossible ${heroObject} components stretching between the severed halves`;
+
+  if (/bulb|samosa/i.test(combinedText)) {
+    heroCrackDescription = `Two black-gloved hands holding a blistered golden-crispy triangular Indian street samosa, cracked open horizontally right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, incandescent glowing golden tungsten filament coils are stretching and connecting between the two halves like molten cheese, accompanied by glowing jewel-like red, green, and yellow festive serial bulbs embedded in the spicy filling. Delicate curlicues of white aromatic culinary steam rise between the cracked halves. In the soft-focus foreground on the dark wooden counter sit two unlit vintage amber Edison light bulbs with brass screw bases and a brass platter of tangled serial fairy lights. In the soft-focus background, The Shadow Alchemist (black tactical mask with gold cheekline vents, brass tinker goggles on forehead) leans forward, intently inspecting the glowing food crack.`;
+  } else if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
+    heroCrackDescription = `Two black-gloved hands pulling apart a steaming, delicate nest of translucent optical-quartz silica glass noodle threads (idiyappam) right in front of the lens in an extreme macro close-up. Between the pulled halves, viscous pearly silica coconut glaze stretches in long glistening strands, revealing glowing faceted ruby-red, emerald-green, and citrine gemstone kurma cubes embedded in the hot core. Delicate plumes of white culinary steam billow upward. In the soft-focus foreground on the dark wooden counter sit raw sparkling mountain quartz crystal boulders with sharp crystalline facets. In the soft-focus background, The Shadow Alchemist chef (matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown) watches intently.`;
+  } else if (/keyboard/i.test(combinedText)) {
+    heroCrackDescription = `Two black-gloved hands cracking open a sizzling, golden-brown seared mechanical keyboard patty right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, molten amber resin flux glaze stretches between the severed halves, revealing glowing copper circuit board traces, miniature resistors, and crimson-red Cherry MX switches connected by stretching molten strings. Delicate wisps of aromatic culinary steam rise between the halves. In the soft-focus foreground on the dark wooden counter sit severed green PCB boards and black keycaps. In the soft-focus background, The Shadow Alchemist chef leans forward with focused gaze.`;
+  }
+
+  const thumbnailHeroFoodCrack = `A viral extreme macro 9:16 YouTube Shorts and Reels thumbnail, cinematic food photography, shallow f/1.8 depth of field.
+
+Subject & Hero Action:
+${heroCrackDescription}
+
+${viralHeaderDirective}
+
+Lighting & Atmosphere: Commercial food cinema spotlight on the steaming crack, glistening glaze stretch, and luminous internal elements. Deep dark moody workshop background with heavy vignette.
+
+Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. Strictly NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
 
   // --------------------------------------------------------------------------
   // 3. DYNAMIC HIGH-CTR YOUTUBE TITLES
@@ -625,6 +635,7 @@ ${hashtagsList.join(" ")}`;
       portrait9x16: thumbnailPortrait9x16,
       landscape16x9WithHeadline: thumbnailLandscape16x9WithHeadline,
       portrait9x16WithHeadline: thumbnailPortrait9x16WithHeadline,
+      heroFoodCrack: thumbnailHeroFoodCrack,
     },
     youtube: {
       titles: youtubeTitles,

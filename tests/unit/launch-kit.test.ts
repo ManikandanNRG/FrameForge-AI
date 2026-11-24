@@ -24,20 +24,36 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9).toContain("@TheShadowAlchemist");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("fractured, severed rectangular chunk");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("raw green PCB circuit board backing");
-    expect(kit.thumbnailPrompts.landscape16x9).toContain("seasoned black carbon-steel wok");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("wide circular clean white ceramic dinner plate");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("NO username on image");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("Viral Text Header Directive");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("DO NOT EAT THIS!");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("heavy YouTube impact font with vibrant fiery yellow-orange-red gradient");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("NO text");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("NO font overlay");
 
     // 9:16 Vertical
     expect(kit.thumbnailPrompts.portrait9x16).toContain("@TheShadowAlchemist");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("athletic male artisan culinary alchemist chef");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("fractured, severed rectangular chunk");
-    expect(kit.thumbnailPrompts.portrait9x16).toContain("seasoned black carbon-steel wok");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("wide circular clean white ceramic dinner plate");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("crimson-red ESC keycap");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("Viral Text Header Directive");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("DO NOT EAT THIS!");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("heavy YouTube impact font with vibrant fiery yellow-orange-red gradient");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("NO text");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("NO typography");
 
-    // Optional Headline Directives for Text-Capable AI Generators (Google Flow / Imagen 3)
+    // Invariant Viral Headline Directives for Text-Capable AI Generators (Google Flow / Imagen 3)
     expect(kit.thumbnailPrompts.portrait9x16WithHeadline).toContain("Viral Text Header Directive");
     expect(kit.thumbnailPrompts.portrait9x16WithHeadline).toContain("DO NOT EAT THIS!");
     expect(kit.thumbnailPrompts.landscape16x9WithHeadline).toContain("Viral Text Header Directive");
+    expect(kit.thumbnailPrompts.landscape16x9WithHeadline).toContain("DO NOT EAT THIS!");
+
+    // Hero Food Crack / Pull (Ref 4 Money Shot)
+    expect(kit.thumbnailPrompts.heroFoodCrack).toBeDefined();
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("DO NOT EAT THIS!");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("Two black-gloved hands cracking open");
   });
 
   it("generates YouTube launch suite with high-CTR titles, safety disclaimer and foley notes", () => {
@@ -161,9 +177,12 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9).toContain("@TheShadowAlchemist");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("sparkling white mountain quartz crystal boulder");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("translucent optical-quartz silica glass noodle threads");
-    expect(kit.thumbnailPrompts.landscape16x9).toContain("high-pressure tiered brass idiyappam steamer");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("wide circular clean white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("massive feast mound of steaming, glistening cooked translucent optical-quartz");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("Cherry MX");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("mechanical keyboard");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toBeDefined();
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("nest of translucent optical-quartz silica glass noodle threads");
 
     expect(kit.youtube.titles[0]).toContain("Mountain Quartz & Granite Stones into Idiyappam");
     expect(kit.youtube.titles[1]).toContain("Steamed String Hoppers");

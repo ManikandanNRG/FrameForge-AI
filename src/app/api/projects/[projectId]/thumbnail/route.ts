@@ -95,10 +95,12 @@ export const GET = apiHandler(async (_req, ctx) => {
       horizontalPos: "top-center",
     };
   } else {
-    // If stored prompt has stale object (e.g. keyboard on non-keyboard project), auto-update to matching prompt
+    // If stored prompt has stale object or lacks the invariant "DO NOT EAT THIS!" viral text header directive, auto-update to canonical prompt
     const combined = `${project.title} ${project.description || ""} ${project.sourceIdea || ""}`.toLowerCase();
     const isKeyboardProject = /keyboard|keycap|cherry\s*mx|switch/i.test(combined);
-    if (!isKeyboardProject && thumbnailData.prompt && /mechanical keyboard|cherry mx|keycap/i.test(thumbnailData.prompt)) {
+    const hasStaleKeyboard = !isKeyboardProject && thumbnailData.prompt && /mechanical keyboard|cherry mx|keycap/i.test(thumbnailData.prompt);
+    const isMissingViralHeader = !thumbnailData.prompt || !thumbnailData.prompt.includes("DO NOT EAT THIS!");
+    if (hasStaleKeyboard || isMissingViralHeader) {
       thumbnailData.prompt = defaultPrompt;
     }
   }

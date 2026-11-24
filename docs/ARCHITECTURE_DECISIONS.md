@@ -782,3 +782,52 @@ Ensures characters have authentic voices and narrative sound without paid API de
 - **Verification**:
   - Automated tests: 16 test files passing (93/93 tests in `npm test`), including an explicit test validating an unpredictable future object (`Episode 8: The Quadcopter Drone Biryani Feast`).
   - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-043: Universal "DO NOT EAT THIS!" Viral Thumbnail Header Invariant
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator highlighted that while the generated thumbnail visuals were strong, the viral warning headline word **"DO NOT EAT THIS!"** was missing in the prompt level, and requested:
+    *"Next for the thumbnail prompt all are OK but the word do not eat this is missing in the prompt to make it consistent.. so please update the word in the code level for in feature all the prompt will use this word with the same font style"*
+  - The creator provided reference imagery (`media_1795503899657_6424e76e.png`) confirming the exact visual branding:
+    - Large bold arched text **"DO NOT EAT THIS!"** centered across the very top header.
+    - Heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow.
+    - Top margin safe zone above goggles without obstructing character or props.
+  - Previously, `thumbnailLandscape16x9` and `thumbnailPortrait9x16` had negative prompts forbidding text (`Strictly NO text, NO typography, NO font overlay`), while the headline version was gated behind an optional toggle initialized to `false`.
+- **Decision**:
+  1. **Permanent Code-Level Prompt Invariant (`launch-kit.ts`)**:
+     - All canonical thumbnail prompts (16:9 Landscape, 9:16 Vertical, and their headline counterparts) now permanently include the unified viral text header directive:
+       `Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`
+     - Removed conflicting negative prompts (`NO text`, `NO typography`, `NO font overlay`) from the strict constraint matrix while keeping guardrails (`NO username on image`, `NO teeth marks`, `NO meat`, `NO real grocery food`, `NO eating`).
+  2. **Active Default in UI Studio (`ProjectWorkflowNav.tsx`)**:
+     - `includeHeadlineInPrompt` state is now initialized to `true` by default.
+     - Both 16:9 and 9:16 prompt textareas in the AI Thumbnail Studio and YouTube Launch modal immediately surface the "DO NOT EAT THIS!" directive.
+     - Custom headline overrides cleanly replace the text while preserving the identical font style and safe zone positioning.
+  3. **Auto-Upgrade Stored Project Thumbnails (`thumbnail/route.ts`)**:
+     - When fetching project thumbnail metadata, any stored prompt missing the "DO NOT EAT THIS!" directive is automatically upgraded to the canonical prompt.
+- **Verification**:
+  - Automated tests: 16 test files passing (93/93 tests in `npm test`), with explicit assertions verifying `"DO NOT EAT THIS!"`, `"Viral Text Header Directive"`, and lack of conflicting text bans in both 16:9 and 9:16 formats.
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-044: Curved Rainbow Arch Viral Header Directive & Abundant White Feast Plate Composition
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  - The creator reviewed the initial test generation output (`media_1795504945471_4dbbc891.png`) and identified two vital refinements alongside a high-converting new thumbnail archetype:
+    1. **Font Arching / Curvature**: The generated text was horizontal and flat across the top, unlike the reference image (`media_1795504958075_5dbe3675.png`) where "DO NOT EAT THIS!" bends in a distinct rainbow arch (convex downward arc trajectory).
+    2. **Food Portion & Table Composition (Ref 3 - `media_1795505008524_b8fbfa64.jpg`)**: The previous prompt staged a brass steamer pot at the bottom center, choking out the view of the cooked food. The creator expects an abundant, massive feast portion of cooked food served on a wide clean white ceramic chef plate at the bottom, accompanied by raw stones and a high-lift chopstick action.
+    3. **The Two-Handed Food Crack / Dissection Archetype (Ref 4 - `media_1795505085729_4dfe3486.jpg`)**: The creator proposed an alternative high-curiosity macro thumbnail concept showing black-gloved hands cracking open a crispy samosa to reveal glowing incandescent tungsten filaments and serial bulbs stretching like molten cheese inside.
+- **Decision**:
+  1. **Mechanical Rainbow Arc Text Directive (`launch-kit.ts`)**:
+     - Upgraded the prompt's `viralHeaderDirective` with explicit arc trajectory geometry:
+       `Viral Text Header Directive: Large bold text "DO NOT EAT THIS!" warped in a distinct downward-curving rainbow arch banner across the very top header (convex curved arc trajectory where the center letters "OT EA" are arched noticeably higher at the apex and outer letters "DO" and "HIS!" curve downwards along a gentle arc curve, matching classic viral YouTube warning banners). Rendered in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black comic outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`
+  2. **Abundant Cooked Quantity on Wide White Ceramic Plate (`launch-kit.ts`)**:
+     - Replaced bottom steamer clutter with a wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of glistening cooked translucent quartz noodles and glowing ruby/emerald gemstone cubes with rising steam.
+     - Added chopsticks lifting a tall, dripping stretch of noodles directly from the white plate below back toward the camera lens.
+  3. **Canvas Rainbow Arc Text Rendering Engine (`ProjectWorkflowNav.tsx`)**:
+     - Upgraded `drawCanvasLayer` when `style === "viral-header"` to mathematically render each character along a convex arc path (`arcRadius = canvas.width * 1.55`) so local exported thumbnails render the exact curved banner.
+  4. **Dual Thumbnail Archetypes in Studio (`ProjectWorkflowNav.tsx`, `SocialLaunchKit`)**:
+     - **Archetype A: Alchemist Dual-Handed Feast (Ref 3)**: Character + Raw Sourced Chunk (Left) + Massive Feast on White Plate (Bottom) + Chopstick Lift (Right).
+     - **Archetype B: Hero Food Crack / Pull (Ref 4)**: Macro 85mm close-up of black-gloved hands cracking open the hot crispy food item in front of the lens with glowing impossible electrical/crystal elements stretching between the halves like molten cheese, accompanied by hot steam and chef watching intently in the soft-focus background.
+     - Studio UI includes 1-click switcher between Archetype A and Archetype B.
+- **Verification**:
+  - Automated tests: 16 test files passing (93/93 tests in `npm test`), validating both Archetype A (white feast plate) and Archetype B (`heroFoodCrack`).
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).

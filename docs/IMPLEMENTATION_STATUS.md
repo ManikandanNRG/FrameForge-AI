@@ -660,3 +660,26 @@
         - Extracts raw materials from Scene 1 (sourcing/harvest), cooking apparatus from middle scenes (steamer, kadai cauldron, street tawa, wok), and utensils/presentation from Scenes 7 and 8 (chopsticks, brass thali, jhara skimmer, spatula).
         - Generates 5 high-CTR titles, dynamic hashtags, and custom Foley sound design audio recommendations for ANY future unpredictable object (Drones, Cameras, Instruments, Rocks, Gadgets, Industrial Machinery) with zero manual code changes.
       - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
+
+  19. **Curved Rainbow Arc Viral Header Directive & Abundant White Feast Plate Composition (ADR-044) (2026-11-24)**:
+      - Upgraded `viralHeaderDirective` in `launch-kit.ts` with explicit mathematical convex rainbow arc curvature directives so AI image models bend the text in a downward rainbow arch rather than generating a flat horizontal line.
+      - Fixed thumbnail food quantity: Replaced bottom steamer clutter with a wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of cooked food, accompanied by chopsticks lifting a tall dripping portion and raw rocks on the counter (matching Ref 3).
+      - Added HTML5 canvas rainbow arc text engine (`drawCanvasLayer`) in `ProjectWorkflowNav.tsx` rendering text along an arc curve with halo glow and black outlines for local PNG exports.
+      - Integrated Dual Thumbnail Archetypes in Studio: Archetype A (`Alchemist Feast` - Ref 3) and Archetype B (`Hero Food Crack / Pull` - Ref 4).
+      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
+
+  18. **Universal "DO NOT EAT THIS!" Viral Thumbnail Header Invariant (ADR-043) (2026-11-24)**:
+      - Permanently codified the viral warning header directive into the code level for all thumbnail prompts generated across the system (`src/lib/story/launch-kit.ts`):
+        - `Viral Text Header Directive: Large bold arched text "DO NOT EAT THIS!" centered across the very top header in heavy YouTube impact font with vibrant fiery yellow-orange-red gradient, thick black outline, and soft white halo glow. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`
+      - Applied universally across both 16:9 Landscape and 9:16 Vertical formats by default.
+      - Cleaned strict constraints to eliminate contradictory negative text prompts (`NO text`, `NO typography`, `NO font overlay`) while preserving essential content guards (`NO username on image`, `NO teeth marks`, `NO meat`, `NO real grocery food`, `NO eating`).
+      - Updated `ProjectWorkflowNav.tsx` so `includeHeadlineInPrompt` defaults to `true`, instantly reflecting the viral header directive in the AI Thumbnail Studio and YouTube Launch tabs.
+      - Updated `src/app/api/projects/[projectId]/thumbnail/route.ts` to automatically upgrade existing project thumbnails to the canonical "DO NOT EAT THIS!" prompt.
+      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).
+
+  19. **Curved Rainbow Arc Viral Header Directive & Abundant White Feast Plate Composition (ADR-044) (2026-11-24)**:
+      - Upgraded `viralHeaderDirective` in `launch-kit.ts` with explicit mathematical convex rainbow arc curvature directives so AI image models bend the text in a downward rainbow arch rather than generating a flat horizontal line.
+      - Fixed thumbnail food quantity: Replaced bottom steamer clutter with a wide circular clean white ceramic dinner plate piled generously high with a massive feast mound of cooked food, accompanied by chopsticks lifting a tall dripping portion and raw rocks on the counter (matching Ref 3).
+      - Added HTML5 canvas rainbow arc text engine (`drawCanvasLayer`) in `ProjectWorkflowNav.tsx` rendering text along an arc curve with halo glow and black outlines for local PNG exports.
+      - Integrated Dual Thumbnail Archetypes in Studio: Archetype A (`Alchemist Feast` - Ref 3) and Archetype B (`Hero Food Crack / Pull` - Ref 4).
+      - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript errors (`tsc --noEmit`).

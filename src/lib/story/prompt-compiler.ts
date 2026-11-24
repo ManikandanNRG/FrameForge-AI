@@ -75,7 +75,7 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
   }
 
   // 1. Hero Reaction / Smirk / Reveal (End shot)
-  if (/\b(smirk|look(?:s)? (?:straight )?into (?:the )?camera|lock(?:s)? eyes|tilt(?:s)? head|whisps? of steam curl|hero reveal|rogue smirk|quiet mastery)\b/i.test(lower) &&
+  if (/\b(smirk|look(?:s)? (?:straight )?into (?:the )?camera|lock(?:s)? eyes|tilt(?:s)? head|whisps? of steam curl|hero reveal|rogue smirk|quiet mastery|noodle lift|chopsticks?.*lift|overlooking his creation|ultimate sensory)\b/i.test(lower) &&
       !/\b(toss|chopping|cleaver|pan|wok|skillet|knife)\b/i.test(lower)) {
     return "HERO_REACTION";
   }
@@ -1275,7 +1275,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
         return locationDescription || "Traditional Indian festive banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf and small brass katori chutney bowls under warm dramatic directional lighting";
       }
       if (isStoneTarget) {
-        return locationDescription || "Traditional South Indian banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf, brass katoris of coconut milk glaze and spiced kurma, with raw quartz crystals resting in the foreground under warm dramatic directional spotlight";
+        return locationDescription || "Traditional South Indian banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf, brass katoris of pearly silica glaze and glowing gemstone kurma, with three massive raw uncut white quartz crystal boulders resting in the crisp foreground establishing indisputable proof of the raw mineral material under warm dramatic directional spotlight";
       }
       const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (locationDescription || ""));
       if (isWhitePlate) {
@@ -1537,6 +1537,9 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
               }
               return `Action Dynamics: Precision plating glide. Titanium tweezers held in gloved hands delicately lower the final component onto the apex of the plated mound with surgical accuracy.`;
             case "HERO_REACTION":
+              if (/\b(noodle lift|chopsticks?|lift|drizzle)\b/i.test(actionLower)) {
+                return `Action Dynamics: Tactile chopstick noodle lift and glaze drizzle. Black-gloved hands use polished brass chopsticks to lift steaming, translucent crystalline silica noodle threads from the swirling nest, while a curved ladle drizzles pearly glaze cascading through the light-refracting threads. 90% screen locked on food, subtle chef nod.`;
+              }
               return `Action Dynamics: Hero stillness and camera pull-back. Chef slowly lowers tools, resting hands beside the steaming dish, and looks directly into the camera lens with a subtle, confident smirk.`;
             case "COUNTER_REVEAL":
               return `Action Dynamics: The camera glides smoothly across the workbench showcasing the materials. All items remain stationary in their natural state.`;
@@ -1570,8 +1573,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
               if (/\b(white plate|white ceramic|coupe|michelin|swoosh|gourmet mound)\b/i.test(actionLower)) {
                 return `Art Presentation & Safety Lock: Mask, goggles, and character wardrobe remain locked. High-contrast 3-star Michelin fine-dining presentation on a pristine, bright white ceramic plate. Plated dish is 80% authentic parts of ${heroTargetName}. Strictly zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
               }
+              if (isStoneTarget) {
+                return `Art Presentation & Safety Lock: In the immediate foreground, three raw uncut white quartz crystal boulders and rough granite cobbles remain clearly visible as indisputable material proof. Plated dish is 80% translucent crystalline optical-quartz silica glass threads, accompanied by gemstone kurma with raw faceted crystal cubes. Strictly zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
+              }
               return `Kinematic Invariant: Max two hands in frame. Station Lock: Plating station only. Plated mound is 80% authentic parts of ${heroTargetName}. Tweezers and garnishing tools move with surgical precision.`;
             case "HERO_REACTION":
+              if (isStoneTarget) {
+                return `Art Presentation & Safety Lock: In the immediate foreground, three raw uncut white quartz crystal boulders and rough granite cobbles remain clearly visible as indisputable material proof. Plated dish is 80% translucent crystalline optical-quartz silica glass threads. Strictly zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
+              }
               return `Art Presentation & Safety Lock: Mask, goggles, and character wardrobe remain locked. Chef gently slides the finished masterpiece forward as a Michelin-star artwork presentation, holding a knowing rogue smirk. Camera executes smooth pull-back. Zero eating, zero tasting, zero mouth movement; strictly conceptual artwork for entertainment only.`;
             case "COUNTER_REVEAL":
               return `Kinematic Invariant: Cold salvage & prep showcase only. ${heroTargetName} remains stationary and intact.`;

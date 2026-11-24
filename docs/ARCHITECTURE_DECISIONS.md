@@ -886,3 +886,25 @@ Ensures characters have authentic voices and narrative sound without paid API de
 - **Verification**:
   - 16 test suites passing (93/93 tests in `npm test`).
   - TypeScript zero errors (`npx tsc --noEmit`).
+
+## ADR-047: Dynamic Storyboard Extraction & Food-Platter Visual Contrast Matrix (Purging Quartz Leakage & Ref 3 Plating Misconception)
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  1. **Quartz Idiyappam Leakage in Episode 4 (`media_1795515536663_f8696bf3.png`)**: In ADR-044/045, a regex checking `/steamer|steam/i.test(sceneMiddleText)` was unintentionally broad. Because almost every cooking scene mentions "culinary steam", Episode 7's white quartz noodles and granite rocks leaked into Episode 4 (Bulk Vintage Nokia Phones).
+  2. **Ref 3 vs. Ref 4 Composition Separation**:
+     - The creator clarified that in **Ref 3 (Alchemist Feast - `portrait9x16` / `landscape16x9`)**, they *never asked for a dinner plate on the table*. Ref 3 must feature the authentic active cooking vessel / cookware apparatus from middle scenes 3-6 (e.g. Episode 4: wide 3-foot seasoned black iron street dosa tawa sizzling with copper ribbons over flames; Episode 7: high-pressure tiered polished brass idiyappam steamer pot; Episode 1: seasoned carbon-steel wok; Episode 3: colossal 4-foot Indian catering kadai; Episode 6: deep halwai kadai).
+     - Plating belongs strictly to **Ref 4 (Hero Food Crack)**, which displays the two-handed macro pull with the finished food platter directly below.
+  3. **Visual Contrast Matrix for Serving Platters in Ref 4 ("contrast color of food is NEEDED")**:
+     - A white ceramic plate must NOT be hardcoded for all episodes:
+       - *Pale / Translucent Foods* (e.g., Episode 7 Quartz Idiyappam / glass noodles): A white plate washes out the noodles. It requires a **wide circular sleek matte-black ceramic serving platter** (providing rich, striking visual contrast against the pale translucent food).
+       - *Traditional Indian Street / Village Feasts* (e.g., Episode 4 Nokia Phones, Kothu Parotta, Biryani): Requires a **traditional Indian embossed brass serving thali platter lined with a vibrant fresh green banana leaf**.
+       - *Dark / Golden Seared Foods* (e.g., Episode 1 Keyboard stir-fry, Game Boy tempura, Samosa): Uses a **wide circular clean white ceramic dinner plate** (providing crisp visual contrast against dark/golden food).
+  4. **Scene 5-8 Derivation**:
+     - Finished food is dynamically extracted starting from Scene 5 (`scenes.slice(4)` covering scenes 5 through 8).
+  5. **Lighting & Constraint Isolation**:
+     - Separated `tawa` street cooking lighting from `soap` so street episodes never inherit "jewel-toned soap clarity".
+     - Made negative constraints context-aware so episodes about soap are not penalized.
+- **Verification**:
+  - Full test suite: 16 test files passing (94/94 tests in `npm test`).
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+

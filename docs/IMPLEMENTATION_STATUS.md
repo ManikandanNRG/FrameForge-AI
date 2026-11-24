@@ -700,3 +700,17 @@
         - Replaced all "gemstone kurma / ruby / emerald / citrine cubes" with genuine sharp sparkling raw geometric white quartz crystal points, crystalline silica shards, and speckled quarry granite mineral rocks embedded directly inside the steaming pulled translucent optical-quartz glass noodles (proving the food was created from quarry stones, exactly matching the bulb-inside-samosa archetype).
         - Added negative safety guardrails: `Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks`.
       - Verification: 93/93 unit tests passing across 16 test suites (`npm test`), 0 TypeScript compilation errors (`tsc --noEmit`).
+
+  22. **Dynamic Storyboard Extraction & Food-Platter Visual Contrast Matrix (ADR-047) (2026-11-24)**:
+      - Purged quartz noodles and stone leakage from Episode 4 (Bulk Vintage Nokia Phones) by refining regex conditions and decoupling cookware from loose "steam" keywords.
+      - Enforced strict composition separation between Ref 3 and Ref 4:
+        - **Ref 3 (Alchemist Feast - `portrait9x16` / `landscape16x9`)**: The bottom center on the table features the authentic active cooking vessel / cookware apparatus from middle scenes 3-6 (e.g., Episode 4: wide 3-foot seasoned black iron street dosa tawa sizzling with copper ribbons over flames; Episode 7: high-pressure tiered polished brass idiyappam steamer pot; Episode 1: seasoned carbon-steel wok; Episode 3: colossal 4-foot Indian catering kadai). Plating is strictly avoided at the table center in Ref 3.
+        - **Ref 4 (Hero Food Crack)**: The two-handed food dissection macro shot where the finished food platter rests on the table below.
+      - Implemented Dynamic Platter Visual Contrast Matrix based on food tone ("contrast color of food is NEEDED"):
+        - *Pale / Translucent Foods* (Episode 7 Quartz Idiyappam / glass noodles): Plated on a **wide circular sleek matte-black ceramic serving platter** (providing rich, striking visual contrast against pale translucent food).
+        - *Traditional Indian Street / Village Feasts* (Episode 4 Nokia Phones, Kothu Parotta, Biryani): Plated on a **traditional Indian embossed brass serving thali platter lined with a vibrant fresh green banana leaf**.
+        - *Dark / Golden Seared Foods* (Episode 1 Keyboard stir-fry, Game Boy tempura, Samosa): Plated on a **wide circular clean white ceramic dinner plate** (providing crisp visual contrast against dark/golden food).
+      - Dynamic Storyboard Finished Food Slicing: Updated `sceneEndText` to `scenes.slice(4)` so scenes 5 through 8 drive the finished food extraction dynamically.
+      - Lighting & Negative Constraint Isolation: Separated street cooking lighting (`tawa`) from `soap` so street cooking never receives "soap clarity", and made negative constraints context-aware so episodes about soap are not penalized.
+      - Verification: 94/94 unit tests passing across 16 test suites (`npm test`), 0 TypeScript compilation errors (`tsc --noEmit`).
+

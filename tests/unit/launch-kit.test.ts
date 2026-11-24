@@ -20,11 +20,12 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
   it("compiles verified high-CTR thumbnail prompts for both 16:9 and 9:16", () => {
     const kit = generateSocialLaunchKit(sampleProject);
 
-    // 16:9 Landscape
+    // 16:9 Landscape (Ref 3: Alchemist Feast with Sizzling Wok)
     expect(kit.thumbnailPrompts.landscape16x9).toContain("@TheShadowAlchemist");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("fractured, severed rectangular chunk");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("raw green PCB circuit board backing");
-    expect(kit.thumbnailPrompts.landscape16x9).toContain("wide circular clean white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("seasoned black carbon-steel culinary wok sits sizzling");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("white ceramic dinner plate");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("NO username on image");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("Viral Text Header Directive");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("DO NOT EAT THIS!");
@@ -33,11 +34,12 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("NO text");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("NO font overlay");
 
-    // 9:16 Vertical
+    // 9:16 Vertical (Ref 3: Alchemist Feast with Sizzling Wok)
     expect(kit.thumbnailPrompts.portrait9x16).toContain("@TheShadowAlchemist");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("athletic male artisan culinary alchemist chef");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("fractured, severed rectangular chunk");
-    expect(kit.thumbnailPrompts.portrait9x16).toContain("wide circular clean white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("seasoned black carbon-steel culinary wok sits sizzling");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("white ceramic dinner plate");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("crimson-red ESC keycap");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("Viral Text Header Directive");
     expect(kit.thumbnailPrompts.portrait9x16).toContain("DO NOT EAT THIS!");
@@ -183,13 +185,13 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.landscape16x9).toContain("@TheShadowAlchemist");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("sparkling white mountain quartz crystal boulder");
     expect(kit.thumbnailPrompts.landscape16x9).toContain("translucent optical-quartz silica glass noodle threads");
-    expect(kit.thumbnailPrompts.landscape16x9).toContain("wide circular clean white ceramic dinner plate");
-    expect(kit.thumbnailPrompts.landscape16x9).toContain("massive feast mound of steaming, glistening cooked translucent optical-quartz");
+    expect(kit.thumbnailPrompts.landscape16x9).toContain("tiered polished brass idiyappam steamer pot");
+    expect(kit.thumbnailPrompts.landscape16x9).not.toContain("white ceramic dinner plate");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("Cherry MX");
     expect(kit.thumbnailPrompts.landscape16x9).not.toContain("mechanical keyboard");
     expect(kit.thumbnailPrompts.heroFoodCrack).toBeDefined();
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("nest of translucent optical-quartz silica glass noodle threads");
-    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("wide circular clean white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("sleek matte-black ceramic serving platter");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("raw, jagged sparkling white mountain quartz crystal boulder");
 
     expect(kit.youtube.titles[0]).toContain("Mountain Quartz & Granite Stones into Idiyappam");
@@ -293,5 +295,39 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     // 4. Verifies dynamic social caption
     expect(kit.instagram.caption).toContain("quadcopter drone");
     expect(kit.instagram.caption).toContain("biryani");
+  });
+
+  it("dynamically generates Bulk Vintage Nokia Phones launch kit with authentic street dosa tawa and banana-leaf thali without quartz leakage", () => {
+    const nokiaProject = {
+      id: "cmwj-nokia-004",
+      title: "Episode 4: Bulk Vintage Nokia Mobile Phones Feast (ASMR)",
+      description: "60s ASMR Masterclass: Sautéing 15 indestructible Nokia phones on a street dosa tawa into copper ribbon noodles and keypad paneer.",
+      sourceIdea: "Dumping 15 vintage Nokia phones, pulverizing PCBs into emerald mixie powder, sautéing copper ribbon noodles on a street dosa tawa, and plating onto banana leaf thali.",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      aspectRatio: "PORTRAIT_9_16",
+      productionAssets: [
+        {
+          assetType: "CHARACTER",
+          name: "The Shadow Alchemist Chef",
+          description: "Vintage brass tinker goggles, sleek matte-black half-mask",
+        },
+      ],
+    };
+
+    const kit = generateSocialLaunchKit(nokiaProject);
+
+    // Ref 3: Alchemist Feast features the authentic street dosa tawa from scenes 4-6
+    expect(kit.thumbnailPrompts.portrait9x16).toContain("seasoned black iron street dosa tawa sits sizzling");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("white ceramic dinner plate");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("quartz");
+    expect(kit.thumbnailPrompts.portrait9x16).not.toContain("granite");
+
+    // Ref 4: Hero Food Crack features the contrasting banana-leaf lined brass thali from scenes 7-8
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("traditional Indian embossed brass serving thali platter lined with a vibrant fresh green banana leaf");
+    expect(kit.thumbnailPrompts.heroFoodCrack).toContain("copper ribbon noodles");
+    expect(kit.thumbnailPrompts.heroFoodCrack).not.toContain("quartz");
+    expect(kit.thumbnailPrompts.heroFoodCrack).not.toContain("granite");
+
+    expect(kit.youtube.titles[0]).toContain("Nokia");
   });
 });

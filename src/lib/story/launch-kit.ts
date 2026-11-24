@@ -193,8 +193,9 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
     .map((s) => s.actionSummary || s.action || "")
     .join(" ")
     .toLowerCase();
+  // Scenes 5 to 8 (User Directive: finished food is mainly presented and plated across scenes 5-8)
   const sceneEndText = scenes
-    .slice(6)
+    .slice(4)
     .map((s) => s.actionSummary || s.action || "")
     .join(" ")
     .toLowerCase();
@@ -225,21 +226,26 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
       "a fractured, severed rectangular chunk of the matte-black mechanical keyboard, tilted to expose the raw green PCB circuit board backing, severed copper traces, and dangling loose wires, with black keycaps facing front";
   }
 
-  // B. Center Foreground: Abundant Cooked Feast on Table (Spec §15, ADR-043)
-  let centerForegroundDescription = `A wide circular clean white ceramic dinner plate resting at the bottom center of the dark wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, steaming with hot culinary vapor and surrounded by raw ${heroObject} fragments on the table counter`;
+  // B. Center Foreground: Active Cooking Vessel & Apparatus (Middle Scenes 3-6, Spec §15)
+  // Ref 3 (Alchemist Feast) displays the authentic cooking apparatus from the middle scenes,
+  // NOT a dinner plate.
+  let centerForegroundDescription = `A large round seasoned black carbon-steel culinary wok sits sizzling furiously at the bottom center over an active gas burner, packed edge-to-edge with searing ${heroObject} components and billowing plumes of culinary steam`;
 
-  if (/quartz|granite|stone|idiyappam/i.test(combinedText) || /steamer|steam/i.test(sceneMiddleText)) {
+  if (/idiyappam|steamer\b|bamboo steamer/i.test(combinedText) || /steamer\b|idiyappam press/i.test(sceneMiddleText)) {
     centerForegroundDescription =
-      "A wide circular clean white ceramic dinner plate resting at the bottom center of the dark wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz silica glass noodle threads (idiyappam) intertwined with sharp sparkling raw geometric white quartz crystal points, crystalline silica shards, and speckled quarry granite mineral rocks, drizzled in rich pearly coconut glaze with delicate wisps of rising culinary steam, flanked on the wooden counter by raw, unworked mountain quartz crystal boulders with sharp crystalline facets and quarry granite rocks";
+      "A traditional high-pressure tiered polished brass idiyappam steamer pot sits whistling at the bottom center with billowing plumes of white culinary steam, resting over an active gas flame";
+  } else if (/nokia|tawa\b|dosa tawa|kothu/i.test(combinedText) || /tawa\b|flat iron/i.test(sceneMiddleText)) {
+    centerForegroundDescription =
+      "A wide circular 3-foot seasoned black iron street dosa tawa sits sizzling furiously at the bottom center, packed edge-to-edge with searing copper ribbons, bubbling paneer cubes, and authentic plumes of white culinary steam curling upward over roaring flames";
+  } else if (/kadai|cauldron|catering|bicycle/i.test(combinedText) || /kadai|deep-fry/i.test(sceneMiddleText)) {
+    centerForegroundDescription =
+      "A colossal 4-foot Indian wedding catering iron kadai (cauldron) sits boiling furiously at the bottom center with bubbling golden oil, with roaring amber flames licking the curved base and plumes of culinary steam";
   } else if (/bulb|samosa/i.test(combinedText)) {
     centerForegroundDescription =
-      "A wide circular clean white ceramic serving platter resting at the bottom center of the dark wooden table, piled high with golden-crispy triangular samosas bursting with incandescent glowing tungsten filaments and colorful serial bulbs, flanked by raw vintage amber Edison bulbs resting on the wooden counter";
-  } else if (/kadai|cauldron|catering/i.test(combinedText) || /kadai|deep-fry/i.test(sceneMiddleText)) {
+      "A deep heavy-duty Indian halwai iron kadai sits boiling furiously at the bottom center with bubbling golden oil, fiery under-glow from the hearth burner, and rising plumes of aromatic steam";
+  } else if (/handi|dum|biryani/i.test(combinedText) || /handi|dum/i.test(sceneMiddleText)) {
     centerForegroundDescription =
-      "A colossal 4-foot Indian wedding catering iron kadai (cauldron) sits boiling furiously at the bottom with bubbling golden oil, flanked by a wide clean white platter piled high with golden-crispy deep-fried bicycle chain tempura noodles and seared tire calamari rings";
-  } else if (/tawa|street tawa|flat iron/i.test(combinedText) || /tawa/i.test(sceneMiddleText)) {
-    centerForegroundDescription =
-      "A wide circular clean white ceramic chef plate resting at the bottom center of the wooden table, packed with glistening seared ribbons and cubes bubbling in golden oil, with authentic plumes of white culinary steam curling upward";
+      "A heavy sealed brass handi pot sits at the bottom center over glowing charcoal embers with wisps of aromatic steam escaping the flour dough seal";
   }
 
   // C. Right Hand Tool (Final Scenes 7-8)
@@ -259,7 +265,7 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
 
   if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
     cookedSpatulaPile =
-      "a tall, towering clump of continuous translucent optical-quartz silica glass noodle threads intertwined with sparkling raw geometric quartz crystal shards, lifted high upward with brass chopsticks directly from the white feast plate below, dripping with long stretching strands of glistening pearly silica glaze cascading back onto the plate";
+      "a tall, towering clump of continuous translucent optical-quartz silica glass noodle threads intertwined with sparkling raw geometric quartz crystal shards, lifted high upward with brass chopsticks directly from the steaming tier below, dripping with long stretching strands of glistening pearly silica glaze cascading downward";
   } else if (/samosa/i.test(dishName) || /bulb/i.test(heroObject)) {
     cookedSpatulaPile =
       "a traditional Indian embossed brass serving thali holding three blistering-hot, golden-crispy triangular samosas; one samosa is cracked in half revealing a steaming, glowing interior packed with tangled incandescent tungsten coils and jewel-like red, green, and yellow serial bulbs, accompanied by brass katoris of glowing mint and tamarind chutneys";
@@ -293,14 +299,21 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
   } else if (/bulb|samosa/i.test(combinedText)) {
     thumbnailLighting =
       "Deep dark moody street halwai workshop background with warm fiery under-glow from the giant kadai burners, incandescent amber light from glowing Edison filaments, and vibrant fairy light reflections, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the blistered pastry crust and jewel-like serial bulbs.";
-  } else if (/soap|tawa/i.test(combinedText)) {
+  } else if (/soap/i.test(combinedText)) {
     thumbnailLighting =
       "Deep dark moody commercial kitchen studio background with warm directional golden-amber spotlights illuminating the glistening textures and jewel-toned soap clarity, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
+  } else if (/nokia|tawa/i.test(combinedText)) {
+    thumbnailLighting =
+      "Deep dark moody street kitchen workshop background with warm directional spotlights illuminating the sizzling copper noodles and glowing cyan keypad cubes, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
   }
 
   // --------------------------------------------------------------------------
   // 2. MASTER AI THUMBNAIL PROMPTS (16:9 & 9:16)
   // --------------------------------------------------------------------------
+  const negativeConstraintsText = /soap/i.test(combinedText)
+    ? "Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO artificial candy blocks, NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating."
+    : "Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks, NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.";
+
   const viralHeaderDirective = `Viral Text Header Directive: Large bold text "DO NOT EAT THIS!" gently curved in a subtle, slight convex arch across the very top header. Typography is heavy bold YouTube action display font with a dynamic forward italic slant, wide solid letterforms (not condensed, not vertically squished). Letter fill is a rich fiery sunset gradient: bright sunflower yellow at the top, fading smoothly through hot fiery orange into deep crimson-red at the bottom. Enclosed by a thick solid jet-black comic outline with a thin, crisp warm golden-amber outer sticker contour rim that pops against the dark background. Letters are crisp, level, and razor-sharp. Strictly NO extreme rainbow warp, NO distorted curving, NO condensed squished letters, NO white cloudy puffs, NO white haze background, NO bubble font. Perfectly positioned in the top margin safe zone above goggles without obstructing character or props.`;
 
   const thumbnailLandscape16x9 = `A viral high-contrast 16:9 YouTube video thumbnail, medium close-up framing, straight eye-level frontal perspective, centered composition.
@@ -317,7 +330,7 @@ ${viralHeaderDirective}
 
 Lighting & Environment: ${thumbnailLighting}
 
-Strict Constraints: Tight framing, large props. Character visually rendered only. Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks, NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+Strict Constraints: Tight framing, large props. Character visually rendered only. ${negativeConstraintsText}`;
 
   const thumbnailLandscape16x9WithHeadline = thumbnailLandscape16x9;
 
@@ -335,35 +348,63 @@ ${viralHeaderDirective}
 
 Lighting & Atmosphere: ${thumbnailLighting}
 
-Strict Constraints: Character visually rendered only. Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks, NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+Strict Constraints: Character visually rendered only. ${negativeConstraintsText}`;
 
   const thumbnailPortrait9x16WithHeadline = thumbnailPortrait9x16;
 
   // --------------------------------------------------------------------------
-  // 2B. HERO FOOD CRACK / TWO-HANDED DISSECTION PROMPT (Money Shot / Image 4 Style)
+  // 2B. HERO FOOD CRACK / TWO-HANDED DISSECTION PROMPT (Ref 4 Style)
   // --------------------------------------------------------------------------
+  // Determine contrasting serving platter based on food tone (Spec & User Directive: "contrast color of food is NEEDED")
+  const isTraditionalVillageThali =
+    /nokia|parotta|kothu|biryani|dosa\b|thali|banana leaf/i.test(combinedText) ||
+    /banana leaf|thali/i.test(sceneEndText);
+
+  const isPaleOrTranslucentFood =
+    !isTraditionalVillageThali &&
+    (/quartz|optical-quartz|idiyappam|silica glass|translucent noodle/i.test(combinedText) ||
+      /quartz|idiyappam/i.test(sceneEndText));
+
+  let servingPlatterDescription =
+    "A wide circular clean white ceramic dinner plate (providing crisp visual contrast against the dark, golden-seared food)";
+  if (isTraditionalVillageThali) {
+    // Traditional Indian village feasts serve on banana leaf lined brass thali
+    servingPlatterDescription =
+      "A traditional Indian embossed brass serving thali platter lined with a vibrant fresh green banana leaf";
+  } else if (isPaleOrTranslucentFood) {
+    // Pale/translucent food gets washed out on a white plate; a dark ceramic platter or slate provides striking contrast
+    servingPlatterDescription =
+      "A wide circular sleek matte-black ceramic serving platter (providing rich, striking visual contrast against the pale translucent food)";
+  }
+
   let heroCrackDescription = `Two black-gloved hands crack open the freshly cooked ${heroObject} ${dishName} directly in front of the lens in an extreme macro close-up, revealing its hot, steaming, glowing interior with impossible ${heroObject} components stretching between the severed halves like molten cheese with delicate curlicues of culinary steam.
 
-Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, flanked on the wooden counter by a raw unworked fractured chunk of the ${heroObject} exposing authentic internal materials.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, flanked on the wooden counter by a raw unworked fractured chunk of the ${heroObject} exposing authentic internal materials.
 
 In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
 
   if (/bulb|samosa/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands holding a blistered golden-crispy triangular Indian street samosa, cracked open horizontally right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, incandescent glowing golden tungsten filament coils are stretching and connecting between the two halves like molten cheese, accompanied by glowing jewel-like red, green, and yellow festive serial bulbs embedded in the spicy filling. Delicate curlicues of white aromatic culinary steam rise between the cracked halves.
 
-Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden table, piled generously high with a massive feast mound of golden-crispy triangular samosas bursting with incandescent filament light, flanked on the wooden counter by raw, unlit vintage amber Edison light bulbs with brass screw bases and a tangled garland of festival fairy lights.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with golden-crispy triangular samosas bursting with incandescent filament light, flanked on the wooden counter by raw, unlit vintage amber Edison light bulbs with brass screw bases and a tangled garland of festival fairy lights.
 
 In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, black tactical mask with gold cheekline vents, brass tinker goggles on forehead, leather apron) leans forward, intently inspecting the glowing food crack.`;
+  } else if (/nokia/i.test(combinedText)) {
+    heroCrackDescription = `Two black-gloved hands pulling apart a scorching, golden-seared cluster of copper ribbon noodles right in front of the lens in an extreme macro close-up. Between the pulled halves, bubbling translucent neon-cyan LCD chutney stretches in long glistening caramelized strands, revealing diced cyan keypad paneer cubes and green mixie PCB spice flecks inside the hot steaming core. Delicate wisps of aromatic steam rise between the halves.
+
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with a massive feast mound of golden copper ribbon noodles, translucent cyan keypad paneer cubes, and emerald-green mixie PCB spice powder, flanked on the wooden counter by raw, unworked authentic vintage Nokia 3310 phones exposing their durable blue shells and circuit boards.
+
+In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
   } else if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands pulling apart a steaming, delicate nest of translucent optical-quartz silica glass noodle threads (idiyappam) right in front of the lens in an extreme macro close-up. Between the pulled halves, viscous pearly silica coconut glaze stretches in long glistening strands, revealing genuine sharp sparkling raw geometric white quartz crystal points, crystalline mineral shards, and speckled quarry granite rock fragments embedded directly inside the steaming noodle core (proving the noodles were cooked directly from quarry stones). Delicate plumes of white culinary steam billow upward.
 
-Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz noodles intertwined with sharp sparkling quartz crystal points and speckled granite flecks, flanked on the wooden counter by a raw, jagged sparkling white mountain quartz crystal boulder and raw quarry granite rock with sharp crystalline facets.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz noodles intertwined with sharp sparkling quartz crystal points and speckled granite flecks, flanked on the wooden counter by a raw, jagged sparkling white mountain quartz crystal boulder and raw quarry granite rock with sharp crystalline facets.
 
 In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
   } else if (/keyboard/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands cracking open a sizzling, golden-brown seared mechanical keyboard patty right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, molten amber resin flux glaze stretches between the severed halves, revealing glowing copper circuit board traces, miniature resistors, and crimson-red Cherry MX switches connected by stretching molten strings. Delicate wisps of aromatic culinary steam rise between the halves.
 
-Directly below the hands in the bottom foreground: A wide circular clean white ceramic dinner plate rests at the center of the dark wooden counter, piled generously high with a massive feast mound of glossy stir-fried matte-black keycaps and crimson-red switches dripping with bubbling amber glaze, flanked on the counter by a raw fractured rectangular chunk of the mechanical keyboard exposing green PCB traces and loose wires.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden counter, piled generously high with a massive feast mound of glossy stir-fried matte-black keycaps and crimson-red switches dripping with bubbling amber glaze, flanked on the counter by a raw fractured rectangular chunk of the mechanical keyboard exposing green PCB traces and loose wires.
 
 In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward with focused gaze.`;
   }
@@ -379,7 +420,7 @@ ${viralHeaderDirective}
 
 Lighting & Atmosphere: Commercial food cinema spotlight on the steaming crack, glistening glaze stretch, and luminous internal elements. Deep dark moody workshop background with heavy vignette.
 
-Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks, NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. ${negativeConstraintsText}`;
 
   const thumbnailHeroFoodCrack16x9 = `A viral extreme macro 16:9 YouTube video thumbnail, cinematic food photography, wide composition, shallow f/1.8 depth of field.
 
@@ -392,7 +433,7 @@ ${viralHeaderDirective}
 
 Lighting & Atmosphere: Commercial food cinema spotlight on the steaming crack, glistening glaze stretch, and luminous internal elements. Deep dark moody workshop background with heavy vignette.
 
-Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. Strictly NO colored gelatin cubes, NO colorful jelly cubes, NO translucent soap bars, NO artificial candy blocks, NO username on image, NO teeth marks, NO meat, NO real grocery food, NO eating.`;
+Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. ${negativeConstraintsText}`;
 
   // --------------------------------------------------------------------------
   // 3. DYNAMIC HIGH-CTR YOUTUBE TITLES

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -12,7 +12,11 @@ import {
   RefreshCw,
   AlertCircle,
   ArrowRight,
+  Maximize2,
+  Minimize2,
+  GripVertical,
 } from "lucide-react";
+import { FormattedChatContent } from "./FormattedChatContent";
 
 interface ActionItem {
   type: string;
@@ -85,7 +89,67 @@ export function AiDirectorChatDrawer({
   const [error, setError] = useState<string | null>(null);
   const [qcScore, setQcScore] = useState<number | null>(null);
   const [qcRating, setQcRating] = useState<string | null>(null);
+  const [drawerWidth, setDrawerWidth] = useState<number>(540);
+  const [isResizing, setIsResizing] = useState(false);
+  const hasLoadedWidthRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const clampWidth = useCallback((w: number) => {
+    const maxAllowed = typeof window !== "undefined" ? Math.max(540, window.innerWidth - 32) : 1280;
+    return Math.min(Math.max(440, w), maxAllowed);
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("ai-director-drawer-width");
+      if (saved) {
+        const parsed = Number(saved);
+        if (Number.isFinite(parsed) && parsed >= 440) {
+          setDrawerWidth(clampWidth(parsed));
+        }
+      }
+    } catch {}
+    hasLoadedWidthRef.current = true;
+  }, [clampWidth]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const nextWidth = clampWidth(window.innerWidth - e.clientX);
+      setDrawerWidth(nextWidth);
+    };
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [isResizing, clampWidth]);
+
+  useEffect(() => {
+    if (!hasLoadedWidthRef.current) return;
+    try {
+      localStorage.setItem("ai-director-drawer-width", String(drawerWidth));
+    } catch {}
+  }, [drawerWidth]);
+
+  const isExpanded = drawerWidth >= 780;
+  const toggleWidthMode = () => {
+    if (drawerWidth < 780) {
+      setDrawerWidth(clampWidth(900));
+    } else if (drawerWidth < 1100 && typeof window !== "undefined" && window.innerWidth > 1200) {
+      setDrawerWidth(clampWidth(window.innerWidth - 64));
+    } else {
+      setDrawerWidth(540);
+    }
+  };
 
   const isQuartz = /quartz|granite|stone|idiyappam/i.test(projectTitle || "");
 
@@ -231,27 +295,50 @@ export function AiDirectorChatDrawer({
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col h-full text-slate-100">
+      <div
+        style={{ width: `${drawerWidth}px`, maxWidth: "100vw" }}
+        className={`relative bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col h-full text-slate-100 ${
+          isResizing ? "" : "transition-[width] duration-200 ease-out"
+        }`}
+      >
+        {/* Left-Edge Drag Resize Handle */}
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize AI Director drawer width"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setIsResizing(true);
+          }}
+          title="Drag left or right to resize drawer width"
+          className="hidden sm:flex absolute left-0 top-0 bottom-0 w-2 -translate-x-1 cursor-ew-resize z-20 items-center justify-center group"
+        >
+          <div className="w-0.5 h-full bg-transparent group-hover:bg-amber-400/70 transition-colors" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1.5 py-2 px-0.5 rounded-l-md bg-slate-800 border border-r-0 border-slate-700 text-slate-400 group-hover:text-amber-300 group-hover:border-amber-500/40 shadow-md opacity-70 group-hover:opacity-100 transition">
+            <GripVertical className="w-3 h-3" />
+          </div>
+        </div>
+
         {/* Drawer Header */}
-        <div className="px-5 py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
+        <div className="px-5 py-4 border-b border-slate-800 bg-slate-950/80 flex items-center justify-between shrink-0 gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-amber-500/20 shrink-0">
               <Sparkles className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-sm tracking-wide text-white">AI Director Co-Pilot</h3>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                <h3 className="font-bold text-sm tracking-wide text-white truncate">AI Director Co-Pilot</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
                   LIVE
                 </span>
               </div>
-              <p className="text-xs text-slate-400 truncate max-w-[240px]">
+              <p className="text-xs text-slate-400 truncate max-w-[280px]">
                 {projectTitle || "Cinematic Project"}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             {qcScore !== null && (
               <div
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold"
@@ -261,6 +348,17 @@ export function AiDirectorChatDrawer({
                 <span>{qcScore}/100</span>
               </div>
             )}
+            <button
+              type="button"
+              onClick={toggleWidthMode}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-amber-300 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/70 transition"
+              title={isExpanded ? "Switch drawer width" : "Extend drawer width for tables"}
+            >
+              {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">
+                {drawerWidth >= 1100 ? "Compact" : isExpanded ? "Full" : "Extend"}
+              </span>
+            </button>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
@@ -308,19 +406,26 @@ export function AiDirectorChatDrawer({
 
           {messages.map((m) => {
             const isUser = m.sender === "USER";
+            const hasTable = !isUser && m.message.includes("|") && m.message.includes("---");
             return (
               <div
                 key={m.id}
                 className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[88%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
+                  className={`${
+                    hasTable ? "w-full max-w-[98%]" : "max-w-[90%]"
+                  } rounded-2xl px-4 py-3 text-xs leading-relaxed ${
                     isUser
                       ? "bg-amber-500 text-slate-950 font-medium rounded-br-xs shadow-md"
                       : "bg-slate-800/90 text-slate-200 rounded-bl-xs border border-slate-700/70 shadow-sm"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{m.message}</p>
+                  {isUser ? (
+                    <p className="whitespace-pre-wrap">{m.message}</p>
+                  ) : (
+                    <FormattedChatContent content={m.message} />
+                  )}
 
                   {!isUser && m.proposedEpisodePlan && !m.createdEpisode && (
                     <div className="mt-3 p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">

@@ -736,4 +736,10 @@
       - Extracted shared `src/lib/series/episode-service.ts`, enabled `CREATE_EPISODE` directly from AI Director chat (with clickable `Open Ep X` navigation), removed Episode 7 Quartz hardcoding on non-quartz episodes, and switched `ProjectWorkflowNav.tsx` to `router.refresh()`.
       - Fixed `PURE_ASMR_FOLEY` in `POST /api/projects`, `handleAutoEnhance` in `storyboard/page.tsx`, duplicate-project guard in `new/page.tsx`, `findFfmpeg()` in `thumbnail/route.ts`, verified Gemini model IDs (`gemini-2.5-flash` / `2.0-flash`), shared in-process job fallback (`src/lib/jobs/run-inline.ts`), `COOKIE_SECURE` flag in `session.ts`, and `next build --webpack` + `start:all` in `package.json`.
 
+  26. **AI Director Drawer Width Extension & Formatted Comparison Table Rendering (2026-11-25)**:
+      - Added resizable drawer width controls in `src/components/chat/AiDirectorChatDrawer.tsx`: a header **Extend / Full / Compact** toggle button plus a left-edge drag-resize handle (`440px` to full viewport width, persisted in `localStorage`).
+      - Added `src/components/chat/markdown-parser.ts` and `src/components/chat/FormattedChatContent.tsx` so Markdown comparison tables, headings, bold text, bullet lists, and code blocks render as structured styled UI tables instead of raw pipe-delimited plain text.
+      - Verification: `npx tsc --noEmit` (0 errors) and `npx vitest run` (17 test files, 99/99 tests passed including `tests/unit/chat-markdown.test.ts`).
+
+
 

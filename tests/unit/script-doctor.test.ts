@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { quickAuditScript, polishScreenplayWithAI, type RawSceneInput } from "@/lib/story/script-doctor";
+import { CoercedTextSchema, ScreenplaySchema } from "@/lib/story/schemas";
 import type { TextGenerationProvider } from "@/lib/providers/types";
 
 describe("Script Doctor & Senior Director QC", () => {
@@ -195,5 +196,40 @@ describe("Script Doctor & Senior Director QC", () => {
     expect(polished).toHaveLength(1);
     expect(polished[0].action).toContain("Dynamic low-angle");
     expect(polished[0].dialogue).toBe("அக்கா! வேகமாக ஓடு!");
+  });
+
+  it("coerces object/array outline and characters payloads from LLMs cleanly", () => {
+    const outlineParsed = CoercedTextSchema.safeParse({
+      act1: "Chef slams cricket bat",
+      act2: "Sizzles willow shavings and leather ball",
+    });
+    expect(outlineParsed.success).toBe(true);
+    if (outlineParsed.success) {
+      expect(outlineParsed.data).toContain("act1: Chef slams cricket bat");
+    }
+
+    const charsParsed = CoercedTextSchema.safeParse([
+      { name: "The Shadow Alchemist", role: "Lead Chef" },
+    ]);
+    expect(charsParsed.success).toBe(true);
+    if (charsParsed.success) {
+      expect(charsParsed.data).toContain("The Shadow Alchemist");
+    }
+
+    const spParsed = ScreenplaySchema.safeParse({
+      title: "Bat & Ball ASMR",
+      scenes: [
+        {
+          sceneNumber: "1",
+          heading: "HOOK",
+          action: "Slam cricket bat",
+          estimatedDurationSeconds: "4",
+        },
+      ],
+    });
+    expect(spParsed.success).toBe(true);
+    if (spParsed.success) {
+      expect(spParsed.data.totalEstimatedDurationSeconds).toBe(4);
+    }
   });
 });

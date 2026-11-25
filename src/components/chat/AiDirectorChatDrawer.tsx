@@ -28,17 +28,33 @@ interface CreatedEpisodeLink {
   url: string;
 }
 
+interface ComparisonRow {
+  realElement: string;
+  inedibleCounterpart: string;
+  cookingMethod: string;
+}
+
+interface ProposedEpisodePlan {
+  episodeNumber: number;
+  title: string;
+  sourceIdea: string;
+  dishName: string;
+  targetRuntime: number;
+  comparisonTable?: ComparisonRow[];
+}
+
 interface ChatMessage {
   id: string;
   sender: "USER" | "AI_DIRECTOR" | "SYSTEM";
   message: string;
   actionsTaken?: ActionItem[];
   createdEpisode?: CreatedEpisodeLink;
+  proposedEpisodePlan?: ProposedEpisodePlan;
   createdAt: string;
 }
 
 interface AiDirectorChatDrawerProps {
-  projectId: string;
+  projectId?: string;
   projectTitle?: string;
   isOpen: boolean;
   onClose: () => void;
@@ -74,33 +90,44 @@ export function AiDirectorChatDrawer({
   const isQuartz = /quartz|granite|stone|idiyappam/i.test(projectTitle || "");
 
   // Project-aware Quick Action Suggestions
-  const quickActions = [
-    {
-      label: "⚡ Audit ASMR QC & Hook",
-      prompt: "Audit ASMR QC and verify the 0.0s Acoustic Hook and Loop score.",
-    },
-    {
-      label: "🎣 Upgrade Scene 1 Hook",
-      prompt: "Upgrade Scene 1 to a 0.0s Zero-Second Acoustic Slam Hook for maximum Shorts retention.",
-    },
-    ...(isQuartz
-      ? [
-          {
-            label: "💎 Enforce Inedible Quartz (S7 & S8)",
-            prompt: "Make sure Scene 7 and Scene 8 strictly look like optical-quartz silica glass noodles and raw quartz crystals, not real food.",
-          },
-        ]
-      : [
-          {
-            label: "⚙️ Align Prop Continuity (S4 & S5)",
-            prompt: "Align machine and cookware continuity between Scene 4 and Scene 5.",
-          },
-        ]),
-    {
-      label: "🎬 Recompile All Prompts",
-      prompt: "Recompile all cinematic prompts across all scenes.",
-    },
-  ];
+  const quickActions = projectId
+    ? [
+        {
+          label: "⚡ Audit ASMR QC & Hook",
+          prompt: "Audit ASMR QC and verify the 0.0s Acoustic Hook and Loop score.",
+        },
+        {
+          label: "🎣 Upgrade Scene 1 Hook",
+          prompt: "Upgrade Scene 1 to a 0.0s Zero-Second Acoustic Slam Hook for maximum Shorts retention.",
+        },
+        ...(isQuartz
+          ? [
+              {
+                label: "💎 Enforce Inedible Quartz (S7 & S8)",
+                prompt: "Make sure Scene 7 and Scene 8 strictly look like optical-quartz silica glass noodles and raw quartz crystals, not real food.",
+              },
+            ]
+          : [
+              {
+                label: "⚙️ Align Prop Continuity (S4 & S5)",
+                prompt: "Align machine and cookware continuity between Scene 4 and Scene 5.",
+              },
+            ]),
+        {
+          label: "🎬 Recompile All Prompts",
+          prompt: "Recompile all cinematic prompts across all scenes.",
+        },
+      ]
+    : [
+        {
+          label: "🏏 Plan Ep 8: Cricket Bat & Ball",
+          prompt: "For episode 8 I am going to plan the cricket Bat,and Ball. can you create the project for this",
+        },
+        {
+          label: "⚡ Audit Latest Project QC",
+          prompt: "Audit ASMR QC and verify the 0.0s Acoustic Hook and Loop score.",
+        },
+      ];
 
   // Fetch chat history
   const fetchMessages = async () => {
@@ -136,11 +163,11 @@ export function AiDirectorChatDrawer({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  const handleSendMessage = async (textToSend?: string) => {
+  const handleSendMessage = async (textToSend?: string, approvePlan?: ProposedEpisodePlan) => {
     const text = (textToSend || inputText).trim();
     if (!text || loading) return;
 
-    setInputText("");
+    if (!textToSend) setInputText("");
     setError(null);
 
     const tempUserMsg: ChatMessage = {
@@ -153,10 +180,11 @@ export function AiDirectorChatDrawer({
     setLoading(true);
 
     try {
-      const res = await fetch(`/api/projects/${projectId}/chat`, {
+      const endpoint = projectId ? `/api/projects/${projectId}/chat` : "/api/chat";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify(approvePlan ? { message: text, approvePlan } : { message: text }),
       });
 
       const json = await res.json().catch(() => ({}));
@@ -175,6 +203,7 @@ export function AiDirectorChatDrawer({
         message: replyText,
         actionsTaken,
         createdEpisode: payload.createdEpisode,
+        proposedEpisodePlan: payload.proposedEpisodePlan,
         createdAt: new Date().toISOString(),
       };
 
@@ -292,6 +321,34 @@ export function AiDirectorChatDrawer({
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{m.message}</p>
+
+                  {!isUser && m.proposedEpisodePlan && !m.createdEpisode && (
+                    <div className="mt-3 p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
+                          Episode {m.proposedEpisodePlan.episodeNumber} Proposal · {m.proposedEpisodePlan.targetRuntime}s
+                        </span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
+                          Awaiting Approval
+                        </span>
+                      </div>
+                      <div className="text-xs font-bold text-white">{m.proposedEpisodePlan.dishName}</div>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() =>
+                          handleSendMessage(
+                            `Approved! Please create Episode ${m.proposedEpisodePlan!.episodeNumber} with this plan.`,
+                            m.proposedEpisodePlan
+                          )
+                        }
+                        className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Approve &amp; Create Episode {m.proposedEpisodePlan.episodeNumber}</span>
+                      </button>
+                    </div>
+                  )}
 
                   {!isUser && m.createdEpisode && (
                     <Link

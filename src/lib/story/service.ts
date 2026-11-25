@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import type { TextGenerationProvider } from "@/lib/providers/types";
 import {
   LoglineSchema, SynopsisSchema, OutlineSchema,
-  CharacterArcSchema, ScreenplaySchema,
+  CharacterArcSchema, ScreenplaySchema, CoercedTextSchema,
 } from "./schemas";
 import {
   systemPrompt, loglinePrompt, synopsisPrompt,
@@ -76,11 +76,11 @@ async function generateStoryCombined(
   meta: { providerId?: string; modelId?: string; jobId?: string },
 ): Promise<void> {
   const CombinedSchema = z.object({
-    logline:    z.string(),
-    premise:    z.string(),
-    synopsis:   z.string(),
-    outline:    z.string(),
-    characters: z.string(),
+    logline:    CoercedTextSchema,
+    premise:    CoercedTextSchema,
+    synopsis:   CoercedTextSchema,
+    outline:    CoercedTextSchema,
+    characters: CoercedTextSchema,
     screenplay: ScreenplaySchema,
   });
 

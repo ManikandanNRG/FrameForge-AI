@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/nav/AppShell";
 import { Button } from "@/components/ui/button";
-import { Film, Plus, ArrowRight } from "lucide-react";
+import { Film, Plus, ArrowRight, Trash2 } from "lucide-react";
 
 interface Project {
   id: string; title: string; description?: string;
@@ -19,6 +19,7 @@ const stageLabel: Record<string, string> = {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/projects").then(r => r.json()).then(d => {
@@ -26,6 +27,23 @@ export default function ProjectsPage() {
       setLoading(false);
     });
   }, []);
+
+  async function handleDelete(e: React.MouseEvent, proj: Project) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${proj.title}"? This removes the project and its scenes from the database.`)) {
+      return;
+    }
+    setDeletingId(proj.id);
+    try {
+      const res = await fetch(`/api/projects/${proj.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setProjects((prev) => prev.filter((item) => item.id !== proj.id));
+      }
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <AppShell>
@@ -70,7 +88,18 @@ export default function ProjectsPage() {
                     <h2 className="font-bold text-slate-900 group-hover:text-amber-600 transition-colors line-clamp-2">
                       {p.title}
                     </h2>
-                    <ArrowRight className="h-4 w-4 text-slate-400 shrink-0 mt-0.5 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, p)}
+                        disabled={deletingId === p.id}
+                        title="Delete project"
+                        className="p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <ArrowRight className="h-4 w-4 text-slate-400 mt-0.5 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+                    </div>
                   </div>
                   {p.description && (
                     <p className="text-slate-500 text-xs line-clamp-2 mb-4 leading-relaxed">

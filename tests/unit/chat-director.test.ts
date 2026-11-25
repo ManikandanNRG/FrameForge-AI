@@ -155,35 +155,62 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
     expect(shot1?.videoPrompt).toContain("HIGH-VOLUME CLOSE-MIC");
   });
 
-  it("creates Episode 8 for Cricket Bat and Ball directly from AI Director chat without Quartz leakage", async () => {
-    const result = await handleDirectorChat({
+  it("discusses dish & comparison table BEFORE creating Episode 8, blocks unapproved creation on questions, and creates only after explicit approval", async () => {
+    const countBefore = await prisma.project.count({ where: { ownerId: testOwnerId } });
+
+    // 1. Pitching an idea must propose first (with Dish & Comparison Table), NOT create in DB
+    const pitchResult = await handleDirectorChat({
       projectId: testProjectId,
       ownerId: testOwnerId,
       userMessage: "For episode 8 I am going to plan the cricket Bat,and Ball. can you create the project for this",
     });
 
-    expect(result.createdEpisode).toBeDefined();
-    expect(result.createdEpisode?.episodeNumber).toBe(8);
-    expect(result.createdEpisode?.url).toContain("/storyboard");
-    expect(result.actionsTaken.some((a) => a.type === "CREATE_EPISODE")).toBe(true);
+    expect(pitchResult.createdEpisode).toBeUndefined();
+    expect(pitchResult.proposedEpisodePlan).toBeDefined();
+    expect(pitchResult.proposedEpisodePlan?.episodeNumber).toBe(8);
+    expect(pitchResult.proposedEpisodePlan?.comparisonTable?.length).toBeGreaterThanOrEqual(3);
+    expect(pitchResult.reply).toContain("Comparison Table");
+    expect(await prisma.project.count({ where: { ownerId: testOwnerId } })).toBe(countBefore);
+
+    // 2. Asking a question / complaint must NEVER create a project
+    const questionResult = await handleDirectorChat({
+      projectId: testProjectId,
+      ownerId: testOwnerId,
+      userMessage: "why ? without approval how can you create the project",
+    });
+    expect(questionResult.createdEpisode).toBeUndefined();
+    expect(await prisma.project.count({ where: { ownerId: testOwnerId } })).toBe(countBefore);
+
+    // 3. Explicit approval creates Episode 8 cleanly without Quartz leakage
+    const approvedResult = await handleDirectorChat({
+      projectId: testProjectId,
+      ownerId: testOwnerId,
+      userMessage: "Approved! Please create Episode 8 with this plan.",
+      approvePlan: pitchResult.proposedEpisodePlan,
+    });
+
+    expect(approvedResult.createdEpisode).toBeDefined();
+    expect(approvedResult.createdEpisode?.episodeNumber).toBe(8);
+    expect(approvedResult.createdEpisode?.url).toContain("/storyboard");
+    expect(approvedResult.actionsTaken.some((a) => a.type === "CREATE_EPISODE")).toBe(true);
 
     const createdScenes = await prisma.scene.findMany({
-      where: { projectId: result.createdEpisode!.id },
+      where: { projectId: approvedResult.createdEpisode!.id },
       orderBy: { sceneNumber: "asc" },
     });
     expect(createdScenes.length).toBe(5);
-    expect(createdScenes[0].actionSummary.toLowerCase()).toContain("cricket bat");
+    expect(createdScenes[0].actionSummary.toLowerCase()).toContain("cricket");
     expect(createdScenes[0].actionSummary.toLowerCase()).not.toContain("quartz");
 
-    // Verify upgrading Scene 1 hook on the Cricket episode uses Cricket Bat & Ball, NOT Quartz
+    // Verify upgrading Scene 1 hook on the Cricket episode uses Cricket, NOT Quartz
     const hookUpdate = await handleDirectorChat({
-      projectId: result.createdEpisode!.id,
+      projectId: approvedResult.createdEpisode!.id,
       ownerId: testOwnerId,
       userMessage: "Upgrade Scene 1 hook for faster opening impact",
     });
     expect(hookUpdate.reply).not.toContain("quartz");
     const updatedS1 = await prisma.scene.findFirst({
-      where: { projectId: result.createdEpisode!.id, sceneNumber: 1 },
+      where: { projectId: approvedResult.createdEpisode!.id, sceneNumber: 1 },
     });
     expect(updatedS1?.actionSummary.toLowerCase()).toContain("cricket");
     expect(updatedS1?.actionSummary.toLowerCase()).not.toContain("quartz");

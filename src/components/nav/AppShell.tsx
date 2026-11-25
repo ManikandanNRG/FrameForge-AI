@@ -13,6 +13,10 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
+import {
+  AiDirectorChatDrawer,
+  AiDirectorChatFloatingButton,
+} from "@/components/chat/AiDirectorChatDrawer";
 
 const navItems = [
   { href: "/projects", label: "Projects", icon: FolderOpen },
@@ -23,6 +27,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
+  const [showGlobalDirector, setShowGlobalDirector] = useState(false);
+  const hasProjectNav = /^\/projects\/(?!new(?:\/|$))[^/]+/.test(path);
 
   // Restore sidebar state from localStorage on initial client mount
   useEffect(() => {
@@ -167,6 +173,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 overflow-auto bg-slate-50">
         {children}
       </main>
+
+      {/* Global AI Director access on /projects, /projects/new, /settings */}
+      {!hasProjectNav && (
+        <>
+          <AiDirectorChatFloatingButton onClick={() => setShowGlobalDirector(true)} />
+          <AiDirectorChatDrawer
+            projectTitle="Studio Co-Pilot (Series & Episodes)"
+            isOpen={showGlobalDirector}
+            onClose={() => setShowGlobalDirector(false)}
+            onProjectUpdated={() => router.refresh()}
+          />
+        </>
+      )}
     </div>
   );
 }

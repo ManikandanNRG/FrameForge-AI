@@ -2,6 +2,35 @@ import { z } from "zod";
 
 /** Zod schemas for structured AI story output (spec §15.1, §15.2). */
 
+/**
+ * Coerces LLM JSON values (string, array, or nested object) into a clean readable string
+ * so models returning structured outline/character objects never fail validation.
+ */
+export function coerceStructuredToText(val: unknown): string {
+  if (typeof val === "string") return val;
+  if (val === null || val === undefined) return "";
+  if (Array.isArray(val)) {
+    return val
+      .map((item, idx) =>
+        typeof item === "string"
+          ? item
+          : `${idx + 1}. ${coerceStructuredToText(item)}`
+      )
+      .join("\n");
+  }
+  if (typeof val === "object") {
+    return Object.entries(val as Record<string, unknown>)
+      .map(([k, v]) => `${k}: ${typeof v === "string" ? v : coerceStructuredToText(v)}`)
+      .join("\n");
+  }
+  return String(val);
+}
+
+export const CoercedTextSchema = z.preprocess(
+  (v) => coerceStructuredToText(v),
+  z.string()
+);
+
 export const LoglineSchema = z.object({
   logline: z.string().min(10),
   premise: z.string().min(20),
@@ -33,7 +62,32 @@ export const CharacterArcSchema = z.object({
   ),
 });
 
-export const ScreenplaySchema = z.object({
+export const ScreenplaySchema = z.preprocess((val: any) => {
+  if (!val || typeof val !== "object") return val;
+  const rawScenes = Array.isArray(val.scenes) ? val.scenes : [];
+  const normalizedScenes = rawScenes.map((s: any, idx: number) => ({
+    sceneNumber: Number(s?.sceneNumber ?? s?.scene_number ?? idx + 1) || idx + 1,
+    heading: String(s?.heading ?? s?.scene_heading ?? `SCENE ${idx + 1}`),
+    location: String(s?.location ?? "Main Studio"),
+    timeOfDay: String(s?.timeOfDay ?? s?.time_of_day ?? "NIGHT"),
+    action: coerceStructuredToText(s?.action ?? s?.visualAction ?? s?.description ?? ""),
+    voiceover: typeof s?.voiceover === "string" ? s.voiceover : "",
+    dialogue: typeof s?.dialogue === "string" ? s.dialogue : "",
+    audioScript: typeof s?.audioScript === "string" ? s.audioScript : (typeof s?.soundEffects === "string" ? s.soundEffects : ""),
+    soundEffects: typeof s?.soundEffects === "string" ? s.soundEffects : undefined,
+    estimatedDurationSeconds: Number(s?.estimatedDurationSeconds ?? s?.duration ?? 5) || 5,
+  }));
+  const computedTotal = normalizedScenes.reduce(
+    (acc: number, s: any) => acc + (s.estimatedDurationSeconds || 5),
+    0
+  );
+  return {
+    title: String(val.title ?? "Untitled Film"),
+    scenes: normalizedScenes,
+    totalEstimatedDurationSeconds:
+      Number(val.totalEstimatedDurationSeconds ?? val.totalDuration ?? computedTotal) || computedTotal || 20,
+  };
+}, z.object({
   title: z.string(),
   scenes: z.array(
     z.object({
@@ -50,7 +104,7 @@ export const ScreenplaySchema = z.object({
     }),
   ).min(1),
   totalEstimatedDurationSeconds: z.number(),
-});
+}));
 
 export type Logline = z.infer<typeof LoglineSchema>;
 export type Synopsis = z.infer<typeof SynopsisSchema>;

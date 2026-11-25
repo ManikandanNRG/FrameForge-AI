@@ -1,10 +1,10 @@
 /**
- * In-App AI Director Chat Co-Pilot & Scene Execution Engine (ADR-036 to ADR-049)
+ * In-App AI Director Chat Co-Pilot & Scene Execution Engine (ADR-036 to ADR-050)
  *
- * Provides a conversational AI Director inside the web application that allows
- * creators to discuss scene edits, fix continuity discrepancies, enforce inedible
- * ASMR invariants, recompile cinematic prompts, audit quality control, and create
- * new episodes directly from chat.
+ * Conversational AI Director inside the studio:
+ * - Discusses episode ideas, proposes dish mappings & Comparison Tables, and asks for approval BEFORE creating any project.
+ * - Executes scene edits, prop continuity locks, prompt recompilation, and ASMR QC audits on command.
+ * - Only creates a new episode/project when the user explicitly approves a proposed plan (via button or confirmation).
  */
 
 import { prisma } from "@/lib/db/client";
@@ -21,7 +21,23 @@ export type DirectorActionType =
   | "RECOMPILE_PROMPTS"
   | "AUDIT_QC"
   | "ALIGN_PROP_CONTINUITY"
-  | "CREATE_EPISODE";
+  | "CREATE_EPISODE"
+  | "PROPOSE_EPISODE";
+
+export interface ComparisonRow {
+  realElement: string;
+  inedibleCounterpart: string;
+  cookingMethod: string;
+}
+
+export interface ProposedEpisodePlan {
+  episodeNumber: number;
+  title: string;
+  sourceIdea: string;
+  dishName: string;
+  targetRuntime: number;
+  comparisonTable?: ComparisonRow[];
+}
 
 export interface DirectorAction {
   type: DirectorActionType;
@@ -35,6 +51,7 @@ export interface DirectorAction {
   episodeIdea?: string;
   episodeNumber?: number;
   targetRuntime?: number;
+  proposedEpisodePlan?: ProposedEpisodePlan;
   details?: string;
 }
 
@@ -50,6 +67,7 @@ export interface ChatDirectorResult {
   actionsTaken: DirectorAction[];
   qcReport?: RapidAsmrQcReport;
   createdEpisode?: CreatedEpisodeLink;
+  proposedEpisodePlan?: ProposedEpisodePlan;
 }
 
 function buildCompileContext(project: any) {
@@ -78,7 +96,7 @@ function buildCompileContext(project: any) {
 }
 
 /**
- * Executes a list of director actions against the database and project state.
+ * Executes approved director actions against the database and project state.
  */
 export async function executeDirectorActions(
   projectId: string,
@@ -115,7 +133,16 @@ export async function executeDirectorActions(
   const ctx = buildCompileContext(project);
 
   for (const act of actions) {
-    // 0. Process CREATE_EPISODE actions
+    if (act.type === "PROPOSE_EPISODE") {
+      executed.push({
+        type: "PROPOSE_EPISODE",
+        proposedEpisodePlan: act.proposedEpisodePlan,
+        details: act.details || `Proposed Episode ${act.proposedEpisodePlan?.episodeNumber ?? ""}: awaiting creator approval`,
+      });
+      continue;
+    }
+
+    // 0. Process CREATE_EPISODE actions (only after explicit approval)
     if (act.type === "CREATE_EPISODE" && act.episodeIdea) {
       const effectiveOwnerId = ownerId || project.ownerId;
       let targetSeriesId = project.seriesId;
@@ -326,7 +353,7 @@ export async function executeDirectorActions(
     }
   }
 
-  // 4. Run QC Audit
+  // Only run QC Audit when scenes exist and we didn't just do pure conversation
   const updatedScenes = await prisma.scene.findMany({
     where: { projectId },
     orderBy: { sceneNumber: "asc" },
@@ -349,32 +376,88 @@ export async function executeDirectorActions(
     }
   );
 
-  executed.push({
-    type: "AUDIT_QC",
-    details: `ASMR QC Audit score: ${qcReport.overallScore}/100 (${qcReport.rating})`,
-  });
+  if (actions.some((a) => a.type === "AUDIT_QC" || a.type === "UPDATE_SCENE" || a.type === "RECOMPILE_PROMPTS" || a.type === "ALIGN_PROP_CONTINUITY")) {
+    executed.push({
+      type: "AUDIT_QC",
+      details: `ASMR QC Audit score: ${qcReport.overallScore}/100 (${qcReport.rating})`,
+    });
+  }
 
   return { executed, qcReport, createdEpisode };
 }
 
-function parseCreateEpisodeIntent(userMessage: string): {
-  isCreateIntent: boolean;
-  episodeNumber?: number;
-  subject: string;
-  targetRuntime: number;
-} {
-  const lower = userMessage.toLowerCase();
-  const hasCreateVerb = /\b(create|make|start|launch|plan|generate|build|new)\b/i.test(lower);
-  const hasProjectNoun = /\b(project|episode|ep\s*\d+)\b/i.test(lower);
-  const isCreateIntent = hasCreateVerb && hasProjectNoun;
-
+function buildHeuristicEpisodeProposal(
+  userMessage: string,
+  defaultNextEpNum: number
+): { reply: string; proposal: ProposedEpisodePlan } {
   const epMatch = userMessage.match(/\b(?:episode|ep)\s*#?\s*(\d+)\b/i);
-  const episodeNumber = epMatch ? Number(epMatch[1]) : undefined;
+  const episodeNumber = epMatch ? Number(epMatch[1]) : defaultNextEpNum;
 
   const runtimeMatch = userMessage.match(/\b(\d+)\s*(?:s|sec|seconds)\b/i);
   const targetRuntime = runtimeMatch ? Math.min(90, Math.max(15, Number(runtimeMatch[1]))) : 20;
 
-  // Clean conversational filler to isolate the subject/concept
+  const lower = userMessage.toLowerCase();
+  const isCricket = /\b(cricket|bat|ball)\b/i.test(lower);
+
+  if (isCricket) {
+    const dishName = "Smoked Willow-Wood Biryani & Spicy Leather-Ball Masala Kofta";
+    const comparisonTable: ComparisonRow[] = [
+      {
+        realElement: "Long-grain Basmati rice / Crispy fried onions",
+        inedibleCounterpart: "Fine English willow wood shavings & golden bat-grain splinters",
+        cookingMethod: "Hand-planed & toasted on hot iron tawa",
+      },
+      {
+        realElement: "Spiced Tandoori Seekh / Meat skewers",
+        inedibleCounterpart: "Stripped rubber bat grip sleeves & cane handle slivers",
+        cookingMethod: "High-heat char-sear with foaming rosin butter",
+      },
+      {
+        realElement: "Stuffed Masala Meatballs / Kofta",
+        inedibleCounterpart: "Cracked red stitched leather cricket ball halves & cork/twine core",
+        cookingMethod: "Cleaver split + bubbling crimson glaze reduction",
+      },
+      {
+        realElement: "Ghee Tadka & Aromatic Garnish",
+        inedibleCounterpart: "Crushed cork crumbles, white seam thread & toasted wood dust",
+        cookingMethod: "Smoking brass tadka ladle pour (*TCHRRRR*)",
+      },
+    ];
+
+    const tableMd = [
+      "| Real Dish Element | Inedible Cricket Component | Cooking Method |",
+      "|---|---|---|",
+      ...comparisonTable.map((r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`),
+    ].join("\n");
+
+    const proposal: ProposedEpisodePlan = {
+      episodeNumber,
+      title: `Episode ${episodeNumber}: Cricket Bat & Leather Ball Feast (ASMR)`,
+      sourceIdea: `The Shadow Alchemist transforms a vintage English willow cricket bat and stitched red leather cricket ball into ${dishName}. ${comparisonTable.map((r) => `${r.inedibleCounterpart} -> ${r.realElement}`).join("; ")}.`,
+      dishName,
+      targetRuntime,
+      comparisonTable,
+    };
+
+    const reply = `Great idea! Before I create **Episode ${episodeNumber}**, let's align on the dish and visual mapping first:
+
+### 1. Recommended Dish Concept
+**${dishName}**
+*(Or if you prefer **Crispy Willow-Shaving Tempura & Cricket Ball Samosa** or **Cricket Kothu Parotta**, just tell me!)*
+
+### 2. Comparison Table (Real Food vs. Inedible Components)
+${tableMd}
+
+### 3. Viral Shorts Pacing & Audio Plan
+- **0:00 - 0:03 Pre-Scene Hook**: Macro cleaver slam splitting the red leather cricket ball + willow bat shavings at 0.0s (-1dB high-gain Foley).
+- **Recommended Runtime**: **${targetRuntime}s (${targetRuntime <= 30 ? "5 high-density scenes of 4s each" : "8 scenes"})** — keeps Average Percentage Viewed above **100%+**.
+
+Would you like to change the dish, swap any components in the table, or adjust the runtime? When you're happy with it, click **Approve & Create Episode ${episodeNumber}** below (or reply **"Approved, create it"**).`;
+
+    return { reply, proposal };
+  }
+
+  // Generic object proposal
   let subject = userMessage
     .replace(/\b(?:for|in)\s+(?:episode|ep)\s*#?\s*\d+\b/gi, "")
     .replace(/\b(?:i am going to|i want to|please|can you|could you|let'?s|we should)\b/gi, "")
@@ -384,12 +467,74 @@ function parseCreateEpisodeIntent(userMessage: string): {
     .replace(/[,?.!]+/g, " ")
     .replace(/\s{2,}/g, " ")
     .trim();
+  if (!subject || subject.length < 3) subject = "Custom Hardware";
 
-  if (!subject || subject.length < 3) {
-    subject = userMessage.trim();
+  const formattedSubject = subject.replace(/\b\w/g, (c) => c.toUpperCase());
+  const dishName = `${formattedSubject} Signature Sizzling Crunch Feast`;
+  const comparisonTable: ComparisonRow[] = [
+    {
+      realElement: "Crispy fried base / Noodles",
+      inedibleCounterpart: `${formattedSubject} shaved outer shell & wires`,
+      cookingMethod: "2X cleaver dice & scorching tawa sear",
+    },
+    {
+      realElement: "Paneer / Tofu cubes",
+      inedibleCounterpart: `${formattedSubject} dense internal blocks`,
+      cookingMethod: "Geometric 1cm dice & golden rosin glaze",
+    },
+    {
+      realElement: "Rich dipping chutney / Gravy",
+      inedibleCounterpart: `Melted translucent ${formattedSubject} glaze reduction`,
+      cookingMethod: "Brass handi reduction pour",
+    },
+  ];
+
+  const tableMd = [
+    "| Real Dish Element | Inedible Component | Cooking Method |",
+    "|---|---|---|",
+    ...comparisonTable.map((r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`),
+  ].join("\n");
+
+  const proposal: ProposedEpisodePlan = {
+    episodeNumber,
+    title: `Episode ${episodeNumber}: ${formattedSubject} Feast (ASMR)`,
+    sourceIdea: `The Shadow Alchemist transforms ${subject} into ${dishName}.`,
+    dishName,
+    targetRuntime,
+    comparisonTable,
+  };
+
+  const reply = `Let's plan **Episode ${episodeNumber}** together before creating any files:
+
+### 1. Proposed Dish
+**${dishName}** *(Tell me if you'd prefer Biryani, Samosa, Idiyappam, Tempura, or Street Tawa style!)*
+
+### 2. Comparison Table
+${tableMd}
+
+### 3. Shorts Retention & Audio Setup
+- **Pre-Scene Hook (0:00 - 0:03)**: Tight macro slam at 0.0s + -1dB high-gain close-mic Foley.
+- **Runtime**: **${targetRuntime}s** (fast-paced 4–5 scene structure).
+
+Tell me what dish or changes you want, or click **Approve & Create Episode ${episodeNumber}** when ready!`;
+
+  return { reply, proposal };
+}
+
+function isIdeaOrPlanningMessage(userMessage: string): boolean {
+  const lower = userMessage.toLowerCase();
+  const hasQuestionOrComplaint = /\?|\b(why|how|what|explain|without approval|never speak|discuss|what are|which dish|suggest|idea|plan|going to)\b/i.test(lower);
+  const mentionsNewEpisode = /\b(new episode|next episode|episode\s*\d+|ep\s*\d+|new project|create.*project|create.*episode|cricket|bat.*ball)\b/i.test(lower);
+  return mentionsNewEpisode && (hasQuestionOrComplaint || !isExplicitApprovalMessage(userMessage));
+}
+
+function isExplicitApprovalMessage(userMessage: string): boolean {
+  const lower = userMessage.trim().toLowerCase();
+  if (lower.includes("?") || /\b(why|without|don't|do not|never|how|explain|what)\b/i.test(lower)) {
+    return false;
   }
-
-  return { isCreateIntent, episodeNumber, subject, targetRuntime };
+  return /^(yes|yeah|yep|ok|okay|sure|approved?|confirmed?|go ahead|looks good|create it|do it|proceed)\b/i.test(lower) ||
+    /\b(yes,?\s*create|approved?,?\s*create|go ahead and create|confirm and create)\b/i.test(lower);
 }
 
 /**
@@ -399,10 +544,12 @@ export async function handleDirectorChat({
   projectId,
   ownerId,
   userMessage,
+  approvePlan,
 }: {
   projectId: string;
   ownerId: string;
   userMessage: string;
+  approvePlan?: ProposedEpisodePlan;
 }): Promise<ChatDirectorResult> {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -440,8 +587,23 @@ export async function handleDirectorChat({
   const detected = detectPhysicalEntities(projectText, project.sourceIdea);
   const heroObject = detected.inedibleHeroObject || project.title;
   const isQuartzProject = /\b(quartz|granite|idiyappam|silica|gemstone)\b/i.test(projectText);
+  const defaultNextEpNum = (project.series?.episodes?.[0]?.episodeNumber ?? project.episodeNumber ?? 0) + 1;
 
-  // Run initial QC report to know the baseline
+  // Recover latest pending proposedEpisodePlan from recent chatMessages if present
+  let pendingProposal: ProposedEpisodePlan | undefined;
+  for (const m of project.chatMessages) {
+    if (m.sender === "AI_DIRECTOR" && m.actionsTaken) {
+      try {
+        const parsedActions = JSON.parse(m.actionsTaken) as DirectorAction[];
+        const found = parsedActions.find((a) => a.type === "PROPOSE_EPISODE" && a.proposedEpisodePlan);
+        if (found?.proposedEpisodePlan) {
+          pendingProposal = found.proposedEpisodePlan;
+          break;
+        }
+      } catch {}
+    }
+  }
+
   const currentQc = auditRapidAsmrProject(
     project.scenes.map((s) => ({
       sceneNumber: s.sceneNumber,
@@ -460,34 +622,47 @@ export async function handleDirectorChat({
   );
 
   const lowerMsg = userMessage.toLowerCase();
+  const isQuestionOrComplaint = /\?|\b(why|how come|without approval|never speak|explain|what happened)\b/i.test(lowerMsg);
   let proposedActions: DirectorAction[] = [];
   let aiReply = "";
+  let proposedEpisodePlan: ProposedEpisodePlan | undefined;
 
-  const createIntent = parseCreateEpisodeIntent(userMessage);
+  // 1. Explicit Approval Gate for Creating an Episode (either button click `approvePlan` or explicit text confirmation of `pendingProposal`)
+  const planToCreate = approvePlan || (isExplicitApprovalMessage(userMessage) ? pendingProposal : undefined);
 
-  // 1. Create Episode / Project directly from AI Director Chat
-  if (createIntent.isCreateIntent) {
-    const nextEpNum =
-      createIntent.episodeNumber ??
-      ((project.series?.episodes?.[0]?.episodeNumber ?? project.episodeNumber ?? 0) + 1);
-    const formattedSubject = createIntent.subject
-      .split(/\s+/)
-      .map((w) => (w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w))
-      .join(" ");
-
-    const episodeTitle = `Episode ${nextEpNum}: ${formattedSubject} Feast (ASMR)`;
-    const episodeIdea = `The Shadow Alchemist cooks ${createIntent.subject} into a sizzling high-retention Rapid ASMR dish in ${createIntent.targetRuntime} seconds with high-volume close-mic Foley.`;
-
+  if (planToCreate) {
     proposedActions.push({
       type: "CREATE_EPISODE",
-      episodeTitle,
-      episodeIdea,
-      episodeNumber: nextEpNum,
-      targetRuntime: createIntent.targetRuntime,
+      episodeTitle: planToCreate.title,
+      episodeIdea: planToCreate.sourceIdea,
+      episodeNumber: planToCreate.episodeNumber,
+      targetRuntime: planToCreate.targetRuntime,
     });
-
-    aiReply = `Done! I created **${episodeTitle}** (${createIntent.targetRuntime}s Rapid ASMR · 5 high-density scenes + dual 3-second opening hooks + high-gain -1dB Foley prompts). Click the button below to open its Storyboard and start generating!`;
-  } else if (lowerMsg.includes("hook") || lowerMsg.includes("scene 1") || lowerMsg.includes("faster hook")) {
+    aiReply = `Approved! I created **${planToCreate.title}** (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · with dual 3-second opening hooks and high-gain -1dB Foley). Click below to open its Storyboard!`;
+  } else if (
+    !isQuestionOrComplaint &&
+    (lowerMsg.includes("audit asmr qc") || lowerMsg.includes("qc score") || /\b(audit|score)\b/i.test(lowerMsg)) &&
+    !/\b(episode|create|project|cricket|bat|ball)\b/i.test(lowerMsg)
+  ) {
+    proposedActions.push({ type: "AUDIT_QC" });
+    const hookPass = currentQc.checks.find((c) => c.checkId === "ZERO_SECOND_ACOUSTIC_HOOK")?.passed ?? true;
+    const nostalgiaCheck = currentQc.checks.find((c) => c.checkId === "PROP_NOSTALGIA_SCORE");
+    const loopPass = currentQc.checks.find((c) => c.checkId === "SEAMLESS_LOOP_ENGINEERING")?.passed ?? true;
+    aiReply = `Current ASMR QC Score for "${project.title}" is **${currentQc.overallScore}/100** (${currentQc.rating}).
+• 0.0s Acoustic Hook: ${hookPass ? "Passed (Instant Slam)" : "Warning: Needs 0.0s Acoustic Impact"}
+• Prop Nostalgia Rating: ${nostalgiaCheck?.score === 100 ? "Tier S/A (High Viral Tech)" : "Tier B (Raw Material - Needs 2X Processing)"}
+• Seamless Loop: ${loopPass ? "Passed (120% APVD Ready)" : "Needs Loop Alignment"}
+Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") : "None. Production ready!"}`;
+  } else if (
+    !isQuestionOrComplaint &&
+    (lowerMsg.includes("recompile") && lowerMsg.includes("prompt"))
+  ) {
+    proposedActions.push({ type: "RECOMPILE_PROMPTS" });
+    aiReply = `I recompiled all cinematic prompts across all ${project.scenes.length} scenes of "${project.title}" with high-gain -1dB ASMR audio directives.`;
+  } else if (
+    !isQuestionOrComplaint &&
+    (lowerMsg.includes("upgrade scene 1") || lowerMsg.includes("faster hook") || /\bchange scene 1\b/i.test(lowerMsg))
+  ) {
     const hookDesc = isQuartzProject
       ? "4-Beat Rapid Process Hook: Slam raw quartz boulder on anvil (0-2s) -> Sledgehammer shatter with bright spark explosion (2-4s) -> Flywheel extruder cascade into whistling brass steamer (4-6s) -> Hero chopstick noodle lift with pearly glaze drip (6-8s). Pure acoustic Foley."
       : `0.0s Zero-Second Acoustic Hook: At frame 1, black-gloved hands violently slam ${heroObject} onto the workstation (*LOUD ACOUSTIC THUD*, 80% screen fill) -> Damascus cleaver strikes cleanly with sparks (*CRACK-CLANG-SPARK*) -> rapid disassembly into brass tray -> intense sizzling sear (*TZZZZZ*). High-volume close-mic Foley.`;
@@ -499,9 +674,10 @@ export async function handleDirectorChat({
       actionDescription: hookDesc,
       audioScript: "HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Loud anvil/board slam (*THUD*), sharp cleaver crack (*CRACK-CLANG*), sizzling sear (*TZZZZZ*), zero silence.",
     });
-    aiReply = `I upgraded Scene 1 of "${project.title}" to a high-retention 0.0s Acoustic Slam Hook tailored for ${heroObject}, and recompiled all prompts with high-gain -1dB Foley.`;
+    aiReply = `I upgraded Scene 1 of "${project.title}" to a 0.0s Acoustic Slam Hook tailored for ${heroObject}, and recompiled the prompts.`;
   } else if (
-    (lowerMsg.includes("machine") || lowerMsg.includes("extruder") || lowerMsg.includes("continuity")) &&
+    !isQuestionOrComplaint &&
+    (lowerMsg.includes("machine") || lowerMsg.includes("extruder") || lowerMsg.includes("prop continuity")) &&
     (lowerMsg.includes("4") || lowerMsg.includes("5"))
   ) {
     const isExtruder = isQuartzProject || lowerMsg.includes("extruder");
@@ -517,12 +693,10 @@ export async function handleDirectorChat({
       ? `I synchronized the vertical cast-brass extruder press between Scene 4 and Scene 5. Both scenes are now locked to the identical prop architecture, and all prompts have been recompiled.`
       : `I synchronized prop continuity between Scene 4 and Scene 5 using: ${machineDesc}. All shot prompts have been recompiled.`;
   } else if (
+    !isQuestionOrComplaint &&
     isQuartzProject &&
-    (lowerMsg.includes("quartz") ||
-      lowerMsg.includes("real food") ||
-      lowerMsg.includes("inedible") ||
-      lowerMsg.includes("scene 7") ||
-      lowerMsg.includes("scene 8"))
+    (lowerMsg.includes("quartz") || lowerMsg.includes("silica") || lowerMsg.includes("inedible")) &&
+    (lowerMsg.includes("7") || lowerMsg.includes("8"))
   ) {
     proposedActions.push({
       type: "UPDATE_SCENE",
@@ -538,65 +712,86 @@ export async function handleDirectorChat({
     });
     aiReply =
       "I enforced Crystalline Inedible Material Integrity (ADR-040) on Scene 7 and Scene 8 for your Quartz episode and recompiled the prompts.";
-  } else if (lowerMsg.includes("qc") || lowerMsg.includes("audit") || lowerMsg.includes("score")) {
-    proposedActions.push({ type: "AUDIT_QC" });
-    const hookPass = currentQc.checks.find((c) => c.checkId === "ZERO_SECOND_ACOUSTIC_HOOK")?.passed ?? true;
-    const nostalgiaCheck = currentQc.checks.find((c) => c.checkId === "PROP_NOSTALGIA_SCORE");
-    const loopPass = currentQc.checks.find((c) => c.checkId === "SEAMLESS_LOOP_ENGINEERING")?.passed ?? true;
-    aiReply = `Current ASMR QC Score is ${currentQc.overallScore}/100 (${currentQc.rating}).
-• 0.0s Acoustic Hook: ${hookPass ? "Passed (Instant Slam)" : "Warning: Needs 0.0s Acoustic Impact"}
-• Prop Nostalgia Rating: ${nostalgiaCheck?.score === 100 ? "Tier S/A (High Viral Tech)" : "Tier B (Raw Material - Needs 2X Processing)"}
-• Seamless Loop: ${loopPass ? "Passed (120% APVD Ready)" : "Needs Loop Alignment"}
-Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") : "None. Production ready!"}`;
-  } else if (lowerMsg.includes("recompile") || lowerMsg.includes("prompts")) {
-    proposedActions.push({ type: "RECOMPILE_PROMPTS" });
-    aiReply = `I recompiled all cinematic prompts across all ${project.scenes.length} scenes of "${project.title}" using the Universal Prompt Compiler with high-gain -1dB ASMR audio directives.`;
   } else {
-    // 2. Try LLM Structured Generation if Provider is Available
+    // 2. Conversational LLM Mode (Brainstorming, Dish & Comparison Table Planning, Questions, Adjustments)
     let llmSuccess = false;
     try {
       const { provider, modelId } = await resolveTextProvider(ownerId, false);
       const sceneSummary = project.scenes
-        .map((s) => `Scene ${s.sceneNumber} (${s.heading}): ${s.actionSummary.slice(0, 140)}...`)
+        .map((s) => `Scene ${s.sceneNumber} (${s.heading}): ${s.actionSummary.slice(0, 120)}...`)
+        .join("\n");
+      const historySummary = [...project.chatMessages]
+        .reverse()
+        .map((m) => `${m.sender}: ${m.message}`)
         .join("\n");
 
-      const systemPrompt = `You are the Lead AI Film Director & Cinematic Prompt Architect for this film project.
-Project Title: "${project.title}"
-Hero Object / Subject: "${heroObject}"
-Visual Style: "${project.visualStyle}"
-Genre: "${project.genre}"
-Tone: "${project.tone}"
-Invariants:
-- Zero-Second Acoustic Slam: Frame 1 starts at 0.0s with an immediate loud acoustic hit and 80% screen prop fill.
-- High-Volume Close-Mic ASMR (-1dB peak), zero dialogue, zero background music.
-- Authentic inedible hardware/prop physics matching "${heroObject}".
+      const systemPrompt = `You are a collaborative, creative AI Film Director Co-Pilot inside FrameForge Studio.
+Active Project: "${project.title}" (Episode ${project.episodeNumber ?? 1}, Hero: "${heroObject}", Runtime: ${project.targetRuntime}s)
+Next Episode Number if planning a new episode: ${defaultNextEpNum}
 
-Existing Scenes:
+CRITICAL CONVERSATIONAL RULES:
+1. NEVER automatically create a project or mutate scenes when the user is pitching an idea, asking a question, complaining, or discussing options!
+2. If the user pitches a new episode/object (e.g. "Episode 8 cricket bat and ball") OR asks to discuss food & comparison tables:
+   - Discuss the creative direction conversationally like a real filmmaker!
+   - Propose 1–2 creative culinary dish concepts mapped to the inedible item.
+   - Include a clear **Markdown Comparison Table** mapping: | Real Dish Element | Inedible Component | Cooking Method |.
+   - Recommend optimal Shorts runtime (**20s–30s / 4–5 scenes** for >100% APVD vs 60s / 8 scenes) and a 0.0s Acoustic Hook.
+   - Ask for the creator's feedback or approval BEFORE creating anything!
+   - Populate "proposedEpisodePlan" in the JSON (and keep "actions" empty or PROPOSE_EPISODE only — NEVER CREATE_EPISODE here!).
+3. If the user asks a general question or complains ("why...", "what should we cook..."), answer directly, empathetically, and helpfully.
+
+Recent Chat History:
+${historySummary || "(none)"}
+
+Active Project Scenes:
 ${sceneSummary}
 
-Current QC Score: ${currentQc.overallScore}/100 (${currentQc.rating}).
+Return valid JSON:
+{
+  "reply": "markdown response with discussion, comparison table (when planning), and clear question asking for approval",
+  "proposedEpisodePlan": {
+    "episodeNumber": number,
+    "title": string,
+    "sourceIdea": string,
+    "dishName": string,
+    "targetRuntime": number,
+    "comparisonTable": [{ "realElement": string, "inedibleCounterpart": string, "cookingMethod": string }]
+  } | null,
+  "actions": []
+}`;
 
-Answer the creator's request with expert filmmaking insight, and if they ask for edits or a new episode, specify structured actions.
-Return JSON with:
-- "reply": string
-- "actions": array of { type: "UPDATE_SCENE" | "RECOMPILE_PROMPTS" | "AUDIT_QC" | "ALIGN_PROP_CONTINUITY" | "CREATE_EPISODE", sceneNumber?: number, sceneNumbers?: number[], actionDescription?: string, heading?: string, audioScript?: string, propDescription?: string, episodeTitle?: string, episodeIdea?: string, targetRuntime?: number }`;
+      const PlanRowSchema = z.object({
+        realElement: z.string(),
+        inedibleCounterpart: z.string(),
+        cookingMethod: z.string(),
+      });
 
       const ResponseSchema = z.object({
         reply: z.string(),
-        actions: z.array(
-          z.object({
-            type: z.enum(["UPDATE_SCENE", "RECOMPILE_PROMPTS", "AUDIT_QC", "ALIGN_PROP_CONTINUITY", "CREATE_EPISODE"]),
-            sceneNumber: z.number().optional(),
-            sceneNumbers: z.array(z.number()).optional(),
-            actionDescription: z.string().optional(),
-            heading: z.string().optional(),
-            audioScript: z.string().optional(),
-            propDescription: z.string().optional(),
-            episodeTitle: z.string().optional(),
-            episodeIdea: z.string().optional(),
-            targetRuntime: z.number().optional(),
+        proposedEpisodePlan: z
+          .object({
+            episodeNumber: z.coerce.number(),
+            title: z.string(),
+            sourceIdea: z.string(),
+            dishName: z.string(),
+            targetRuntime: z.coerce.number().default(20),
+            comparisonTable: z.array(PlanRowSchema).optional(),
           })
-        ),
+          .nullable()
+          .optional(),
+        actions: z
+          .array(
+            z.object({
+              type: z.enum(["UPDATE_SCENE", "RECOMPILE_PROMPTS", "AUDIT_QC", "ALIGN_PROP_CONTINUITY"]),
+              sceneNumber: z.number().optional(),
+              sceneNumbers: z.array(z.number()).optional(),
+              actionDescription: z.string().optional(),
+              heading: z.string().optional(),
+              audioScript: z.string().optional(),
+              propDescription: z.string().optional(),
+            })
+          )
+          .default([]),
       });
 
       const res = await provider.generateStructured({
@@ -608,27 +803,47 @@ Return JSON with:
 
       if (res?.data) {
         aiReply = res.data.reply;
-        proposedActions = res.data.actions as DirectorAction[];
+        proposedActions = (res.data.actions || []) as DirectorAction[];
+        if (res.data.proposedEpisodePlan) {
+          proposedEpisodePlan = res.data.proposedEpisodePlan;
+          proposedActions.push({
+            type: "PROPOSE_EPISODE",
+            proposedEpisodePlan,
+            details: `Proposed Ep ${proposedEpisodePlan.episodeNumber}: ${proposedEpisodePlan.dishName} (awaiting approval)`,
+          });
+        }
         llmSuccess = true;
       }
     } catch (llmErr) {
-      logger.warn({ err: llmErr }, "LLM generation failed or no provider; using heuristic director response");
+      logger.warn({ err: llmErr }, "LLM chat failed; using conversational fallback");
     }
 
     if (!llmSuccess) {
-      aiReply = `As AI Director for "${project.title}", I reviewed your note: "${userMessage}". Current ASMR QC score is ${currentQc.overallScore}/100 (${project.scenes.length} scenes). You can ask me to "Audit ASMR QC", "Upgrade Scene 1 hook", "Recompile all prompts", or "Create Episode X for <your object>".`;
-      proposedActions.push({ type: "AUDIT_QC" });
+      if (isQuestionOrComplaint && !/\b(cricket|bat|ball)\b/i.test(lowerMsg)) {
+        aiReply = `You're right — I shouldn't create any project without discussing the dish, comparison table, and runtime with you first. Tell me what object you want to cook next (for example: *"Cricket Bat and Ball — what dish & comparison table do you recommend?"*) and we'll plan it together before creating anything!`;
+      } else if (isIdeaOrPlanningMessage(userMessage) || /\b(cricket|bat|ball|plan|dish|food|table)\b/i.test(lowerMsg)) {
+        const { reply, proposal } = buildHeuristicEpisodeProposal(userMessage, defaultNextEpNum);
+        aiReply = reply;
+        proposedEpisodePlan = proposal;
+        proposedActions.push({
+          type: "PROPOSE_EPISODE",
+          proposedEpisodePlan: proposal,
+          details: `Proposed Ep ${proposal.episodeNumber}: ${proposal.dishName} (awaiting approval)`,
+        });
+      } else {
+        aiReply = `I'm here as your AI Director for "${project.title}". We can brainstorm your next episode's dish and comparison table, discuss hook pacing, or refine any scene. What would you like to discuss?`;
+      }
     }
   }
 
-  // 3. Execute the proposed actions
+  // 3. Execute only explicitly triggered/approved actions
   const { executed, qcReport, createdEpisode } = await executeDirectorActions(
     projectId,
     proposedActions,
     ownerId
   );
 
-  // 4. Save messages to database
+  // 4. Save conversation history to DB
   await prisma.projectChatMessage.create({
     data: {
       projectId,
@@ -651,5 +866,6 @@ Return JSON with:
     actionsTaken: executed,
     qcReport: qcReport || currentQc,
     createdEpisode,
+    proposedEpisodePlan,
   };
 }

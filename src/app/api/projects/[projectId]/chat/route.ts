@@ -3,10 +3,28 @@ import { apiHandler } from "@/lib/api/handler";
 import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
-import { handleDirectorChat } from "@/lib/story/chat-director";
+import { handleDirectorChat, type ProposedEpisodePlan } from "@/lib/story/chat-director";
+
+const approvePlanSchema = z.object({
+  episodeNumber: z.coerce.number(),
+  title: z.string().min(1),
+  sourceIdea: z.string().min(1),
+  dishName: z.string().default("Custom ASMR Dish"),
+  targetRuntime: z.coerce.number().default(20),
+  comparisonTable: z
+    .array(
+      z.object({
+        realElement: z.string(),
+        inedibleCounterpart: z.string(),
+        cookingMethod: z.string(),
+      })
+    )
+    .optional(),
+});
 
 const postSchema = z.object({
   message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long"),
+  approvePlan: approvePlanSchema.optional(),
 });
 
 export const GET = apiHandler(async (_req, ctx) => {
@@ -30,15 +48,21 @@ export const GET = apiHandler(async (_req, ctx) => {
     projectId: project.id,
     projectTitle: project.title,
     messages: messages.map((m) => {
-      let actions = [];
+      let actions: any[] = [];
+      let proposedEpisodePlan: ProposedEpisodePlan | undefined;
       try {
-        if (m.actionsTaken) actions = JSON.parse(m.actionsTaken);
+        if (m.actionsTaken) {
+          actions = JSON.parse(m.actionsTaken);
+          const propAction = actions.find((a) => a.type === "PROPOSE_EPISODE" && a.proposedEpisodePlan);
+          if (propAction) proposedEpisodePlan = propAction.proposedEpisodePlan;
+        }
       } catch {}
       return {
         id: m.id,
         sender: m.sender,
         message: m.message,
         actionsTaken: actions,
+        proposedEpisodePlan,
         createdAt: m.createdAt,
       };
     }),
@@ -67,6 +91,7 @@ export const POST = apiHandler(async (req, ctx) => {
     projectId: projectId as string,
     ownerId,
     userMessage: parsed.data.message,
+    approvePlan: parsed.data.approvePlan,
   });
 
   return {
@@ -75,5 +100,6 @@ export const POST = apiHandler(async (req, ctx) => {
     actionsTaken: result.actionsTaken,
     qcReport: result.qcReport,
     createdEpisode: result.createdEpisode,
+    proposedEpisodePlan: result.proposedEpisodePlan,
   };
 });

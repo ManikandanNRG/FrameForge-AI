@@ -78,6 +78,7 @@ export default function NewProjectPage() {
   const [pipelineProgress, setPipelineProgress] = useState<string | null>(null);
   const [analyzingIdea, setAnalyzingIdea] = useState(false);
   const [autoDetectedBadge, setAutoDetectedBadge] = useState<string | null>(null);
+  const [createdProjectId, setCreatedProjectId] = useState<string | null>(null);
   const [form, setForm]       = useState({
     title:         "",
     sourceIdea:    "",
@@ -142,15 +143,19 @@ export default function NewProjectPage() {
     setPipelineProgress(null);
     
     try {
-      const r = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const d = await r.json();
-      if (!r.ok) throw new Error(d.error?.message ?? "Failed to create project");
+      let newProjectId = createdProjectId;
+      if (!newProjectId) {
+        const r = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error?.message ?? "Failed to create project");
 
-      const newProjectId = d.data.project.id;
+        newProjectId = d.data.project.id;
+        setCreatedProjectId(newProjectId);
+      }
 
       if (autoRunPipeline) {
         setPipelineProgress("⚡ 1-Click Studio: Generating screenplay, characters, and storyboard prompts…");
@@ -159,11 +164,15 @@ export default function NewProjectPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ autoGenerateVideos: false }),
         });
-        const pipeData = await pipeRes.json();
+        const pipeData = await pipeRes.json().catch(() => ({}));
         if (pipeRes.ok) {
           router.push(`/projects/${newProjectId}/storyboard`);
           return;
         }
+        throw new Error(
+          pipeData?.error?.message ||
+            "Project created, but 1-Click pipeline failed (check Settings → Providers). You can uncheck 1-Click Auto-Run and continue."
+        );
       }
 
       router.push(`/projects/${newProjectId}`);

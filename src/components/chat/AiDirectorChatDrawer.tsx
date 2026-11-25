@@ -1,18 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   X,
   Send,
   Clapperboard,
   ShieldCheck,
-  Zap,
   CheckCircle2,
   RefreshCw,
-  Sliders,
-  MessageSquare,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 
 interface ActionItem {
@@ -22,11 +21,19 @@ interface ActionItem {
   sceneNumbers?: number[];
 }
 
+interface CreatedEpisodeLink {
+  id: string;
+  title: string;
+  episodeNumber: number;
+  url: string;
+}
+
 interface ChatMessage {
   id: string;
   sender: "USER" | "AI_DIRECTOR" | "SYSTEM";
   message: string;
   actionsTaken?: ActionItem[];
+  createdEpisode?: CreatedEpisodeLink;
   createdAt: string;
 }
 
@@ -36,6 +43,16 @@ interface AiDirectorChatDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onProjectUpdated?: () => void;
+}
+
+function extractApiError(errData: any, fallback: string): string {
+  if (!errData) return fallback;
+  if (typeof errData.error === "string" && errData.error.trim()) return errData.error;
+  if (typeof errData.error?.message === "string" && errData.error.message.trim()) {
+    return errData.error.message;
+  }
+  if (typeof errData.message === "string" && errData.message.trim()) return errData.message;
+  return fallback;
 }
 
 export function AiDirectorChatDrawer({
@@ -54,20 +71,31 @@ export function AiDirectorChatDrawer({
   const [qcRating, setQcRating] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Quick Action Suggestions
+  const isQuartz = /quartz|granite|stone|idiyappam/i.test(projectTitle || "");
+
+  // Project-aware Quick Action Suggestions
   const quickActions = [
     {
       label: "⚡ Audit ASMR QC & Hook",
-      prompt: "Audit ASMR QC and verify the 4-Beat Process Hook retention score.",
+      prompt: "Audit ASMR QC and verify the 0.0s Acoustic Hook and Loop score.",
     },
     {
-      label: "⚙️ Align Machine (S4 & S5)",
-      prompt: "Align the machine continuity between Scene 4 and Scene 5 to lock the vertical cast-brass extruder.",
+      label: "🎣 Upgrade Scene 1 Hook",
+      prompt: "Upgrade Scene 1 to a 0.0s Zero-Second Acoustic Slam Hook for maximum Shorts retention.",
     },
-    {
-      label: "💎 Enforce Inedible Quartz (S7 & S8)",
-      prompt: "Make sure Scene 7 and Scene 8 strictly look like optical-quartz silica glass noodles and faceted gemstone kurma, not real food.",
-    },
+    ...(isQuartz
+      ? [
+          {
+            label: "💎 Enforce Inedible Quartz (S7 & S8)",
+            prompt: "Make sure Scene 7 and Scene 8 strictly look like optical-quartz silica glass noodles and raw quartz crystals, not real food.",
+          },
+        ]
+      : [
+          {
+            label: "⚙️ Align Prop Continuity (S4 & S5)",
+            prompt: "Align machine and cookware continuity between Scene 4 and Scene 5.",
+          },
+        ]),
     {
       label: "🎬 Recompile All Prompts",
       prompt: "Recompile all cinematic prompts across all scenes.",
@@ -81,13 +109,17 @@ export function AiDirectorChatDrawer({
       setFetchingHistory(true);
       setError(null);
       const res = await fetch(`/api/projects/${projectId}/chat`);
-      if (!res.ok) throw new Error("Failed to load chat history");
-      const data = await res.json();
-      if (data.messages) {
-        setMessages(data.messages);
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(extractApiError(json, "Unable to load chat history. Restart server if schema updated."));
+        return;
+      }
+      const payload = json.data ?? json;
+      if (Array.isArray(payload.messages)) {
+        setMessages(payload.messages);
       }
     } catch (err: any) {
-      console.error("Error loading chat messages:", err);
+      setError(err?.message || "Network error loading chat history");
     } finally {
       setFetchingHistory(false);
     }
@@ -111,7 +143,6 @@ export function AiDirectorChatDrawer({
     setInputText("");
     setError(null);
 
-    // Optimistically add user message
     const tempUserMsg: ChatMessage = {
       id: `temp-${Date.now()}`,
       sender: "USER",
@@ -128,34 +159,40 @@ export function AiDirectorChatDrawer({
         body: JSON.stringify({ message: text }),
       });
 
+      const json = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || "Failed to communicate with AI Director");
+        throw new Error(extractApiError(json, "Failed to communicate with AI Director"));
       }
 
-      const data = await res.json();
+      const payload = json.data ?? json;
+      const replyText = payload.reply || "Director updated the project.";
+      const actionsTaken: ActionItem[] = Array.isArray(payload.actionsTaken) ? payload.actionsTaken : [];
 
       const aiMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: "AI_DIRECTOR",
-        message: data.reply,
-        actionsTaken: data.actionsTaken || [],
+        message: replyText,
+        actionsTaken,
+        createdEpisode: payload.createdEpisode,
         createdAt: new Date().toISOString(),
       };
 
       setMessages((prev) => [...prev, aiMsg]);
 
-      if (data.qcReport) {
-        setQcScore(data.qcReport.overallScore);
-        setQcRating(data.qcReport.rating);
+      if (payload.qcReport) {
+        setQcScore(payload.qcReport.overallScore);
+        setQcRating(payload.qcReport.rating);
       }
 
-      // Notify parent to refresh scenes/shots if actions were taken
-      if (data.actionsTaken && data.actionsTaken.length > 0 && onProjectUpdated) {
+      const mutatedCurrentProject = actionsTaken.some(
+        (a) => a.type === "UPDATE_SCENE" || a.type === "RECOMPILE_PROMPTS" || a.type === "ALIGN_PROP_CONTINUITY"
+      );
+      if (mutatedCurrentProject && onProjectUpdated) {
         onProjectUpdated();
       }
     } catch (err: any) {
-      setError(err.message || "Failed to get response");
+      setError(err?.message || "Failed to get response");
     } finally {
       setLoading(false);
     }
@@ -187,7 +224,10 @@ export function AiDirectorChatDrawer({
 
           <div className="flex items-center gap-2">
             {qcScore !== null && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold">
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-bold"
+                title={qcRating || undefined}
+              >
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>{qcScore}/100</span>
               </div>
@@ -232,7 +272,7 @@ export function AiDirectorChatDrawer({
               </div>
               <h4 className="font-semibold text-sm text-slate-200">Your In-App AI Director is Ready</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Ask for script corrections, fix machine continuity, enforce inedible food textures, or audit the retention hook in real time.
+                Ask for script edits, prop continuity fixes, ASMR QC hook audits, or say &ldquo;Create Episode 8 for Cricket Bat and Ball&rdquo; to spin up a new episode.
               </p>
             </div>
           )}
@@ -252,6 +292,19 @@ export function AiDirectorChatDrawer({
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{m.message}</p>
+
+                  {!isUser && m.createdEpisode && (
+                    <Link
+                      href={m.createdEpisode.url}
+                      onClick={onClose}
+                      className="mt-3 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-sm"
+                    >
+                      <span className="truncate">
+                        Open Ep {m.createdEpisode.episodeNumber}: {m.createdEpisode.title}
+                      </span>
+                      <ArrowRight className="w-4 h-4 shrink-0" />
+                    </Link>
+                  )}
 
                   {/* Actions Taken Badges */}
                   {!isUser && m.actionsTaken && m.actionsTaken.length > 0 && (
@@ -283,7 +336,7 @@ export function AiDirectorChatDrawer({
             <div className="flex items-start gap-2">
               <div className="bg-slate-800/90 border border-slate-700/70 rounded-2xl px-4 py-3 text-xs text-slate-300 flex items-center gap-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                <span>AI Director analyzing screenplay & compiling prompts...</span>
+                <span>AI Director analyzing screenplay &amp; compiling prompts...</span>
               </div>
             </div>
           )}
@@ -311,7 +364,7 @@ export function AiDirectorChatDrawer({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="e.g. Change Scene 1 hook, align machine in S4 & S5..."
+              placeholder="e.g. Create Episode 8 for cricket bat & ball, or Audit QC..."
               disabled={loading}
               className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
             />

@@ -74,5 +74,6 @@ export const POST = apiHandler(async (req, ctx) => {
     reply: result.reply,
     actionsTaken: result.actionsTaken,
     qcReport: result.qcReport,
+    createdEpisode: result.createdEpisode,
   };
 });

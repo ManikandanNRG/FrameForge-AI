@@ -62,6 +62,18 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("Two black-gloved hands cracking open");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("wide circular clean white ceramic dinner plate");
     expect(kit.thumbnailPrompts.heroFoodCrack).toContain("raw fractured rectangular chunk");
+
+    // Dual 3-Second Opening Hook Prompts (Pre-Scene Hooks)
+    expect(kit.hookPrompts).toBeDefined();
+    expect(kit.hookPrompts.optionA_cleaverSlam.title).toContain("Hook Option 1: Acoustic Cleaver Spark Slam");
+    expect(kit.hookPrompts.optionA_cleaverSlam.googleFlowPrompt).toContain("0:00 - 0:03");
+    expect(kit.hookPrompts.optionA_cleaverSlam.googleFlowPrompt).toContain("violently slam");
+    expect(kit.hookPrompts.optionA_cleaverSlam.googleFlowPrompt).toContain("Damascus steel kitchen cleaver");
+    expect(kit.hookPrompts.optionB_sizzleDrop.title).toContain("Hook Option 2: Sizzling Pan Drop Teaser");
+    expect(kit.hookPrompts.optionB_sizzleDrop.googleFlowPrompt).toContain("0:00 - 0:03");
+    expect(kit.hookPrompts.optionB_sizzleDrop.googleFlowPrompt).toContain("scorching-hot");
+    expect(kit.thumbnailPrompts.hookOptionA_cleaverSlam).toBeDefined();
+    expect(kit.thumbnailPrompts.hookOptionB_sizzleDrop).toBeDefined();
   });
 
   it("generates YouTube launch suite with high-CTR titles, safety disclaimer and foley notes", () => {

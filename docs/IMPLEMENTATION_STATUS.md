@@ -714,3 +714,26 @@
       - Lighting & Negative Constraint Isolation: Separated street cooking lighting (`tawa`) from `soap` so street cooking never receives "soap clarity", and made negative constraints context-aware so episodes about soap are not penalized.
       - Verification: 94/94 unit tests passing across 16 test suites (`npm test`), 0 TypeScript compilation errors (`tsc --noEmit`).
 
+  23. **The Three Viral Shorts Retention Master Invariants (ADR-048) (2026-11-24)**:
+      - Encoded the three empirical retention rules directly into the core engine based on YouTube Studio analytics data (40 engaged views, 0:32 AVD, 61.5% VVSA):
+        - **Law 10: `ZERO_SECOND_ACOUSTIC_SLAM` (`world-engine.ts`)**: Frame 1 (0:00 - 0:02) starts with an immediate acoustic shock (*THUD/CRASH/CLANG*) and 80% screen prop fill with zero buffer or fade-in.
+        - **Law 11: `HERO_PROP_NOSTALGIA_AFFINITY` (`world-engine.ts`)**: Prioritizes iconic manufactured gadgets and consumer hardware (Nokia, Keyboards, Game Boys, Cameras, Bicycles, Light Bulbs, Watches) carrying 0.1s instant recognition for >75% retention.
+        - **Law 12: `SEAMLESS_LOOP_ENGINEERING` (`world-engine.ts`)**: Enforces kinetic loop alignment between Scene 8 and Scene 1 to drive Average Percentage Viewed (APVD) above 100%–120%.
+      - Integrated dedicated audit checks (`ZERO_SECOND_ACOUSTIC_HOOK`, `PROP_NOSTALGIA_SCORE`, `SEAMLESS_LOOP_ENGINEERING`) into `rapid-asmr-qc.ts`.
+      - Enhanced the AI Director Chat Co-Pilot (`chat-director.ts`) to itemize all three retention pillars during `⚡ Audit ASMR QC`.
+      - Verification: 95/95 unit tests passing across 16 test suites (`npm test`), 0 TypeScript compilation errors (`tsc --noEmit`).
+
+  24. **High-Gain Close-Mic ASMR Audio Volume Standardization (-1dB Peak Invariant) (ADR-049) (2026-11-25)**:
+      - Addressed FFmpeg acoustic analysis finding (`volumedetect` showing soft -24 dB mean audio and silent 0.0s hooks):
+        - Standardized all ASMR prompt directives (`prompt-compiler.ts` across `audioScriptLines`, `googleFlowPrompt`, `klingPrompt`, and `videoMotionPrompt`) to explicitly require `HIGH-VOLUME CLOSE-MIC AMPLIFIED AUDIO (peaking at -1dB)` with maximum acoustic punch, loud crisp knife chops on end-grain wood, roaring high-decibel sizzling oil crackle, and violent steam hiss with zero quiet room lull or muffled sound.
+        - Integrated high-volume close-mic directives into both pre-scene hook prompts (`optionA_cleaverSlam` and `optionB_sizzleDrop`).
+        - Updated Physical Law 10 (`ZERO_SECOND_ACOUSTIC_SLAM` in `world-engine.ts`) to mandate that audio must peak between -1.0dB and -0.5dB with transients 10dB–15dB louder than conversational speech to capture instant phone/earbud attention.
+        - Updated episode generation pipeline (`src/app/api/series/[seriesId]/episodes/route.ts`) to pass `audioPrompt: t.foley` and `dialogue: "PURE_ASMR_FOLEY"` into prompt compilation.
+      - Verification: 95/95 unit tests passing across 16 test suites (`npm test`), 0 TypeScript compilation errors (`tsc --noEmit`).
+
+  25. **AI Director Co-Pilot Completion, Bug Fixes & Go-Live Hardening (ADR-050) (2026-11-25)**:
+      - Fixed `AiDirectorChatDrawer.tsx` `[object Object]` error stringification, `{ data }` envelope unwrapping, and inline error state.
+      - Extracted shared `src/lib/series/episode-service.ts`, enabled `CREATE_EPISODE` directly from AI Director chat (with clickable `Open Ep X` navigation), removed Episode 7 Quartz hardcoding on non-quartz episodes, and switched `ProjectWorkflowNav.tsx` to `router.refresh()`.
+      - Fixed `PURE_ASMR_FOLEY` in `POST /api/projects`, `handleAutoEnhance` in `storyboard/page.tsx`, duplicate-project guard in `new/page.tsx`, `findFfmpeg()` in `thumbnail/route.ts`, verified Gemini model IDs (`gemini-2.5-flash` / `2.0-flash`), shared in-process job fallback (`src/lib/jobs/run-inline.ts`), `COOKIE_SECURE` flag in `session.ts`, and `next build --webpack` + `start:all` in `package.json`.
+
+

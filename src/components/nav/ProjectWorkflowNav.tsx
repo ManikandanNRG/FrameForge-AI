@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   FileText,
   Users,
@@ -60,6 +60,7 @@ export function ProjectWorkflowNav({
   visualStyle = "PHOTOREALISTIC_CINEMATIC",
   rightAction,
 }: ProjectWorkflowNavProps) {
+  const router = useRouter();
   const [showLaunchModal, setShowLaunchModal] = useState(false);
   const [showChatDrawer, setShowChatDrawer] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
@@ -1120,6 +1121,59 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
                       value={displayYtTags}
                       className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 font-mono focus:outline-none select-all"
                     />
+                  </div>
+
+                  {/* 3-Second Viral Opening Hook Prompts (Google Flow / Kling) */}
+                  <div className="pt-4 border-t border-slate-200 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-amber-500" />
+                        <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                          3-Second Viral Opening Hooks (Run BEFORE Scene 1 &amp; 2)
+                        </span>
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                          Pre-Scene Hook (0:00 - 0:03)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Hook Option 1 */}
+                      <div className="p-3.5 rounded-xl bg-slate-900 border border-amber-500/30 text-white space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-amber-400">⚡ Hook Option 1: Cleaver Spark Slam</span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(activeKit?.hookPrompts?.optionA_cleaverSlam?.googleFlowPrompt || "", "hook-a-yt")}
+                            className="text-[10px] text-amber-300 hover:text-white flex items-center gap-1 font-mono transition"
+                          >
+                            {copiedField === "hook-a-yt" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                            <span>{copiedField === "hook-a-yt" ? "Copied" : "Copy Prompt"}</span>
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-300 line-clamp-3 font-mono leading-relaxed">
+                          {activeKit?.hookPrompts?.optionA_cleaverSlam?.googleFlowPrompt}
+                        </p>
+                      </div>
+
+                      {/* Hook Option 2 */}
+                      <div className="p-3.5 rounded-xl bg-slate-900 border border-rose-500/30 text-white space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-rose-400">🔥 Hook Option 2: Sizzling Pan Drop</span>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(activeKit?.hookPrompts?.optionB_sizzleDrop?.googleFlowPrompt || "", "hook-b-yt")}
+                            className="text-[10px] text-rose-300 hover:text-white flex items-center gap-1 font-mono transition"
+                          >
+                            {copiedField === "hook-b-yt" ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
+                            <span>{copiedField === "hook-b-yt" ? "Copied" : "Copy Prompt"}</span>
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-slate-300 line-clamp-3 font-mono leading-relaxed">
+                          {activeKit?.hookPrompts?.optionB_sizzleDrop?.googleFlowPrompt}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2242,9 +2296,7 @@ ${projectData?.description || projectData?.sourceIdea || "An exciting cinematic 
         isOpen={showChatDrawer}
         onClose={() => setShowChatDrawer(false)}
         onProjectUpdated={() => {
-          if (typeof window !== "undefined") {
-            window.location.reload();
-          }
+          router.refresh();
         }}
       />
     </>

@@ -4,6 +4,7 @@ import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
 import { enqueue } from "@/lib/jobs/queue";
+import { runJobsInBackground } from "@/lib/jobs/run-inline";
 
 /** GET — retrieve all story artifacts and their current versions. */
 export const GET = apiHandler(async (_req, ctx) => {
@@ -159,6 +160,8 @@ export const POST = apiHandler(async (req, ctx) => {
     requestPayload: { projectId, modelId, useMock },
     projectId:      projectId as string,
   });
+
+  runJobsInBackground([job.id], async () => (await import("@/lib/jobs/story-handler")).storyHandler, "STORY_FAILED");
 
   return { jobId: job.id, status: job.status };
 });

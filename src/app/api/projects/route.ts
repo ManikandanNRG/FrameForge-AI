@@ -11,7 +11,7 @@ const createSchema = z.object({
   genre:         z.string().max(100).optional(),
   tone:          z.string().max(100).optional(),
   visualStyle:   z.string().optional(),
-  dialogueMode:  z.enum(["DIALOGUE", "VOICEOVER", "NO_DIALOGUE"]).optional(),
+  dialogueMode:  z.enum(["DIALOGUE", "VOICEOVER", "NO_DIALOGUE", "PURE_ASMR_FOLEY"]).optional(),
   targetRuntime: z.number().int().min(15).max(7200).optional(),
   aspectRatio:   z.string().optional(),
   audience:      z.string().max(200).optional(),

@@ -908,3 +908,60 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - Full test suite: 16 test files passing (94/94 tests in `npm test`).
   - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
 
+## ADR-048: The Three Viral Shorts Retention Master Invariants (0.0s Acoustic Impact, Gadget Nostalgia Affinity, and Seamless Loop Engineering)
+- **Date**: 2026-11-24 · **Status**: Implemented & Verified
+- **Context**:
+  - Live YouTube Studio engagement analytics from Episode 7 (Quartz Stones Idiyappam) revealed critical diagnostic data:
+    - *40 Engaged Views* with an exceptional **0:32 (32 seconds!) Average View Duration**, proving viewers who stayed were thoroughly captivated by the ASMR sound and visual craft.
+    - However, **38.5% of viewers swiped away** within the first 1–2 seconds (61.5% Stayed to watch vs. 38.5% Swiped away).
+    - In YouTube Shorts algorithmic distribution, falling below the 70%–75% "Stayed to Watch" (VVSA) benchmark causes the algorithm to freeze delivery after the initial seed test batch (~50–70 impressions) while competing Shorts with 78%+ retention take priority.
+    - In contrast, Episode 4 (Nokia Phones) and Episode 6 (Light Bulbs) hit **1.3K views** because they featured instant 0.1-second recognizable gadget nostalgia and immediate acoustic impact.
+  - The creator requested codifying these three rules directly into the code level and master engine to safeguard all future episodes.
+- **Decision**:
+  1. **Universal Physical Laws 10, 11, and 12 (`src/lib/story/world-engine.ts`)**:
+     - **Law 10: `ZERO_SECOND_ACOUSTIC_SLAM`**: The very first frame (0:00 - 0:02) must start with an immediate high-energy acoustic impact (*THUD*, *CRASH*, *CLANG*, *SPARK BURST*) and 80% screen prop fill. Strictly prohibits opening silence, fade-ins, walking intros, or slow camera pans across empty countertops.
+     - **Law 11: `HERO_PROP_NOSTALGIA_AFFINITY`**: Categorizes hero objects by audience emotional recognition. Manufactured consumer hardware, retro technology, and iconic everyday gadgets (Nokia phones, mechanical keyboards, Game Boys, cameras, light bulbs, bicycles, luxury watches) carry instant 0.1-second global recognition (>75% retention). Raw minerals/stones or plain consumables require 2X more aggressive mechanical processing to prevent >35% swipe-away.
+     - **Law 12: `SEAMLESS_LOOP_ENGINEERING`**: The closing scene (presentation/lift/thumbs-up) must kinetically align with Scene 1's entry angle, creating an infinite replay loop that drives Average Percentage Viewed (APVD) above 100%–120%.
+  2. **Three Master QC Checks in Rapid ASMR QC Engine (`src/lib/story/rapid-asmr-qc.ts`)**:
+     - `ZERO_SECOND_ACOUSTIC_HOOK`: Validates that Scene 1 contains immediate acoustic shock verbs at 0.0s and zero passive buffer delays.
+     - `PROP_NOSTALGIA_SCORE`: Evaluates hero objects (Tier S/A Viral Hardware vs Tier B Raw Materials) and surfaces retention guidance.
+     - `SEAMLESS_LOOP_ENGINEERING`: Validates kinetic loop cues in the final scene (e.g. plate slide toward camera, continuous action) to guarantee high APVD.
+  3. **In-App AI Director Co-Pilot Integration (`src/lib/story/chat-director.ts`)**:
+     - `AUDIT_QC` now explicitly itemizes 0.0s Acoustic Hook status, Prop Nostalgia Tier, and Seamless Loop Readiness.
+- **Verification**:
+  - Full test suite: 16 test files passing (95/95 tests in `vitest`).
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-049: High-Gain Close-Mic ASMR Audio Volume Standardization (-1dB Peak Invariant)
+- **Date**: 2026-11-25 · **Status**: Implemented & Verified
+- **Context**:
+  - FFmpeg acoustic analysis (`volumedetect`) of user-rendered Shorts showed audio levels hovering at an overly soft `-24 dB` mean volume with inaudible 0.0s transients.
+  - In viral Rapid ASMR (Zach Choi, Bayashi, Cudo ASMR), audio is mixed 10dB to 15dB hotter than conversational speech: high-gain close-mic recording, peaking strictly between `-1.0 dB` and `-0.5 dB`, with amplified tactile transients (`*THUD*`, `*CLANG*`, `*CRACK*`, `*TZZZZZZ*`) that punch through smartphone speakers and earbuds immediately.
+  - AI video/audio generation prompts previously requested "pure binaural ASMR" without explicitly directing models to mix at high volume/gain, causing AI video models to generate faint room tone instead of loud, immersive Foley.
+- **Decision**:
+  1. **Prompt Compiler Standardization (`src/lib/story/prompt-compiler.ts`)**:
+     - Upgraded `audioScriptLines`, `googleFlowPrompt`, `klingPrompt`, and `videoMotionPrompt` to mandate:
+       `Pure Binaural ASMR Culinary Foley — HIGH-VOLUME CLOSE-MIC AMPLIFIED AUDIO (peaking at -1dB). Mixed LOUD and prominent with maximum acoustic punch and high presence (loud crisp knife chops on end-grain wood, roaring high-decibel sizzling oil crackle, foaming butter, violent steam hiss). Strictly zero quiet lull, zero muffled sound.`
+     - Upgraded both pre-scene hook prompts (`optionA_cleaverSlam` and `optionB_sizzleDrop`) with explicit high-volume close-mic directives (`peaking at -1dB`, loud acoustic transients).
+  2. **World Engine Physical Law 10 Update (`src/lib/story/world-engine.ts`)**:
+     - Updated `ZERO_SECOND_ACOUSTIC_SLAM` to explicitly mandate high-volume close-mic audio (`peaking between -1.0dB and -0.5dB`) with zero quiet room tone or muffled sound.
+  3. **Episode Generation Pipeline (`src/app/api/series/[seriesId]/episodes/route.ts`)**:
+     - Passed `audioPrompt: t.foley` and `dialogue: "PURE_ASMR_FOLEY"` directly into prompt compilation for each newly spawned episode shot.
+- **Verification**:
+  - Full test suite: 16 test files passing (95/95 tests in `vitest`).
+  - TypeScript compilation: 0 errors (`npx tsc --noEmit`).
+
+## ADR-050: AI Director Co-Pilot Contract Alignment, Dynamic Episode Creation, and Go-Live Reliability Fixes
+- **Date**: 2026-11-25 · **Status**: Implemented & Verified
+- **Context**:
+  - Full codebase audit uncovered:
+    1. `AiDirectorChatDrawer.tsx` threw `new Error(errData.error)` where `apiHandler` returned an error object (`[object Object]`), failed to unwrap `{ data }` envelopes for chat history and replies, and triggered console error overlays on load failure.
+    2. `chat-director.ts` lacked `CREATE_EPISODE`, hardcoded Episode 7 Quartz/extruder rewrites across all projects, saved `klingPrompt` instead of `googleFlowPrompt`, and `ProjectWorkflowNav.tsx` forced `window.location.reload()`.
+    3. `POST /api/projects` rejected `PURE_ASMR_FOLEY`; `storyboard/page.tsx` `handleAutoEnhance` checked `data.ok` instead of `data.data.ok`; `thumbnail/route.ts` hardcoded Windows `C:\...` FFmpeg path; `story/bible/shots` job routes lacked in-process fallback when `npm run worker` isn't running; `package.json` `build` used Turbopack (`next build`) instead of `--webpack`; `session.ts` locked out HTTP local `next start` cookies; `gemini-text.ts` used unverified Gemini 3.x model strings.
+- **Decision**:
+  1. Extracted shared `createSeriesEpisode` in `src/lib/series/episode-service.ts`, used by both `POST /api/series/[seriesId]/episodes` and `CREATE_EPISODE` in `chat-director.ts`.
+  2. Fixed `AiDirectorChatDrawer.tsx` envelope unwrapping, readable error extraction, project-aware quick actions, clickable new-episode link cards, and `router.refresh()` in `ProjectWorkflowNav.tsx`.
+  3. Added Cricket Bat & Ball / sports gear non-food entity detection in `world-engine.ts` and removed Episode 7 Quartz hardcoding from non-quartz episodes.
+  4. Added shared `runJobsInBackground` (`src/lib/jobs/run-inline.ts`) to `story`, `bible`, and `shots` POST routes; fixed `PURE_ASMR_FOLEY` schema, `handleAutoEnhance`, `findFfmpeg()` in `thumbnail/route.ts`, Gemini verified Flash models, `COOKIE_SECURE` session flag, and `next build --webpack` + `start:all` in `package.json`.
+
+

@@ -10,6 +10,8 @@
  * generates custom, authentic launch metadata without code changes.
  */
 
+import { compileDualHookPrompts, type DualHookPromptResult } from "./prompt-compiler";
+
 export interface SocialLaunchKit {
   projectTitle: string;
   visualStyle: string;
@@ -21,7 +23,10 @@ export interface SocialLaunchKit {
     portrait9x16WithHeadline?: string;
     heroFoodCrack?: string;
     heroFoodCrack16x9?: string;
+    hookOptionA_cleaverSlam?: string;
+    hookOptionB_sizzleDrop?: string;
   };
+  hookPrompts: DualHookPromptResult;
   youtube: {
     titles: string[];
     description: string;
@@ -701,6 +706,13 @@ Created with CineFlow AI Studio · Visuals powered by Google Flow & Veo · Sound
 
 ${hashtagsList.join(" ")}`;
 
+  const dualHooks = compileDualHookPrompts({
+    heroObject,
+    dishName,
+    characterName: charHandle.replace(/^@/, ""),
+    aspectRatio: project.aspectRatio || "PORTRAIT_9_16",
+  });
+
   return {
     projectTitle: title,
     visualStyle,
@@ -712,7 +724,10 @@ ${hashtagsList.join(" ")}`;
       portrait9x16WithHeadline: thumbnailPortrait9x16WithHeadline,
       heroFoodCrack: thumbnailHeroFoodCrack,
       heroFoodCrack16x9: thumbnailHeroFoodCrack16x9,
+      hookOptionA_cleaverSlam: dualHooks.optionA_cleaverSlam.googleFlowPrompt,
+      hookOptionB_sizzleDrop: dualHooks.optionB_sizzleDrop.googleFlowPrompt,
     },
+    hookPrompts: dualHooks,
     youtube: {
       titles: youtubeTitles,
       description: youtubeDescription,

@@ -4,6 +4,7 @@ import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
 import { enqueue } from "@/lib/jobs/queue";
+import { runJobsInBackground } from "@/lib/jobs/run-inline";
 
 export const GET = apiHandler(async (_req, ctx) => {
   const ownerId = await requireUserId();
@@ -44,5 +45,6 @@ export const POST = apiHandler(async (req, ctx) => {
     requestPayload: { projectId, modelId, useMock },
     projectId: projectId as string,
   });
+  runJobsInBackground([job.id], async () => (await import("@/lib/jobs/bible-handler")).bibleHandler, "BIBLE_FAILED");
   return { jobId: job.id, status: job.status };
 });

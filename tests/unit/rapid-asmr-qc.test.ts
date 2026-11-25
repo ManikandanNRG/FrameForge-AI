@@ -281,5 +281,74 @@ describe("Bayashi / Zach Choi Rapid ASMR Quality Checker (QC Engine)", () => {
       expect(antiPyramidCheck?.passed).toBe(false);
       expect(report.violations.some((v) => v.includes("pyramid") || v.includes("cone"))).toBe(true);
     });
+
+    it("verifies 0.0s acoustic impact, prop nostalgia affinity, and seamless loop engineering", () => {
+      // 1. Tech gadget project with 0.0s slam and seamless loop
+      const gadgetScenes: RapidAsmrSceneInput[] = [
+        {
+          sceneNumber: 1,
+          heading: "INT. WORKBENCH - 0.0s SLAM",
+          action:
+            "Beat 1: Black-gloved hands violently slam a crate of 15 vintage Nokia phones onto the steel counter (*THUD-CLANG*). Beat 2: Sledgehammer shatter. Beat 3: Copper noodle cascade. Beat 4: Chef locks eyes.",
+        },
+        {
+          sceneNumber: 8,
+          heading: "INT. FINISH - SEAMLESS LOOP",
+          action:
+            "Beat 1: Glistening copper noodles lifted. Beat 2: Raw Nokia phones in foreground proof. Beat 3: Chef winks and slides thali plate toward camera in a continuous loop. Beat 4: Confident thumbs-up to lens.",
+        },
+      ];
+
+      const gadgetMeta: RapidAsmrProjectMeta = {
+        title: "Bulk Vintage Nokia Phones Feast",
+        visualStyle: "CULINARY_MACRO_ASMR",
+        seriesSlug: "inedible-tech-asmr",
+        sourceIdea: "Cooking Nokia phones on street tawa",
+      };
+
+      const report = auditRapidAsmrProject(gadgetScenes, gadgetMeta);
+      const hook0s = report.checks.find((c) => c.checkId === "ZERO_SECOND_ACOUSTIC_HOOK");
+      const nostalgia = report.checks.find((c) => c.checkId === "PROP_NOSTALGIA_SCORE");
+      const loop = report.checks.find((c) => c.checkId === "SEAMLESS_LOOP_ENGINEERING");
+
+      expect(hook0s?.passed).toBe(true);
+      expect(hook0s?.score).toBe(100);
+      expect(nostalgia?.score).toBe(100);
+      expect(nostalgia?.details).toContain("Tier S/A");
+      expect(loop?.passed).toBe(true);
+      expect(loop?.score).toBe(100);
+
+      // 2. Slow buffer opening without acoustic slam
+      const slowScenes: RapidAsmrSceneInput[] = [
+        {
+          sceneNumber: 1,
+          heading: "INT. WORKBENCH - SLOW INTRO",
+          action: "The chef slowly enters the kitchen and quietly observes the stones on the counter.",
+        },
+        {
+          sceneNumber: 8,
+          heading: "INT. FINISH - NO LOOP",
+          action: "The chef stands still and the screen fades to black.",
+        },
+      ];
+
+      const stoneMeta: RapidAsmrProjectMeta = {
+        title: "Raw Quartz Stones Idiyappam",
+        visualStyle: "CULINARY_MACRO_ASMR",
+        seriesSlug: "inedible-tech-asmr",
+        sourceIdea: "Cooking stones into idiyappam",
+      };
+
+      const slowReport = auditRapidAsmrProject(slowScenes, stoneMeta);
+      const slowHook = slowReport.checks.find((c) => c.checkId === "ZERO_SECOND_ACOUSTIC_HOOK");
+      const stoneNostalgia = slowReport.checks.find((c) => c.checkId === "PROP_NOSTALGIA_SCORE");
+      const slowLoop = slowReport.checks.find((c) => c.checkId === "SEAMLESS_LOOP_ENGINEERING");
+
+      expect(slowHook?.passed).toBe(false);
+      expect(slowReport.violations.some((v) => v.includes("0.0s immediate acoustic slam"))).toBe(true);
+      expect(stoneNostalgia?.score).toBe(85);
+      expect(stoneNostalgia?.recommendation).toContain("prioritize iconic consumer tech");
+      expect(slowLoop?.passed).toBe(false);
+    });
   });
 });

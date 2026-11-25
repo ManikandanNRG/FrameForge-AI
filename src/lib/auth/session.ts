@@ -22,7 +22,9 @@ export function sessionOptions(): SessionOptions {
     cookieName: "afs_session",
     cookieOptions: {
       httpOnly: true,
-      secure: env.NODE_ENV === "production",
+      // Only set Secure cookie when explicitly enabled or running behind HTTPS/Vercel,
+      // so local production previews (`next start` over http://localhost) remain usable.
+      secure: process.env.COOKIE_SECURE === "true" || process.env.VERCEL === "1",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 days

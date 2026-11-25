@@ -14,6 +14,7 @@ import { normalizeRoot } from "@/lib/media/paths";
 import { sha256File, fileSize } from "@/lib/media/checksum";
 import { logger } from "@/lib/logger";
 import { generateSocialLaunchKit } from "@/lib/story/launch-kit";
+import { findFfmpeg } from "@/lib/edit/ffmpeg";
 
 const execFileAsync = promisify(execFile);
 
@@ -272,20 +273,22 @@ export const POST = apiHandler(async (req, ctx) => {
   await downloadImageToFile(result.storageKey, absPath);
 
   // 7. Auto-crop Pollinations corner watermark using FFmpeg if available
-  const ffmpeg = process.env.FFMPEG_PATH || "C:\\ffmpeg-9.0.2-essentials_build\\bin\\ffmpeg.exe";
-  try {
-    const tempPath = `${absPath}.clean.jpg`;
-    const scaleFilter = `scale=${targetWidth}:${targetHeight}:flags=lanczos`;
-    await execFileAsync(ffmpeg, [
-      "-y",
-      "-i", absPath,
-      "-vf", `crop=in_w:in_h-42:0:0,${scaleFilter}`,
-      "-q:v", "2",
-      tempPath,
-    ]);
-    await rename(tempPath, absPath);
-  } catch (cropErr) {
-    logger.warn({ err: cropErr }, "Thumbnail watermark crop skipped or failed");
+  const ffmpeg = findFfmpeg();
+  if (ffmpeg) {
+    try {
+      const tempPath = `${absPath}.clean.jpg`;
+      const scaleFilter = `scale=${targetWidth}:${targetHeight}:flags=lanczos`;
+      await execFileAsync(ffmpeg, [
+        "-y",
+        "-i", absPath,
+        "-vf", `crop=in_w:in_h-42:0:0,${scaleFilter}`,
+        "-q:v", "2",
+        tempPath,
+      ]);
+      await rename(tempPath, absPath);
+    } catch (cropErr) {
+      logger.warn({ err: cropErr }, "Thumbnail watermark crop skipped or failed");
+    }
   }
 
   const checksum = await sha256File(absPath);

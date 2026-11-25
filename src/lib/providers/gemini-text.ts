@@ -12,12 +12,12 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-3.8-flash", displayName: "Gemini 3.8 Flash ✓ (Default Primary Model)" },
-  { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash (Fallback Model)" },
-  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash (Resilience Fallback & Tamil Fluency)" },
+  { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash ✓ (Default Primary Model)" },
+  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash (Fast Fallback Model)" },
+  { id: "gemini-1.5-flash", displayName: "Gemini 1.5 Flash (Legacy Fallback)" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
 
 export class GeminiTextProvider implements TextGenerationProvider {
   readonly id = "gemini";
@@ -41,9 +41,9 @@ export class GeminiTextProvider implements TextGenerationProvider {
   ): Promise<GenerationResult<z.infer<S>>> {
     const candidateModels = [
       input.modelId,
-      "gemini-3.8-flash",
       "gemini-2.5-flash",
-      "gemini-3.5-flash",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash",
     ].filter((v, i, a) => v && a.indexOf(v) === i);
 
     let lastError: string | null = null;

@@ -493,7 +493,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const audioScriptLines: string[] = [];
   if (isPureAsmr) {
-    audioScriptLines.push(`- Audio Atmosphere & Foley: Pure Binaural ASMR Culinary Foley — Ultra-crisp close-mic Foley sound design (crisp knife chop on end-grain wood, intense sizzling oil crackle, butter foaming, water pouring, steam hiss). Strictly ZERO spoken dialogue, ZERO voice-over narration, and ZERO background music.`);
+    audioScriptLines.push(`- Audio Atmosphere & Foley: Pure Binaural ASMR Culinary Foley — HIGH-VOLUME CLOSE-MIC AMPLIFIED AUDIO (peaking at -1dB). Mixed LOUD and prominent with maximum acoustic punch and high presence (loud crisp knife chops on end-grain wood, roaring high-decibel sizzling oil crackle, foaming butter, water pouring, violent steam hiss). Strictly zero quiet lull, zero muffled sound. Strictly ZERO spoken dialogue, ZERO voice-over narration, and ZERO background music.`);
   } else if (hasDialogue) {
     audioScriptLines.push(`- Spoken Dialogue: ${formattedDialogue} (with natural ${lang} lip-synchronization)`);
   } else if (voiceover && voiceover.trim().length > 0) {
@@ -1163,7 +1163,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     `Environment & Atmosphere: ${(locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast-iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : "Authentic film location")).replace(/\.+$/, "")}. Lighting: ${(lighting || (isCulinary ? "warm directional spotlight with soft background blur" : isVintage ? "soft warm historical golden hour sunlight" : isAnimated ? "bright joyful sunny daylight" : "warm golden hour natural afternoon sunlight")).replace(/\.+$/, "")}.${audioPrompt ? ` Foley ambience: ${audioPrompt.replace(/\.+$/, "")}.` : ""}`,
     isPureAsmr
-      ? `Audio Pace: Pure binaural ASMR culinary Foley (crisp knife chops, oil sizzle, liquid pour, steam hiss), strictly no dialogue or background music.`
+      ? `Audio Pace: Pure binaural ASMR culinary Foley — HIGH-VOLUME CLOSE-MIC (peaking at -1dB, loud crisp knife chops, roaring oil sizzle, liquid pour, violent steam hiss). Audio mixed LOUD and punchy with high acoustic presence, zero quiet ambient lull, strictly no dialogue or background music.`
       : hasDialogue
       ? `Dialogue & Lip Sync: ${charName} actively speaks dialogue with realistic, perfectly synchronized ${lang} lip movements and expressive facial animation.`
       : `Audio Pace: Pure visual cinema action and environmental Foley, no spoken character dialogue.`,
@@ -1397,7 +1397,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     `Lighting & Mood: ${lighting || (isCulinary ? "Warm culinary studio lighting, soft key illumination, appetizing natural highlights" : isVintage ? "Soft warm historical natural daylight, dusty atmosphere" : isAnimated ? "Bright joyful sunny daylight, warm glowing atmosphere" : "Natural golden hour daylight, soft shadows, warm highlights")}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     isPureAsmr
-      ? `Soundscape & Audio Foley: Pure binaural ASMR culinary Foley (crisp knife chops on wood, oil sizzle, liquid pouring, steam hissing). Strictly no spoken dialogue, no voiceover, no background music.`
+      ? `Soundscape & Audio Foley: Pure binaural ASMR culinary Foley — HIGH-VOLUME CLOSE-MIC (peaking at -1dB, loud punchy knife chops on wood, roaring oil sizzle, liquid pouring, violent steam hiss). High-gain audio mix, strictly no spoken dialogue, no voiceover, no background music.`
       : hasDialogue
       ? `Spoken Dialogue Beat: ${naturalDialogue} (Authentic ${lang} dialect, natural conversational pacing)`
       : voiceover
@@ -1641,6 +1641,89 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     universalNegativePrompt,
     creditCostEstimate,
     culinaryStation: station,
+  };
+}
+
+export interface DualHookPromptResult {
+  optionA_cleaverSlam: {
+    title: string;
+    description: string;
+    googleFlowPrompt: string;
+    klingPrompt: string;
+    fluxStillPrompt: string;
+  };
+  optionB_sizzleDrop: {
+    title: string;
+    description: string;
+    googleFlowPrompt: string;
+    klingPrompt: string;
+    fluxStillPrompt: string;
+  };
+}
+
+/**
+ * Compiles Two Master 3-Second Viral Opening Hook Prompts (0:00 - 0:03).
+ * Generated before Scene 1 & 2 to ensure maximum 75%+ "Stayed to Watch" retention.
+ */
+export function compileDualHookPrompts(params: {
+  heroObject: string;
+  dishName?: string;
+  characterName?: string;
+  characterDescription?: string;
+  wardrobeLock?: string;
+  locationDescription?: string;
+  aspectRatio?: string;
+}): DualHookPromptResult {
+  const {
+    heroObject,
+    dishName = "Gourmet Dish",
+    characterName = "The Shadow Alchemist",
+    wardrobeLock = "vintage brass tinker goggles, sleek matte-black half-mask with gold cheekline slit vents, leather artisan apron, black grip gloves",
+    locationDescription = "Dark Walnut End-Grain Butcher Block",
+    aspectRatio = "PORTRAIT_9_16",
+  } = params;
+
+  const arParam = aspectRatio === "PORTRAIT_9_16" ? "9:16 vertical" : "16:9 widescreen";
+
+  // Option 1: Acoustic Cleaver Spark Slam (0:00 - 0:03)
+  const optionA_googleFlow = `A viral 3-second opening hook (0:00 - 0:03) for YouTube Shorts and TikTok, extreme macro close-up, 85mm probe cinema lens, ${arParam}.
+Character Asset Reference: @TheShadowAlchemist ([@TheShadowAlchemist])
+Subject: @TheShadowAlchemist, male culinary alchemist chef (${wardrobeLock}).
+Action: At exact second 0.0, black-gloved hands violently slam the raw unworked ${heroObject} directly onto the ${locationDescription} with maximum acoustic force (*LOUD ACOUSTIC THUD*), the prop filling 80% of the screen. At second 0.8, a heavy Damascus steel kitchen cleaver strikes down with lightning speed, chopping clean through the chassis with a blinding explosion of bright electrical golden sparks (*CRACK-CLANG-SPARK*). At second 2.0, camera snaps upward into extreme macro on chef's piercing hazel eyes locking onto the camera lens through the mask with a sharp, confident smirk. Lightning 2X tempo.
+Acoustics & Foley: HIGH-VOLUME CLOSE-MIC BINAURAL ASMR (peaking at -1dB). Immediate loud acoustic thud (*LOUD ACOUSTIC THUD*), razor metallic cleaver slice with crackling electrical sparks (*LOUD ZAP-CRACK*). Amplified high-gain audio mixed at high volume. Strictly zero silence, zero fade-in, zero walking, zero background music.
+Strict Constraints: Character visually rendered only. Tight macro crop, 80% screen prop fill. Strictly NO text, NO subtitles, NO captions, NO watermark, NO grocery meat/dough, NO eating.`;
+
+  const optionA_kling = `Extreme macro 9:16 vertical cinematic shot, 85mm probe lens. Black-gloved hands slam ${heroObject} violently onto dark wooden prep counter at 0.0s, filling 80% of frame. At 0.8s, heavy Damascus cleaver chops down with blinding golden spark burst and flying fragments. At 2.0s, camera tilts up to chef in matte-black half-mask and brass tinker goggles locking intense hazel eyes on camera. 2X kinetic speed. High-volume close-mic ASMR audio peaking at -1dB, loud acoustic slam (*THUD*). No text, no subtitles.`;
+
+  const optionA_fluxStill = `A viral extreme macro vertical 9:16 cinematic still photograph, shallow f/1.8 depth of field. In the foreground, black-gloved hands grip a heavy Damascus cleaver mid-strike cutting clean through the ${heroObject} on a dark wooden butcher block, surrounded by a violent burst of bright golden electrical sparks, severed metallic ribbons, and hardware fragments scattering across the wood. In the soft-focus background, @TheShadowAlchemist with piercing hazel eyes, brass tinker goggles on crown, and sleek matte-black tactical half-mask with gold cheekline vents leans forward with an intense gaze. High-contrast commercial cinema food lighting, dramatic warm rim illumination.`;
+
+  // Option 2: Sizzling Pan Drop Teaser (0:00 - 0:03)
+  const optionB_googleFlow = `A viral 3-second opening hook (0:00 - 0:03) for YouTube Shorts and TikTok, extreme macro close-up, 85mm probe cinema lens, ${arParam}.
+Character Asset Reference: @TheShadowAlchemist ([@TheShadowAlchemist])
+Subject: @TheShadowAlchemist, male culinary alchemist chef (${wardrobeLock}).
+Action: At exact second 0.0, black-gloved hands dump a tall cluster of raw severed ${heroObject} components directly onto a scorching-hot, smoking seasoned street tawa / cast-iron skillet over roaring blue flames (*EXPLOSIVE ACOUSTIC SIZZLE TZZZZZ*), filling 80% of the screen. At second 1.0, dual stainless-steel spatulas vigorously toss the searing components as dense white plumes of culinary steam billow upward with crackling micro-oil droplets. At second 2.0, brass chopsticks lift a sizzling, steaming seared piece directly in front of the lens with dripping glaze, as chef's hazel eyes lock onto the camera through the mask. Lightning 2X tempo.
+Acoustics & Foley: HIGH-VOLUME CLOSE-MIC BINAURAL ASMR (peaking at -1dB). Explosive roaring hot sizzle (*LOUD TZZZZZ*), metallic spatula clang against iron (*LOUD CLANG-CLACK*), violent billowing steam hiss (*LOUD PSSSHHH*). Amplified high-gain audio mixed at high volume. Strictly zero silence, zero fade-in, zero background music.
+Strict Constraints: Character visually rendered only. Tight macro crop, 80% screen prop fill. Strictly NO text, NO subtitles, NO captions, NO watermark, NO grocery meat/dough, NO eating.`;
+
+  const optionB_kling = `Extreme macro 9:16 vertical shot, 85mm probe lens. Black-gloved hands dump raw ${heroObject} components directly into sizzling hot smoking iron tawa at 0.0s with explosive oil foam and white steam. Spatula rapidly tosses searing cluster with sparks. At 2.0s, chopsticks lift steaming seared piece close to lens. Chef in black half-mask looks directly into camera. 2X fast tempo. High-volume close-mic ASMR audio peaking at -1dB, loud searing sizzle (*TZZZZZ*). No text, no subtitles.`;
+
+  const optionB_fluxStill = `A viral extreme macro vertical 9:16 cinematic still photograph, shallow f/1.8 depth of field. A circular seasoned black street dosa tawa sits sizzling furiously with golden bubbling oil, piled edge-to-edge with searing ${heroObject} components and billowing plumes of white culinary steam under dramatic directional cinema lighting. Black-gloved hands use brass chopsticks to lift a steaming, glistening seared cluster high toward the camera with golden glaze dripping downward. In the soft-focus background, @TheShadowAlchemist with piercing hazel eyes, brass tinker goggles, and matte-black tactical mask watches intently. Commercial food cinema spotlight, intense fiery under-glow.`;
+
+  return {
+    optionA_cleaverSlam: {
+      title: "⚡ Hook Option 1: Acoustic Cleaver Spark Slam (0:00 - 0:03)",
+      description: "Direct physical acoustic impact. Cleaver strikes the hero gadget on the cutting board with an explosive golden spark burst.",
+      googleFlowPrompt: optionA_googleFlow,
+      klingPrompt: optionA_kling,
+      fluxStillPrompt: optionA_fluxStill,
+    },
+    optionB_sizzleDrop: {
+      title: "🔥 Hook Option 2: Sizzling Pan Drop Teaser (0:00 - 0:03)",
+      description: "Immediate cooking sizzle. Raw gadget pieces dropped into a smoking hot tawa/wok with boiling oil, rising steam, and chopsticks lift.",
+      googleFlowPrompt: optionB_googleFlow,
+      klingPrompt: optionB_kling,
+      fluxStillPrompt: optionB_fluxStill,
+    },
   };
 }
 

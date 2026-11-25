@@ -13,6 +13,7 @@ import {
   ShieldCheck, Zap, CheckCircle2, Wrench,
 } from "lucide-react";
 import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
+import { generateSocialLaunchKit } from "@/lib/story/launch-kit";
 
 interface ShotMedia {
   id: string; kind: string; versionNumber: number; filename: string;
@@ -65,6 +66,8 @@ export default function StoryboardPage() {
   const [copied, setCopied]               = useState<string | null>(null);
   const [isDragging, setIsDragging]       = useState(false);
   const [genPortraitCharId, setGenPortraitCharId] = useState<string | null>(null);
+  const [selectedHook, setSelectedHook]   = useState<"optionA" | "optionB" | null>("optionA");
+  const [hookFormatTab, setHookFormatTab] = useState<"flow" | "kling" | "flux">("flow");
 
   async function generateModalCharacterPortrait(assetId: string) {
     setGenPortraitCharId(assetId);
@@ -508,11 +511,14 @@ export default function StoryboardPage() {
           applyFix: true,
         }),
       });
-      const data = await res.json();
-      if (data.ok) {
+      const json = await res.json().catch(() => ({}));
+      const payload = json.data ?? json;
+      if (res.ok && payload?.ok) {
         setEnhanceSuccess(true);
         setTimeout(() => setEnhanceSuccess(false), 3000);
         await load();
+      } else if (!res.ok) {
+        setError(json.error?.message || "Failed to auto-enhance prompt");
       }
     } catch (e) {
       console.error("Auto-enhance failed", e);
@@ -583,6 +589,8 @@ export default function StoryboardPage() {
   }
 
   const allShots = scenes.flatMap(s => s.shots);
+  const launchKit = projectData ? generateSocialLaunchKit(projectData) : null;
+  const hookPrompts = launchKit?.hookPrompts;
   const approvedCount     = allShots.filter(s => s.approvalStatus === "APPROVED").length;
   const hasImages         = allShots.some(s => s.mediaVersions.some(m => m.kind === "STORYBOARD_STILL"));
   const hasVideos         = allShots.some(s => s.mediaVersions.some(m => m.kind === "VIDEO_CLIP"));
@@ -1019,6 +1027,68 @@ export default function StoryboardPage() {
             )}
           </div>
 
+          {/* 3-Second Viral Opening Hooks (Run BEFORE Scene 1 & 2) */}
+          {hookPrompts && (
+            <div className="mb-4 p-2.5 rounded-xl border border-amber-300 bg-gradient-to-b from-amber-500/10 via-amber-50 to-orange-50/50 shadow-2xs">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b border-amber-200">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse shrink-0" />
+                  <span className="text-xs font-black text-rose-950 uppercase tracking-wider">
+                    Opening Hook (0:00 - 0:03)
+                  </span>
+                </div>
+                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-200">
+                  Pre-Scene
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-950 font-medium leading-tight mb-2">
+                Generate &amp; edit one of these 3-second acoustic hooks <strong>BEFORE</strong> Scene 1 to eliminate the initial 3-second swipe-away.
+              </p>
+
+              <div className="space-y-1.5">
+                {/* Hook Option 1 */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected(null);
+                    setSelectedHook("optionA");
+                  }}
+                  className={`w-full text-left p-2 rounded-lg text-xs transition border flex items-center justify-between ${
+                    selectedHook === "optionA" && !selected
+                      ? "bg-amber-500 text-slate-950 font-bold border-amber-500 shadow-xs"
+                      : "bg-white border-amber-200 text-slate-800 hover:bg-amber-100/60"
+                  }`}
+                >
+                  <span className="truncate flex items-center gap-1.5">
+                    <span>⚡</span>
+                    <span className="font-bold">Hook 1: Cleaver Slam</span>
+                  </span>
+                  <span className="text-[10px] font-mono opacity-80 shrink-0">0:00 - 0:03</span>
+                </button>
+
+                {/* Hook Option 2 */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected(null);
+                    setSelectedHook("optionB");
+                  }}
+                  className={`w-full text-left p-2 rounded-lg text-xs transition border flex items-center justify-between ${
+                    selectedHook === "optionB" && !selected
+                      ? "bg-rose-500 text-white font-bold border-rose-500 shadow-xs"
+                      : "bg-white border-rose-200 text-slate-800 hover:bg-rose-50"
+                  }`}
+                >
+                  <span className="truncate flex items-center gap-1.5">
+                    <span>🔥</span>
+                    <span className="font-bold">Hook 2: Pan Sizzle Drop</span>
+                  </span>
+                  <span className="text-[10px] font-mono opacity-80 shrink-0">0:00 - 0:03</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Shot list */}
           {scenes.map(sc => (
             <div key={sc.id} className="mb-3.5">
@@ -1036,7 +1106,10 @@ export default function StoryboardPage() {
                   return (
                     <button
                       key={sh.id}
-                      onClick={() => setSelected(sh)}
+                      onClick={() => {
+                        setSelectedHook(null);
+                        setSelected(sh);
+                      }}
                       className={`group w-full text-left px-3 py-2 rounded-xl text-sm flex items-center gap-2.5 transition-all ${
                         isSelected
                           ? "bg-amber-50 border-2 border-amber-500 text-slate-950 font-bold shadow-md ring-2 ring-amber-400/20 translate-x-0.5"
@@ -1090,10 +1163,193 @@ export default function StoryboardPage() {
         {/* Right: shot studio canvas */}
         <div className="flex-1 overflow-y-auto px-6 py-6 lg:px-8 bg-slate-50/40">
           {!selected ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 py-24">
-              <ImageIcon className="h-12 w-12 text-slate-300 mb-3" />
-              <p className="text-sm font-semibold text-slate-600">Select a shot from the left sidebar to open the studio.</p>
-            </div>
+            selectedHook && hookPrompts ? (
+              <div className="max-w-5xl mx-auto space-y-6">
+                {/* Hook Studio Header */}
+                <div className="rounded-2xl border border-amber-300 bg-gradient-to-r from-amber-500/10 via-amber-50 to-orange-50 p-6 shadow-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-md bg-rose-600 text-white font-mono font-black text-xs uppercase tracking-wider shadow-xs">
+                        🎣 0:00 - 0:03 Pre-Scene Viral Hook
+                      </span>
+                      <span className="text-xs font-bold text-amber-950 bg-amber-200/80 px-2 py-0.5 rounded-full border border-amber-300">
+                        Law of 3-Second Retention
+                      </span>
+                    </div>
+                    <span className="text-xs font-mono text-slate-600">
+                      Run this prompt BEFORE Scene 1 &amp; 2
+                    </span>
+                  </div>
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    {selectedHook === "optionA"
+                      ? "⚡ Hook Option 1: Macro Cleaver Spark Slam (0:00 - 0:03)"
+                      : "🔥 Hook Option 2: Sizzling Pan Drop Teaser (0:00 - 0:03)"}
+                  </h2>
+                  <p className="text-xs text-slate-700 leading-relaxed mt-1">
+                    {selectedHook === "optionA"
+                      ? hookPrompts.optionA_cleaverSlam.description
+                      : hookPrompts.optionB_sizzleDrop.description}
+                  </p>
+
+                  {/* 3-Second Rhythm Infographic */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-4 pt-3 border-t border-amber-200/70 text-xs">
+                    <div className="p-2.5 rounded-xl bg-white/80 border border-amber-200">
+                      <div className="font-extrabold text-amber-900 text-[11px] uppercase tracking-wide">
+                        Beat 1 (0.0s - 0.8s)
+                      </div>
+                      <div className="font-bold text-slate-900 text-xs mt-0.5">Macro Slam &amp; Transient</div>
+                      <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                        Immediate acoustic *THUD/CLANG* with zero silence. Gadget fills 80% screen.
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white/80 border border-amber-200">
+                      <div className="font-extrabold text-amber-900 text-[11px] uppercase tracking-wide">
+                        Beat 2 (0.8s - 1.8s)
+                      </div>
+                      <div className="font-bold text-slate-900 text-xs mt-0.5">Tool Assault &amp; Sparks</div>
+                      <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                        High-speed cleaver hack or aggressive unlatch with flying sparks/rattle.
+                      </div>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-white/80 border border-amber-200">
+                      <div className="font-extrabold text-amber-900 text-[11px] uppercase tracking-wide">
+                        Beat 3 (1.8s - 3.0s)
+                      </div>
+                      <div className="font-bold text-slate-900 text-xs mt-0.5">Culinary Proof &amp; Sizzle</div>
+                      <div className="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                        Gadget parts dropped into scorching pan with violent *TCHRRR* steam or chef eye-lock.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Option Selector Toggle */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedHook("optionA")}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition border flex items-center justify-center gap-2 ${
+                      selectedHook === "optionA"
+                        ? "bg-amber-500 text-slate-950 border-amber-500 shadow-xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>⚡</span>
+                    <span>Hook Option 1: Cleaver Spark Slam</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedHook("optionB")}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition border flex items-center justify-center gap-2 ${
+                      selectedHook === "optionB"
+                        ? "bg-rose-500 text-white border-rose-500 shadow-xs"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <span>🔥</span>
+                    <span>Hook Option 2: Sizzling Pan Drop Teaser</span>
+                  </button>
+                </div>
+
+                {/* Prompt Card */}
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-xs p-6 space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                    <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-mono">
+                      <button
+                        type="button"
+                        onClick={() => setHookFormatTab("flow")}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                          hookFormatTab === "flow" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        🎬 Google Flow (Veo)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHookFormatTab("kling")}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                          hookFormatTab === "kling" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        ⚡ Kling AI
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setHookFormatTab("flux")}
+                        className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                          hookFormatTab === "flux" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        🎨 FLUX.1 Still Frame
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentHook = selectedHook === "optionA" ? hookPrompts.optionA_cleaverSlam : hookPrompts.optionB_sizzleDrop;
+                        const text = hookFormatTab === "flow"
+                          ? currentHook.googleFlowPrompt
+                          : hookFormatTab === "kling"
+                          ? currentHook.klingPrompt
+                          : currentHook.fluxStillPrompt;
+                        copyPrompt(text, `hook-${selectedHook}-${hookFormatTab}`);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs transition"
+                    >
+                      {copied === `hook-${selectedHook}-${hookFormatTab}` ? (
+                        <>
+                          <Check className="h-4 w-4 text-emerald-950" />
+                          <span>Copied to Clipboard!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>Copy {hookFormatTab === "flow" ? "Google Flow" : hookFormatTab === "kling" ? "Kling" : "FLUX.1"} Prompt</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-700 uppercase mb-2">
+                      <span>Ready-to-Run Video Prompt ({hookFormatTab === "flow" ? "Google Flow / Veo" : hookFormatTab === "kling" ? "Kling AI" : "FLUX.1 Still"}):</span>
+                      <span className="text-amber-700 font-extrabold">9:16 Vertical · 2X High Velocity Tempo</span>
+                    </div>
+                    <textarea
+                      readOnly
+                      rows={9}
+                      value={
+                        selectedHook === "optionA"
+                          ? (hookFormatTab === "flow"
+                              ? hookPrompts.optionA_cleaverSlam.googleFlowPrompt
+                              : hookFormatTab === "kling"
+                              ? hookPrompts.optionA_cleaverSlam.klingPrompt
+                              : hookPrompts.optionA_cleaverSlam.fluxStillPrompt)
+                          : (hookFormatTab === "flow"
+                              ? hookPrompts.optionB_sizzleDrop.googleFlowPrompt
+                              : hookFormatTab === "kling"
+                              ? hookPrompts.optionB_sizzleDrop.klingPrompt
+                              : hookPrompts.optionB_sizzleDrop.fluxStillPrompt)
+                      }
+                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-200 font-mono leading-relaxed select-all focus:outline-none shadow-inner"
+                    />
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+                    <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-slate-900">How to use this in your video:</strong> Run this 3-second prompt in Google Flow or Kling, download the 3-second MP4 clip, and place it at the very beginning (0:00 - 0:03) of your video editor timeline before Scene 1. This grabs 100% viewer attention before they can swipe away!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-400 py-24">
+                <ImageIcon className="h-12 w-12 text-slate-300 mb-3" />
+                <p className="text-sm font-semibold text-slate-600">Select a shot from the left sidebar to open the studio.</p>
+              </div>
+            )
           ) : (
             <div className="max-w-7xl mx-auto space-y-6">
               {/* Header Bar */}

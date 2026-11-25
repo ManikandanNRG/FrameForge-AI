@@ -8,11 +8,13 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
 
   beforeEach(async () => {
     // Clean up test data if left over
-    await prisma.projectChatMessage.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.shot.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.scene.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.storyArtifact.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.project.deleteMany({ where: { id: testProjectId } });
+    await prisma.projectChatMessage.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.shot.deleteMany({ where: { scene: { project: { ownerId: testOwnerId } } } });
+    await prisma.scene.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.productionAsset.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.storyArtifact.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.project.deleteMany({ where: { ownerId: testOwnerId } });
+    await prisma.series.deleteMany({ where: { ownerId: testOwnerId } });
     await prisma.user.deleteMany({ where: { id: testOwnerId } });
 
     // Seed test user and project
@@ -65,11 +67,13 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
   });
 
   afterEach(async () => {
-    await prisma.projectChatMessage.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.shot.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.scene.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.storyArtifact.deleteMany({ where: { projectId: testProjectId } });
-    await prisma.project.deleteMany({ where: { id: testProjectId } });
+    await prisma.projectChatMessage.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.shot.deleteMany({ where: { scene: { project: { ownerId: testOwnerId } } } });
+    await prisma.scene.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.productionAsset.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.storyArtifact.deleteMany({ where: { project: { ownerId: testOwnerId } } });
+    await prisma.project.deleteMany({ where: { ownerId: testOwnerId } });
+    await prisma.series.deleteMany({ where: { ownerId: testOwnerId } });
     await prisma.user.deleteMany({ where: { id: testOwnerId } });
   });
 
@@ -148,5 +152,40 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
     expect(shot1?.imagePrompt).toBeDefined();
     expect(shot1?.imagePrompt).not.toBe("draft image prompt");
     expect(shot1?.videoPrompt).not.toBe("draft video prompt");
+    expect(shot1?.videoPrompt).toContain("HIGH-VOLUME CLOSE-MIC");
+  });
+
+  it("creates Episode 8 for Cricket Bat and Ball directly from AI Director chat without Quartz leakage", async () => {
+    const result = await handleDirectorChat({
+      projectId: testProjectId,
+      ownerId: testOwnerId,
+      userMessage: "For episode 8 I am going to plan the cricket Bat,and Ball. can you create the project for this",
+    });
+
+    expect(result.createdEpisode).toBeDefined();
+    expect(result.createdEpisode?.episodeNumber).toBe(8);
+    expect(result.createdEpisode?.url).toContain("/storyboard");
+    expect(result.actionsTaken.some((a) => a.type === "CREATE_EPISODE")).toBe(true);
+
+    const createdScenes = await prisma.scene.findMany({
+      where: { projectId: result.createdEpisode!.id },
+      orderBy: { sceneNumber: "asc" },
+    });
+    expect(createdScenes.length).toBe(5);
+    expect(createdScenes[0].actionSummary.toLowerCase()).toContain("cricket bat");
+    expect(createdScenes[0].actionSummary.toLowerCase()).not.toContain("quartz");
+
+    // Verify upgrading Scene 1 hook on the Cricket episode uses Cricket Bat & Ball, NOT Quartz
+    const hookUpdate = await handleDirectorChat({
+      projectId: result.createdEpisode!.id,
+      ownerId: testOwnerId,
+      userMessage: "Upgrade Scene 1 hook for faster opening impact",
+    });
+    expect(hookUpdate.reply).not.toContain("quartz");
+    const updatedS1 = await prisma.scene.findFirst({
+      where: { projectId: result.createdEpisode!.id, sceneNumber: 1 },
+    });
+    expect(updatedS1?.actionSummary.toLowerCase()).toContain("cricket");
+    expect(updatedS1?.actionSummary.toLowerCase()).not.toContain("quartz");
   });
 });

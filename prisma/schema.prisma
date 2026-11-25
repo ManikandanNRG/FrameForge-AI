@@ -21,6 +21,7 @@ model User {
 
   projects    Project[]
   series      Series[]
+  directorThreads DirectorThread[]
   auditEvents AuditEvent[]
   mediaRoots  MediaRoot[]
   providerConnections ProviderConnection[]
@@ -47,6 +48,7 @@ model Series {
   updatedAt                 DateTime @updatedAt
 
   episodes                  Project[]
+  directorThreads           DirectorThread[]
 
   @@unique([ownerId, slug])
   @@index([ownerId])
@@ -86,6 +88,7 @@ model Project {
   scenes           Scene[]
   editSequences    EditSequence[]
   chatMessages     ProjectChatMessage[]
+  directorThreads  DirectorThread[]
 
   @@index([ownerId])
   @@index([seriesId])
@@ -415,4 +418,44 @@ model ProjectChatMessage {
   createdAt    DateTime @default(now())
 
   @@index([projectId])
+}
+
+/// Persistent AI Director conversation thread with rolling long-term memory
+model DirectorThread {
+  id              String            @id @default(cuid())
+  ownerId         String
+  owner           User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  scope           String            @default("STUDIO") // STUDIO | PROJECT
+  seriesId        String?
+  series          Series?           @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  projectId       String?
+  project         Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title           String            @default("Studio Planning")
+  memorySummary   String?           // Compressed rolling long-term summary of older turns
+  pinnedDecisions String            @default("[]") // JSON array of key creative choices
+  summarizedCount Int               @default(0) // Count of oldest messages folded into memorySummary
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  messages        DirectorMessage[]
+
+  @@index([ownerId, scope, updatedAt])
+  @@index([projectId])
+  @@index([seriesId])
+}
+
+/// Individual message inside a persistent DirectorThread
+model DirectorMessage {
+  id                  String         @id @default(cuid())
+  threadId            String
+  thread              DirectorThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  sender              String         // USER | AI_DIRECTOR | SYSTEM
+  message             String
+  actionsTaken        String?        // JSON metadata of executed actions
+  proposedEpisodePlan String?        // JSON ProposedEpisodePlan
+  proposalStatus      String?        // PENDING | APPROVED | SUPERSEDED
+  createdEpisodeJson  String?        // JSON CreatedEpisodeLink
+  createdAt           DateTime       @default(now())
+
+  @@index([threadId, createdAt])
 }

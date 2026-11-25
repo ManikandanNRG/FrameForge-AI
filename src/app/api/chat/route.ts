@@ -4,7 +4,12 @@ import { badRequest } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
 import { handleDirectorChat } from "@/lib/story/chat-director";
-import { createSeriesEpisode } from "@/lib/series/episode-service";
+import {
+  createNewDirectorThread,
+  listDirectorThreads,
+  loadFormattedThreadMessages,
+  resolveOrCreateDirectorThread,
+} from "@/lib/story/director-memory";
 
 const approvePlanSchema = z.object({
   episodeNumber: z.coerce.number(),
@@ -24,96 +29,117 @@ const approvePlanSchema = z.object({
 });
 
 const postSchema = z.object({
-  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long"),
+  action: z.enum(["message", "create_thread", "delete_thread"]).optional(),
+  threadId: z.string().optional(),
+  title: z.string().max(120).optional(),
+  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long").optional(),
   approvePlan: approvePlanSchema.optional(),
 });
 
 /**
- * Global AI Director chat endpoint used on /projects, /projects/new, and /settings
- * (when no specific projectId route is active). Delegates to the user's latest project
- * so conversation stays persistent and never creates projects without approval.
+ * GET /api/chat?threadId=...
+ * Returns saved Studio-level chat threads and the active thread's persistent message history.
+ */
+export const GET = apiHandler(async (req) => {
+  const ownerId = await requireUserId();
+  const { searchParams } = new URL(req.url);
+  const requestedThreadId = searchParams.get("threadId") || undefined;
+
+  const activeThread = await resolveOrCreateDirectorThread({
+    ownerId,
+    scope: "STUDIO",
+    threadId: requestedThreadId,
+  });
+
+  const [messages, threads] = await Promise.all([
+    loadFormattedThreadMessages(activeThread.id),
+    listDirectorThreads({ ownerId, scope: "STUDIO" }),
+  ]);
+
+  return {
+    scope: "STUDIO",
+    threadId: activeThread.id,
+    threadTitle: activeThread.title,
+    threads,
+    messages,
+  };
+});
+
+/**
+ * POST /api/chat
+ * Handles Studio-level AI Director messages as well as New Thread / Delete Thread management.
  */
 export const POST = apiHandler(async (req) => {
   const ownerId = await requireUserId();
   const body = await req.json().catch(() => ({}));
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {
-    throw badRequest("Invalid chat message", parsed.error.issues);
+    throw badRequest("Invalid chat request", parsed.error.issues);
   }
 
-  const latestProject = await prisma.project.findFirst({
-    where: { ownerId },
-    orderBy: { updatedAt: "desc" },
-    select: { id: true },
-  });
-
-  if (latestProject) {
-    const result = await handleDirectorChat({
-      projectId: latestProject.id,
+  if (parsed.data.action === "create_thread") {
+    const created = await createNewDirectorThread({
       ownerId,
-      userMessage: parsed.data.message,
-      approvePlan: parsed.data.approvePlan,
+      scope: "STUDIO",
+      title: parsed.data.title,
     });
+    const threads = await listDirectorThreads({ ownerId, scope: "STUDIO" });
     return {
       success: true,
-      reply: result.reply,
-      actionsTaken: result.actionsTaken,
-      qcReport: result.qcReport,
-      createdEpisode: result.createdEpisode,
-      proposedEpisodePlan: result.proposedEpisodePlan,
+      threadId: created.id,
+      threadTitle: created.title,
+      threads,
+      messages: [],
     };
   }
 
-  // Only create when user explicitly clicks Approve on a proposed plan
-  if (parsed.data.approvePlan) {
-    const series = await prisma.series.create({
-      data: {
+  if (parsed.data.action === "delete_thread" && parsed.data.threadId) {
+    await prisma.directorThread.deleteMany({
+      where: {
+        id: parsed.data.threadId,
         ownerId,
-        title: "The Shadow Alchemist — Inedible ASMR",
-        slug: `inedible-asmr-${Date.now()}`,
-        visualStyle: "CULINARY_MACRO_ASMR",
-        genre: "Culinary & Cooking ASMR",
-        tone: "Satisfying, Crisp & Hypnotic",
-        dialogueMode: "PURE_ASMR_FOLEY",
-        aspectRatio: "PORTRAIT_9_16",
-        targetRuntime: parsed.data.approvePlan.targetRuntime,
-        storyLanguage: "English",
+        scope: "STUDIO",
       },
     });
-
-    const { episode, nextEpisodeNumber } = await createSeriesEpisode({
+    const nextActive = await resolveOrCreateDirectorThread({
       ownerId,
-      seriesId: series.id,
-      title: parsed.data.approvePlan.title,
-      sourceIdea: parsed.data.approvePlan.sourceIdea,
-      episodeNumber: parsed.data.approvePlan.episodeNumber,
-      targetRuntime: parsed.data.approvePlan.targetRuntime,
+      scope: "STUDIO",
     });
-
-    const createdEpisode = episode
-      ? {
-          id: episode.id,
-          title: episode.title,
-          episodeNumber: episode.episodeNumber ?? nextEpisodeNumber,
-          url: `/projects/${episode.id}/storyboard`,
-        }
-      : undefined;
-
+    const [messages, threads] = await Promise.all([
+      loadFormattedThreadMessages(nextActive.id),
+      listDirectorThreads({ ownerId, scope: "STUDIO" }),
+    ]);
     return {
       success: true,
-      reply: episode
-        ? `Approved! Created **${episode.title}**. Click below to open its Storyboard!`
-        : "Created your series.",
-      actionsTaken: createdEpisode
-        ? [{ type: "CREATE_EPISODE", details: `Created Episode ${createdEpisode.episodeNumber}: "${createdEpisode.title}"` }]
-        : [],
-      createdEpisode,
+      threadId: nextActive.id,
+      threadTitle: nextActive.title,
+      threads,
+      messages,
     };
   }
+
+  if (!parsed.data.message) {
+    throw badRequest("Message cannot be empty");
+  }
+
+  const result = await handleDirectorChat({
+    scope: "STUDIO",
+    threadId: parsed.data.threadId,
+    ownerId,
+    userMessage: parsed.data.message,
+    approvePlan: parsed.data.approvePlan,
+  });
+
+  const threads = await listDirectorThreads({ ownerId, scope: "STUDIO" });
 
   return {
     success: true,
-    reply: `Let's plan your first episode together! Tell me what object you want to cook and what dish style you prefer (e.g. Biryani, Samosa, Tempura, Idiyappam), and I'll build the comparison table for your approval before creating the project.`,
-    actionsTaken: [],
+    threadId: result.threadId,
+    threads,
+    reply: result.reply,
+    actionsTaken: result.actionsTaken,
+    qcReport: result.qcReport,
+    createdEpisode: result.createdEpisode,
+    proposedEpisodePlan: result.proposedEpisodePlan,
   };
 });

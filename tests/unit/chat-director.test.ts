@@ -1,13 +1,23 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { prisma } from "@/lib/db/client";
 import { handleDirectorChat, executeDirectorActions } from "@/lib/story/chat-director";
+import {
+  createNewDirectorThread,
+  getSeriesContextCatalog,
+  listDirectorThreads,
+  loadFormattedThreadMessages,
+  RECENT_MESSAGE_LIMIT,
+  resolveOrCreateDirectorThread,
+} from "@/lib/story/director-memory";
 
-describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
+describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
   const testOwnerId = "test-owner-chat-copilot";
   const testProjectId = "test-proj-chat-copilot";
 
   beforeEach(async () => {
     // Clean up test data if left over
+    await prisma.directorMessage.deleteMany({ where: { thread: { ownerId: testOwnerId } } });
+    await prisma.directorThread.deleteMany({ where: { ownerId: testOwnerId } });
     await prisma.projectChatMessage.deleteMany({ where: { project: { ownerId: testOwnerId } } });
     await prisma.shot.deleteMany({ where: { scene: { project: { ownerId: testOwnerId } } } });
     await prisma.scene.deleteMany({ where: { project: { ownerId: testOwnerId } } });
@@ -67,6 +77,8 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
   });
 
   afterEach(async () => {
+    await prisma.directorMessage.deleteMany({ where: { thread: { ownerId: testOwnerId } } });
+    await prisma.directorThread.deleteMany({ where: { ownerId: testOwnerId } });
     await prisma.projectChatMessage.deleteMany({ where: { project: { ownerId: testOwnerId } } });
     await prisma.shot.deleteMany({ where: { scene: { project: { ownerId: testOwnerId } } } });
     await prisma.scene.deleteMany({ where: { project: { ownerId: testOwnerId } } });
@@ -214,5 +226,76 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-040)", () => {
     });
     expect(updatedS1?.actionSummary.toLowerCase()).toContain("cricket");
     expect(updatedS1?.actionSummary.toLowerCase()).not.toContain("quartz");
+  });
+
+  it("persists Studio threads independently, restores createdEpisode links on reload, and folds older turns into long-term memory", async () => {
+    // 1. Send a Studio-level pitch (no projectId)
+    const pitch = await handleDirectorChat({
+      scope: "STUDIO",
+      ownerId: testOwnerId,
+      userMessage: "Plan Episode 8 for Cricket Bat and Ball",
+    });
+
+    expect(pitch.threadId).toBeDefined();
+    expect(pitch.proposedEpisodePlan).toBeDefined();
+    expect(pitch.createdEpisode).toBeUndefined();
+
+    // 2. Approve in same Studio thread -> marks proposal APPROVED & saves createdEpisode link
+    const approved = await handleDirectorChat({
+      scope: "STUDIO",
+      threadId: pitch.threadId,
+      ownerId: testOwnerId,
+      userMessage: "Yes, create it",
+      approvePlan: pitch.proposedEpisodePlan,
+    });
+    expect(approved.createdEpisode).toBeDefined();
+
+    // 3. Simulate full page refresh in Studio mode
+    const studioThreads = await listDirectorThreads({ ownerId: testOwnerId, scope: "STUDIO" });
+    expect(studioThreads.length).toBe(1);
+    expect(studioThreads[0].messageCount).toBe(4);
+
+    const reloadedMessages = await loadFormattedThreadMessages(pitch.threadId);
+    expect(reloadedMessages).toHaveLength(4);
+    expect(reloadedMessages[1].proposedEpisodePlan?.episodeNumber).toBe(
+      pitch.proposedEpisodePlan?.episodeNumber
+    );
+    expect(reloadedMessages[1].proposalStatus).toBe("APPROVED");
+    expect(reloadedMessages[3].createdEpisode?.url).toBe(approved.createdEpisode?.url);
+
+    // 4. Series catalog includes both existing Quartz test project and new Episode 8
+    const catalog = await getSeriesContextCatalog(testOwnerId);
+    expect(catalog.seriesSummary).toContain("The Alchemist Inedible Feast");
+    expect(catalog.seriesSummary).toContain("Cricket Bat");
+
+    // 5. Creating a second Studio thread keeps the original thread untouched
+    const thread2 = await createNewDirectorThread({
+      ownerId: testOwnerId,
+      scope: "STUDIO",
+      title: "Second Topic",
+    });
+    expect(thread2.id).not.toBe(pitch.threadId);
+
+    // 6. Long-term memory folds turns once conversation grows past RECENT_MESSAGE_LIMIT (16)
+    const memoryTestThread = await resolveOrCreateDirectorThread({
+      ownerId: testOwnerId,
+      scope: "STUDIO",
+      threadId: thread2.id,
+    });
+    const totalTurnsToExceedLimit = Math.ceil((RECENT_MESSAGE_LIMIT + 6) / 2);
+    for (let i = 1; i <= totalTurnsToExceedLimit; i++) {
+      await handleDirectorChat({
+        scope: "STUDIO",
+        threadId: memoryTestThread.id,
+        ownerId: testOwnerId,
+        userMessage: `Note ${i}: keep crisp Foley audio`,
+      });
+    }
+
+    const updatedThread = await prisma.directorThread.findUnique({
+      where: { id: memoryTestThread.id },
+    });
+    expect(updatedThread?.summarizedCount).toBeGreaterThan(0);
+    expect(updatedThread?.memorySummary).toContain("Note 1");
   });
 });

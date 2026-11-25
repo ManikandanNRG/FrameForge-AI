@@ -1,10 +1,11 @@
 /**
- * In-App AI Director Chat Co-Pilot & Scene Execution Engine (ADR-036 to ADR-050)
+ * In-App AI Director Chat Co-Pilot & Scene Execution Engine (ADR-036 to ADR-051)
  *
- * Conversational AI Director inside the studio:
+ * Persistent Conversational AI Director across both Studio & Episode scopes:
+ * - Persists full conversations in DirectorThread / DirectorMessage (never tied to a random project).
+ * - Uses 3-layer context: Series & All-Episodes Catalog + Rolling Long-Term Memory + Recent 16 Messages.
  * - Discusses episode ideas, proposes dish mappings & Comparison Tables, and asks for approval BEFORE creating any project.
  * - Executes scene edits, prop continuity locks, prompt recompilation, and ASMR QC audits on command.
- * - Only creates a new episode/project when the user explicitly approves a proposed plan (via button or confirmation).
  */
 
 import { prisma } from "@/lib/db/client";
@@ -15,6 +16,15 @@ import { createSeriesEpisode } from "@/lib/series/episode-service";
 import { resolveTextProvider } from "@/lib/providers/resolve";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
+import {
+  getSeriesContextCatalog,
+  loadFormattedThreadMessages,
+  RECENT_MESSAGE_LIMIT,
+  recordDirectorTurn,
+  refreshThreadLongTermMemory,
+  resolveOrCreateDirectorThread,
+  type ThreadScope,
+} from "./director-memory";
 
 export type DirectorActionType =
   | "UPDATE_SCENE"
@@ -63,6 +73,7 @@ export interface CreatedEpisodeLink {
 }
 
 export interface ChatDirectorResult {
+  threadId: string;
   reply: string;
   actionsTaken: DirectorAction[];
   qcReport?: RapidAsmrQcReport;
@@ -95,13 +106,91 @@ function buildCompileContext(project: any) {
   };
 }
 
+async function createEpisodeFromDirectorAction({
+  ownerId,
+  preferredSeriesId,
+  action,
+  fallbackDefaults,
+}: {
+  ownerId: string;
+  preferredSeriesId?: string | null;
+  action: DirectorAction;
+  fallbackDefaults?: {
+    visualStyle?: string | null;
+    genre?: string | null;
+    tone?: string | null;
+    dialogueMode?: string | null;
+    aspectRatio?: string | null;
+    storyLanguage?: string | null;
+  };
+}): Promise<{ executedAction?: DirectorAction; createdEpisode?: CreatedEpisodeLink }> {
+  if (!action.episodeIdea) return {};
+
+  let targetSeriesId = preferredSeriesId ?? null;
+  if (!targetSeriesId) {
+    const existingSeries = await prisma.series.findFirst({
+      where: { ownerId },
+      orderBy: { updatedAt: "desc" },
+    });
+    if (existingSeries) {
+      targetSeriesId = existingSeries.id;
+    } else {
+      const createdSeries = await prisma.series.create({
+        data: {
+          ownerId,
+          title: "The Shadow Alchemist — Inedible ASMR",
+          slug: `inedible-asmr-${Date.now()}`,
+          visualStyle: fallbackDefaults?.visualStyle || "CULINARY_MACRO_ASMR",
+          genre: fallbackDefaults?.genre || "Culinary & Cooking ASMR",
+          tone: fallbackDefaults?.tone || "Satisfying, Crisp & Hypnotic",
+          dialogueMode: fallbackDefaults?.dialogueMode || "PURE_ASMR_FOLEY",
+          aspectRatio: fallbackDefaults?.aspectRatio || "PORTRAIT_9_16",
+          targetRuntime: action.targetRuntime ?? 20,
+          storyLanguage: fallbackDefaults?.storyLanguage || "English",
+        },
+      });
+      targetSeriesId = createdSeries.id;
+    }
+  }
+
+  const titleText =
+    action.episodeTitle || `New Episode: ${action.episodeIdea.slice(0, 60)}`;
+  const { episode, nextEpisodeNumber } = await createSeriesEpisode({
+    ownerId,
+    seriesId: targetSeriesId,
+    title: titleText,
+    sourceIdea: action.episodeIdea,
+    episodeNumber: action.episodeNumber,
+    targetRuntime: action.targetRuntime ?? 20,
+  });
+
+  if (!episode) return {};
+
+  const createdEpisode: CreatedEpisodeLink = {
+    id: episode.id,
+    title: episode.title,
+    episodeNumber: episode.episodeNumber ?? nextEpisodeNumber,
+    url: `/projects/${episode.id}/storyboard`,
+  };
+
+  return {
+    createdEpisode,
+    executedAction: {
+      type: "CREATE_EPISODE",
+      episodeTitle: episode.title,
+      details: `Created Episode ${createdEpisode.episodeNumber}: "${episode.title}" (${episode.scenes?.length || 5} scenes, ${action.targetRuntime ?? 20}s Rapid ASMR)`,
+    },
+  };
+}
+
 /**
  * Executes approved director actions against the database and project state.
  */
 export async function executeDirectorActions(
-  projectId: string,
+  projectId: string | null | undefined,
   actions: DirectorAction[],
-  ownerId?: string
+  ownerId?: string,
+  preferredSeriesId?: string | null
 ): Promise<{
   executed: DirectorAction[];
   qcReport?: RapidAsmrQcReport;
@@ -110,94 +199,70 @@ export async function executeDirectorActions(
   const executed: DirectorAction[] = [];
   let createdEpisode: CreatedEpisodeLink | undefined;
 
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: {
-      scenes: {
-        include: { shots: true },
-        orderBy: { sceneNumber: "asc" },
-      },
-      storyArtifacts: {
-        where: { artifactType: "SCREENPLAY" },
-        include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
-      },
-      productionAssets: { where: { assetType: "CHARACTER" } },
-      series: true,
-    },
-  });
+  const project = projectId
+    ? await prisma.project.findUnique({
+        where: { id: projectId },
+        include: {
+          scenes: {
+            include: { shots: true },
+            orderBy: { sceneNumber: "asc" },
+          },
+          storyArtifacts: {
+            where: { artifactType: "SCREENPLAY" },
+            include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
+          },
+          productionAssets: { where: { assetType: "CHARACTER" } },
+          series: true,
+        },
+      })
+    : null;
 
-  if (!project) {
+  if (projectId && !project) {
     throw new Error(`Project ${projectId} not found.`);
   }
 
-  const ctx = buildCompileContext(project);
+  const ctx = project ? buildCompileContext(project) : undefined;
 
   for (const act of actions) {
     if (act.type === "PROPOSE_EPISODE") {
       executed.push({
         type: "PROPOSE_EPISODE",
         proposedEpisodePlan: act.proposedEpisodePlan,
-        details: act.details || `Proposed Episode ${act.proposedEpisodePlan?.episodeNumber ?? ""}: awaiting creator approval`,
+        details:
+          act.details ||
+          `Proposed Episode ${act.proposedEpisodePlan?.episodeNumber ?? ""}: awaiting creator approval`,
       });
       continue;
     }
 
-    // 0. Process CREATE_EPISODE actions (only after explicit approval)
     if (act.type === "CREATE_EPISODE" && act.episodeIdea) {
-      const effectiveOwnerId = ownerId || project.ownerId;
-      let targetSeriesId = project.seriesId;
+      const effectiveOwnerId = ownerId || project?.ownerId;
+      if (!effectiveOwnerId) continue;
 
-      if (!targetSeriesId) {
-        const existingSeries = await prisma.series.findFirst({
-          where: { ownerId: effectiveOwnerId },
-          orderBy: { updatedAt: "desc" },
-        });
-        if (existingSeries) {
-          targetSeriesId = existingSeries.id;
-        } else {
-          const createdSeries = await prisma.series.create({
-            data: {
-              ownerId: effectiveOwnerId,
-              title: "The Shadow Alchemist — Inedible ASMR",
-              slug: `inedible-asmr-${Date.now()}`,
-              visualStyle: project.visualStyle || "CULINARY_MACRO_ASMR",
-              genre: project.genre || "Culinary & Cooking ASMR",
-              tone: project.tone || "Satisfying, Crisp & Hypnotic",
-              dialogueMode: project.dialogueMode || "PURE_ASMR_FOLEY",
-              aspectRatio: project.aspectRatio || "PORTRAIT_9_16",
-              targetRuntime: act.targetRuntime ?? 20,
-              storyLanguage: project.storyLanguage || "English",
-            },
-          });
-          targetSeriesId = createdSeries.id;
-        }
-      }
-
-      const titleText = act.episodeTitle || `New Episode: ${act.episodeIdea.slice(0, 60)}`;
-      const { episode, nextEpisodeNumber } = await createSeriesEpisode({
+      const createdRes = await createEpisodeFromDirectorAction({
         ownerId: effectiveOwnerId,
-        seriesId: targetSeriesId,
-        title: titleText,
-        sourceIdea: act.episodeIdea,
-        episodeNumber: act.episodeNumber,
-        targetRuntime: act.targetRuntime ?? 20,
+        preferredSeriesId: project?.seriesId ?? preferredSeriesId,
+        action: act,
+        fallbackDefaults: project
+          ? {
+              visualStyle: project.visualStyle,
+              genre: project.genre,
+              tone: project.tone,
+              dialogueMode: project.dialogueMode,
+              aspectRatio: project.aspectRatio,
+              storyLanguage: project.storyLanguage,
+            }
+          : undefined,
       });
 
-      if (episode) {
-        createdEpisode = {
-          id: episode.id,
-          title: episode.title,
-          episodeNumber: episode.episodeNumber ?? nextEpisodeNumber,
-          url: `/projects/${episode.id}/storyboard`,
-        };
-        executed.push({
-          type: "CREATE_EPISODE",
-          episodeTitle: episode.title,
-          details: `Created Episode ${createdEpisode.episodeNumber}: "${episode.title}" (${episode.scenes?.length || 5} scenes, ${act.targetRuntime ?? 20}s Rapid ASMR)`,
-        });
+      if (createdRes.createdEpisode && createdRes.executedAction) {
+        createdEpisode = createdRes.createdEpisode;
+        executed.push(createdRes.executedAction);
       }
       continue;
     }
+
+    if (!project || !ctx) continue;
 
     // 1. Process UPDATE_SCENE actions
     if (act.type === "UPDATE_SCENE" && act.sceneNumber) {
@@ -245,7 +310,9 @@ export async function executeDirectorActions(
           try {
             const spData = JSON.parse(latestVersion.contentText);
             if (Array.isArray(spData.scenes)) {
-              const spScene = spData.scenes.find((s: any) => s.sceneNumber === act.sceneNumber);
+              const spScene = spData.scenes.find(
+                (s: any) => s.sceneNumber === act.sceneNumber
+              );
               if (spScene) {
                 if (act.actionDescription) spScene.action = act.actionDescription;
                 if (act.heading) spScene.heading = act.heading;
@@ -353,34 +420,44 @@ export async function executeDirectorActions(
     }
   }
 
-  // Only run QC Audit when scenes exist and we didn't just do pure conversation
-  const updatedScenes = await prisma.scene.findMany({
-    where: { projectId },
-    orderBy: { sceneNumber: "asc" },
-  });
-
-  const qcReport = auditRapidAsmrProject(
-    updatedScenes.map((s) => ({
-      sceneNumber: s.sceneNumber,
-      heading: s.heading,
-      action: s.actionSummary,
-    })),
-    {
-      title: project.title,
-      description: project.description,
-      sourceIdea: project.sourceIdea,
-      visualStyle: project.visualStyle,
-      genre: project.genre,
-      dialogueMode: project.dialogueMode,
-      seriesSlug: project.series?.slug,
-    }
-  );
-
-  if (actions.some((a) => a.type === "AUDIT_QC" || a.type === "UPDATE_SCENE" || a.type === "RECOMPILE_PROMPTS" || a.type === "ALIGN_PROP_CONTINUITY")) {
-    executed.push({
-      type: "AUDIT_QC",
-      details: `ASMR QC Audit score: ${qcReport.overallScore}/100 (${qcReport.rating})`,
+  let qcReport: RapidAsmrQcReport | undefined;
+  if (project) {
+    const updatedScenes = await prisma.scene.findMany({
+      where: { projectId: project.id },
+      orderBy: { sceneNumber: "asc" },
     });
+
+    qcReport = auditRapidAsmrProject(
+      updatedScenes.map((s) => ({
+        sceneNumber: s.sceneNumber,
+        heading: s.heading,
+        action: s.actionSummary,
+      })),
+      {
+        title: project.title,
+        description: project.description,
+        sourceIdea: project.sourceIdea,
+        visualStyle: project.visualStyle,
+        genre: project.genre,
+        dialogueMode: project.dialogueMode,
+        seriesSlug: project.series?.slug,
+      }
+    );
+
+    if (
+      actions.some(
+        (a) =>
+          a.type === "AUDIT_QC" ||
+          a.type === "UPDATE_SCENE" ||
+          a.type === "RECOMPILE_PROMPTS" ||
+          a.type === "ALIGN_PROP_CONTINUITY"
+      )
+    ) {
+      executed.push({
+        type: "AUDIT_QC",
+        details: `ASMR QC Audit score: ${qcReport.overallScore}/100 (${qcReport.rating})`,
+      });
+    }
   }
 
   return { executed, qcReport, createdEpisode };
@@ -394,7 +471,9 @@ function buildHeuristicEpisodeProposal(
   const episodeNumber = epMatch ? Number(epMatch[1]) : defaultNextEpNum;
 
   const runtimeMatch = userMessage.match(/\b(\d+)\s*(?:s|sec|seconds)\b/i);
-  const targetRuntime = runtimeMatch ? Math.min(90, Math.max(15, Number(runtimeMatch[1]))) : 20;
+  const targetRuntime = runtimeMatch
+    ? Math.min(90, Math.max(15, Number(runtimeMatch[1])))
+    : 20;
 
   const lower = userMessage.toLowerCase();
   const isCricket = /\b(cricket|bat|ball)\b/i.test(lower);
@@ -427,13 +506,17 @@ function buildHeuristicEpisodeProposal(
     const tableMd = [
       "| Real Dish Element | Inedible Cricket Component | Cooking Method |",
       "|---|---|---|",
-      ...comparisonTable.map((r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`),
+      ...comparisonTable.map(
+        (r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`
+      ),
     ].join("\n");
 
     const proposal: ProposedEpisodePlan = {
       episodeNumber,
       title: `Episode ${episodeNumber}: Cricket Bat & Leather Ball Feast (ASMR)`,
-      sourceIdea: `The Shadow Alchemist transforms a vintage English willow cricket bat and stitched red leather cricket ball into ${dishName}. ${comparisonTable.map((r) => `${r.inedibleCounterpart} -> ${r.realElement}`).join("; ")}.`,
+      sourceIdea: `The Shadow Alchemist transforms a vintage English willow cricket bat and stitched red leather cricket ball into ${dishName}. ${comparisonTable
+        .map((r) => `${r.inedibleCounterpart} -> ${r.realElement}`)
+        .join("; ")}.`,
       dishName,
       targetRuntime,
       comparisonTable,
@@ -450,14 +533,15 @@ ${tableMd}
 
 ### 3. Viral Shorts Pacing & Audio Plan
 - **0:00 - 0:03 Pre-Scene Hook**: Macro cleaver slam splitting the red leather cricket ball + willow bat shavings at 0.0s (-1dB high-gain Foley).
-- **Recommended Runtime**: **${targetRuntime}s (${targetRuntime <= 30 ? "5 high-density scenes of 4s each" : "8 scenes"})** — keeps Average Percentage Viewed above **100%+**.
+- **Recommended Runtime**: **${targetRuntime}s (${
+      targetRuntime <= 30 ? "5 high-density scenes of 4s each" : "8 scenes"
+    })** — keeps Average Percentage Viewed above **100%+**.
 
 Would you like to change the dish, swap any components in the table, or adjust the runtime? When you're happy with it, click **Approve & Create Episode ${episodeNumber}** below (or reply **"Approved, create it"**).`;
 
     return { reply, proposal };
   }
 
-  // Generic object proposal
   let subject = userMessage
     .replace(/\b(?:for|in)\s+(?:episode|ep)\s*#?\s*\d+\b/gi, "")
     .replace(/\b(?:i am going to|i want to|please|can you|could you|let'?s|we should)\b/gi, "")
@@ -492,7 +576,9 @@ Would you like to change the dish, swap any components in the table, or adjust t
   const tableMd = [
     "| Real Dish Element | Inedible Component | Cooking Method |",
     "|---|---|---|",
-    ...comparisonTable.map((r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`),
+    ...comparisonTable.map(
+      (r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`
+    ),
   ].join("\n");
 
   const proposal: ProposedEpisodePlan = {
@@ -523,8 +609,12 @@ Tell me what dish or changes you want, or click **Approve & Create Episode ${epi
 
 function isIdeaOrPlanningMessage(userMessage: string): boolean {
   const lower = userMessage.toLowerCase();
-  const hasQuestionOrComplaint = /\?|\b(why|how|what|explain|without approval|never speak|discuss|what are|which dish|suggest|idea|plan|going to)\b/i.test(lower);
-  const mentionsNewEpisode = /\b(new episode|next episode|episode\s*\d+|ep\s*\d+|new project|create.*project|create.*episode|cricket|bat.*ball)\b/i.test(lower);
+  const hasQuestionOrComplaint = /\?|\b(why|how|what|explain|without approval|never speak|discuss|what are|which dish|suggest|idea|plan|going to)\b/i.test(
+    lower
+  );
+  const mentionsNewEpisode = /\b(new episode|next episode|episode\s*\d+|ep\s*\d+|new project|create.*project|create.*episode|cricket|bat.*ball)\b/i.test(
+    lower
+  );
   return mentionsNewEpisode && (hasQuestionOrComplaint || !isExplicitApprovalMessage(userMessage));
 }
 
@@ -533,102 +623,134 @@ function isExplicitApprovalMessage(userMessage: string): boolean {
   if (lower.includes("?") || /\b(why|without|don't|do not|never|how|explain|what)\b/i.test(lower)) {
     return false;
   }
-  return /^(yes|yeah|yep|ok|okay|sure|approved?|confirmed?|go ahead|looks good|create it|do it|proceed)\b/i.test(lower) ||
-    /\b(yes,?\s*create|approved?,?\s*create|go ahead and create|confirm and create)\b/i.test(lower);
+  return (
+    /^(yes|yeah|yep|ok|okay|sure|approved?|confirmed?|go ahead|looks good|create it|do it|proceed)\b/i.test(
+      lower
+    ) ||
+    /\b(yes,?\s*create|approved?,?\s*create|go ahead and create|confirm and create)\b/i.test(lower)
+  );
 }
 
 /**
- * Handles an incoming chat message with the AI Director Co-Pilot.
+ * Handles an incoming chat message with the persistent AI Director Co-Pilot.
+ * Works seamlessly in both STUDIO scope (/projects) and PROJECT scope (inside an episode).
  */
 export async function handleDirectorChat({
   projectId,
+  threadId,
+  scope,
   ownerId,
   userMessage,
   approvePlan,
 }: {
-  projectId: string;
+  projectId?: string;
+  threadId?: string;
+  scope?: ThreadScope;
   ownerId: string;
   userMessage: string;
   approvePlan?: ProposedEpisodePlan;
 }): Promise<ChatDirectorResult> {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: {
-      scenes: {
-        include: { shots: true },
-        orderBy: { sceneNumber: "asc" },
-      },
-      storyArtifacts: {
-        where: { artifactType: "SCREENPLAY" },
-        include: { versions: { orderBy: { versionNumber: "desc" }, take: 1 } },
-      },
-      productionAssets: { where: { assetType: "CHARACTER" } },
-      series: {
-        include: {
-          episodes: {
-            select: { episodeNumber: true },
-            orderBy: { episodeNumber: "desc" },
-            take: 1,
+  const resolvedScope: ThreadScope = scope ?? (projectId ? "PROJECT" : "STUDIO");
+
+  const [thread, catalog] = await Promise.all([
+    resolveOrCreateDirectorThread({
+      ownerId,
+      scope: resolvedScope,
+      threadId,
+      projectId,
+    }),
+    getSeriesContextCatalog(ownerId),
+  ]);
+
+  // Load recent messages from this persistent thread (rolling long-term memory is on thread.memorySummary)
+  const allFormatted = await loadFormattedThreadMessages(thread.id);
+  const recentMessages = allFormatted.slice(-RECENT_MESSAGE_LIMIT);
+
+  // Recover the latest still-PENDING proposal in this thread
+  let pendingProposal: ProposedEpisodePlan | undefined;
+  for (let i = allFormatted.length - 1; i >= 0; i--) {
+    const m = allFormatted[i];
+    if (m.sender === "AI_DIRECTOR" && m.proposedEpisodePlan && m.proposalStatus === "PENDING") {
+      pendingProposal = m.proposedEpisodePlan;
+      break;
+    }
+  }
+
+  // Resolve target project for scene inspection/auditing
+  let activeProject: any = null;
+  if (resolvedScope === "PROJECT" && projectId) {
+    activeProject = await prisma.project.findUnique({
+      where: { id: projectId },
+      include: {
+        scenes: {
+          include: { shots: true },
+          orderBy: { sceneNumber: "asc" },
+        },
+        series: {
+          include: {
+            episodes: {
+              select: { episodeNumber: true },
+              orderBy: { episodeNumber: "desc" },
+              take: 1,
+            },
           },
         },
       },
-      chatMessages: {
-        orderBy: { createdAt: "desc" },
-        take: 8,
+    });
+    if (!activeProject) {
+      throw new Error(`Project ${projectId} not found.`);
+    }
+  } else {
+    activeProject = await prisma.project.findFirst({
+      where: { ownerId },
+      orderBy: { updatedAt: "desc" },
+      include: {
+        scenes: { orderBy: { sceneNumber: "asc" } },
+        series: true,
       },
-    },
-  });
-
-  if (!project) {
-    throw new Error(`Project ${projectId} not found.`);
+    });
   }
 
-  const projectText = `${project.title} ${project.description || ""} ${project.sourceIdea || ""}`;
-  const detected = detectPhysicalEntities(projectText, project.sourceIdea);
-  const heroObject = detected.inedibleHeroObject || project.title;
-  const isQuartzProject = /\b(quartz|granite|idiyappam|silica|gemstone)\b/i.test(projectText);
-  const defaultNextEpNum = (project.series?.episodes?.[0]?.episodeNumber ?? project.episodeNumber ?? 0) + 1;
+  const projectText = activeProject
+    ? `${activeProject.title} ${activeProject.description || ""} ${activeProject.sourceIdea || ""}`
+    : "";
+  const detected = detectPhysicalEntities(projectText, activeProject?.sourceIdea);
+  const heroObject = detected.inedibleHeroObject || activeProject?.title || "Custom Object";
+  const isQuartzProject =
+    resolvedScope === "PROJECT" &&
+    /\b(quartz|granite|idiyappam|silica|gemstone)\b/i.test(projectText);
+  const defaultNextEpNum = catalog.nextEpisodeNumber;
 
-  // Recover latest pending proposedEpisodePlan from recent chatMessages if present
-  let pendingProposal: ProposedEpisodePlan | undefined;
-  for (const m of project.chatMessages) {
-    if (m.sender === "AI_DIRECTOR" && m.actionsTaken) {
-      try {
-        const parsedActions = JSON.parse(m.actionsTaken) as DirectorAction[];
-        const found = parsedActions.find((a) => a.type === "PROPOSE_EPISODE" && a.proposedEpisodePlan);
-        if (found?.proposedEpisodePlan) {
-          pendingProposal = found.proposedEpisodePlan;
-          break;
+  const currentQc = activeProject
+    ? auditRapidAsmrProject(
+        activeProject.scenes.map((s: any) => ({
+          sceneNumber: s.sceneNumber,
+          heading: s.heading,
+          action: s.actionSummary,
+        })),
+        {
+          title: activeProject.title,
+          description: activeProject.description,
+          sourceIdea: activeProject.sourceIdea,
+          visualStyle: activeProject.visualStyle,
+          genre: activeProject.genre,
+          dialogueMode: activeProject.dialogueMode,
+          seriesSlug: activeProject.series?.slug,
         }
-      } catch {}
-    }
-  }
-
-  const currentQc = auditRapidAsmrProject(
-    project.scenes.map((s) => ({
-      sceneNumber: s.sceneNumber,
-      heading: s.heading,
-      action: s.actionSummary,
-    })),
-    {
-      title: project.title,
-      description: project.description,
-      sourceIdea: project.sourceIdea,
-      visualStyle: project.visualStyle,
-      genre: project.genre,
-      dialogueMode: project.dialogueMode,
-      seriesSlug: project.series?.slug,
-    }
-  );
+      )
+    : undefined;
 
   const lowerMsg = userMessage.toLowerCase();
-  const isQuestionOrComplaint = /\?|\b(why|how come|without approval|never speak|explain|what happened)\b/i.test(lowerMsg);
+  const isQuestionOrComplaint = /\?|\b(why|how come|without approval|never speak|explain|what happened)\b/i.test(
+    lowerMsg
+  );
   let proposedActions: DirectorAction[] = [];
   let aiReply = "";
   let proposedEpisodePlan: ProposedEpisodePlan | undefined;
 
-  // 1. Explicit Approval Gate for Creating an Episode (either button click `approvePlan` or explicit text confirmation of `pendingProposal`)
-  const planToCreate = approvePlan || (isExplicitApprovalMessage(userMessage) ? pendingProposal : undefined);
+  // 1. Explicit Approval Gate for Creating an Episode
+  const planToCreate =
+    approvePlan || (isExplicitApprovalMessage(userMessage) ? pendingProposal : undefined);
 
   if (planToCreate) {
     proposedActions.push({
@@ -640,28 +762,45 @@ export async function handleDirectorChat({
     });
     aiReply = `Approved! I created **${planToCreate.title}** (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · with dual 3-second opening hooks and high-gain -1dB Foley). Click below to open its Storyboard!`;
   } else if (
+    currentQc &&
+    activeProject &&
     !isQuestionOrComplaint &&
-    (lowerMsg.includes("audit asmr qc") || lowerMsg.includes("qc score") || /\b(audit|score)\b/i.test(lowerMsg)) &&
+    (lowerMsg.includes("audit asmr qc") ||
+      lowerMsg.includes("qc score") ||
+      /\b(audit|score)\b/i.test(lowerMsg)) &&
     !/\b(episode|create|project|cricket|bat|ball)\b/i.test(lowerMsg)
   ) {
     proposedActions.push({ type: "AUDIT_QC" });
-    const hookPass = currentQc.checks.find((c) => c.checkId === "ZERO_SECOND_ACOUSTIC_HOOK")?.passed ?? true;
+    const hookPass =
+      currentQc.checks.find((c) => c.checkId === "ZERO_SECOND_ACOUSTIC_HOOK")?.passed ?? true;
     const nostalgiaCheck = currentQc.checks.find((c) => c.checkId === "PROP_NOSTALGIA_SCORE");
-    const loopPass = currentQc.checks.find((c) => c.checkId === "SEAMLESS_LOOP_ENGINEERING")?.passed ?? true;
-    aiReply = `Current ASMR QC Score for "${project.title}" is **${currentQc.overallScore}/100** (${currentQc.rating}).
+    const loopPass =
+      currentQc.checks.find((c) => c.checkId === "SEAMLESS_LOOP_ENGINEERING")?.passed ?? true;
+    aiReply = `Current ASMR QC Score for "${activeProject.title}" is **${currentQc.overallScore}/100** (${currentQc.rating}).
 • 0.0s Acoustic Hook: ${hookPass ? "Passed (Instant Slam)" : "Warning: Needs 0.0s Acoustic Impact"}
-• Prop Nostalgia Rating: ${nostalgiaCheck?.score === 100 ? "Tier S/A (High Viral Tech)" : "Tier B (Raw Material - Needs 2X Processing)"}
+• Prop Nostalgia Rating: ${
+      nostalgiaCheck?.score === 100
+        ? "Tier S/A (High Viral Tech)"
+        : "Tier B (Raw Material - Needs 2X Processing)"
+    }
 • Seamless Loop: ${loopPass ? "Passed (120% APVD Ready)" : "Needs Loop Alignment"}
 Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") : "None. Production ready!"}`;
   } else if (
+    resolvedScope === "PROJECT" &&
+    activeProject &&
     !isQuestionOrComplaint &&
-    (lowerMsg.includes("recompile") && lowerMsg.includes("prompt"))
+    lowerMsg.includes("recompile") &&
+    lowerMsg.includes("prompt")
   ) {
     proposedActions.push({ type: "RECOMPILE_PROMPTS" });
-    aiReply = `I recompiled all cinematic prompts across all ${project.scenes.length} scenes of "${project.title}" with high-gain -1dB ASMR audio directives.`;
+    aiReply = `I recompiled all cinematic prompts across all ${activeProject.scenes.length} scenes of "${activeProject.title}" with high-gain -1dB ASMR audio directives.`;
   } else if (
+    resolvedScope === "PROJECT" &&
+    activeProject &&
     !isQuestionOrComplaint &&
-    (lowerMsg.includes("upgrade scene 1") || lowerMsg.includes("faster hook") || /\bchange scene 1\b/i.test(lowerMsg))
+    (lowerMsg.includes("upgrade scene 1") ||
+      lowerMsg.includes("faster hook") ||
+      /\bchange scene 1\b/i.test(lowerMsg))
   ) {
     const hookDesc = isQuartzProject
       ? "4-Beat Rapid Process Hook: Slam raw quartz boulder on anvil (0-2s) -> Sledgehammer shatter with bright spark explosion (2-4s) -> Flywheel extruder cascade into whistling brass steamer (4-6s) -> Hero chopstick noodle lift with pearly glaze drip (6-8s). Pure acoustic Foley."
@@ -672,12 +811,17 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
       sceneNumber: 1,
       heading: `INT. ALCHEMIST WORKSHOP - NIGHT - ${heroObject.toUpperCase()} HOOK`,
       actionDescription: hookDesc,
-      audioScript: "HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Loud anvil/board slam (*THUD*), sharp cleaver crack (*CRACK-CLANG*), sizzling sear (*TZZZZZ*), zero silence.",
+      audioScript:
+        "HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Loud anvil/board slam (*THUD*), sharp cleaver crack (*CRACK-CLANG*), sizzling sear (*TZZZZZ*), zero silence.",
     });
-    aiReply = `I upgraded Scene 1 of "${project.title}" to a 0.0s Acoustic Slam Hook tailored for ${heroObject}, and recompiled the prompts.`;
+    aiReply = `I upgraded Scene 1 of "${activeProject.title}" to a 0.0s Acoustic Slam Hook tailored for ${heroObject}, and recompiled the prompts.`;
   } else if (
+    resolvedScope === "PROJECT" &&
+    activeProject &&
     !isQuestionOrComplaint &&
-    (lowerMsg.includes("machine") || lowerMsg.includes("extruder") || lowerMsg.includes("prop continuity")) &&
+    (lowerMsg.includes("machine") ||
+      lowerMsg.includes("extruder") ||
+      lowerMsg.includes("prop continuity")) &&
     (lowerMsg.includes("4") || lowerMsg.includes("5"))
   ) {
     const isExtruder = isQuartzProject || lowerMsg.includes("extruder");
@@ -693,6 +837,8 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
       ? `I synchronized the vertical cast-brass extruder press between Scene 4 and Scene 5. Both scenes are now locked to the identical prop architecture, and all prompts have been recompiled.`
       : `I synchronized prop continuity between Scene 4 and Scene 5 using: ${machineDesc}. All shot prompts have been recompiled.`;
   } else if (
+    resolvedScope === "PROJECT" &&
+    activeProject &&
     !isQuestionOrComplaint &&
     isQuartzProject &&
     (lowerMsg.includes("quartz") || lowerMsg.includes("silica") || lowerMsg.includes("inedible")) &&
@@ -713,38 +859,50 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
     aiReply =
       "I enforced Crystalline Inedible Material Integrity (ADR-040) on Scene 7 and Scene 8 for your Quartz episode and recompiled the prompts.";
   } else {
-    // 2. Conversational LLM Mode (Brainstorming, Dish & Comparison Table Planning, Questions, Adjustments)
+    // 2. Conversational LLM Mode with 3-Layer Persistent Context
     let llmSuccess = false;
     try {
       const { provider, modelId } = await resolveTextProvider(ownerId, false);
-      const sceneSummary = project.scenes
-        .map((s) => `Scene ${s.sceneNumber} (${s.heading}): ${s.actionSummary.slice(0, 120)}...`)
-        .join("\n");
-      const historySummary = [...project.chatMessages]
-        .reverse()
+      const historySummary = recentMessages
         .map((m) => `${m.sender}: ${m.message}`)
         .join("\n");
 
+      const memoryBlock = thread.memorySummary
+        ? `Long-Term Memory of Earlier Turns in This Conversation:\n${thread.memorySummary}\n`
+        : "";
+
+      const projectContextBlock =
+        resolvedScope === "PROJECT" && activeProject
+          ? `Active Episode Focus: "${activeProject.title}" (Episode ${
+              activeProject.episodeNumber ?? 1
+            }, Hero: "${heroObject}", Runtime: ${activeProject.targetRuntime}s)
+Active Project Scenes:
+${activeProject.scenes
+  .map((s: any) => `Scene ${s.sceneNumber} (${s.heading}): ${s.actionSummary.slice(0, 120)}...`)
+  .join("\n")}`
+          : `Scope: STUDIO PLANNING (Channel-wide brainstorming & new episode architecture — do NOT confuse past episodes with the new episode being planned!)`;
+
       const systemPrompt = `You are a collaborative, creative AI Film Director Co-Pilot inside FrameForge Studio.
-Active Project: "${project.title}" (Episode ${project.episodeNumber ?? 1}, Hero: "${heroObject}", Runtime: ${project.targetRuntime}s)
+${projectContextBlock}
 Next Episode Number if planning a new episode: ${defaultNextEpNum}
 
-CRITICAL CONVERSATIONAL RULES:
+Series Ground Truth (Do not repeat dishes already made in older episodes):
+${catalog.seriesSummary}
+
+${memoryBlock}CRITICAL CONVERSATIONAL RULES:
 1. NEVER automatically create a project or mutate scenes when the user is pitching an idea, asking a question, complaining, or discussing options!
-2. If the user pitches a new episode/object (e.g. "Episode 8 cricket bat and ball") OR asks to discuss food & comparison tables:
+2. Maintain seamless continuity with Long-Term Memory and Recent Chat History below. Do NOT anchor on an unrelated old episode unless the user explicitly asks to compare or revisit it.
+3. If the user pitches a new episode/object (e.g. "Episode ${defaultNextEpNum} cricket bat and ball") OR asks to discuss food & comparison tables:
    - Discuss the creative direction conversationally like a real filmmaker!
-   - Propose 1–2 creative culinary dish concepts mapped to the inedible item.
+   - Propose 1–2 fresh creative culinary dish concepts mapped to the inedible item (distinct from previous episodes in the Series catalog).
    - Include a clear **Markdown Comparison Table** mapping: | Real Dish Element | Inedible Component | Cooking Method |.
    - Recommend optimal Shorts runtime (**20s–30s / 4–5 scenes** for >100% APVD vs 60s / 8 scenes) and a 0.0s Acoustic Hook.
    - Ask for the creator's feedback or approval BEFORE creating anything!
-   - Populate "proposedEpisodePlan" in the JSON (and keep "actions" empty or PROPOSE_EPISODE only — NEVER CREATE_EPISODE here!).
-3. If the user asks a general question or complains ("why...", "what should we cook..."), answer directly, empathetically, and helpfully.
+   - Populate "proposedEpisodePlan" in the JSON (and keep "actions" empty — NEVER CREATE_EPISODE here!).
+4. If the user asks about earlier decisions or existing episodes ("what did we decide...", "history", "previous episodes"), answer accurately using Long-Term Memory, Recent Chat History, and Series Ground Truth.
 
-Recent Chat History:
+Recent Chat History (${recentMessages.length} turns):
 ${historySummary || "(none)"}
-
-Active Project Scenes:
-${sceneSummary}
 
 Return valid JSON:
 {
@@ -782,7 +940,12 @@ Return valid JSON:
         actions: z
           .array(
             z.object({
-              type: z.enum(["UPDATE_SCENE", "RECOMPILE_PROMPTS", "AUDIT_QC", "ALIGN_PROP_CONTINUITY"]),
+              type: z.enum([
+                "UPDATE_SCENE",
+                "RECOMPILE_PROMPTS",
+                "AUDIT_QC",
+                "ALIGN_PROP_CONTINUITY",
+              ]),
               sceneNumber: z.number().optional(),
               sceneNumbers: z.array(z.number()).optional(),
               actionDescription: z.string().optional(),
@@ -803,7 +966,11 @@ Return valid JSON:
 
       if (res?.data) {
         aiReply = res.data.reply;
-        proposedActions = (res.data.actions || []) as DirectorAction[];
+        proposedActions =
+          resolvedScope === "PROJECT"
+            ? ((res.data.actions || []) as DirectorAction[])
+            : ((res.data.actions || []).filter((a) => a.type === "AUDIT_QC") as DirectorAction[]);
+
         if (res.data.proposedEpisodePlan) {
           proposedEpisodePlan = res.data.proposedEpisodePlan;
           proposedActions.push({
@@ -820,8 +987,11 @@ Return valid JSON:
 
     if (!llmSuccess) {
       if (isQuestionOrComplaint && !/\b(cricket|bat|ball)\b/i.test(lowerMsg)) {
-        aiReply = `You're right — I shouldn't create any project without discussing the dish, comparison table, and runtime with you first. Tell me what object you want to cook next (for example: *"Cricket Bat and Ball — what dish & comparison table do you recommend?"*) and we'll plan it together before creating anything!`;
-      } else if (isIdeaOrPlanningMessage(userMessage) || /\b(cricket|bat|ball|plan|dish|food|table)\b/i.test(lowerMsg)) {
+        aiReply = `You're right — I won't create any project without discussing the dish, comparison table, and runtime with you first. Tell me what object you want to cook next (for example: *"Cricket Bat and Ball — what dish & comparison table do you recommend?"*) and we'll plan it together before creating anything!`;
+      } else if (
+        isIdeaOrPlanningMessage(userMessage) ||
+        /\b(cricket|bat|ball|plan|dish|food|table)\b/i.test(lowerMsg)
+      ) {
         const { reply, proposal } = buildHeuristicEpisodeProposal(userMessage, defaultNextEpNum);
         aiReply = reply;
         proposedEpisodePlan = proposal;
@@ -831,37 +1001,43 @@ Return valid JSON:
           details: `Proposed Ep ${proposal.episodeNumber}: ${proposal.dishName} (awaiting approval)`,
         });
       } else {
-        aiReply = `I'm here as your AI Director for "${project.title}". We can brainstorm your next episode's dish and comparison table, discuss hook pacing, or refine any scene. What would you like to discuss?`;
+        const scopeLabel =
+          resolvedScope === "PROJECT" && activeProject
+            ? `"${activeProject.title}"`
+            : "your Studio Series";
+        aiReply = `I'm here as your AI Director for ${scopeLabel}. We can brainstorm your next episode's dish and comparison table, review past episodes, discuss hook pacing, or refine any scene. What would you like to discuss?`;
       }
     }
   }
 
   // 3. Execute only explicitly triggered/approved actions
   const { executed, qcReport, createdEpisode } = await executeDirectorActions(
-    projectId,
+    resolvedScope === "PROJECT" ? projectId : activeProject?.id,
     proposedActions,
-    ownerId
+    ownerId,
+    thread.seriesId ?? catalog.latestSeriesId
   );
 
-  // 4. Save conversation history to DB
-  await prisma.projectChatMessage.create({
-    data: {
-      projectId,
-      sender: "USER",
-      message: userMessage,
-    },
+  // 4. Persist turn in persistent DirectorThread (+ ProjectChatMessage mirror in PROJECT scope)
+  await recordDirectorTurn({
+    threadId: thread.id,
+    projectId: resolvedScope === "PROJECT" ? projectId : null,
+    userMessage,
+    aiReply,
+    executed,
+    proposedEpisodePlan,
+    createdEpisode,
   });
 
-  await prisma.projectChatMessage.create({
-    data: {
-      projectId,
-      sender: "AI_DIRECTOR",
-      message: aiReply,
-      actionsTaken: JSON.stringify(executed),
-    },
+  // 5. Fold older turns into rolling Long-Term Memory when conversation grows beyond RECENT_MESSAGE_LIMIT
+  await refreshThreadLongTermMemory({
+    threadId: thread.id,
+    ownerId,
+    allowLlmSummary: true,
   });
 
   return {
+    threadId: thread.id,
     reply: aiReply,
     actionsTaken: executed,
     qcReport: qcReport || currentQc,

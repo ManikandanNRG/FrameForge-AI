@@ -741,5 +741,11 @@
       - Added `src/components/chat/markdown-parser.ts` and `src/components/chat/FormattedChatContent.tsx` so Markdown comparison tables, headings, bold text, bullet lists, and code blocks render as structured styled UI tables instead of raw pipe-delimited plain text.
       - Verification: `npx tsc --noEmit` (0 errors) and `npx vitest run` (17 test files, 99/99 tests passed including `tests/unit/chat-markdown.test.ts`).
 
+  27. **Persistent Director Chat Threads, Multi-Chat Switcher & 3-Layer Long-Term Memory (ADR-051) (2026-11-25)**:
+      - Added `DirectorThread` and `DirectorMessage` models to `prisma/schema.prisma` (`STUDIO` vs `PROJECT` isolation, rolling `memorySummary`, `proposalStatus`, and `createdEpisodeJson`), synced safely to SQLite (`prisma db push`) with lazy backfill from legacy `ProjectChatMessage`.
+      - Created `src/lib/story/director-memory.ts` implementing the 3-layer context system: live Series/Episodes ground-truth catalog (`getSeriesContextCatalog`), rolling long-term memory summarization (`refreshThreadLongTermMemory`), and recent 16-message window.
+      - Added `GET /api/chat`, Studio/Project thread creation & deletion, thread selector + `+ New Chat` + delete controls in `AiDirectorChatDrawer.tsx`, and restored `createdEpisode` links & `APPROVED` proposal states across page reloads.
+
+
 
 

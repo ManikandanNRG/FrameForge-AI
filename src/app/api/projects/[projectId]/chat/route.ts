@@ -3,7 +3,13 @@ import { apiHandler } from "@/lib/api/handler";
 import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
-import { handleDirectorChat, type ProposedEpisodePlan } from "@/lib/story/chat-director";
+import { handleDirectorChat } from "@/lib/story/chat-director";
+import {
+  createNewDirectorThread,
+  listDirectorThreads,
+  loadFormattedThreadMessages,
+  resolveOrCreateDirectorThread,
+} from "@/lib/story/director-memory";
 
 const approvePlanSchema = z.object({
   episodeNumber: z.coerce.number(),
@@ -23,13 +29,18 @@ const approvePlanSchema = z.object({
 });
 
 const postSchema = z.object({
-  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long"),
+  action: z.enum(["message", "create_thread", "delete_thread"]).optional(),
+  threadId: z.string().optional(),
+  title: z.string().max(120).optional(),
+  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long").optional(),
   approvePlan: approvePlanSchema.optional(),
 });
 
-export const GET = apiHandler(async (_req, ctx) => {
+export const GET = apiHandler(async (req, ctx) => {
   const ownerId = await requireUserId();
   const { projectId } = await ctx.params;
+  const { searchParams } = new URL(req.url);
+  const requestedThreadId = searchParams.get("threadId") || undefined;
 
   const project = await prisma.project.findUnique({
     where: { id: projectId as string },
@@ -39,33 +50,25 @@ export const GET = apiHandler(async (_req, ctx) => {
   if (!project) throw notFound("Project not found");
   if (project.ownerId !== ownerId) throw forbidden();
 
-  const messages = await prisma.projectChatMessage.findMany({
-    where: { projectId: projectId as string },
-    orderBy: { createdAt: "asc" },
+  const activeThread = await resolveOrCreateDirectorThread({
+    ownerId,
+    scope: "PROJECT",
+    projectId: project.id,
+    threadId: requestedThreadId,
   });
+
+  const [messages, threads] = await Promise.all([
+    loadFormattedThreadMessages(activeThread.id),
+    listDirectorThreads({ ownerId, scope: "PROJECT", projectId: project.id }),
+  ]);
 
   return {
     projectId: project.id,
     projectTitle: project.title,
-    messages: messages.map((m) => {
-      let actions: any[] = [];
-      let proposedEpisodePlan: ProposedEpisodePlan | undefined;
-      try {
-        if (m.actionsTaken) {
-          actions = JSON.parse(m.actionsTaken);
-          const propAction = actions.find((a) => a.type === "PROPOSE_EPISODE" && a.proposedEpisodePlan);
-          if (propAction) proposedEpisodePlan = propAction.proposedEpisodePlan;
-        }
-      } catch {}
-      return {
-        id: m.id,
-        sender: m.sender,
-        message: m.message,
-        actionsTaken: actions,
-        proposedEpisodePlan,
-        createdAt: m.createdAt,
-      };
-    }),
+    threadId: activeThread.id,
+    threadTitle: activeThread.title,
+    threads,
+    messages,
   };
 });
 
@@ -87,15 +90,77 @@ export const POST = apiHandler(async (req, ctx) => {
     throw badRequest("Invalid chat message", parsed.error.issues);
   }
 
+  if (parsed.data.action === "create_thread") {
+    const created = await createNewDirectorThread({
+      ownerId,
+      scope: "PROJECT",
+      projectId: projectId as string,
+      title: parsed.data.title,
+    });
+    const threads = await listDirectorThreads({
+      ownerId,
+      scope: "PROJECT",
+      projectId: projectId as string,
+    });
+    return {
+      success: true,
+      threadId: created.id,
+      threadTitle: created.title,
+      threads,
+      messages: [],
+    };
+  }
+
+  if (parsed.data.action === "delete_thread" && parsed.data.threadId) {
+    await prisma.directorThread.deleteMany({
+      where: {
+        id: parsed.data.threadId,
+        ownerId,
+        scope: "PROJECT",
+        projectId: projectId as string,
+      },
+    });
+    const nextActive = await resolveOrCreateDirectorThread({
+      ownerId,
+      scope: "PROJECT",
+      projectId: projectId as string,
+    });
+    const [messages, threads] = await Promise.all([
+      loadFormattedThreadMessages(nextActive.id),
+      listDirectorThreads({ ownerId, scope: "PROJECT", projectId: projectId as string }),
+    ]);
+    return {
+      success: true,
+      threadId: nextActive.id,
+      threadTitle: nextActive.title,
+      threads,
+      messages,
+    };
+  }
+
+  if (!parsed.data.message) {
+    throw badRequest("Message cannot be empty");
+  }
+
   const result = await handleDirectorChat({
+    scope: "PROJECT",
     projectId: projectId as string,
+    threadId: parsed.data.threadId,
     ownerId,
     userMessage: parsed.data.message,
     approvePlan: parsed.data.approvePlan,
   });
 
+  const threads = await listDirectorThreads({
+    ownerId,
+    scope: "PROJECT",
+    projectId: projectId as string,
+  });
+
   return {
     success: true,
+    threadId: result.threadId,
+    threads,
     reply: result.reply,
     actionsTaken: result.actionsTaken,
     qcReport: result.qcReport,

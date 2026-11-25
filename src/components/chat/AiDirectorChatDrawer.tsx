@@ -15,8 +15,19 @@ import {
   Maximize2,
   Minimize2,
   GripVertical,
+  Plus,
+  History,
+  Trash2,
 } from "lucide-react";
 import { FormattedChatContent } from "./FormattedChatContent";
+
+interface ThreadSummary {
+  id: string;
+  scope: "STUDIO" | "PROJECT";
+  title: string;
+  messageCount: number;
+  updatedAt: string;
+}
 
 interface ActionItem {
   type: string;
@@ -54,6 +65,7 @@ interface ChatMessage {
   actionsTaken?: ActionItem[];
   createdEpisode?: CreatedEpisodeLink;
   proposedEpisodePlan?: ProposedEpisodePlan;
+  proposalStatus?: "PENDING" | "APPROVED" | "SUPERSEDED";
   createdAt: string;
 }
 
@@ -89,10 +101,14 @@ export function AiDirectorChatDrawer({
   const [error, setError] = useState<string | null>(null);
   const [qcScore, setQcScore] = useState<number | null>(null);
   const [qcRating, setQcRating] = useState<string | null>(null);
+  const [threads, setThreads] = useState<ThreadSummary[]>([]);
+  const [activeThreadId, setActiveThreadId] = useState<string | undefined>(undefined);
   const [drawerWidth, setDrawerWidth] = useState<number>(540);
   const [isResizing, setIsResizing] = useState(false);
   const hasLoadedWidthRef = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const threadStorageKey = `ai-director-thread:${projectId || "studio"}`;
+  const chatEndpointBase = projectId ? `/api/projects/${projectId}/chat` : "/api/chat";
 
   const clampWidth = useCallback((w: number) => {
     const maxAllowed = typeof window !== "undefined" ? Math.max(540, window.innerWidth - 32) : 1280;
@@ -193,34 +209,108 @@ export function AiDirectorChatDrawer({
         },
       ];
 
-  // Fetch chat history
-  const fetchMessages = async () => {
-    if (!projectId) return;
+  // Fetch chat history & saved threads for both Studio (/projects) and Project routes
+  const fetchMessages = useCallback(
+    async (explicitThreadId?: string) => {
+      try {
+        setFetchingHistory(true);
+        setError(null);
+        let targetThreadId = explicitThreadId;
+        if (!targetThreadId) {
+          try {
+            targetThreadId = localStorage.getItem(threadStorageKey) || undefined;
+          } catch {}
+        }
+        const query = targetThreadId ? `?threadId=${encodeURIComponent(targetThreadId)}` : "";
+        const res = await fetch(`${chatEndpointBase}${query}`);
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(extractApiError(json, "Unable to load chat history. Restart server if schema updated."));
+          return;
+        }
+        const payload = json.data ?? json;
+        if (payload.threadId) {
+          setActiveThreadId(payload.threadId);
+          try {
+            localStorage.setItem(threadStorageKey, payload.threadId);
+          } catch {}
+        }
+        if (Array.isArray(payload.threads)) {
+          setThreads(payload.threads);
+        }
+        if (Array.isArray(payload.messages)) {
+          setMessages(payload.messages);
+        }
+      } catch (err: any) {
+        setError(err?.message || "Network error loading chat history");
+      } finally {
+        setFetchingHistory(false);
+      }
+    },
+    [chatEndpointBase, threadStorageKey]
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchMessages();
+    }
+  }, [isOpen, projectId, fetchMessages]);
+
+  const handleCreateNewThread = async () => {
+    if (loading || fetchingHistory) return;
     try {
-      setFetchingHistory(true);
       setError(null);
-      const res = await fetch(`/api/projects/${projectId}/chat`);
+      setFetchingHistory(true);
+      const res = await fetch(chatEndpointBase, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create_thread" }),
+      });
       const json = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(extractApiError(json, "Unable to load chat history. Restart server if schema updated."));
-        return;
-      }
+      if (!res.ok) throw new Error(extractApiError(json, "Failed to create new chat"));
       const payload = json.data ?? json;
-      if (Array.isArray(payload.messages)) {
-        setMessages(payload.messages);
+      if (payload.threadId) {
+        setActiveThreadId(payload.threadId);
+        try {
+          localStorage.setItem(threadStorageKey, payload.threadId);
+        } catch {}
       }
+      if (Array.isArray(payload.threads)) setThreads(payload.threads);
+      setMessages([]);
     } catch (err: any) {
-      setError(err?.message || "Network error loading chat history");
+      setError(err?.message || "Failed to start new chat");
     } finally {
       setFetchingHistory(false);
     }
   };
 
-  useEffect(() => {
-    if (isOpen && projectId) {
-      fetchMessages();
+  const handleDeleteCurrentThread = async () => {
+    if (!activeThreadId || loading || fetchingHistory) return;
+    try {
+      setError(null);
+      setFetchingHistory(true);
+      const res = await fetch(chatEndpointBase, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_thread", threadId: activeThreadId }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(extractApiError(json, "Failed to delete chat thread"));
+      const payload = json.data ?? json;
+      if (payload.threadId) {
+        setActiveThreadId(payload.threadId);
+        try {
+          localStorage.setItem(threadStorageKey, payload.threadId);
+        } catch {}
+      }
+      if (Array.isArray(payload.threads)) setThreads(payload.threads);
+      setMessages(Array.isArray(payload.messages) ? payload.messages : []);
+    } catch (err: any) {
+      setError(err?.message || "Failed to delete chat");
+    } finally {
+      setFetchingHistory(false);
     }
-  }, [isOpen, projectId]);
+  };
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -244,11 +334,14 @@ export function AiDirectorChatDrawer({
     setLoading(true);
 
     try {
-      const endpoint = projectId ? `/api/projects/${projectId}/chat` : "/api/chat";
-      const res = await fetch(endpoint, {
+      const res = await fetch(chatEndpointBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(approvePlan ? { message: text, approvePlan } : { message: text }),
+        body: JSON.stringify({
+          message: text,
+          ...(activeThreadId ? { threadId: activeThreadId } : {}),
+          ...(approvePlan ? { approvePlan } : {}),
+        }),
       });
 
       const json = await res.json().catch(() => ({}));
@@ -258,6 +351,16 @@ export function AiDirectorChatDrawer({
       }
 
       const payload = json.data ?? json;
+      if (payload.threadId) {
+        setActiveThreadId(payload.threadId);
+        try {
+          localStorage.setItem(threadStorageKey, payload.threadId);
+        } catch {}
+      }
+      if (Array.isArray(payload.threads)) {
+        setThreads(payload.threads);
+      }
+
       const replyText = payload.reply || "Director updated the project.";
       const actionsTaken: ActionItem[] = Array.isArray(payload.actionsTaken) ? payload.actionsTaken : [];
 
@@ -268,10 +371,30 @@ export function AiDirectorChatDrawer({
         actionsTaken,
         createdEpisode: payload.createdEpisode,
         proposedEpisodePlan: payload.proposedEpisodePlan,
+        proposalStatus: payload.proposedEpisodePlan
+          ? payload.createdEpisode
+            ? "APPROVED"
+            : "PENDING"
+          : undefined,
         createdAt: new Date().toISOString(),
       };
 
-      setMessages((prev) => [...prev, aiMsg]);
+      setMessages((prev) => {
+        const updated = payload.createdEpisode
+          ? prev.map((msg) =>
+              msg.proposalStatus === "PENDING"
+                ? { ...msg, proposalStatus: "APPROVED" as const }
+                : msg
+            )
+          : payload.proposedEpisodePlan
+          ? prev.map((msg) =>
+              msg.proposalStatus === "PENDING"
+                ? { ...msg, proposalStatus: "SUPERSEDED" as const }
+                : msg
+            )
+          : prev;
+        return [...updated, aiMsg];
+      });
 
       if (payload.qcReport) {
         setQcScore(payload.qcReport.overallScore);
@@ -281,7 +404,7 @@ export function AiDirectorChatDrawer({
       const mutatedCurrentProject = actionsTaken.some(
         (a) => a.type === "UPDATE_SCENE" || a.type === "RECOMPILE_PROMPTS" || a.type === "ALIGN_PROP_CONTINUITY"
       );
-      if (mutatedCurrentProject && onProjectUpdated) {
+      if ((mutatedCurrentProject || payload.createdEpisode) && onProjectUpdated) {
         onProjectUpdated();
       }
     } catch (err: any) {
@@ -369,6 +492,56 @@ export function AiDirectorChatDrawer({
           </div>
         </div>
 
+        {/* Chat History & Thread Switcher */}
+        <div className="px-4 py-2 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between gap-2 shrink-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <History className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <select
+              aria-label="Switch chat history thread"
+              value={activeThreadId || ""}
+              onChange={(e) => {
+                const nextId = e.target.value;
+                if (nextId) fetchMessages(nextId);
+              }}
+              disabled={loading || fetchingHistory || threads.length === 0}
+              className="flex-1 min-w-0 bg-slate-900 border border-slate-700/70 rounded-lg px-2.5 py-1 text-[11px] text-slate-200 focus:outline-none focus:border-amber-500 truncate"
+            >
+              {threads.length === 0 ? (
+                <option value="">Default Conversation</option>
+              ) : (
+                threads.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title} ({t.messageCount} msgs)
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={handleCreateNewThread}
+              disabled={loading || fetchingHistory}
+              title="Start a new conversation thread"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-500/20 hover:text-amber-300 border border-slate-700/70 text-[11px] font-semibold text-slate-200 transition disabled:opacity-40"
+            >
+              <Plus className="w-3 h-3" />
+              <span>New Chat</span>
+            </button>
+            {(threads.length > 1 || messages.length > 0) && activeThreadId && (
+              <button
+                type="button"
+                onClick={handleDeleteCurrentThread}
+                disabled={loading || fetchingHistory}
+                title="Delete current chat thread"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition disabled:opacity-40"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Quick Action Pills */}
         <div className="px-4 py-2.5 bg-slate-950/40 border-b border-slate-800/80 flex gap-1.5 overflow-x-auto no-scrollbar shrink-0">
           {quickActions.map((qa, i) => (
@@ -427,31 +600,42 @@ export function AiDirectorChatDrawer({
                     <FormattedChatContent content={m.message} />
                   )}
 
-                  {!isUser && m.proposedEpisodePlan && !m.createdEpisode && (
-                    <div className="mt-3 p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
-                          Episode {m.proposedEpisodePlan.episodeNumber} Proposal · {m.proposedEpisodePlan.targetRuntime}s
-                        </span>
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
-                          Awaiting Approval
-                        </span>
+                  {!isUser &&
+                    m.proposedEpisodePlan &&
+                    !m.createdEpisode &&
+                    m.proposalStatus !== "APPROVED" &&
+                    m.proposalStatus !== "SUPERSEDED" && (
+                      <div className="mt-3 p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
+                            Episode {m.proposedEpisodePlan.episodeNumber} Proposal · {m.proposedEpisodePlan.targetRuntime}s
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
+                            Awaiting Approval
+                          </span>
+                        </div>
+                        <div className="text-xs font-bold text-white">{m.proposedEpisodePlan.dishName}</div>
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() =>
+                            handleSendMessage(
+                              `Approved! Please create Episode ${m.proposedEpisodePlan!.episodeNumber} with this plan.`,
+                              m.proposedEpisodePlan
+                            )
+                          }
+                          className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Approve &amp; Create Episode {m.proposedEpisodePlan.episodeNumber}</span>
+                        </button>
                       </div>
-                      <div className="text-xs font-bold text-white">{m.proposedEpisodePlan.dishName}</div>
-                      <button
-                        type="button"
-                        disabled={loading}
-                        onClick={() =>
-                          handleSendMessage(
-                            `Approved! Please create Episode ${m.proposedEpisodePlan!.episodeNumber} with this plan.`,
-                            m.proposedEpisodePlan
-                          )
-                        }
-                        className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Approve &amp; Create Episode {m.proposedEpisodePlan.episodeNumber}</span>
-                      </button>
+                    )}
+
+                  {!isUser && m.proposedEpisodePlan && !m.createdEpisode && m.proposalStatus === "APPROVED" && (
+                    <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-semibold text-emerald-300">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Episode {m.proposedEpisodePlan.episodeNumber} Plan Approved</span>
                     </div>
                   )}
 

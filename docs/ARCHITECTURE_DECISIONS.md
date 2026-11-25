@@ -964,4 +964,18 @@ Ensures characters have authentic voices and narrative sound without paid API de
   3. Added Cricket Bat & Ball / sports gear non-food entity detection in `world-engine.ts` and removed Episode 7 Quartz hardcoding from non-quartz episodes.
   4. Added shared `runJobsInBackground` (`src/lib/jobs/run-inline.ts`) to `story`, `bible`, and `shots` POST routes; fixed `PURE_ASMR_FOLEY` schema, `handleAutoEnhance`, `findFfmpeg()` in `thumbnail/route.ts`, Gemini verified Flash models, `COOKIE_SECURE` session flag, and `next build --webpack` + `start:all` in `package.json`.
 
+## ADR-051: Persistent Director Threads, 3-Layer Context Memory & Drawer UX Upgrade
+- **Date**: 2026-11-25 · **Status**: Implemented & Verified
+- **Context**:
+  - The global AI Director drawer on `/projects` had no `projectId`, so `AiDirectorChatDrawer.tsx` skipped `fetchMessages()` and `/api/chat` lacked a `GET` handler — wiping Studio conversation history on every reload while `/api/chat` wrote messages onto whichever project happened to have the newest `updatedAt`.
+  - Context in `chat-director.ts` only read the last 8 raw messages of one project, causing old episode data (e.g., Episode 7 Quartz) to bleed into Episode 8 planning.
+  - Reloading also lost `createdEpisode` links and left approved proposal buttons active.
+- **Decision**:
+  1. **Dedicated Thread & Message Schema (`prisma/schema.prisma`)**: Added `DirectorThread` (`STUDIO` vs `PROJECT` scope, `memorySummary`, `pinnedDecisions`, `summarizedCount`) and `DirectorMessage` (`proposedEpisodePlan`, `proposalStatus`, `createdEpisodeJson`), with lazy backfill of legacy `ProjectChatMessage` rows on first access.
+  2. **3-Layer Context Memory (`src/lib/story/director-memory.ts`, `src/lib/story/chat-director.ts`)**:
+     - Layer 1: Live ground-truth `getSeriesContextCatalog()` of all user episodes (prevents dish repetition & cross-episode confusion).
+     - Layer 2: Rolling `DirectorThread.memorySummary` folding older messages once conversations pass `RECENT_MESSAGE_LIMIT` (16 messages).
+     - Layer 3: Last 16 verbatim turns in the active thread + active scene breakdown (when inside `PROJECT` scope).
+  3. **Persistent Studio + Episode APIs & History UI (`src/app/api/chat/route.ts`, `src/app/api/projects/[projectId]/chat/route.ts`, `AiDirectorChatDrawer.tsx`)**: Added thread listing, switching, `+ New Chat`, thread deletion, `proposalStatus` tracking, `createdEpisode` restoration, drawer width resize/extend toggle, and Markdown comparison table rendering (`FormattedChatContent.tsx`).
+
 

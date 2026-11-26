@@ -514,14 +514,53 @@ export const OBJECT_COMPONENT_REGISTRY: ObjectCategorySpec[] = [
       },
     ],
   },
+  {
+    category: "SPORTS_CRICKET_GEAR",
+    detectRegex: /\b(cricket\s*bat|cricket\s*ball|willow\s*bat|leather\s*ball|cricket)\b/i,
+    canonicalHeroName: "Vintage English Willow Cricket Bat & Leather Cricket Ball",
+    subComponents: [
+      {
+        matchRegex: /\b(willow|wood grain|bat|blade|shavings?|rice)\b/i,
+        canonicalName: "thinly shaved English willow wood grain curls and bark ribbons",
+        dimensionalAnchor: "slender translucent golden English willow wood grain curls and delicate bark ribbons",
+        negativeScaleTokens: ["firewood logs", "thick tree branches", "grocery pasta"],
+        extractionTools: ["Damascus steel cleaver", "razor wood plane"],
+      },
+      {
+        matchRegex: /\b(leather|cricket ball|core|meat|kofta)\b/i,
+        canonicalName: "compressed crimson red stitched cricket ball leather core chunks",
+        dimensionalAnchor: "dense crimson-red stitched cricket ball leather segments and cork-rubber core",
+        negativeScaleTokens: ["raw butcher meat", "chicken chunks", "basketball"],
+        extractionTools: ["Damascus steel cleaver", "acoustic tenderizer mallet"],
+      },
+      {
+        matchRegex: /\b(grip|rubber|tape|spice|masala)\b/i,
+        canonicalName: "textured chevron rubber cricket bat grip strips",
+        dimensionalAnchor: "shredded green and yellow chevron rubber bat grip strips",
+        negativeScaleTokens: ["garden hose", "thick bicycle tire"],
+        extractionTools: ["Indian stainless mixie grinder", "granite mortar and pestle"],
+      },
+    ],
+  },
 ];
+
+function stripCulinaryToolTerms(text: string): string {
+  return text
+    .replace(/\b(?:granite\s+)?stone\s+(?:mortar(?:\s+and\s+pestle)?|pestle|grinder|mill)\b/gi, "")
+    .replace(/\bgranite\s+(?:mortar|pestle|roller|mill)\b/gi, "")
+    .replace(/\bmortar\s+and\s+pestle\b|\bwhetstone\b|\bgrinding\s+stone\b|\bgarlic\s+bulbs?\b/gi, "");
+}
 
 /**
  * Resolves dimensional component specifications, negative tokens, and cookware scale for ANY object.
  */
 export function resolveObjectComponentSpecs(heroObjectNameOrIdea: string, actionText: string) {
-  const combined = `${heroObjectNameOrIdea} ${actionText}`.toLowerCase();
-  const category = OBJECT_COMPONENT_REGISTRY.find((c) => c.detectRegex.test(combined));
+  const cleanHero = stripCulinaryToolTerms(heroObjectNameOrIdea || "").toLowerCase();
+  const cleanAction = stripCulinaryToolTerms(actionText || "").toLowerCase();
+  const combined = `${cleanHero} ${cleanAction}`.trim();
+  const category =
+    OBJECT_COMPONENT_REGISTRY.find((c) => cleanHero && c.detectRegex.test(cleanHero)) ||
+    OBJECT_COMPONENT_REGISTRY.find((c) => c.detectRegex.test(combined));
 
   if (category) {
     const matchedComponents = category.subComponents.filter((sub) => sub.matchRegex.test(combined));
@@ -868,17 +907,30 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
 
   let inedibleHeroObject: string | undefined = undefined;
   if (isInedibleCooking) {
-    // 1. First priority: Check OBJECT_COMPONENT_REGISTRY for precise match
+    const cleanSourceIdea = stripCulinaryToolTerms(sourceIdea || "");
+    const cleanActionOnly = stripCulinaryToolTerms(text || "");
+    const cleanCombined = `${cleanSourceIdea} ${cleanActionOnly}`.trim();
+
+    // 1. First priority: Check OBJECT_COMPONENT_REGISTRY against sourceIdea first so action tool names (e.g., "granite mortar") never hijack the episode hero
     for (const entry of OBJECT_COMPONENT_REGISTRY) {
-      if (entry.category !== "GENERAL_PHYSICAL_OBJECT" && entry.detectRegex.test(combined)) {
+      if (entry.category !== "GENERAL_PHYSICAL_OBJECT" && cleanSourceIdea && entry.detectRegex.test(cleanSourceIdea)) {
         inedibleHeroObject = entry.canonicalHeroName;
         break;
+      }
+    }
+    if (!inedibleHeroObject) {
+      for (const entry of OBJECT_COMPONENT_REGISTRY) {
+        if (entry.category !== "GENERAL_PHYSICAL_OBJECT" && entry.detectRegex.test(cleanCombined)) {
+          inedibleHeroObject = entry.canonicalHeroName;
+          break;
+        }
       }
     }
 
     // 2. Second priority: Dynamic extraction for custom objects from phrases like "cooks a [object]" or "stir-fry [object]"
     if (!inedibleHeroObject) {
-      const verbObjMatch = combined.match(/\b(?:cook(?:s|ing)?|fr(?:y|ies|ying)|stir-fr(?:y|ies|ying)|prepar(?:e|es|ing)|sizzl(?:e|es|ing)|roast(?:s|ing)?)\s+(?:a|an|the|some)?\s*([a-z0-9\s-]+?)(?:\s+(?:in|with|on|onto|into|for|inside|dish|masala|stir-fry|soup|fry|sauce)\b|$)/i);
+      const scanTarget = cleanSourceIdea || cleanCombined;
+      const verbObjMatch = scanTarget.match(/\b(?:cook(?:s|ing)?|fr(?:y|ies|ying)|stir-fr(?:y|ies|ying)|prepar(?:e|es|ing)|sizzl(?:e|es|ing)|roast(?:s|ing)?)\s+(?:a|an|the|some)?\s*([a-z0-9\s-]+?)(?:\s+(?:in|with|on|onto|into|for|inside|dish|masala|stir-fry|soup|fry|sauce)\b|$)/i);
       if (verbObjMatch && verbObjMatch[1]) {
         const candidate = verbObjMatch[1].trim().replace(/^(a|an|the|one|some)\s+/i, "").trim();
         const stopWords = new Set(["the", "a", "an", "one", "some", "this", "that", "it", "all", "its", "each", "these", "those"]);
@@ -888,23 +940,24 @@ export function detectPhysicalEntities(text: string, sourceIdea?: string | null)
       }
     }
 
-    // 3. Fallback to specialized keyword detector
+    // 3. Fallback to specialized keyword detector (scan sourceIdea before falling back to action tools)
+    const fallbackText = cleanSourceIdea || cleanCombined;
     if (!inedibleHeroObject) {
-      if (/\b(bicycles?|bycycles?|cycles?|bikes?)\b/i.test(combined)) inedibleHeroObject = "Vintage Bicycle";
-      else if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(combined)) inedibleHeroObject = "Vintage Game Boy Color";
-      else if (/\b(keyboard|keycaps?)\b/i.test(combined)) inedibleHeroObject = "Mechanical Keyboard";
-      else if (/\b(walkman|cassette player)\b/i.test(combined)) inedibleHeroObject = "Vintage Sony Walkman";
-      else if (/\b(nokia|3310|1100)\b/i.test(combined)) inedibleHeroObject = "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)";
-      else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(combined)) inedibleHeroObject = "Wireless Earbuds";
-      else if (/\b(smartphones?|mobile phone|phone)\b/i.test(combined)) inedibleHeroObject = "Smartphone";
-      else if (/\b(sneakers?|shoes?|boots?)\b/i.test(combined)) inedibleHeroObject = "Sneaker";
-      else if (/\b(watch|watches?|clock)\b/i.test(combined)) inedibleHeroObject = "Mechanical Watch";
-      else if (/\b(stones?|granite|rocks?)\b/i.test(combined)) inedibleHeroObject = "Granite River Stones";
-      else if (/\b(circuit board|pcb)\b/i.test(combined)) inedibleHeroObject = "Circuit Board";
-      else if (/\b(dslr|vintage camera|35mm camera|camera body)\b/i.test(combined)) inedibleHeroObject = "Camera";
-      else if (/\b(cricket)\b/i.test(combined)) inedibleHeroObject = "Vintage English Willow Cricket Bat & Leather Cricket Ball";
-      else if (/\b(violin|guitar)\b/i.test(combined)) inedibleHeroObject = "Musical Instrument";
-      else if (/\b(glass|marbles?|crystals?)\b/i.test(combined)) inedibleHeroObject = "Crystal Glass";
+      if (/\b(bicycles?|bycycles?|cycles?|bikes?)\b/i.test(fallbackText)) inedibleHeroObject = "Vintage Bicycle";
+      else if (/\b(game\s*boy|gameboy|nintendo|cartridge|pokemon)\b/i.test(fallbackText)) inedibleHeroObject = "Vintage Game Boy Color";
+      else if (/\b(keyboard|keycaps?)\b/i.test(fallbackText)) inedibleHeroObject = "Mechanical Keyboard";
+      else if (/\b(walkman|cassette player)\b/i.test(fallbackText)) inedibleHeroObject = "Vintage Sony Walkman";
+      else if (/\b(nokia|3310|1100)\b/i.test(fallbackText)) inedibleHeroObject = "Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 / 3310)";
+      else if (/\b(airbuds?|airpods?|earphones?)\b/i.test(fallbackText)) inedibleHeroObject = "Wireless Earbuds";
+      else if (/\b(smartphones?|mobile phone|phone)\b/i.test(fallbackText)) inedibleHeroObject = "Smartphone";
+      else if (/\b(sneakers?|shoes?|boots?)\b/i.test(fallbackText)) inedibleHeroObject = "Sneaker";
+      else if (/\b(watch|watches?|clock)\b/i.test(fallbackText)) inedibleHeroObject = "Mechanical Watch";
+      else if (/\b(cricket)\b/i.test(fallbackText)) inedibleHeroObject = "Vintage English Willow Cricket Bat & Leather Cricket Ball";
+      else if (/\b(stones?|granite|rocks?)\b/i.test(fallbackText)) inedibleHeroObject = "Granite River Stones";
+      else if (/\b(circuit board|pcb)\b/i.test(fallbackText)) inedibleHeroObject = "Circuit Board";
+      else if (/\b(dslr|vintage camera|35mm camera|camera body)\b/i.test(fallbackText)) inedibleHeroObject = "Camera";
+      else if (/\b(violin|guitar)\b/i.test(fallbackText)) inedibleHeroObject = "Musical Instrument";
+      else if (/\b(glass|marbles?|crystals?)\b/i.test(fallbackText)) inedibleHeroObject = "Crystal Glass";
       else inedibleHeroObject = "Artisan Mechanical Hardware";
     }
   }

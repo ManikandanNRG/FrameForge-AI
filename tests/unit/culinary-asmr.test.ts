@@ -282,5 +282,30 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     expect(hooks.optionA_cleaverSlam.fluxStillPrompt).not.toContain("Dark Walnut");
     expect(hooks.optionB_sizzleDrop.fluxStillPrompt).toContain("5600K");
   });
+
+  it("isolates Beat 1 start pose and enforces TWO-HAND and Camera Position locks in still prompts", () => {
+    const bundle = compileCinematicPrompt({
+      actionDescription:
+        "[0:00] Beat 1: Heavy Damascus blade slices willow wood curls on bright oak board. Beat 2: Four-sided stainless box grater rasps bark shavings. Beat 3: Fingers toss grains inside a glass bowl.",
+      shotSize: "Macro Close-Up 45-Degree",
+      cameraMovement: "Dynamic Macro Glide",
+      heroObject: "Vintage English Willow Cricket Bat & Leather Cricket Ball",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      sourceIdea: "Cricket bat and ball biryani",
+    });
+
+    // Still image only sees Beat 1 + explicit two-hand & camera locks
+    expect(bundle.fluxStillPrompt).toContain("Strictly TWO human hands maximum");
+    expect(bundle.fluxStillPrompt).toContain("Camera Position Lock: Fixed 45-degree");
+    expect(bundle.fluxStillPrompt).toContain("Heavy Damascus blade slices willow wood curls");
+    expect(bundle.fluxStillPrompt).not.toContain("Four-sided stainless box grater");
+    expect(bundle.fluxStillPrompt).not.toContain("Fingers toss grains inside a glass bowl");
+    // Video prompt still keeps all 3 beats for 8-second motion
+    expect(bundle.googleFlowPrompt).toContain("Four-sided stainless box grater");
+    expect(bundle.googleFlowPrompt).toContain("Fingers toss grains inside a glass bowl");
+    // Negative matrix blocks 3-hand artifacts
+    expect(bundle.universalNegativePrompt).toContain("three hands");
+    expect(bundle.universalNegativePrompt).toContain("extra arms");
+  });
 });
 

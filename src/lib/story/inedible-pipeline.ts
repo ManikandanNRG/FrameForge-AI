@@ -389,8 +389,8 @@ export function generateInediblePipelineScenes(params: {
           num: sceneNum,
           heading: `INT. BRIGHT SUNLIT OAK BUTCHER BLOCK - PRECISION DICING, SHAVING & GRATING (${row0.realElement.toUpperCase()}) ${tc.label}`,
           action: `[${tc.start}] Beat 1: Rapid 2X dicing station for ${targetDish} in bright 5600K daylight—blade shaves ${row0.inedibleCounterpart} into uniform ${row0.realElement}-style strips (*thwack-thwack*). Beat 2: Four-sided stainless box grater rasps ${row1.inedibleCounterpart} into feathery shavings (*shrrr-shrrr*). Beat 3: Gloved fingers steep and toss shredded elements with clear aromatic resin oil (*splash-toss*). Beat 4: Sorted crisp elements pile brightly onto dry brass trays filling 90% of the frame.`,
-          shotSize: "Top-Down Flat Lay Lock",
-          cameraMovement: "Top-Down Flat Lay Lock",
+          shotSize: "Macro Close-Up 45-Degree",
+          cameraMovement: "Dynamic Macro Glide",
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Rapid staccato blade chops on natural oak (*thwack-thwack-thwack*), brisk stainless box-grater friction (*shrrr-shrrr*), crisp tray drop.`,
           estimatedDurationSeconds: tc.duration,
         });
@@ -491,8 +491,8 @@ export function generateInediblePipelineScenes(params: {
           num: sceneNum,
           heading: `INT. BUTCHER BLOCK - RAPID CLEAVER DICING & SLICING ${tc.label}`,
           action: `[${tc.start}] On the wooden butcher block, heavy Damascus blade rapidly dices the ${componentA} into delicate geometric pieces in high-speed staccato (*thwack-thwack-thwack*). Gloved hand slices ${componentB} into thin ribbons and scores cross-hatch grooves. 90% camera fill; 2X rapid tempo.`,
-          shotSize: "Top-Down Flat Lay Lock",
-          cameraMovement: "Top-Down Flat Lay Lock",
+          shotSize: "Macro Close-Up 45-Degree",
+          cameraMovement: "Dynamic Macro Glide",
           foley: `Binaural ASMR Foley: Rapid staccato knife chops on end-grain wood (*thwack-thwack*), razor slicing acoustics, clean geometric division.`,
           estimatedDurationSeconds: tc.duration,
         });

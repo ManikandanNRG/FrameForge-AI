@@ -12,7 +12,12 @@ import {
   ExternalLink, FileCode, User, ChevronDown, ChevronUp, X, Edit2, Save, RefreshCw,
   ShieldCheck, Zap, CheckCircle2, Wrench,
 } from "lucide-react";
-import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
+import {
+  compileCinematicPrompt,
+  HIGH_VISIBILITY_WORKSTATION_ENV,
+  resolveBrightCulinaryEnvironment,
+} from "@/lib/story/prompt-compiler";
+import { detectPhysicalEntities } from "@/lib/story/world-engine";
 import { generateSocialLaunchKit } from "@/lib/story/launch-kit";
 
 interface ShotMedia {
@@ -28,7 +33,7 @@ interface Shot {
   targetDurationSeconds: number; mediaVersions: ShotMedia[];
   voiceover?: string; dialogue?: string; audioPrompt?: string;
 }
-interface Scene { id: string; sceneNumber: number; heading: string; shots: Shot[]; }
+interface Scene { id: string; sceneNumber: number; heading: string; location?: string | null; shots: Shot[]; }
 
 function mediaUrl(p: string, versionId?: string) {
   const base = `/api/media/file?path=${encodeURIComponent(p)}`;
@@ -654,7 +659,10 @@ export default function StoryboardPage() {
     } catch {}
   }
 
-  const wardrobeLock = charAttrs.wardrobe ? String(charAttrs.wardrobe).replace(/\.+$/, "") : "";
+  const wardrobeLock =
+    charAttrs.wardrobeLock || charAttrs.wardrobe
+      ? String(charAttrs.wardrobeLock || charAttrs.wardrobe).replace(/\.+$/, "")
+      : "";
 
   // Construct prompt strictly from the character's genuine identity — NEVER use generic male farmer fallback!
   if (hasCharacter && !charPrompt) {
@@ -805,17 +813,23 @@ export default function StoryboardPage() {
     const style = (projectData?.visualStyle || "").toUpperCase();
     if (style === "GHIBLI_ANIME") return "Lush green countryside meadow, rolling hills, blooming wildflowers under sunny blue sky";
     if (style === "CARTOON_2D" || style === "ANIMATION_3D") return "Bright cheerful animated storybook landscape";
-    if (style === "CULINARY_MACRO_ASMR") return "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron cookware";
+    if (style === "CULINARY_MACRO_ASMR") return `${HIGH_VISIBILITY_WORKSTATION_ENV}, seasoned cast iron cookware`;
     if (style === "VINTAGE_FILM") return "Authentic 1900s historical village setting, dusty rustic pathway";
     if (style === "DOCUMENTARY") return "Authentic natural documentary environment";
     return "Authentic cinematic story environment";
   })();
 
-  const locationEnvironment = matchedLocation?.description
+  const rawLocationEnv = matchedLocation?.description
     ? matchedLocation.description.replace(/\.+$/, "")
-    : ((selected as any)?.scene?.location && (selected as any).scene.location !== "Location" && (selected as any).scene.location !== "Main Story World")
-    ? (selected as any).scene.location
-    : defaultLocationByStyle;
+    : selectedScene?.location &&
+      selectedScene.location !== "Location" &&
+      selectedScene.location !== "Main Story World"
+    ? selectedScene.location
+    : projectData?.studioEnvironment || defaultLocationByStyle;
+
+  const locationEnvironment = isCulinaryProject
+    ? resolveBrightCulinaryEnvironment(rawLocationEnv)
+    : rawLocationEnv;
 
   const isPortrait = projectData?.aspectRatio === "PORTRAIT_9_16";
   const arParam = isPortrait ? "9:16" : projectData?.aspectRatio === "SQUARE_1_1" ? "1:1" : "16:9";
@@ -839,6 +853,11 @@ export default function StoryboardPage() {
     ? formattedDialogue.replace(/\[@([A-Za-z0-9_-]+)\]/g, "$1").replace(/@([A-Za-z0-9_-]+)/g, "$1").trim()
     : "";
 
+  const projectHeroObject =
+    projectData?.title || projectData?.sourceIdea
+      ? detectPhysicalEntities(projectData?.title || "", projectData?.sourceIdea).inedibleHeroObject
+      : undefined;
+
   // Universal Prompt Compiler: Enforces Universal Physics & Kinematics across all engines
   const compiledBundle = selected ? compileCinematicPrompt({
     actionDescription: selected.actionDescription || selected.videoPrompt || "",
@@ -852,6 +871,7 @@ export default function StoryboardPage() {
     characterDescription: hasCharacter ? activeCharAsset?.description : undefined,
     wardrobeLock: hasCharacter ? wardrobeLock : undefined,
     locationDescription: locationEnvironment,
+    heroObject: projectHeroObject,
     aspectRatio: projectData?.aspectRatio,
     storyLanguage: projectData?.storyLanguage,
     targetDurationSeconds: selected.targetDurationSeconds,

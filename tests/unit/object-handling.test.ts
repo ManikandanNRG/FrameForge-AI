@@ -250,4 +250,22 @@ describe("Universal 4-Stage Inedible Craft-Culinary Pipeline Generator", () => {
     expect(result.thumbnailPrompt).toContain("traditional brass thali lined with fresh banana leaf");
     expect(result.thumbnailPrompt).toContain("[@TheShadowAlchemist]");
   });
+
+  it("prevents granite stone mortar and thali tray in prep scenes from triggering Idiyappam or PLATING_SERVE", () => {
+    const compiled = compileCinematicPrompt({
+      actionDescription:
+        "Coarse spices and rubber grip shreds grind in a heavy granite stone mortar and pestle and mixie jar before pouring onto a polished brass thali tray.",
+      sourceIdea: "Cricket bat and ball transformed into biryani with complex cooking steps",
+      shotSize: "Extreme Close-Up Macro",
+      cameraMovement: "Macro Tracking Orbit",
+      visualStyle: "CULINARY_MACRO_ASMR",
+    });
+
+    expect(compiled.culinaryStation).toBe("KITCHEN_MACHINERY");
+    expect(compiled.fluxStillPrompt.toLowerCase()).not.toContain("idiyappam");
+    expect(compiled.fluxStillPrompt.toLowerCase()).not.toContain("quartz");
+    expect(compiled.fluxStillPrompt.toLowerCase()).not.toContain("silica glass");
+    expect(compiled.fluxStillPrompt).toContain("Cricket Bat & Leather Cricket Ball");
+    expect(compiled.googleFlowPrompt).toContain("5600K");
+  });
 });

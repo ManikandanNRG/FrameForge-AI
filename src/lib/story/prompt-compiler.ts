@@ -120,20 +120,48 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
     return "RAPID_HOOK";
   }
 
-  // 1. Hero Reaction / Smirk / Reveal (End shot)
-  if (/\b(smirk|look(?:s)? (?:straight )?into (?:the )?camera|lock(?:s)? eyes|tilt(?:s)? head|whisps? of steam curl|hero reveal|rogue smirk|quiet mastery|noodle lift|chopsticks?.*lift|overlooking his creation|ultimate sensory)\b/i.test(lower) &&
-      !/\b(toss|chopping|cleaver|pan|wok|skillet|knife)\b/i.test(lower)) {
+  // 1. Hero Reaction / Smirk / Reveal (End shot — never hijack active prep/grinding/cutting/cooking shots)
+  const hasPrepWorkOrHeat =
+    /\b(mixie|mixer-grinder|grinder|blender|pulveriz(?:e|ing|es)|crunch press|crush press|stone pestle|mortar(?:\s+and\s+pestle)?|granite\s+mortar|milling|toss(?:ing)?|chopping|cleaver|dicing|shaving|grater|rasps?|pan|wok|skillet|knife|marinade|marinat(?:e|ing)|prep bowl|prep tray|thali tray|mixing bowl)\b/i.test(
+      lower
+    );
+
+  if (
+    /\b(smirk|look(?:s)? (?:straight )?into (?:the )?camera|lock(?:s)? eyes|tilt(?:s)? head|whisps? of steam curl|hero reveal|rogue smirk|quiet mastery|noodle lift|chopsticks?.*lift|overlooking his creation|ultimate sensory|thumbs-?up)\b/i.test(
+      lower
+    ) &&
+    !hasPrepWorkOrHeat
+  ) {
     return "HERO_REACTION";
   }
 
-  // 2. Plating / Serving station (Final touch, tweezers, garnish, plate, thali, bowl)
-  if (/\b(plate|plating|garnish|serving|platter|banquet|dining table|thali|banana[- ]leaf|coupe plate|bowl|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(lower) &&
-      !/\b(chopping|cleaver|dicing|toss(?:ing)?|skillet|wok)\b/i.test(lower)) {
+  // 1B. Kitchen Machinery / Grinder / Mechanical Crunch Press / Mortar (prioritized over prep tray/bowl nouns!)
+  if (
+    /\b(mixie|mixer-grinder|grinder|blender|pulveriz(?:e|ing|es)|crunch press|crush press|stone pestle|mortar(?:\s+and\s+pestle)?|granite\s+mortar|edge-runner mill|extruder)\b/i.test(
+      lower
+    ) &&
+    !/\b(cleaver.*chop|dicing|skillet|tawa|wok|hero showcase|hero plating|thumbs-?up|pull apart)\b/i.test(lower)
+  ) {
+    return "KITCHEN_MACHINERY";
+  }
+
+  // 2. Plating / Serving station (Final touch, tweezers, garnish, dinner plate, banana-leaf platter, thali)
+  const cleanedPlatingScan = lower
+    .replace(/\b(?:(?:brass|copper|stainless|polished|hammered)\s+)*(?:prep|mixing|shallow)\s+bowls?\b/gi, "")
+    .replace(/\b(?:(?:brass|copper|stainless|polished|hammered)\s+)*thali\s+trays?\b/gi, "");
+  if (
+    /\b(plate|plating|garnish|serving platter|hero platter|dinner plate|white plate|coupe plate|banquet|dining table|thali|banana[- ]leaf|tweezer(?:s)? (?:delicately |carefully )?(?:place|lower|deposit)|final (?:touch|ruby-red|key|piece))\b/i.test(
+      cleanedPlatingScan
+    ) &&
+    !/\b(mixie|mixer-grinder|grinder|blender|pulveriz(?:e|ing|es)|crunch press|mortar(?:\s+and\s+pestle)?|stone pestle|chopping|cleaver|dicing|shaving|grater|rasps?|toss(?:ing)?|skillet|wok)\b/i.test(
+      lower
+    )
+  ) {
     return "PLATING_SERVE";
   }
 
   // 3. Stove / Cookware station (Active heat, fire, wok toss, boiling, searing, tadka, tawa)
-  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet|gas flame|flames?|ignit(?:e|ion)|toss(?:ing)?|smoking oil|high-heat|pan sear|tadka|splutter|tawa|kadai|handi pot)\b/i.test(lower);
+  const hasStoveKeywords = /\b(skillet|sear|searing|sizzle|sizzling|baste|basting|simmer|simmering|boil|boiling|burner|stove|stovetop|hot oil|foaming butter|wok|charring|flamb|cast-iron skillet|gas flame|flames?|ignit(?:e|ion)|smoking oil|high-heat|pan sear|tadka|splutter|tawa|kadai|handi pot)\b/i.test(lower);
   const hasCookwarePan = /(?:frying pan|saucepan|saut[eé] pan|cast-iron pan|hot pan|into the pan|in the pan|into pan|in pan|pan sear|pan-sear)\b/i.test(lower) ||
     (/\bpan\b/i.test(lower) && !/\b(?:camera|slowly|smooth|horizontal|lateral)\s+pans?\b/i.test(lower) && !/\bpanning\b/i.test(lower));
 
@@ -165,12 +193,6 @@ export function detectCulinaryStation(actionText: string, cameraMotionText?: str
   if (/\b(snap(?:s|ping)? (?:the )?(?:board|chassis|frame|body)|fractur(?:e|ing)|crack(?:s|ing)? in two|breaks? in half|palm strike|bends? and snaps?)\b/i.test(lower) &&
       !/\b(knife|cleaver|blade|chop|dicing)\b/i.test(lower)) {
     return "MANUAL_FRACTURE";
-  }
-
-  // 7B. Kitchen Machinery / Grinder / Mechanical Crunch Press (Indian mixie, grinder, crunch press, mortar)
-  if (/\b(mixie|mixer-grinder|grinder|blender|pulveriz(?:e|ing|es)|crunch press|crush press|stone pestle|mortar and pestle)\b/i.test(lower) &&
-      !/\b(cleaver.*chop|dicing|skillet|tawa|wok)\b/i.test(lower)) {
-    return "KITCHEN_MACHINERY";
   }
 
   // 8. Culinary Cutting / Dicing / Slicing (Damascus cleaver, chef knife, chiffonade, dicing)
@@ -285,6 +307,26 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ));
 
   const heroTargetName = (heroObject || entities.inedibleHeroObject || "Hero Object").replace(/^(the|a|an)\s+/i, "");
+
+  const stripToolPhrasesForArchetype = (txt: string) =>
+    txt
+      .replace(/\b(?:granite\s+)?stone\s+(?:mortar(?:\s+and\s+pestle)?|pestle|grinder|mill)\b/gi, "")
+      .replace(/\bgranite\s+(?:mortar|pestle|roller|mill)\b/gi, "")
+      .replace(/\bmortar\s+and\s+pestle\b|\bwhetstone\b|\bgrinding\s+stone\b|\bgarlic\s+bulbs?\b/gi, "");
+
+  const explicitHeroScope = stripToolPhrasesForArchetype(
+    `${heroObject || ""} ${entities.inedibleHeroObject || ""} ${sourceIdea || ""}`
+  ).trim();
+  const archetypeScope =
+    explicitHeroScope && !/^hero object$/i.test(explicitHeroScope)
+      ? explicitHeroScope
+      : stripToolPhrasesForArchetype(actionDescription || "").trim();
+
+  const isSoapTarget = /\b(soap|soaps|laundry bar|bath soap|glycerine soap|carbolic soap|kothu parotta)\b/i.test(archetypeScope);
+  const isBulbTarget = /\b(bulb|bulbs|light\s*bulb|serial\s*bulb|serial\s*lights|edison\s*bulb|filament|fairy\s*lights|samosas?)\b/i.test(archetypeScope);
+  const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(archetypeScope);
+  const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(archetypeScope);
+  const isNokiaTarget = /nokia|3310|1100|brick phone|feature phone|keypad phone/i.test(archetypeScope);
 
   const isCulinaryGenreOrIdea =
     isInedibleCooking ||
@@ -619,6 +661,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       "heavy vignette",
       "low-key gloomy lighting",
       "muddy brown tones",
+      "three hands",
+      "3 hands",
+      "extra hand",
+      "three arms",
+      "extra arms",
+      "duplicated limb",
       "phantom hand",
       "third hand",
       "extra arm",
@@ -945,8 +993,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       );
     }
 
-    const isSoapOrBulkHotel = /\b(soap|soaps|laundry bar|bath soap|carbolic soap|kothu parotta)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
-    if (isSoapOrBulkHotel) {
+    if (isSoapTarget) {
       negativeList.push(
         "few pieces",
         "sparse ingredients",
@@ -992,7 +1039,6 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       );
     }
 
-    const isBulbTarget = /\b(bulb|bulbs|light\s*bulb|serial\s*bulb|serial\s*lights|edison\s*bulb|filament|fairy\s*lights|samosas?)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isBulbTarget) {
       negativeList.push(
         "few bulbs",
@@ -1017,7 +1063,6 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       );
     }
 
-    const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isStoneTarget) {
       negativeList.push(
         "yellow egg noodles",
@@ -1130,15 +1175,12 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.PROGRESSIVE_CULINARY_FUSION}`);
     flowRules.push(`- ${UNIVERSAL_PHYSICAL_LAWS.ROBOTIC_LINEAR_CAMERA_KINEMATICS}`);
     flowRules.push(`- Inedible Prop & Food Negative Directives: Strictly NO on-screen text, NO subtitles, NO captions, NO burned-in watermarks. Strictly NO real grocery food, NO pork bacon, NO raw or diced tomatoes, NO onions, NO dairy cheese slices, NO edible fast food, NO separate unmerged raw piles. All elements must maintain authentic inedible hardware physics.`);
-    const isGameBoyTarget = /game\s*boy|gameboy|pokemon|nintendo/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isGameBoyTarget) {
       flowRules.push(`- Console Prop DNA Invariant: Authentic Translucent Purple Game Boy Color (atomic purple translucent chassis clearly exposing green PCB circuitry, magenta A/B buttons); strictly PROHIBIT 1989 classic grey/beige Game Boy DMG-01 housing, strictly NO thick rectangular beige brick.`);
     }
-    const isNokiaTarget = /nokia|3310|1100|brick phone|feature phone|keypad phone/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isNokiaTarget) {
       flowRules.push(`- Phone Prop DNA Invariant: Authentic Bulk Vintage Nokia Mobile Phones (15x Nokia 1100 & 3310 in classic navy blue, slate grey, and cyan shells with rubber keypads); strictly PROHIBIT modern smartphones, curved glass, or touchscreen iPhones.`);
     }
-    const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
     if (isStoneTarget) {
       flowRules.push(`- Stone & Noodle DNA Invariant: Authentic raw white quartz crystal boulders, rough granite, and crystalline mineral flour extruded into ultra-fine translucent silica noodle threads; strictly PROHIBIT yellow egg noodles, wheat pasta, instant ramen cakes, deep-fried pastry, or frying oil pouring.`);
     }
@@ -1278,10 +1320,6 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `A stunning cinematic anime film still, ${shotFraming}.`
     : `A breathtaking 1080p cinematic documentary film still, ${shotFraming}.`;
 
-  const isSoapTarget = /\b(soap|soaps|laundry bar|bath soap|glycerine soap|carbolic soap|kothu parotta)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
-  const isBulbTarget = /\b(bulb|bulbs|light\s*bulb|serial\s*bulb|serial\s*lights|edison\s*bulb|filament|fairy\s*lights|samosas?)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
-  const isStoneTarget = /\b(stones?|quartz|granite|rock|rocks?|boulder|boulders?|idiyappam|string hopper)\b/i.test(`${actionDescription} ${heroTargetName} ${sourceIdea || ""}`);
-
   const fluxCinematography = isInedibleCooking
     ? isSoapTarget
       ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin translucent curly ribbon shavings, glistening golden oil reflections, crisp bright depth clarity, ${resolvedLighting || HIGH_VISIBILITY_CULINARY_LIGHTING}.`
@@ -1417,15 +1455,56 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     ? `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece, true-to-life skin tones. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic skin, NO distorted limbs${isVintage ? ", NO modern western clothing" : ""}.`
     : `Strict Aesthetics: Ultra-photorealistic documentary cinema masterpiece. Strictly NO CGI, NO 3D animation, NO cartoon, NO anime, NO plastic sheen, NO artificial artifacts, NO watermarks, NO subtitles.`;
 
+  const extractStillStartPose = (fullAction: string): string => {
+    const cleaned = fullAction
+      .replace(/^\[?\d+:\d+(?:-\d+:\d+)?\]?\s*/i, "")
+      .trim();
+    // If multi-beat video timing is present, isolate Beat 1 only so still image models never draw 3-4 hands/tools simultaneously
+    const beat1Match = cleaned.match(/\bBeat\s*1\s*[:\-]\s*([\s\S]*?)(?=\bBeat\s*2\s*[:\-]|$)/i);
+    if (beat1Match?.[1]?.trim()) {
+      return beat1Match[1].trim().replace(/\.+$/, "");
+    }
+    const timeBeatMatch = cleaned.match(/^([\s\S]*?)(?=\[\d+:\d+)/);
+    if (timeBeatMatch?.[1]?.trim() && /\[\d+:\d+/.test(cleaned)) {
+      return timeBeatMatch[1].trim().replace(/\.+$/, "");
+    }
+    const sentences = cleaned.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 8);
+    if (sentences.length > 1) {
+      return sentences[0].trim().replace(/\.+$/, "");
+    }
+    return cleaned.replace(/\.+$/, "");
+  };
+
+  const isTopDownFraming =
+    framingLower.includes("top-down") ||
+    framingLower.includes("overhead") ||
+    framingLower.includes("bird") ||
+    framingLower.includes("flat lay");
+
+  const startFrameAction = isCulinary ? extractStillStartPose(actionCleaned) : actionCleaned;
+
+  const fluxCameraPositionLock = isCulinary
+    ? isTopDownFraming
+      ? "Camera Position Lock: Strictly 90-degree vertical overhead bird's-eye flat-lay camera looking straight down at the cutting board; show ONLY two gloved hands and forearms entering from the bottom edge of the frame (keep chef face/head completely out of frame so camera never tilts sideways or upside-down)."
+      : "Camera Position Lock: Fixed 45-degree front three-quarter elevated workstation macro camera looking cleanly across the bright natural oak counter toward the upright standing chef; consistent studio camera height and straight horizontal orientation."
+    : null;
+
+  const fluxTwoHandLock =
+    hasRealCharacter || isCulinary
+      ? "Anatomy & Two-Hand Lock: Single frozen keyframe moment depicting ONLY Beat 1. Strictly TWO human hands maximum in the entire image (1 left hand steadying + 1 right hand holding ONE single tool); ZERO third hand, ZERO extra arm, ZERO duplicated limbs."
+      : null;
+
   const fluxStillPrompt = [
-    hasRealCharacter && bracketedCharTag
+    hasRealCharacter && bracketedCharTag && !(isCulinary && isTopDownFraming)
       ? `Subject: ${bracketedCharTag} (${charName}), ${(resolvedCharacterDescription || "authentic appearance").replace(/\.+$/, "")}${resolvedWardrobeLock ? `, strictly wearing ${resolvedWardrobeLock}` : ""}.`
       : null,
     fluxStillOpening,
-    `Scene Action: ${actionCleaned}.`,
+    `Scene Action (Opening Start-Frame Pose Only): ${startFrameAction}.`,
     `Environment: ${(resolvedEnvironment || (isVintage ? "Authentic 1900s historical Pudukkottai architectural setting" : "Authentic cinematic setting")).replace(/\.+$/, "")}.`,
+    fluxCameraPositionLock,
     fluxCinematography,
     fluxAesthetics,
+    fluxTwoHandLock,
     entities.hasVehicleOrMount
       ? `Vehicular & Animal Integrity: Any draft animals must be hitched strictly and exclusively to the front wooden yoke pole facing forward; strictly NO animals behind or at the rear of carts; strictly NO duplicate animals or animals on both sides of a vehicle.`
       : null,

@@ -12,16 +12,35 @@ import type {
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash ✓ (Default Primary Model)" },
-  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash (Fast Generation Model)" },
-  { id: "gemini-3.1-flash-lite-preview", displayName: "Gemini 3.1 Flash-Lite (High-Quota Fallback)" },
-  { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash (Legacy Fallback)" },
+  { id: "gemini-3.5-flash-lite", displayName: "Gemini 3.5 Flash-Lite ✓ (Latest Active Primary)" },
+  { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash Preview ✓ (Fast Multimodal Primary)" },
+  { id: "gemini-3.1-flash-lite", displayName: "Gemini 3.1 Flash-Lite ✓ (Ultra-Fast Fallback)" },
+  { id: "gemini-3.8-flash", displayName: "Gemini 3.8 Flash (Latest 3.x Release)" },
+  { id: "gemini-3.6-flash", displayName: "Gemini 3.6 Flash" },
+  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-3-flash-preview";
+export const GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite";
 
-const PER_CALL_TIMEOUT_MS = 18_000;
+const PER_CALL_TIMEOUT_MS = 16_000;
 const TOTAL_BUDGET_MS = 32_000;
+const MODEL_COOLDOWN_MS = 10 * 60 * 1000;
+
+const failedModelCooldown = new Map<string, number>();
+
+function isModelCoolingDown(modelId: string): boolean {
+  const until = failedModelCooldown.get(modelId);
+  if (!until) return false;
+  if (Date.now() >= until) {
+    failedModelCooldown.delete(modelId);
+    return false;
+  }
+  return true;
+}
+
+function markModelTransientFailure(modelId: string): void {
+  failedModelCooldown.set(modelId, Date.now() + MODEL_COOLDOWN_MS);
+}
 
 function extractJsonText(raw: string): string {
   const withoutThink = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
@@ -117,13 +136,17 @@ export class GeminiTextProvider implements TextGenerationProvider {
   async generateStructured<S extends z.ZodType<any, any, any>>(
     input: StructuredTextInput<S>,
   ): Promise<GenerationResult<z.infer<S>>> {
-    const candidateModels = [
+    const rawCandidates = [
       input.modelId,
+      "gemini-3.5-flash-lite",
       "gemini-3-flash-preview",
+      "gemini-3.1-flash-lite",
+      "gemini-3.8-flash",
       "gemini-3.5-flash",
-      "gemini-3.1-flash-lite-preview",
-      "gemini-2.5-flash",
     ].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i);
+
+    const activeCandidates = rawCandidates.filter((id) => !isModelCoolingDown(id));
+    const candidateModels = activeCandidates.length > 0 ? activeCandidates : rawCandidates;
 
     let lastError: string | null = null;
     let discovered = false;
@@ -212,6 +235,7 @@ export class GeminiTextProvider implements TextGenerationProvider {
             msg.includes("429") ||
             msg.includes("timed out")
           ) {
+            markModelTransientFailure(activeModelId);
             break;
           }
         }
@@ -230,10 +254,10 @@ export async function testGeminiKey(
   apiKey: string,
 ): Promise<{ ok: boolean; model: string; error?: string }> {
   const candidates = [
+    "gemini-3.5-flash-lite",
     "gemini-3-flash-preview",
-    "gemini-3.5-flash",
-    "gemini-3.1-flash-lite-preview",
-    "gemini-2.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
   ];
 
   const client = new GoogleGenerativeAI(apiKey);
@@ -263,7 +287,15 @@ export async function testGeminiKey(
         }
         continue;
       }
-      if (msg.includes("404") || msg.includes("not found")) continue;
+      if (
+        msg.includes("404") ||
+        msg.includes("not found") ||
+        msg.includes("503") ||
+        msg.includes("high demand") ||
+        msg.includes("timed out")
+      ) {
+        continue;
+      }
       return { ok: false, model: "", error: msg };
     }
   }

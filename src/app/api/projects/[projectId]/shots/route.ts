@@ -53,6 +53,7 @@ export const GET = apiHandler(async (_req, ctx) => {
       genre: project.genre,
       tone: project.tone,
       targetRuntime: project.targetRuntime,
+      studioEnvironment: project.studioEnvironment,
     },
     scenes: scenesWithAudio,
   };

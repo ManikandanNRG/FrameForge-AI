@@ -990,4 +990,18 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - `npx tsc --noEmit`: `0` errors.
   - `npx vitest run`: `17` test files / `104` tests passed.
 
+## ADR-053: Start-Frame Beat-1 Two-Hand Lock, Camera Position Lock & Live Gemini 3.5 Flash-Lite Primary
+- **Date**: 2026-11-26 · **Status**: Implemented & Verified
+- **Context**:
+  - Multi-beat video actions (`Beat 1`–`Beat 4`) fed verbatim into still-image prompts caused image diffusion models to draw 3 hands simultaneously (e.g., cleaver + wood plane, or knife + box grater + glass bowl in one still).
+  - Mixing `Top-Down Flat Lay Lock` (`90°` overhead) with full character face/goggle descriptions caused camera orientation flips.
+  - Live probing of the user's Gemini API key showed `gemini-2.5-flash` deprecated (`404`), `gemini-3.8-flash`/`3.7-flash` timing out (`>18s`), and `gemini-3.5-flash-lite` (`~1.0s`), `gemini-3.1-flash-lite` (`~0.7s`), and `gemini-3-flash-preview` (`~2.1s`) passing reliably.
+- **Decision**:
+  1. **Still-Image Start-Pose Isolation & Anatomy Lock (`src/lib/story/prompt-compiler.ts`)**: `fluxStillPrompt` now extracts `Beat 1` only via `extractStillStartPose()`, adds `Anatomy & Two-Hand Lock` + negative guards (`three hands`, `extra arms`, `duplicated limb`), and adds `Camera Position Lock` (`45°` three-quarter workstation camera or hands-only `90°` top-down) while preserving full 4-beat motion inside `googleFlowPrompt`.
+  2. **Consistent 45° Scene 3 Continuity (`src/lib/story/inedible-pipeline.ts`)**: Aligned Scene 3 to `Macro Close-Up 45-Degree` matching the other workstation scenes and recompiled Episode 8 cleanly.
+  3. **Live Latest Model Primary + Cooldown (`src/lib/providers/gemini-text.ts`)**: Set `GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite"` with ordered fallbacks (`gemini-3-flash-preview`, `gemini-3.1-flash-lite`, `gemini-3.8-flash`, `gemini-3.5-flash`) and 10-minute transient cooldowns.
+- **Verification**:
+  - `npx tsc --noEmit`: `0` errors.
+  - `npx vitest run`: `17` test files / `106` tests passed.
+
 

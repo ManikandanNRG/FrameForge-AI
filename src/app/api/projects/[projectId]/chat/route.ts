@@ -1,40 +1,15 @@
-import { z } from "zod";
 import { apiHandler } from "@/lib/api/handler";
 import { badRequest, forbidden, notFound } from "@/lib/errors";
 import { prisma } from "@/lib/db/client";
 import { requireUserId } from "@/lib/auth/session";
 import { handleDirectorChat } from "@/lib/story/chat-director";
 import {
+  chatPostSchema,
   createNewDirectorThread,
   listDirectorThreads,
   loadFormattedThreadMessages,
   resolveOrCreateDirectorThread,
 } from "@/lib/story/director-memory";
-
-const approvePlanSchema = z.object({
-  episodeNumber: z.coerce.number(),
-  title: z.string().min(1),
-  sourceIdea: z.string().min(1),
-  dishName: z.string().default("Custom ASMR Dish"),
-  targetRuntime: z.coerce.number().default(20),
-  comparisonTable: z
-    .array(
-      z.object({
-        realElement: z.string(),
-        inedibleCounterpart: z.string(),
-        cookingMethod: z.string(),
-      })
-    )
-    .optional(),
-});
-
-const postSchema = z.object({
-  action: z.enum(["message", "create_thread", "delete_thread"]).optional(),
-  threadId: z.string().optional(),
-  title: z.string().max(120).optional(),
-  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long").optional(),
-  approvePlan: approvePlanSchema.optional(),
-});
 
 export const GET = apiHandler(async (req, ctx) => {
   const ownerId = await requireUserId();
@@ -85,7 +60,7 @@ export const POST = apiHandler(async (req, ctx) => {
   if (project.ownerId !== ownerId) throw forbidden();
 
   const body = await req.json().catch(() => ({}));
-  const parsed = postSchema.safeParse(body);
+  const parsed = chatPostSchema.safeParse(body);
   if (!parsed.success) {
     throw badRequest("Invalid chat message", parsed.error.issues);
   }

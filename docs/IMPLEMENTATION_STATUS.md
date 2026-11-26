@@ -746,6 +746,11 @@
       - Created `src/lib/story/director-memory.ts` implementing the 3-layer context system: live Series/Episodes ground-truth catalog (`getSeriesContextCatalog`), rolling long-term memory summarization (`refreshThreadLongTermMemory`), and recent 16-message window.
       - Added `GET /api/chat`, Studio/Project thread creation & deletion, thread selector + `+ New Chat` + delete controls in `AiDirectorChatDrawer.tsx`, and restored `createdEpisode` links & `APPROVED` proposal states across page reloads.
 
+  28. **Origin History Inheritance, In-Place Episode Revision (`REVISE_EPISODE`) & Live Storyboard Sync (2026-11-26)**:
+      - Added `inheritOriginPlanningHistory` in `src/lib/story/director-memory.ts` to trace creation hops backward and seed newly created (or empty) episode threads with the complete planning conversation, comparison tables, and approval history.
+      - Added dish-authentic comparison-table scene generation in `src/lib/story/inedible-pipeline.ts` and shared `persistEpisodeProduction` + `reviseSeriesEpisodeInPlace` in `src/lib/series/episode-service.ts`.
+      - Updated `src/lib/story/chat-director.ts` and `AiDirectorChatDrawer.tsx` so modifying the open episode uses `REVISE_CURRENT` (`Approve & Update Episode X In-Place` / `REVISE_EPISODE`) instead of spawning a duplicate project, while dispatching `frameforge:project-updated` to auto-reload `src/app/projects/[projectId]/storyboard/page.tsx`.
+
 
 
 

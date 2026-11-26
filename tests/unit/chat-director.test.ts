@@ -298,4 +298,101 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
     expect(updatedThread?.summarizedCount).toBeGreaterThan(0);
     expect(updatedThread?.memorySummary).toContain("Note 1");
   });
+
+  it("inherits planning history into created episodes and updates the open episode IN-PLACE instead of creating a duplicate project", async () => {
+    // 1. Pitch and approve Episode 9 from Studio scope
+    const studioPitch = await handleDirectorChat({
+      scope: "STUDIO",
+      ownerId: testOwnerId,
+      userMessage: "Plan Episode 9 for Cricket Bat and Ball Biryani",
+    });
+
+    const created = await handleDirectorChat({
+      scope: "STUDIO",
+      threadId: studioPitch.threadId,
+      ownerId: testOwnerId,
+      userMessage: "Approved! Please create Episode 9 with this plan.",
+      approvePlan: studioPitch.proposedEpisodePlan,
+    });
+    expect(created.createdEpisode).toBeDefined();
+    const ep9Id = created.createdEpisode!.id;
+    const projectCountAfterCreate = await prisma.project.count({ where: { ownerId: testOwnerId } });
+
+    // 2. Opening AI Director INSIDE newly created Episode 9 immediately shows the Studio planning chat
+    const ep9Thread = await resolveOrCreateDirectorThread({
+      ownerId: testOwnerId,
+      scope: "PROJECT",
+      projectId: ep9Id,
+    });
+    const ep9History = await loadFormattedThreadMessages(ep9Thread.id);
+    expect(ep9History.length).toBeGreaterThanOrEqual(4);
+    expect(ep9History[0].message).toContain("Plan Episode 9");
+
+    // 3. Proposing a revised dish/process INSIDE Episode 9 sets mode = REVISE_CURRENT
+    const reviseProposal = await handleDirectorChat({
+      scope: "PROJECT",
+      projectId: ep9Id,
+      ownerId: testOwnerId,
+      userMessage: "Alter the biryani steps in Episode 9 for Cricket Bat and Ball with dum spices",
+    });
+    expect(reviseProposal.proposedEpisodePlan?.mode).toBe("REVISE_CURRENT");
+    expect(reviseProposal.proposedEpisodePlan?.targetProjectId).toBe(ep9Id);
+
+    // 4. Approving inside Episode 9 updates Episode 9 IN-PLACE (zero duplicate project created!)
+    const revisedPlan = {
+      episodeNumber: 9,
+      title: "Episode 9: Authentic Willow Dum Biryani (ASMR)",
+      sourceIdea: "Layered dum biryani made from English willow bat shavings and leather ball masala kofta.",
+      dishName: "Authentic Willow Dum Biryani",
+      targetRuntime: 20,
+      mode: "REVISE_CURRENT" as const,
+      targetProjectId: ep9Id,
+      comparisonTable: [
+        {
+          realElement: "Aged Basmati Rice",
+          inedibleCounterpart: "Fine English willow wood shavings",
+          cookingMethod: "Toasted in foaming saffron butter",
+        },
+        {
+          realElement: "Birista Fried Onions",
+          inedibleCounterpart: "Curled bat grip rubber ribbons",
+          cookingMethod: "Crisp-seared on cast-iron tawa",
+        },
+        {
+          realElement: "Stuffed Masala Kofta",
+          inedibleCounterpart: "Cracked red stitched leather cricket ball core",
+          cookingMethod: "Slow-simmered in whole spice oil",
+        },
+        {
+          realElement: "Sealed Dum Handi Finish",
+          inedibleCounterpart: "Cork dust & saffron rosin glaze",
+          cookingMethod: "Sealed brass dum pot steam",
+        },
+      ],
+    };
+
+    const reviseResult = await handleDirectorChat({
+      scope: "PROJECT",
+      projectId: ep9Id,
+      threadId: ep9Thread.id,
+      ownerId: testOwnerId,
+      userMessage: "Approved! Update Episode 9 with this authentic dum biryani process.",
+      approvePlan: revisedPlan,
+    });
+
+    expect(reviseResult.createdEpisode).toBeUndefined();
+    expect(reviseResult.actionsTaken.some((a) => a.type === "REVISE_EPISODE")).toBe(true);
+    expect(await prisma.project.count({ where: { ownerId: testOwnerId } })).toBe(projectCountAfterCreate);
+
+    const updatedScenes = await prisma.scene.findMany({
+      where: { projectId: ep9Id },
+      orderBy: { sceneNumber: "asc" },
+    });
+    expect(updatedScenes).toHaveLength(5);
+    expect(updatedScenes[3].actionSummary).toContain("Authentic Willow Dum Biryani");
+    expect(updatedScenes[3].actionSummary).toContain("Sealed brass dum pot steam");
+
+    const ep9HistoryAfterRevise = await loadFormattedThreadMessages(ep9Thread.id);
+    expect(ep9HistoryAfterRevise.length).toBeGreaterThanOrEqual(8);
+  });
 });

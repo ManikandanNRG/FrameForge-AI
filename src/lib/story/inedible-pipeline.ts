@@ -18,6 +18,12 @@ export interface InedibleSceneTemplate {
   estimatedDurationSeconds: number;
 }
 
+export interface InedibleComparisonRow {
+  realElement: string;
+  inedibleCounterpart: string;
+  cookingMethod: string;
+}
+
 export interface InediblePipelineResult {
   logline: string;
   premise: string;
@@ -33,6 +39,8 @@ export function generateInediblePipelineScenes(params: {
   targetRuntime: number;
   episodeNumber?: number;
   seriesTitle?: string;
+  dishName?: string;
+  comparisonTable?: InedibleComparisonRow[];
 }): InediblePipelineResult {
   const {
     heroObject,
@@ -41,6 +49,8 @@ export function generateInediblePipelineScenes(params: {
     targetRuntime,
     episodeNumber = 1,
     seriesTitle = "The Shadow Alchemist — Inedible ASMR",
+    dishName,
+    comparisonTable,
   } = params;
 
   const specs = resolveObjectComponentSpecs(heroObject, sourceIdea);
@@ -328,6 +338,83 @@ export function generateInediblePipelineScenes(params: {
         estimatedDurationSeconds: 4,
       }
     );
+  } else if (comparisonTable && comparisonTable.length >= 2) {
+    // Dish-Authentic Custom Pipeline built directly from the Creator-Approved Comparison Table
+    const row0 = comparisonTable[0];
+    const row1 = comparisonTable[1];
+    const row2 = comparisonTable[2] ?? row1;
+    const row3 = comparisonTable[3] ?? comparisonTable[comparisonTable.length - 1];
+    const targetDish = dishName?.trim() || `${heroObject} Signature Feast`;
+    const isBiryani = /biryani|dum|handi|pulao/i.test(`${targetDish} ${sourceIdea}`);
+    const vesselForDish = isBiryani
+      ? "heavy-bottomed hammered brass dum handi pot & cast-iron spice tawa"
+      : isLargeObject
+      ? "oversized industrial steel catering tawa & giant catering kadai"
+      : "seasoned cast-iron griddle & copper reduction pot";
+
+    for (let i = 0; i < totalScenes; i++) {
+      const tc = timecodeFor(i);
+      const sceneNum = i + 1;
+
+      if (sceneNum === 1) {
+        scenes.push({
+          num: 1,
+          heading: `INT. ${studioEnvironment.toUpperCase()} - 0.0S ${heroObject.toUpperCase()} SLAM HOOK & COMPONENT HARVEST ${tc.label}`,
+          action: `[${tc.start}] Black-gloved hands violently slam ${heroObject} onto the ${studioEnvironment} (*LOUD ACOUSTIC THUD-CRACK*, 85% screen fill). Zero opening silence. Heavy Damascus cleaver cracks and strips out the core inedible elements for ${targetDish}: ${row0.inedibleCounterpart} alongside ${row1.inedibleCounterpart} (*SNAP-CLACK*). Every raw component is sorted cleanly into hammered brass prep bowls. Extreme macro close-up, 2X rapid tempo.`,
+          shotSize: "Extreme Close-Up",
+          cameraMovement: "Rapid Top-Down Macro Snap",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Heavy slam on wood (*THUD-CRACK*), violent mechanical strip and cleaver crack (*SNAP-CLACK*), crisp brass bowl clinks. Pure acoustic Foley.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else if (sceneNum === 2) {
+        scenes.push({
+          num: 2,
+          heading: `INT. BUTCHER BLOCK - PREP: ${row0.realElement.toUpperCase()} & ${row1.realElement.toUpperCase()} ${tc.label}`,
+          action: `[${tc.start}] Culinary transformation prep for ${targetDish}: Chef executes "${row0.cookingMethod}" on ${row0.inedibleCounterpart} (acting as ${row0.realElement}), then immediately performs "${row1.cookingMethod}" on ${row1.inedibleCounterpart} (acting as ${row1.realElement}). Rapid 2X staccato rhythmic dicing, shaving, and glazing across the wooden block (*thwack-shrrr*). Extreme macro 90% ingredient framing.`,
+          shotSize: "Top-Down Flat Lay Lock",
+          cameraMovement: "Top-Down Flat Lay Lock",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Rapid staccato chops on end-grain wood (*thwack-thwack*), sharp grating/shaving friction (*shrrr-shrrr*), crispy material snapping.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else if (sceneNum === totalScenes - 2) {
+        scenes.push({
+          num: sceneNum,
+          heading: `INT. COOK STATION - ${row2.realElement.toUpperCase()} SEAR & TEMPERING ${tc.label}`,
+          action: `[${tc.start}] High-heat station: inside the ${vesselForDish}, foaming spiced butter/oil roars as ${row2.inedibleCounterpart} undergoes "${row2.cookingMethod}" (crafting ${row2.realElement}) (*TZZZZZZZZ*). Chef tosses and coats the sizzling base with ${row3.inedibleCounterpart} following "${row3.cookingMethod}" as billowing aromatic steam rises cleanly from the scorching metal.`,
+          shotSize: "Macro Close-Up 45-Degree",
+          cameraMovement: "Low Angle Oil Surface Push",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive foaming sear roar (*TZZZZZZZZ*), crackle of aromatic tempering tadka (*TCHRRRR*), metal utensil clatter against hot vessel.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else if (sceneNum === totalScenes - 1) {
+        const extraRows = comparisonTable
+          .map((r) => `${r.inedibleCounterpart} (${r.realElement}) via ${r.cookingMethod}`)
+          .join("; ");
+        scenes.push({
+          num: sceneNum,
+          heading: `INT. COOK STATION - ${isBiryani ? "LAYERED DUM POT SEAL & AROMATIC STEAM" : "UNIFIED GLAZE REDUCTION & MERGE"} ${tc.label}`,
+          action: `[${tc.start}] Grand assembly of ${targetDish} inside the ${vesselForDish}: Chef rhythmically layers and folds all transformed components together — ${extraRows}. ${
+            isBiryani
+              ? "Seals the brass dum handi rim with braided foil/dough ring and lifts the heavy lid in a towering burst of fragrant steam (*WHOOSH-HISS*), revealing colorful saffron-stained layers."
+              : "Pours thick bubbling translucent glaze reduction over the layered medley, tossing vigorously until every rigid hardware texture gleams (*SSSSSHHHH*)."
+          } Extreme 45° macro depth.`,
+          shotSize: "Macro Close-Up 45-Degree",
+          cameraMovement: "Rapid Dynamic Macro Pan",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Thick simmering bubble (*GLOOP-GLOOP*), violent steam lid release (*WHOOSH-HISS*), crisp layered textures settling inside heavy vessel.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else {
+        scenes.push({
+          num: sceneNum,
+          heading: `INT. HERO SHOWCASE - ${targetDish.toUpperCase()} PLATING, REVEAL PULL & CHEF THUMBS-UP ${tc.label}`,
+          action: `[${tc.start}] Hero plating of ${targetDish}: Black-gloved hands scoop an abundant steaming feast portion (${row0.inedibleCounterpart} & ${row2.inedibleCounterpart}) onto a contrasting wide platter flanked by a raw intact ${heroObject} for visual proof. Chef lifts a dramatic macro fork/spoonful showing tender glazed layers stretching with rising culinary steam (*SHHH-SLIDE*), then camera tilts smoothly to [@TheShadowAlchemist] in brass goggles and matte-black tactical mask giving a calm nod and confident thumbs-up. Seamless kinetic angle back to Scene 1!`,
+          shotSize: "Extreme Close-Up to Medium Up-Tilt",
+          cameraMovement: "Macro Pull and Slow Tilt Up",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Crisp platter serving contact (*SHHH-SLIDE*), moist tender pull sound, steaming sigh through mask vents. Ending cleanly on loop transition.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      }
+    }
   } else {
     // Generalized Universal 4-Stage Pipeline for ANY Object (Keyboard, Watch, Walkman, Camera, Phone, etc.)
     const primaryTool = specs.extractionTools[0] || "specialized disassembly tool";

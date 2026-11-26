@@ -55,6 +55,8 @@ interface ProposedEpisodePlan {
   sourceIdea: string;
   dishName: string;
   targetRuntime: number;
+  mode?: "CREATE_NEW" | "REVISE_CURRENT";
+  targetProjectId?: string;
   comparisonTable?: ComparisonRow[];
 }
 
@@ -364,6 +366,10 @@ export function AiDirectorChatDrawer({
       const replyText = payload.reply || "Director updated the project.";
       const actionsTaken: ActionItem[] = Array.isArray(payload.actionsTaken) ? payload.actionsTaken : [];
 
+      const wasApproved = Boolean(
+        payload.createdEpisode || actionsTaken.some((a) => a.type === "REVISE_EPISODE")
+      );
+
       const aiMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: "AI_DIRECTOR",
@@ -372,7 +378,7 @@ export function AiDirectorChatDrawer({
         createdEpisode: payload.createdEpisode,
         proposedEpisodePlan: payload.proposedEpisodePlan,
         proposalStatus: payload.proposedEpisodePlan
-          ? payload.createdEpisode
+          ? wasApproved
             ? "APPROVED"
             : "PENDING"
           : undefined,
@@ -380,7 +386,7 @@ export function AiDirectorChatDrawer({
       };
 
       setMessages((prev) => {
-        const updated = payload.createdEpisode
+        const updated = wasApproved
           ? prev.map((msg) =>
               msg.proposalStatus === "PENDING"
                 ? { ...msg, proposalStatus: "APPROVED" as const }
@@ -402,8 +408,17 @@ export function AiDirectorChatDrawer({
       }
 
       const mutatedCurrentProject = actionsTaken.some(
-        (a) => a.type === "UPDATE_SCENE" || a.type === "RECOMPILE_PROMPTS" || a.type === "ALIGN_PROP_CONTINUITY"
+        (a) =>
+          a.type === "UPDATE_SCENE" ||
+          a.type === "RECOMPILE_PROMPTS" ||
+          a.type === "ALIGN_PROP_CONTINUITY" ||
+          a.type === "REVISE_EPISODE"
       );
+      if (mutatedCurrentProject && typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("frameforge:project-updated", { detail: { projectId } })
+        );
+      }
       if ((mutatedCurrentProject || payload.createdEpisode) && onProjectUpdated) {
         onProjectUpdated();
       }
@@ -604,33 +619,46 @@ export function AiDirectorChatDrawer({
                     m.proposedEpisodePlan &&
                     !m.createdEpisode &&
                     m.proposalStatus !== "APPROVED" &&
-                    m.proposalStatus !== "SUPERSEDED" && (
-                      <div className="mt-3 p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
-                            Episode {m.proposedEpisodePlan.episodeNumber} Proposal · {m.proposedEpisodePlan.targetRuntime}s
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
-                            Awaiting Approval
-                          </span>
+                    m.proposalStatus !== "SUPERSEDED" && (() => {
+                      const isRevise = m.proposedEpisodePlan!.mode === "REVISE_CURRENT";
+                      return (
+                        <div className="mt-3 p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[10px] font-mono font-bold uppercase text-amber-400">
+                              Episode {m.proposedEpisodePlan!.episodeNumber}{" "}
+                              {isRevise ? "In-Place Revision" : "Proposal"} ·{" "}
+                              {m.proposedEpisodePlan!.targetRuntime}s
+                            </span>
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold">
+                              Awaiting Approval
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-white">
+                            {m.proposedEpisodePlan!.dishName}
+                          </div>
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() =>
+                              handleSendMessage(
+                                isRevise
+                                  ? `Approved! Please update Episode ${m.proposedEpisodePlan!.episodeNumber} in-place with this revised plan.`
+                                  : `Approved! Please create Episode ${m.proposedEpisodePlan!.episodeNumber} with this plan.`,
+                                m.proposedEpisodePlan
+                              )
+                            }
+                            className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>
+                              {isRevise
+                                ? `Approve & Update Episode ${m.proposedEpisodePlan!.episodeNumber} In-Place`
+                                : `Approve & Create Episode ${m.proposedEpisodePlan!.episodeNumber}`}
+                            </span>
+                          </button>
                         </div>
-                        <div className="text-xs font-bold text-white">{m.proposedEpisodePlan.dishName}</div>
-                        <button
-                          type="button"
-                          disabled={loading}
-                          onClick={() =>
-                            handleSendMessage(
-                              `Approved! Please create Episode ${m.proposedEpisodePlan!.episodeNumber} with this plan.`,
-                              m.proposedEpisodePlan
-                            )
-                          }
-                          className="w-full py-2 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Approve &amp; Create Episode {m.proposedEpisodePlan.episodeNumber}</span>
-                        </button>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                   {!isUser && m.proposedEpisodePlan && !m.createdEpisode && m.proposalStatus === "APPROVED" && (
                     <div className="mt-2.5 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-semibold text-emerald-300">

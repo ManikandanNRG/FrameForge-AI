@@ -147,6 +147,17 @@ export default function StoryboardPage() {
 
   useEffect(() => { load(); }, [projectId]);
 
+  useEffect(() => {
+    const onProjectUpdated = (e: Event) => {
+      const detail = (e as CustomEvent<{ projectId?: string }>).detail;
+      if (!detail?.projectId || detail.projectId === projectId) {
+        load();
+      }
+    };
+    window.addEventListener("frameforge:project-updated", onProjectUpdated);
+    return () => window.removeEventListener("frameforge:project-updated", onProjectUpdated);
+  }, [projectId]);
+
   // Poll shot-plan job
   useEffect(() => {
     if (!activeJobId) return;

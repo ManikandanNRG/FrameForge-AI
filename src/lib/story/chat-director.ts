@@ -12,7 +12,10 @@ import { prisma } from "@/lib/db/client";
 import { compileCinematicPrompt } from "./prompt-compiler";
 import { auditRapidAsmrProject, type RapidAsmrQcReport } from "./rapid-asmr-qc";
 import { detectPhysicalEntities } from "./world-engine";
-import { createSeriesEpisode } from "@/lib/series/episode-service";
+import {
+  createSeriesEpisode,
+  reviseSeriesEpisodeInPlace,
+} from "@/lib/series/episode-service";
 import { resolveTextProvider } from "@/lib/providers/resolve";
 import { logger } from "@/lib/logger";
 import { z } from "zod";
@@ -32,6 +35,7 @@ export type DirectorActionType =
   | "AUDIT_QC"
   | "ALIGN_PROP_CONTINUITY"
   | "CREATE_EPISODE"
+  | "REVISE_EPISODE"
   | "PROPOSE_EPISODE";
 
 export interface ComparisonRow {
@@ -46,6 +50,8 @@ export interface ProposedEpisodePlan {
   sourceIdea: string;
   dishName: string;
   targetRuntime: number;
+  mode?: "CREATE_NEW" | "REVISE_CURRENT";
+  targetProjectId?: string;
   comparisonTable?: ComparisonRow[];
 }
 
@@ -61,6 +67,9 @@ export interface DirectorAction {
   episodeIdea?: string;
   episodeNumber?: number;
   targetRuntime?: number;
+  dishName?: string;
+  comparisonTable?: ComparisonRow[];
+  targetProjectId?: string;
   proposedEpisodePlan?: ProposedEpisodePlan;
   details?: string;
 }
@@ -162,6 +171,8 @@ async function createEpisodeFromDirectorAction({
     sourceIdea: action.episodeIdea,
     episodeNumber: action.episodeNumber,
     targetRuntime: action.targetRuntime ?? 20,
+    dishName: action.dishName,
+    comparisonTable: action.comparisonTable,
   });
 
   if (!episode) return {};
@@ -259,6 +270,29 @@ export async function executeDirectorActions(
         createdEpisode = createdRes.createdEpisode;
         executed.push(createdRes.executedAction);
       }
+      continue;
+    }
+
+    if (act.type === "REVISE_EPISODE") {
+      const targetProjId = act.targetProjectId || project?.id;
+      const effectiveOwnerId = ownerId || project?.ownerId;
+      if (!targetProjId || !effectiveOwnerId) continue;
+
+      const revised = await reviseSeriesEpisodeInPlace({
+        ownerId: effectiveOwnerId,
+        projectId: targetProjId,
+        title: act.episodeTitle,
+        sourceIdea: act.episodeIdea || project?.sourceIdea || "",
+        targetRuntime: act.targetRuntime,
+        dishName: act.dishName,
+        comparisonTable: act.comparisonTable,
+      });
+
+      executed.push({
+        type: "REVISE_EPISODE",
+        episodeTitle: revised.episode?.title,
+        details: `Updated "${revised.episode?.title || "Episode"}" in-place (${revised.sceneCount} scenes, ${revised.episode?.targetRuntime ?? act.targetRuntime ?? 20}s, prompts recompiled)`,
+      });
       continue;
     }
 
@@ -450,7 +484,8 @@ export async function executeDirectorActions(
           a.type === "AUDIT_QC" ||
           a.type === "UPDATE_SCENE" ||
           a.type === "RECOMPILE_PROMPTS" ||
-          a.type === "ALIGN_PROP_CONTINUITY"
+          a.type === "ALIGN_PROP_CONTINUITY" ||
+          a.type === "REVISE_EPISODE"
       )
     ) {
       executed.push({
@@ -748,19 +783,44 @@ export async function handleDirectorChat({
   let aiReply = "";
   let proposedEpisodePlan: ProposedEpisodePlan | undefined;
 
-  // 1. Explicit Approval Gate for Creating an Episode
+  // 1. Explicit Approval Gate for Creating or Revising an Episode
   const planToCreate =
     approvePlan || (isExplicitApprovalMessage(userMessage) ? pendingProposal : undefined);
 
   if (planToCreate) {
-    proposedActions.push({
-      type: "CREATE_EPISODE",
-      episodeTitle: planToCreate.title,
-      episodeIdea: planToCreate.sourceIdea,
-      episodeNumber: planToCreate.episodeNumber,
-      targetRuntime: planToCreate.targetRuntime,
-    });
-    aiReply = `Approved! I created **${planToCreate.title}** (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · with dual 3-second opening hooks and high-gain -1dB Foley). Click below to open its Storyboard!`;
+    const isReviseCurrent = Boolean(
+      planToCreate.mode === "REVISE_CURRENT" ||
+        (resolvedScope === "PROJECT" &&
+          activeProject &&
+          (planToCreate.targetProjectId === activeProject.id ||
+            (typeof activeProject.episodeNumber === "number" &&
+              planToCreate.episodeNumber === activeProject.episodeNumber)))
+    );
+
+    if (isReviseCurrent && activeProject) {
+      proposedActions.push({
+        type: "REVISE_EPISODE",
+        targetProjectId: planToCreate.targetProjectId || activeProject.id,
+        episodeTitle: planToCreate.title,
+        episodeIdea: planToCreate.sourceIdea,
+        dishName: planToCreate.dishName,
+        comparisonTable: planToCreate.comparisonTable,
+        episodeNumber: planToCreate.episodeNumber,
+        targetRuntime: planToCreate.targetRuntime,
+      });
+      aiReply = `Approved! I updated **${planToCreate.title}** in-place (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · rebuilt scenes and recompiled prompts right on this Storyboard!).`;
+    } else {
+      proposedActions.push({
+        type: "CREATE_EPISODE",
+        episodeTitle: planToCreate.title,
+        episodeIdea: planToCreate.sourceIdea,
+        dishName: planToCreate.dishName,
+        comparisonTable: planToCreate.comparisonTable,
+        episodeNumber: planToCreate.episodeNumber,
+        targetRuntime: planToCreate.targetRuntime,
+      });
+      aiReply = `Approved! I created **${planToCreate.title}** (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · with dual 3-second opening hooks and high-gain -1dB Foley). Click below to open its Storyboard!`;
+    }
   } else if (
     currentQc &&
     activeProject &&
@@ -878,8 +938,13 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
             }, Hero: "${heroObject}", Runtime: ${activeProject.targetRuntime}s)
 Active Project Scenes:
 ${activeProject.scenes
-  .map((s: any) => `Scene ${s.sceneNumber} (${s.heading}): ${s.actionSummary.slice(0, 120)}...`)
-  .join("\n")}`
+  .map((s: any) => `Scene ${s.sceneNumber} (${s.heading}): ${s.actionSummary.slice(0, 400)}`)
+  .join("\n")}
+IN-EPISODE EDITING RULE: You are INSIDE Episode ${
+              activeProject.episodeNumber ?? 1
+            }. If the user wants to alter ingredients, cooking steps, comparison table, or runtime for THIS episode, propose the revised table/dish in "proposedEpisodePlan" with episodeNumber: ${
+              activeProject.episodeNumber ?? 1
+            } (it will update THIS episode in-place without creating a duplicate!), OR use UPDATE_SCENE actions for targeted single-scene changes.`
           : `Scope: STUDIO PLANNING (Channel-wide brainstorming & new episode architecture — do NOT confuse past episodes with the new episode being planned!)`;
 
       const systemPrompt = `You are a collaborative, creative AI Film Director Co-Pilot inside FrameForge Studio.
@@ -972,11 +1037,25 @@ Return valid JSON:
             : ((res.data.actions || []).filter((a) => a.type === "AUDIT_QC") as DirectorAction[]);
 
         if (res.data.proposedEpisodePlan) {
-          proposedEpisodePlan = res.data.proposedEpisodePlan;
+          const isSameActiveEpisode = Boolean(
+            resolvedScope === "PROJECT" &&
+              activeProject &&
+              (typeof activeProject.episodeNumber === "number"
+                ? res.data.proposedEpisodePlan.episodeNumber === activeProject.episodeNumber
+                : !/\b(next episode|new episode|another episode)\b/i.test(userMessage))
+          );
+
+          proposedEpisodePlan = {
+            ...res.data.proposedEpisodePlan,
+            mode: isSameActiveEpisode ? "REVISE_CURRENT" : "CREATE_NEW",
+            ...(isSameActiveEpisode && activeProject ? { targetProjectId: activeProject.id } : {}),
+          };
           proposedActions.push({
             type: "PROPOSE_EPISODE",
             proposedEpisodePlan,
-            details: `Proposed Ep ${proposedEpisodePlan.episodeNumber}: ${proposedEpisodePlan.dishName} (awaiting approval)`,
+            details: isSameActiveEpisode
+              ? `Proposed in-place update for Ep ${proposedEpisodePlan.episodeNumber}: ${proposedEpisodePlan.dishName} (awaiting approval)`
+              : `Proposed Ep ${proposedEpisodePlan.episodeNumber}: ${proposedEpisodePlan.dishName} (awaiting approval)`,
           });
         }
         llmSuccess = true;
@@ -993,12 +1072,24 @@ Return valid JSON:
         /\b(cricket|bat|ball|plan|dish|food|table)\b/i.test(lowerMsg)
       ) {
         const { reply, proposal } = buildHeuristicEpisodeProposal(userMessage, defaultNextEpNum);
+        const isSameActiveEpisode = Boolean(
+          resolvedScope === "PROJECT" &&
+            activeProject &&
+            typeof activeProject.episodeNumber === "number" &&
+            proposal.episodeNumber === activeProject.episodeNumber
+        );
         aiReply = reply;
-        proposedEpisodePlan = proposal;
+        proposedEpisodePlan = {
+          ...proposal,
+          mode: isSameActiveEpisode ? "REVISE_CURRENT" : "CREATE_NEW",
+          ...(isSameActiveEpisode && activeProject ? { targetProjectId: activeProject.id } : {}),
+        };
         proposedActions.push({
           type: "PROPOSE_EPISODE",
-          proposedEpisodePlan: proposal,
-          details: `Proposed Ep ${proposal.episodeNumber}: ${proposal.dishName} (awaiting approval)`,
+          proposedEpisodePlan,
+          details: isSameActiveEpisode
+            ? `Proposed in-place update for Ep ${proposal.episodeNumber}: ${proposal.dishName} (awaiting approval)`
+            : `Proposed Ep ${proposal.episodeNumber}: ${proposal.dishName} (awaiting approval)`,
         });
       } else {
         const scopeLabel =
@@ -1028,6 +1119,16 @@ Return valid JSON:
     proposedEpisodePlan,
     createdEpisode,
   });
+
+  // Seed the newly created episode's own PROJECT thread with its origin planning chat immediately
+  if (createdEpisode) {
+    await resolveOrCreateDirectorThread({
+      ownerId,
+      scope: "PROJECT",
+      projectId: createdEpisode.id,
+      seriesId: thread.seriesId ?? catalog.latestSeriesId,
+    });
+  }
 
   // 5. Fold older turns into rolling Long-Term Memory when conversation grows beyond RECENT_MESSAGE_LIMIT
   await refreshThreadLongTermMemory({

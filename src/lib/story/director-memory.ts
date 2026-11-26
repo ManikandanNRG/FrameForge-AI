@@ -12,6 +12,33 @@ export type ThreadScope = "STUDIO" | "PROJECT";
 
 export const RECENT_MESSAGE_LIMIT = 16;
 
+export const chatApprovePlanSchema = z.object({
+  episodeNumber: z.coerce.number(),
+  title: z.string().min(1),
+  sourceIdea: z.string().min(1),
+  dishName: z.string().default("Custom ASMR Dish"),
+  targetRuntime: z.coerce.number().default(20),
+  mode: z.enum(["CREATE_NEW", "REVISE_CURRENT"]).optional(),
+  targetProjectId: z.string().optional(),
+  comparisonTable: z
+    .array(
+      z.object({
+        realElement: z.string(),
+        inedibleCounterpart: z.string(),
+        cookingMethod: z.string(),
+      })
+    )
+    .optional(),
+});
+
+export const chatPostSchema = z.object({
+  action: z.enum(["message", "create_thread", "delete_thread"]).optional(),
+  threadId: z.string().optional(),
+  title: z.string().max(120).optional(),
+  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long").optional(),
+  approvePlan: chatApprovePlanSchema.optional(),
+});
+
 export interface FormattedChatMessageDto {
   id: string;
   sender: string;
@@ -39,6 +66,14 @@ function safeJsonParse<T>(raw: string | null | undefined, fallback: T): T {
     return JSON.parse(raw) as T;
   } catch {
     return fallback;
+  }
+}
+
+function assertDirectorClientReady() {
+  if (!(prisma as unknown as { directorThread?: unknown }).directorThread) {
+    throw new Error(
+      "Chat tables updated in database — please restart your app server (Ctrl+C, then run `npm run dev`) so Prisma loads the new history models."
+    );
   }
 }
 
@@ -129,6 +164,134 @@ async function backfillLegacyProjectMessages(threadId: string, projectId: string
 }
 
 /**
+ * When a PROJECT-scoped thread is empty (e.g. a newly created episode or a revised clone),
+ * traces backward along `createdEpisodeJson` references to inherit the exact planning
+ * discussion, comparison tables, and approval trail into the episode's own chat drawer.
+ */
+export async function inheritOriginPlanningHistory({
+  targetThreadId,
+  projectId,
+  ownerId,
+}: {
+  targetThreadId: string;
+  projectId: string;
+  ownerId: string;
+}) {
+  const existingCount = await prisma.directorMessage.count({
+    where: { threadId: targetThreadId },
+  });
+  if (existingCount > 0) return;
+
+  const visitedThreadIds = new Set<string>([targetThreadId]);
+  const segments: Array<
+    Array<{
+      sender: string;
+      message: string;
+      actionsTaken: string | null;
+      proposedEpisodePlan: string | null;
+      proposalStatus: string | null;
+      createdEpisodeJson: string | null;
+      createdAt: Date;
+    }>
+  > = [];
+  let inheritedMemorySummary: string | null = null;
+  let inheritedPinnedDecisions: string | null = null;
+  let currentProjectId = projectId;
+
+  for (let hop = 0; hop < 4; hop++) {
+    const originMsg = await prisma.directorMessage.findFirst({
+      where: {
+        thread: { ownerId },
+        createdEpisodeJson: { contains: `"${currentProjectId}"` },
+      },
+      include: {
+        thread: {
+          select: {
+            id: true,
+            scope: true,
+            projectId: true,
+            memorySummary: true,
+            pinnedDecisions: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (!originMsg || visitedThreadIds.has(originMsg.threadId)) break;
+    visitedThreadIds.add(originMsg.threadId);
+
+    const threadMessages = await prisma.directorMessage.findMany({
+      where: {
+        threadId: originMsg.threadId,
+        createdAt: { lte: originMsg.createdAt },
+      },
+      orderBy: { createdAt: "asc" },
+      select: {
+        sender: true,
+        message: true,
+        actionsTaken: true,
+        proposedEpisodePlan: true,
+        proposalStatus: true,
+        createdEpisodeJson: true,
+        createdAt: true,
+      },
+    });
+
+    if (threadMessages.length > 0) {
+      segments.unshift(threadMessages);
+    }
+
+    if (!inheritedMemorySummary && originMsg.thread.memorySummary) {
+      inheritedMemorySummary = originMsg.thread.memorySummary;
+    }
+    if (!inheritedPinnedDecisions && originMsg.thread.pinnedDecisions) {
+      inheritedPinnedDecisions = originMsg.thread.pinnedDecisions;
+    }
+
+    if (originMsg.thread.scope === "PROJECT" && originMsg.thread.projectId) {
+      currentProjectId = originMsg.thread.projectId;
+    } else {
+      break;
+    }
+  }
+
+  const flattened = segments.flat();
+  if (flattened.length === 0) return;
+
+  // Keep unique turns in chronological order
+  const seen = new Set<string>();
+  for (const m of flattened) {
+    const dedupKey = `${m.sender}::${m.message}`;
+    if (seen.has(dedupKey)) continue;
+    seen.add(dedupKey);
+
+    await prisma.directorMessage.create({
+      data: {
+        threadId: targetThreadId,
+        sender: m.sender,
+        message: m.message,
+        actionsTaken: m.actionsTaken,
+        proposedEpisodePlan: m.proposedEpisodePlan,
+        proposalStatus: m.proposedEpisodePlan ? "APPROVED" : m.proposalStatus,
+        createdEpisodeJson: m.createdEpisodeJson,
+        createdAt: m.createdAt,
+      },
+    });
+  }
+
+  if (inheritedMemorySummary || inheritedPinnedDecisions) {
+    await prisma.directorThread.update({
+      where: { id: targetThreadId },
+      data: {
+        ...(inheritedMemorySummary ? { memorySummary: inheritedMemorySummary } : {}),
+        ...(inheritedPinnedDecisions ? { pinnedDecisions: inheritedPinnedDecisions } : {}),
+      },
+    });
+  }
+}
+
+/**
  * Resolves an existing DirectorThread (or creates the default thread for STUDIO or PROJECT scope).
  */
 export async function resolveOrCreateDirectorThread({
@@ -144,6 +307,7 @@ export async function resolveOrCreateDirectorThread({
   projectId?: string;
   seriesId?: string;
 }) {
+  assertDirectorClientReady();
   if (threadId) {
     const existing = await prisma.directorThread.findFirst({
       where: {
@@ -155,6 +319,11 @@ export async function resolveOrCreateDirectorThread({
     if (existing) {
       if (scope === "PROJECT" && projectId) {
         await backfillLegacyProjectMessages(existing.id, projectId);
+        await inheritOriginPlanningHistory({
+          targetThreadId: existing.id,
+          projectId,
+          ownerId,
+        });
       }
       return existing;
     }
@@ -167,6 +336,11 @@ export async function resolveOrCreateDirectorThread({
     });
     if (projectThread) {
       await backfillLegacyProjectMessages(projectThread.id, projectId);
+      await inheritOriginPlanningHistory({
+        targetThreadId: projectThread.id,
+        projectId,
+        ownerId,
+      });
       return projectThread;
     }
 
@@ -185,6 +359,11 @@ export async function resolveOrCreateDirectorThread({
       },
     });
     await backfillLegacyProjectMessages(created.id, projectId);
+    await inheritOriginPlanningHistory({
+      targetThreadId: created.id,
+      projectId,
+      ownerId,
+    });
     return created;
   }
 
@@ -269,6 +448,7 @@ export async function listDirectorThreads({
   scope: ThreadScope;
   projectId?: string;
 }): Promise<DirectorThreadSummaryDto[]> {
+  assertDirectorClientReady();
   const threads = await prisma.directorThread.findMany({
     where: {
       ownerId,
@@ -341,7 +521,11 @@ export async function recordDirectorTurn({
     include: { _count: { select: { messages: true } } },
   });
 
-  if (createdEpisode) {
+  const wasRevisedOrCreated = Boolean(
+    createdEpisode || executed.some((a) => a.type === "REVISE_EPISODE")
+  );
+
+  if (wasRevisedOrCreated) {
     // Lock any older pending proposals in this thread so stale buttons cannot re-fire on reload
     await prisma.directorMessage.updateMany({
       where: {
@@ -379,7 +563,7 @@ export async function recordDirectorTurn({
         ? JSON.stringify(proposedEpisodePlan)
         : null,
       proposalStatus: proposedEpisodePlan
-        ? createdEpisode
+        ? wasRevisedOrCreated
           ? "APPROVED"
           : "PENDING"
         : null,

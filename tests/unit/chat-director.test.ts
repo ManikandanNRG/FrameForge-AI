@@ -394,5 +394,36 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
 
     const ep9HistoryAfterRevise = await loadFormattedThreadMessages(ep9Thread.id);
     expect(ep9HistoryAfterRevise.length).toBeGreaterThanOrEqual(8);
+
+    // 5. Expanding from 5 scenes to 8 scenes generates all 8 distinct high-prep biryani scenes
+    const expandReq = await handleDirectorChat({
+      scope: "PROJECT",
+      projectId: ep9Id,
+      threadId: ep9Thread.id,
+      ownerId: testOwnerId,
+      userMessage: "make the episode 9, from 5 scene to 8 scene and the biryani preparation has dicing, chopping, grinding",
+    });
+    expect(expandReq.proposedEpisodePlan?.sceneCount).toBe(8);
+    expect(expandReq.proposedEpisodePlan?.mode).toBe("REVISE_CURRENT");
+
+    const expandApprove = await handleDirectorChat({
+      scope: "PROJECT",
+      projectId: ep9Id,
+      threadId: ep9Thread.id,
+      ownerId: testOwnerId,
+      userMessage: "Approved",
+      approvePlan: expandReq.proposedEpisodePlan,
+    });
+    expect(expandApprove.actionsTaken.some((a) => a.type === "REVISE_EPISODE")).toBe(true);
+
+    const eightScenes = await prisma.scene.findMany({
+      where: { projectId: ep9Id },
+      orderBy: { sceneNumber: "asc" },
+    });
+    expect(eightScenes).toHaveLength(8);
+    expect(eightScenes[1].heading).toContain("GRINDING");
+    expect(eightScenes[2].heading).toContain("DICING");
+    expect(eightScenes[3].heading).toContain("CHOPPING");
+    expect(eightScenes[6].heading).toContain("DUM");
   });
 });

@@ -50,6 +50,7 @@ export interface ProposedEpisodePlan {
   sourceIdea: string;
   dishName: string;
   targetRuntime: number;
+  sceneCount?: number;
   mode?: "CREATE_NEW" | "REVISE_CURRENT";
   targetProjectId?: string;
   comparisonTable?: ComparisonRow[];
@@ -67,6 +68,7 @@ export interface DirectorAction {
   episodeIdea?: string;
   episodeNumber?: number;
   targetRuntime?: number;
+  sceneCount?: number;
   dishName?: string;
   comparisonTable?: ComparisonRow[];
   targetProjectId?: string;
@@ -173,6 +175,7 @@ async function createEpisodeFromDirectorAction({
     targetRuntime: action.targetRuntime ?? 20,
     dishName: action.dishName,
     comparisonTable: action.comparisonTable,
+    sceneCount: action.sceneCount,
   });
 
   if (!episode) return {};
@@ -286,6 +289,7 @@ export async function executeDirectorActions(
         targetRuntime: act.targetRuntime,
         dishName: act.dishName,
         comparisonTable: act.comparisonTable,
+        sceneCount: act.sceneCount,
       });
 
       executed.push({
@@ -506,9 +510,13 @@ function buildHeuristicEpisodeProposal(
   const episodeNumber = epMatch ? Number(epMatch[1]) : defaultNextEpNum;
 
   const runtimeMatch = userMessage.match(/\b(\d+)\s*(?:s|sec|seconds)\b/i);
+  const wantsEightScenes = /\b(?:to\s*)?(?:8|eight)\s*scenes?\b/i.test(userMessage);
   const targetRuntime = runtimeMatch
     ? Math.min(90, Math.max(15, Number(runtimeMatch[1])))
+    : wantsEightScenes
+    ? 60
     : 20;
+  const sceneCount = wantsEightScenes ? 8 : targetRuntime >= 55 ? 8 : targetRuntime >= 40 ? 6 : 5;
 
   const lower = userMessage.toLowerCase();
   const isCricket = /\b(cricket|bat|ball)\b/i.test(lower);
@@ -554,10 +562,11 @@ function buildHeuristicEpisodeProposal(
         .join("; ")}.`,
       dishName,
       targetRuntime,
+      sceneCount,
       comparisonTable,
     };
 
-    const reply = `Great idea! Before I create **Episode ${episodeNumber}**, let's align on the dish and visual mapping first:
+    const reply = `Great idea! Before I update **Episode ${episodeNumber}**, let's align on the dish and visual mapping first:
 
 ### 1. Recommended Dish Concept
 **${dishName}**
@@ -568,11 +577,13 @@ ${tableMd}
 
 ### 3. Viral Shorts Pacing & Audio Plan
 - **0:00 - 0:03 Pre-Scene Hook**: Macro cleaver slam splitting the red leather cricket ball + willow bat shavings at 0.0s (-1dB high-gain Foley).
-- **Recommended Runtime**: **${targetRuntime}s (${
-      targetRuntime <= 30 ? "5 high-density scenes of 4s each" : "8 scenes"
-    })** — keeps Average Percentage Viewed above **100%+**.
+- **Recommended Structure**: **${sceneCount} scenes · ${targetRuntime}s** (${
+      sceneCount >= 8
+        ? "expanded high-prep workflow: slam harvest -> spice grinding -> precision dicing & grating -> cleaver chopping & marinade -> whole spice tempering tadka -> masala reduction -> sealed dum pot steam -> hero platter reveal"
+        : "5 high-density scenes"
+    }).
 
-Would you like to change the dish, swap any components in the table, or adjust the runtime? When you're happy with it, click **Approve & Create Episode ${episodeNumber}** below (or reply **"Approved, create it"**).`;
+Would you like to change the dish, swap any components in the table, or adjust the runtime? When you're happy with it, click **Approve** below (or reply **"Approved"**).`;
 
     return { reply, proposal };
   }
@@ -622,6 +633,7 @@ Would you like to change the dish, swap any components in the table, or adjust t
     sourceIdea: `The Shadow Alchemist transforms ${subject} into ${dishName}.`,
     dishName,
     targetRuntime,
+    sceneCount,
     comparisonTable,
   };
 
@@ -635,9 +647,9 @@ ${tableMd}
 
 ### 3. Shorts Retention & Audio Setup
 - **Pre-Scene Hook (0:00 - 0:03)**: Tight macro slam at 0.0s + -1dB high-gain close-mic Foley.
-- **Runtime**: **${targetRuntime}s** (fast-paced 4–5 scene structure).
+- **Structure**: **${sceneCount} scenes · ${targetRuntime}s**.
 
-Tell me what dish or changes you want, or click **Approve & Create Episode ${episodeNumber}** when ready!`;
+Tell me what dish or changes you want, or click **Approve** when ready!`;
 
   return { reply, proposal };
 }
@@ -807,8 +819,9 @@ export async function handleDirectorChat({
         comparisonTable: planToCreate.comparisonTable,
         episodeNumber: planToCreate.episodeNumber,
         targetRuntime: planToCreate.targetRuntime,
+        sceneCount: planToCreate.sceneCount,
       });
-      aiReply = `Approved! I updated **${planToCreate.title}** in-place (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · rebuilt scenes and recompiled prompts right on this Storyboard!).`;
+      aiReply = `Approved! I updated **${planToCreate.title}** in-place (${planToCreate.sceneCount ? `${planToCreate.sceneCount} scenes · ` : ""}${planToCreate.targetRuntime}s · Dish: **${planToCreate.dishName}** · rebuilt scenes and recompiled prompts right on this Storyboard!).`;
     } else {
       proposedActions.push({
         type: "CREATE_EPISODE",
@@ -818,6 +831,7 @@ export async function handleDirectorChat({
         comparisonTable: planToCreate.comparisonTable,
         episodeNumber: planToCreate.episodeNumber,
         targetRuntime: planToCreate.targetRuntime,
+        sceneCount: planToCreate.sceneCount,
       });
       aiReply = `Approved! I created **${planToCreate.title}** (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · with dual 3-second opening hooks and high-gain -1dB Foley). Click below to open its Storyboard!`;
     }
@@ -978,6 +992,7 @@ Return valid JSON:
     "sourceIdea": string,
     "dishName": string,
     "targetRuntime": number,
+    "sceneCount": number,
     "comparisonTable": [{ "realElement": string, "inedibleCounterpart": string, "cookingMethod": string }]
   } | null,
   "actions": []
@@ -998,43 +1013,61 @@ Return valid JSON:
             sourceIdea: z.string(),
             dishName: z.string(),
             targetRuntime: z.coerce.number().default(20),
-            comparisonTable: z.array(PlanRowSchema).optional(),
+            sceneCount: z.coerce.number().optional(),
+            comparisonTable: z.array(PlanRowSchema).nullish().transform((v) => v ?? undefined),
           })
           .nullable()
           .optional(),
         actions: z
           .array(
             z.object({
-              type: z.enum([
-                "UPDATE_SCENE",
-                "RECOMPILE_PROMPTS",
-                "AUDIT_QC",
-                "ALIGN_PROP_CONTINUITY",
-              ]),
-              sceneNumber: z.number().optional(),
-              sceneNumbers: z.array(z.number()).optional(),
+              type: z.string(),
+              sceneNumber: z.coerce.number().optional(),
+              sceneNumbers: z.array(z.coerce.number()).optional(),
               actionDescription: z.string().optional(),
               heading: z.string().optional(),
               audioScript: z.string().optional(),
               propDescription: z.string().optional(),
             })
           )
-          .default([]),
+          .nullish()
+          .transform((v) => v ?? []),
       });
 
-      const res = await provider.generateStructured({
-        systemPrompt,
-        userPrompt: userMessage,
-        schema: ResponseSchema,
-        modelId,
+      const CHAT_LLM_TIMEOUT_MS = 40_000;
+      let llmTimer: ReturnType<typeof setTimeout> | undefined;
+      const res = await Promise.race([
+        provider.generateStructured({
+          systemPrompt,
+          userPrompt: userMessage,
+          schema: ResponseSchema,
+          modelId,
+        }),
+        new Promise<never>((_, reject) => {
+          llmTimer = setTimeout(
+            () => reject(new Error("AI Director response timed out after 40s")),
+            CHAT_LLM_TIMEOUT_MS
+          );
+        }),
+      ]).finally(() => {
+        if (llmTimer) clearTimeout(llmTimer);
       });
 
       if (res?.data) {
+        const VALID_INLINE_ACTIONS = new Set([
+          "UPDATE_SCENE",
+          "RECOMPILE_PROMPTS",
+          "AUDIT_QC",
+          "ALIGN_PROP_CONTINUITY",
+        ]);
         aiReply = res.data.reply;
+        const filteredActions = (res.data.actions || []).filter((a) =>
+          VALID_INLINE_ACTIONS.has(a.type)
+        ) as DirectorAction[];
         proposedActions =
           resolvedScope === "PROJECT"
-            ? ((res.data.actions || []) as DirectorAction[])
-            : ((res.data.actions || []).filter((a) => a.type === "AUDIT_QC") as DirectorAction[]);
+            ? filteredActions
+            : filteredActions.filter((a) => a.type === "AUDIT_QC");
 
         if (res.data.proposedEpisodePlan) {
           const isSameActiveEpisode = Boolean(
@@ -1045,8 +1078,19 @@ Return valid JSON:
                 : !/\b(next episode|new episode|another episode)\b/i.test(userMessage))
           );
 
+          const requestedEight = /\b(?:to\s*)?(?:8|eight)\s*scenes?\b/i.test(userMessage);
+          const inferredSceneCount =
+            res.data.proposedEpisodePlan.sceneCount ??
+            (requestedEight ? 8 : undefined);
+          const adjustedRuntime =
+            requestedEight && res.data.proposedEpisodePlan.targetRuntime < 55
+              ? 60
+              : res.data.proposedEpisodePlan.targetRuntime;
+
           proposedEpisodePlan = {
             ...res.data.proposedEpisodePlan,
+            targetRuntime: adjustedRuntime,
+            ...(inferredSceneCount ? { sceneCount: inferredSceneCount } : {}),
             mode: isSameActiveEpisode ? "REVISE_CURRENT" : "CREATE_NEW",
             ...(isSameActiveEpisode && activeProject ? { targetProjectId: activeProject.id } : {}),
           };

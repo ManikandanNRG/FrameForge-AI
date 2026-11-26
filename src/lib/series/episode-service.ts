@@ -25,6 +25,7 @@ export interface CreateSeriesEpisodeInput {
   dialogueMode?: string;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  sceneCount?: number;
 }
 
 export interface ReviseSeriesEpisodeInput {
@@ -35,6 +36,7 @@ export interface ReviseSeriesEpisodeInput {
   targetRuntime?: number;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  sceneCount?: number;
 }
 
 const DEFAULT_WARDROBE =
@@ -65,6 +67,7 @@ async function persistEpisodeProduction(params: {
   studioEnvironment: string;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  sceneCount?: number;
   replaceExistingScenes: boolean;
 }) {
   const {
@@ -76,6 +79,7 @@ async function persistEpisodeProduction(params: {
     studioEnvironment,
     dishName,
     comparisonTable,
+    sceneCount,
     replaceExistingScenes,
   } = params;
 
@@ -94,6 +98,7 @@ async function persistEpisodeProduction(params: {
     seriesTitle,
     dishName,
     comparisonTable,
+    sceneCount,
   });
 
   if (replaceExistingScenes) {
@@ -358,6 +363,7 @@ export async function createSeriesEpisode(input: CreateSeriesEpisodeInput) {
     studioEnvironment,
     dishName: input.dishName,
     comparisonTable: input.comparisonTable,
+    sceneCount: input.sceneCount,
     replaceExistingScenes: false,
   });
 
@@ -425,6 +431,7 @@ export async function reviseSeriesEpisodeInPlace(input: ReviseSeriesEpisodeInput
     studioEnvironment,
     dishName: input.dishName,
     comparisonTable: input.comparisonTable,
+    sceneCount: input.sceneCount,
     replaceExistingScenes: true,
   });
 

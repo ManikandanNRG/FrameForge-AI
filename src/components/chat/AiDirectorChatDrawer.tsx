@@ -55,6 +55,7 @@ interface ProposedEpisodePlan {
   sourceIdea: string;
   dishName: string;
   targetRuntime: number;
+  sceneCount?: number;
   mode?: "CREATE_NEW" | "REVISE_CURRENT";
   targetProjectId?: string;
   comparisonTable?: ComparisonRow[];
@@ -335,10 +336,14 @@ export function AiDirectorChatDrawer({
     setMessages((prev) => [...prev, tempUserMsg]);
     setLoading(true);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 55_000);
+
     try {
       const res = await fetch(chatEndpointBase, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: controller.signal,
         body: JSON.stringify({
           message: text,
           ...(activeThreadId ? { threadId: activeThreadId } : {}),
@@ -423,8 +428,13 @@ export function AiDirectorChatDrawer({
         onProjectUpdated();
       }
     } catch (err: any) {
-      setError(err?.message || "Failed to get response");
+      if (err?.name === "AbortError") {
+        setError("AI Director timed out after 55s while waiting on the model provider. Please send again.");
+      } else {
+        setError(err?.message || "Failed to get response");
+      }
     } finally {
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };

@@ -41,6 +41,7 @@ export function generateInediblePipelineScenes(params: {
   seriesTitle?: string;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  sceneCount?: number;
 }): InediblePipelineResult {
   const {
     heroObject,
@@ -51,6 +52,7 @@ export function generateInediblePipelineScenes(params: {
     seriesTitle = "The Shadow Alchemist — Inedible ASMR",
     dishName,
     comparisonTable,
+    sceneCount,
   } = params;
 
   const specs = resolveObjectComponentSpecs(heroObject, sourceIdea);
@@ -60,7 +62,13 @@ export function generateInediblePipelineScenes(params: {
     /\b(nokia|3310|1100|brick phones?|feature phones?|keypad phones?|bulk phones?)\b/i.test(`${heroObject} ${sourceIdea}`);
   const isLargeObject = Boolean(specs.isLargeObject);
 
-  const totalScenes = targetRuntime >= 55 ? 8 : targetRuntime >= 40 ? 6 : 5;
+  const totalScenes = sceneCount
+    ? Math.min(8, Math.max(5, Math.round(sceneCount)))
+    : targetRuntime >= 55
+    ? 8
+    : targetRuntime >= 40
+    ? 6
+    : 5;
   const sceneDuration = Math.round(targetRuntime / totalScenes);
 
   const vesselName = isLargeObject
@@ -366,24 +374,54 @@ export function generateInediblePipelineScenes(params: {
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Heavy slam on wood (*THUD-CRACK*), violent mechanical strip and cleaver crack (*SNAP-CLACK*), crisp brass bowl clinks. Pure acoustic Foley.`,
           estimatedDurationSeconds: tc.duration,
         });
-      } else if (sceneNum === 2) {
+      } else if (sceneNum === 2 && totalScenes >= 7) {
         scenes.push({
           num: 2,
-          heading: `INT. BUTCHER BLOCK - PREP: ${row0.realElement.toUpperCase()} & ${row1.realElement.toUpperCase()} ${tc.label}`,
-          action: `[${tc.start}] Culinary transformation prep for ${targetDish}: Chef executes "${row0.cookingMethod}" on ${row0.inedibleCounterpart} (acting as ${row0.realElement}), then immediately performs "${row1.cookingMethod}" on ${row1.inedibleCounterpart} (acting as ${row1.realElement}). Rapid 2X staccato rhythmic dicing, shaving, and glazing across the wooden block (*thwack-shrrr*). Extreme macro 90% ingredient framing.`,
+          heading: `INT. SPICE STATION - MIXIE GRINDING & SPICE MILLING FOR ${targetDish.toUpperCase()} ${tc.label}`,
+          action: `[${tc.start}] Heavy-duty stainless Indian kitchen mixie & stone mortar-and-pestle: Chef feeds brittle ${row3.inedibleCounterpart} alongside toasted aromatic raw bits and whirs the grinder in violent 2X pulses (*VRRR-KRRSH-KRRSH*) until crushed into vibrant coarse masala powder & paste. Pouring freshly ground masala dust onto a brass thali tray. Extreme 85mm probe macro.`,
+          shotSize: "Extreme Close-Up Macro",
+          cameraMovement: "Macro Tracking Orbit",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive grinder pulverizing roar (*VRRR-KRRSH*), rhythmic stone pestle crushing (*CRUNCH-GRIND*), crisp metallic masala dust cascade.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else if (sceneNum === 2 || (sceneNum === 3 && totalScenes >= 7)) {
+        scenes.push({
+          num: sceneNum,
+          heading: `INT. BUTCHER BLOCK - PRECISION DICING, SHAVING & GRATING (${row0.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Rapid 2X dicing & shaving station for ${targetDish}: Chef executes "${row0.cookingMethod}" on ${row0.inedibleCounterpart} (acting as ${row0.realElement}), sliding steel blade and four-sided box grater in razor-fast staccato (*thwack-thwack-shrrr*) alongside "${row1.cookingMethod}" on ${row1.inedibleCounterpart}. 90% frame filled with tumbling precision shreds and geometric dice.`,
           shotSize: "Top-Down Flat Lay Lock",
           cameraMovement: "Top-Down Flat Lay Lock",
-          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Rapid staccato chops on end-grain wood (*thwack-thwack*), sharp grating/shaving friction (*shrrr-shrrr*), crispy material snapping.`,
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Rapid staccato blade chops on end-grain wood (*thwack-thwack-thwack*), brisk stainless box-grater friction (*shrrr-shrrr*).`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else if (sceneNum === 4 && totalScenes >= 7) {
+        scenes.push({
+          num: 4,
+          heading: `INT. BUTCHER BLOCK - CLEAVER CHOPPING & MARINADE COATING (${row2.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Intense chopping & masala marinade: Heavy Damascus blade rapidly chops and scores ${row2.inedibleCounterpart} into bite-sized masala kofta portions (*CHOP-CHOP-CRACK*), plunging them into a deep hammered mixing bowl with freshly ground masala spice, saffron glaze, and foaming aromatic herb emulsion—tossing aggressively until dripping crimson-gold.`,
+          shotSize: "Macro Close-Up 45-Degree",
+          cameraMovement: "Dynamic Macro Glide",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Heavy cleaver chop (*CHOP-CRACK*), wet glossy masala squelch and bowl toss, crisp spoon scrape.`,
+          estimatedDurationSeconds: tc.duration,
+        });
+      } else if (sceneNum === 5 && totalScenes >= 8) {
+        scenes.push({
+          num: 5,
+          heading: `INT. COOK STATION - WHOLE SPICE TEMPERING TADKA & CRISPY SEAR (${row1.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Fiery tempering tawa: Smoking spiced butter and ghee explode over hot black iron as whole spices and ${row1.inedibleCounterpart} undergo "${row1.cookingMethod}" (crafting fragrant crisp birista & aromatic spice layer) (*TCHRRRR-TZZZZ*). Spatulas aerate golden crisp ribbons over shimmering heat.`,
+          shotSize: "Macro Close-Up 45-Degree",
+          cameraMovement: "Low Angle Oil Surface Push",
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive tadka oil sputter (*TCHRRRR*), fierce iron tawa sizzle (*TZZZZZZZZ*), crisp golden ribbon rustle.`,
           estimatedDurationSeconds: tc.duration,
         });
       } else if (sceneNum === totalScenes - 2) {
         scenes.push({
           num: sceneNum,
-          heading: `INT. COOK STATION - ${row2.realElement.toUpperCase()} SEAR & TEMPERING ${tc.label}`,
-          action: `[${tc.start}] High-heat station: inside the ${vesselForDish}, foaming spiced butter/oil roars as ${row2.inedibleCounterpart} undergoes "${row2.cookingMethod}" (crafting ${row2.realElement}) (*TZZZZZZZZ*). Chef tosses and coats the sizzling base with ${row3.inedibleCounterpart} following "${row3.cookingMethod}" as billowing aromatic steam rises cleanly from the scorching metal.`,
+          heading: `INT. COOK STATION - ${row2.realElement.toUpperCase()} SEAR & MASALA REDUCTION ${tc.label}`,
+          action: `[${tc.start}] High-heat station: inside the ${vesselForDish}, foaming spiced butter/oil roars as ${row2.inedibleCounterpart} undergoes "${row2.cookingMethod}" (crafting ${row2.realElement}) (*TZZZZZZZZ*). Chef pours thick bubbling masala gravy mixed with ${row3.inedibleCounterpart} (${row3.cookingMethod}), simmering into rich concentrated reduction as steam billows from the scorching metal.`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Low Angle Oil Surface Push",
-          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive foaming sear roar (*TZZZZZZZZ*), crackle of aromatic tempering tadka (*TCHRRRR*), metal utensil clatter against hot vessel.`,
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive foaming sear roar (*TZZZZZZZZ*), thick masala bubble (*GLOOP-GLOOP*), metal utensil clatter.`,
           estimatedDurationSeconds: tc.duration,
         });
       } else if (sceneNum === totalScenes - 1) {
@@ -403,7 +441,7 @@ export function generateInediblePipelineScenes(params: {
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Thick simmering bubble (*GLOOP-GLOOP*), violent steam lid release (*WHOOSH-HISS*), crisp layered textures settling inside heavy vessel.`,
           estimatedDurationSeconds: tc.duration,
         });
-      } else {
+      } else if (sceneNum === totalScenes) {
         scenes.push({
           num: sceneNum,
           heading: `INT. HERO SHOWCASE - ${targetDish.toUpperCase()} PLATING, REVEAL PULL & CHEF THUMBS-UP ${tc.label}`,

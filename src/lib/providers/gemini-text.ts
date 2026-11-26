@@ -7,8 +7,8 @@ import type {
 
 /**
  * Google Gemini text generation adapter.
- * Uses the official @google/generative-ai SDK with automatic ListModels fallback
- * so deprecated or retired model IDs never break generation.
+ * Uses @google/generative-ai with strict per-call timeouts, bounded retries,
+ * and automatic ListModels fallback when a model returns 404.
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
@@ -19,6 +19,44 @@ export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
 
 export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
 
+const PER_CALL_TIMEOUT_MS = 20_000;
+const TOTAL_BUDGET_MS = 35_000;
+
+function extractJsonText(raw: string): string {
+  const withoutThink = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+  const stripped = withoutThink
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+  const firstBrace = stripped.indexOf("{");
+  const lastBrace = stripped.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    return stripped.slice(firstBrace, lastBrace + 1);
+  }
+  return stripped;
+}
+
+async function generateWithTimeout(
+  model: GenerativeModel,
+  prompt: string,
+  timeoutMs: number
+) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      model.generateContent(prompt, { timeout: timeoutMs }),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`Gemini request timed out after ${timeoutMs}ms`)),
+          timeoutMs
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /**
  * Queries Gemini's ListModels endpoint to discover live models that support
  * generateContent for this API key, prioritizing Flash models.
@@ -27,7 +65,7 @@ async function discoverGeminiModels(apiKey: string): Promise<string[]> {
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
-      { signal: AbortSignal.timeout(10_000) }
+      { signal: AbortSignal.timeout(8_000) }
     );
     if (!res.ok) return [];
     const json = (await res.json()) as {
@@ -38,14 +76,13 @@ async function discoverGeminiModels(apiKey: string): Promise<string[]> {
       .map((m) => m.name!.replace(/^models\//, ""))
       .filter((name) => !/embedding|aqa|imagen|veo|tts|robotics/i.test(name));
 
-    // Sort flash models first, newest versions first
     usable.sort((a, b) => {
       const aFlash = /flash/i.test(a) ? 0 : 1;
       const bFlash = /flash/i.test(b) ? 0 : 1;
       if (aFlash !== bFlash) return aFlash - bFlash;
       return b.localeCompare(a);
     });
-    return usable.slice(0, 8);
+    return usable.slice(0, 3);
   } catch {
     return [];
   }
@@ -78,15 +115,23 @@ export class GeminiTextProvider implements TextGenerationProvider {
       "gemini-2.5-flash",
       "gemini-2.0-flash",
       "gemini-2.5-flash-lite",
-      "gemini-2.0-flash-lite",
     ].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i);
 
     let lastError: string | null = null;
     let discovered = false;
+    const deadline = Date.now() + TOTAL_BUDGET_MS;
 
-    for (let idx = 0; idx < candidateModels.length; idx++) {
+    for (let idx = 0; idx < candidateModels.length && idx < 5; idx++) {
+      if (Date.now() >= deadline) {
+        lastError = lastError || "Gemini provider timeout budget exceeded";
+        break;
+      }
+
       const activeModelId = candidateModels[idx];
-      for (let attempt = 0; attempt <= 2; attempt++) {
+      for (let attempt = 0; attempt <= 1; attempt++) {
+        const remaining = deadline - Date.now();
+        if (remaining < 2000) break;
+
         try {
           const model: GenerativeModel = this.client.getGenerativeModel({
             model: activeModelId,
@@ -101,13 +146,13 @@ export class GeminiTextProvider implements TextGenerationProvider {
             ? `\n\nPrevious attempt produced invalid output: ${lastError}. Return valid JSON only.`
             : "";
 
-          const response = await model.generateContent(input.userPrompt + repairNote);
+          const response = await generateWithTimeout(
+            model,
+            input.userPrompt + repairNote,
+            Math.min(PER_CALL_TIMEOUT_MS, remaining)
+          );
           const raw = response.response.text();
-
-          const cleaned = raw
-            .replace(/^```(?:json)?\s*/i, "")
-            .replace(/\s*```$/i, "")
-            .trim();
+          const cleaned = extractJsonText(raw);
 
           let parsed: unknown;
           try {
@@ -140,8 +185,7 @@ export class GeminiTextProvider implements TextGenerationProvider {
             }
             break;
           }
-          if (msg.includes("503") || msg.includes("high demand") || msg.includes("429")) {
-            await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+          if (msg.includes("503") || msg.includes("high demand") || msg.includes("429") || msg.includes("timed out")) {
             break;
           }
         }
@@ -163,7 +207,6 @@ export async function testGeminiKey(
     "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-2.5-flash-lite",
-    "gemini-2.0-flash-lite",
   ];
 
   const client = new GoogleGenerativeAI(apiKey);
@@ -176,26 +219,27 @@ export async function testGeminiKey(
         model: modelId,
         generationConfig: { responseMimeType: "application/json" },
       });
-      const result = await model.generateContent('Reply with exactly: {"ok":true}');
+      const result = await generateWithTimeout(
+        model,
+        'Reply with exactly: {"ok":true}',
+        10_000
+      );
       const text = result.response.text();
-      if (text.includes("true")) {
-        return { ok: true, model: modelId };
-      }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      if (msg.includes("404") || msg.includes("not found")) {
-        if (!discovered) {
-          discovered = true;
-          const liveModels = await discoverGeminiModels(apiKey);
-          for (const m of liveModels) {
-            if (!candidates.includes(m)) candidates.push(m);
-          }
+      if (text) return { ok: true, model: modelId };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if ((msg.includes("404") || msg.includes("not found")) && !discovered) {
+        discovered = true;
+        const live = await discoverGeminiModels(apiKey);
+        for (const m of live) {
+          if (!candidates.includes(m)) candidates.push(m);
         }
         continue;
       }
+      if (msg.includes("404") || msg.includes("not found")) continue;
       return { ok: false, model: "", error: msg };
     }
   }
 
-  return { ok: false, model: "", error: "No compatible Gemini model found for this API key" };
+  return { ok: false, model: "", error: "No compatible Gemini model found for this API key." };
 }

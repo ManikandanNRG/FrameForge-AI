@@ -18,6 +18,7 @@ export const chatApprovePlanSchema = z.object({
   sourceIdea: z.string().min(1),
   dishName: z.string().default("Custom ASMR Dish"),
   targetRuntime: z.coerce.number().default(20),
+  sceneCount: z.coerce.number().optional(),
   mode: z.enum(["CREATE_NEW", "REVISE_CURRENT"]).optional(),
   targetProjectId: z.string().optional(),
   comparisonTable: z

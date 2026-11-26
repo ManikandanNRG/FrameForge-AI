@@ -12,7 +12,7 @@ export class OpenAITextProvider implements TextGenerationProvider {
   readonly id = "openai";
   private client: OpenAI;
 
-  constructor(apiKey: string) { this.client = new OpenAI({ apiKey }); }
+  constructor(apiKey: string) { this.client = new OpenAI({ apiKey, timeout: 25_000, maxRetries: 0 }); }
 
   async listModels(): Promise<ModelDescriptor[]> { return OPENAI_TEXT_MODELS; }
   async getCapabilities(_modelId: string): Promise<TextCapabilities> {

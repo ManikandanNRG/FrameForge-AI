@@ -9,7 +9,11 @@
  */
 
 import { prisma } from "@/lib/db/client";
-import { compileCinematicPrompt } from "./prompt-compiler";
+import {
+  compileCinematicPrompt,
+  HIGH_VISIBILITY_CULINARY_LIGHTING,
+  resolveBrightCulinaryEnvironment,
+} from "./prompt-compiler";
 import { auditRapidAsmrProject, type RapidAsmrQcReport } from "./rapid-asmr-qc";
 import { detectPhysicalEntities } from "./world-engine";
 import {
@@ -115,7 +119,10 @@ function buildCompileContext(project: any) {
     characterName: leadChar?.name,
     characterDescription: leadChar?.description,
     wardrobeLock: wardrobeLock || project.chefWardrobeOverride || undefined,
-    locationDescription: project.studioEnvironment || undefined,
+    locationDescription: isPureAsmr
+      ? resolveBrightCulinaryEnvironment(project.studioEnvironment)
+      : project.studioEnvironment || undefined,
+    lighting: isPureAsmr ? HIGH_VISIBILITY_CULINARY_LIGHTING : undefined,
     heroObject: detected.inedibleHeroObject,
     dialogue: isPureAsmr ? "PURE_ASMR_FOLEY" : undefined,
   };
@@ -338,6 +345,7 @@ export async function executeDirectorActions(
           await prisma.shot.update({
             where: { id: shot.id },
             data: {
+              ...(ctx.lighting ? { lighting: ctx.lighting } : {}),
               actionDescription: newAction,
               imagePrompt: compiled.fluxStillPrompt,
               videoPrompt: compiled.googleFlowPrompt,
@@ -428,10 +436,29 @@ export async function executeDirectorActions(
         ? project.scenes.filter((s) => s.sceneNumber === act.sceneNumber)
         : project.scenes;
 
+      if (ctx.locationDescription && ctx.locationDescription !== project.studioEnvironment) {
+        await prisma.project.update({
+          where: { id: project.id },
+          data: { studioEnvironment: ctx.locationDescription },
+        });
+      }
+
       for (const sc of targetScenes) {
+        if (ctx.locationDescription && /dark\s+walnut/i.test(sc.location || "")) {
+          await prisma.scene.update({
+            where: { id: sc.id },
+            data: {
+              location: ctx.locationDescription,
+              heading: sc.heading.replace(/DARK WALNUT END-GRAIN BUTCHER BLOCK/gi, "BRIGHT SUNLIT OAK BUTCHER BLOCK"),
+            },
+          });
+        }
+
         for (const shot of sc.shots) {
           const compiled = compileCinematicPrompt({
             actionDescription: shot.actionDescription,
+            shotSize: shot.shotSize,
+            cameraMovement: shot.cameraMovement,
             aspectRatio: project.aspectRatio,
             visualStyle: project.visualStyle,
             sourceIdea: project.sourceIdea,
@@ -445,6 +472,7 @@ export async function executeDirectorActions(
           await prisma.shot.update({
             where: { id: shot.id },
             data: {
+              ...(ctx.lighting ? { lighting: ctx.lighting } : {}),
               imagePrompt: compiled.fluxStillPrompt,
               videoPrompt: compiled.googleFlowPrompt,
               negativeConstraints: compiled.universalNegativePrompt,
@@ -467,13 +495,16 @@ export async function executeDirectorActions(
     const updatedScenes = await prisma.scene.findMany({
       where: { projectId: project.id },
       orderBy: { sceneNumber: "asc" },
+      include: { shots: { orderBy: { shotNumber: "asc" } } },
     });
 
     qcReport = auditRapidAsmrProject(
       updatedScenes.map((s) => ({
         sceneNumber: s.sceneNumber,
         heading: s.heading,
-        action: s.actionSummary,
+        location: s.location,
+        action: s.shots[0]?.actionDescription || s.actionSummary,
+        estimatedDurationSeconds: s.estimatedDurationSeconds,
       })),
       {
         title: project.title,

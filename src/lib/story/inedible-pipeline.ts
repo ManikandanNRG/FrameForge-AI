@@ -387,28 +387,28 @@ export function generateInediblePipelineScenes(params: {
       } else if (sceneNum === 2 || (sceneNum === 3 && totalScenes >= 7)) {
         scenes.push({
           num: sceneNum,
-          heading: `INT. BUTCHER BLOCK - PRECISION DICING, SHAVING & GRATING (${row0.realElement.toUpperCase()}) ${tc.label}`,
-          action: `[${tc.start}] Rapid 2X dicing & shaving station for ${targetDish}: Chef executes "${row0.cookingMethod}" on ${row0.inedibleCounterpart} (acting as ${row0.realElement}), sliding steel blade and four-sided box grater in razor-fast staccato (*thwack-thwack-shrrr*) alongside "${row1.cookingMethod}" on ${row1.inedibleCounterpart}. 90% frame filled with tumbling precision shreds and geometric dice.`,
+          heading: `INT. BRIGHT SUNLIT OAK BUTCHER BLOCK - PRECISION DICING, SHAVING & GRATING (${row0.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Beat 1: Rapid 2X dicing station for ${targetDish} in bright 5600K daylight—blade shaves ${row0.inedibleCounterpart} into uniform ${row0.realElement}-style strips (*thwack-thwack*). Beat 2: Four-sided stainless box grater rasps ${row1.inedibleCounterpart} into feathery shavings (*shrrr-shrrr*). Beat 3: Gloved fingers steep and toss shredded elements with clear aromatic resin oil (*splash-toss*). Beat 4: Sorted crisp elements pile brightly onto dry brass trays filling 90% of the frame.`,
           shotSize: "Top-Down Flat Lay Lock",
           cameraMovement: "Top-Down Flat Lay Lock",
-          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Rapid staccato blade chops on end-grain wood (*thwack-thwack-thwack*), brisk stainless box-grater friction (*shrrr-shrrr*).`,
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Rapid staccato blade chops on natural oak (*thwack-thwack-thwack*), brisk stainless box-grater friction (*shrrr-shrrr*), crisp tray drop.`,
           estimatedDurationSeconds: tc.duration,
         });
       } else if (sceneNum === 4 && totalScenes >= 7) {
         scenes.push({
           num: 4,
-          heading: `INT. BUTCHER BLOCK - CLEAVER CHOPPING & MARINADE COATING (${row2.realElement.toUpperCase()}) ${tc.label}`,
-          action: `[${tc.start}] Intense chopping & masala marinade: Heavy Damascus blade rapidly chops and scores ${row2.inedibleCounterpart} into bite-sized masala kofta portions (*CHOP-CHOP-CRACK*), plunging them into a deep hammered mixing bowl with freshly ground masala spice, saffron glaze, and foaming aromatic herb emulsion—tossing aggressively until dripping crimson-gold.`,
+          heading: `INT. BRIGHT SUNLIT OAK BUTCHER BLOCK - CLEAVER CHOPPING & MARINADE COATING (${row2.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Beat 1: Heavy Damascus blade rapidly chops and scores ${row2.inedibleCounterpart} on the brightly lit oak board into uniform bite-sized pieces (*CHOP-CHOP-CRACK*). Beat 2: Acoustic mallet tenderizes each piece with sharp rhythmic taps (*THUD-THUD*). Beat 3: Gloved hands plunge pieces into a bright hammered steel mixing bowl stacked with vibrant freshly ground masala spice, saffron emulsion, and herb leaves. Beat 4: Chef aggressively tosses and coats every edge until gleaming crimson-gold in crisp daylight (*SQUELCH-TOSS*).`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Dynamic Macro Glide",
-          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Heavy cleaver chop (*CHOP-CRACK*), wet glossy masala squelch and bowl toss, crisp spoon scrape.`,
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Heavy cleaver chop (*CHOP-CRACK*), sharp tenderizer mallet taps (*THUD-THUD*), wet glossy masala squelch and bowl toss.`,
           estimatedDurationSeconds: tc.duration,
         });
       } else if (sceneNum === 5 && totalScenes >= 8) {
         scenes.push({
           num: 5,
-          heading: `INT. COOK STATION - WHOLE SPICE TEMPERING TADKA & CRISPY SEAR (${row1.realElement.toUpperCase()}) ${tc.label}`,
-          action: `[${tc.start}] Fiery tempering tawa: Smoking spiced butter and ghee explode over hot black iron as whole spices and ${row1.inedibleCounterpart} undergo "${row1.cookingMethod}" (crafting fragrant crisp birista & aromatic spice layer) (*TCHRRRR-TZZZZ*). Spatulas aerate golden crisp ribbons over shimmering heat.`,
+          heading: `INT. BRIGHT DAYLIGHT COOK STATION - WHOLE SPICE TADKA & CRISPY SEAR (${row1.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Beat 1: Over the bright high-visibility stove station, foaming spiced butter melts rapidly across the hot seasoned iron tawa (*TZZZZ*). Beat 2: Whole dry spices crackle violently into the oil (*POP-CRACKLE-TCHRRRR*). Beat 3: ${row1.inedibleCounterpart} hits the scorching surface and flash-fries into crisp golden-brown ${row1.realElement}-style ribbons (*CHHHHH*). Beat 4: Dual stainless spatulas rapidly toss and lift aerated golden layers up into crisp daylight steam.`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Low Angle Oil Surface Push",
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive tadka oil sputter (*TCHRRRR*), fierce iron tawa sizzle (*TZZZZZZZZ*), crisp golden ribbon rustle.`,
@@ -417,8 +417,8 @@ export function generateInediblePipelineScenes(params: {
       } else if (sceneNum === totalScenes - 2) {
         scenes.push({
           num: sceneNum,
-          heading: `INT. COOK STATION - ${row2.realElement.toUpperCase()} SEAR & MASALA REDUCTION ${tc.label}`,
-          action: `[${tc.start}] High-heat station: inside the ${vesselForDish}, foaming spiced butter/oil roars as ${row2.inedibleCounterpart} undergoes "${row2.cookingMethod}" (crafting ${row2.realElement}) (*TZZZZZZZZ*). Chef pours thick bubbling masala gravy mixed with ${row3.inedibleCounterpart} (${row3.cookingMethod}), simmering into rich concentrated reduction as steam billows from the scorching metal.`,
+          heading: `INT. BRIGHT DAYLIGHT COOK STATION - ${row2.realElement.toUpperCase()} SEAR & MASALA REDUCTION ${tc.label}`,
+          action: `[${tc.start}] Beat 1: Inside the gleaming ${vesselForDish} under crisp 5600K daylight, foaming spiced oil roars at high heat (*TZZZZZZZZ*). Beat 2: ${row2.inedibleCounterpart} drops in for rapid high-heat searing until blistered and glossy (*CHHHHH*). Beat 3: Chef pours bubbling crimson masala gravy packed with ground ${row3.inedibleCounterpart} across the searing hardware (*GLOOP-GLOOP*). Beat 4: Rapid paddle stir folds everything into a thick steaming reduction glaze.`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Low Angle Oil Surface Push",
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive foaming sear roar (*TZZZZZZZZ*), thick masala bubble (*GLOOP-GLOOP*), metal utensil clatter.`,

@@ -521,7 +521,7 @@ export function CreateEpisodeModal({
                   type="text"
                   value={studioEnvironment}
                   onChange={(e) => setStudioEnvironment(e.target.value)}
-                  placeholder="e.g. Dark Walnut Butcher Block, Teppanyaki Grill, Metallurgy Anvil..."
+                  placeholder="e.g. Bright Sunlit Oak Butcher Block, Outdoor Daylight Hearth, Open Stainless Kitchen..."
                   className={inputCls}
                 />
               </div>

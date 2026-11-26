@@ -287,7 +287,7 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
         : "Authentic traditional regional attire matching the story era and culture.";
 
       const charPrompt = isCulinary
-        ? `Ultra-photorealistic portrait of ${name} (Chef hands preparing ingredients, rolled-up linen shirt sleeves, precise confident grip, warm directional kitchen lighting).`
+        ? `Ultra-photorealistic portrait of ${name} (Chef hands preparing ingredients, rolled-up linen shirt sleeves, precise confident grip, bright 5600K high-visibility daylight kitchen illumination, crisp natural visibility, zero dark shadows).`
         : isVintage
         ? `Authentic 1900s vintage 35mm archival photographic portrait of ${name}, natural sepia and muted earth tones, period-accurate hand-spun khadi garments, soft vintage depth of field.`
         : isGhibli
@@ -401,7 +401,7 @@ A cinematic visual short set in ${project.visualStyle.replace(/_/g, " ")}, featu
         cameraAngle: camPreset.cameraAngle,
         cameraMovement: camPreset.cameraMovement,
         lighting: isCulinary
-          ? "Warm culinary studio lighting, soft key illumination on workstation, appetizing natural food glistening"
+          ? "Bright 5600K high-key daylight culinary studio lighting, powerful softbox fill illumination on workstation, crisp natural object colors, zero muddy shadows"
           : isVintage
           ? "Warm natural historical lighting, soft dust motes, period ambience"
           : "Warm cinematic natural lighting, soft shadows",

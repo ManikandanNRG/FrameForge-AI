@@ -53,7 +53,7 @@ ${screenplayText.slice(0, 8000)}
 
 ${isCulinary ? `CRITICAL CULINARY WORKSTATION & ASMR CONTINUITY DIRECTIVES:
 - For CHARACTER: Define the Chef / Cook focusing on their hands and physical presence: clean chef hands with trimmed nails, rolled-up linen shirt sleeves, confident precise knife grip.
-- For LOCATION: Define the Master Kitchen Workstation with unwavering architectural and surface details: Heavy end-grain walnut cutting board, seasoned cast-iron skillet, clean stone countertop, warm recessed directional spotlighting, soft herbal background shelves.
+- For LOCATION: Define the Master Kitchen Workstation with unwavering architectural and surface details: Bright natural-grain oak cutting board, seasoned cast-iron skillet, clean stone countertop, bright 5600K high-visibility overhead daylighting with clean bounce fill, crisp airy kitchen background shelves.
 - For PROPS: Define key culinary tools with exact materials: Japanese Damascus steel chef knife with octagonal dark walnut handle, seasoned cast iron skillet with curved ergonomic handle.
 ` : `CRITICAL PERIOD & WARDROBE AUTHENTICITY DIRECTIVES:
 1. STRICT HISTORICAL TIME-PERIOD ACCURACY:
@@ -91,7 +91,7 @@ Return JSON matching: { characters: [{name, role, age, appearance, wardrobe, per
   await prisma.productionAsset.deleteMany({ where: { projectId } });
 
   const defaultStyleSuffix = isCulinary
-    ? "Ultra-high-definition macro culinary cinema, warm directional lighting, clean chef hands with rolled sleeves, appetizing natural textures."
+    ? "Ultra-high-definition macro culinary cinema, bright 5600K high-visibility daylight studio lighting, zero murky shadows, clean chef hands with rolled sleeves, appetizing vibrant natural textures."
     : isVintage
     ? "Authentic 1900s vintage 35mm archival photographic portrait, natural sepia and earth tones, period-accurate hand-spun khadi garments."
     : "Photorealistic cinematic portrait, soft natural daylight.";

@@ -978,4 +978,16 @@ Ensures characters have authentic voices and narrative sound without paid API de
      - Layer 3: Last 16 verbatim turns in the active thread + active scene breakdown (when inside `PROJECT` scope).
   3. **Persistent Studio + Episode APIs & History UI (`src/app/api/chat/route.ts`, `src/app/api/projects/[projectId]/chat/route.ts`, `AiDirectorChatDrawer.tsx`)**: Added thread listing, switching, `+ New Chat`, thread deletion, `proposalStatus` tracking, `createdEpisode` restoration, drawer width resize/extend toggle, and Markdown comparison table rendering (`FormattedChatContent.tsx`).
 
+## ADR-052: High-Visibility 5600K Daylight Culinary Lighting Standard
+- **Date**: 2026-11-26 · **Status**: Implemented & Verified
+- **Context**:
+  - Generated culinary and inedible ASMR images appeared overly dark and murky (`dark walnut`, `moody workshop`, `warm directional spotlight`, `heavy vignette`), hiding ingredients, tools, and hand textures on mobile feeds compared to bright, high-visibility outdoor/daylight Shorts formats (`VKADRE_KZ`).
+  - Existing `Series` rows in SQLite could also carry legacy `"Dark Walnut..."` studio defaults into future episodes.
+- **Decision**:
+  1. **Compiler-Level Brightness & Legacy Upgrade (`src/lib/story/prompt-compiler.ts`)**: Added `HIGH_VISIBILITY_CULINARY_LIGHTING`, `HIGH_VISIBILITY_WORKSTATION_ENV`, `resolveCulinaryLighting()`, and `resolveBrightCulinaryEnvironment()` to normalize dark-walnut/moody/warm-directional defaults into bright 5600K high-key daylight + crisp softbox fill across all still, video, and pre-hook outputs, backed by anti-darkness negative prompts (`dim lighting`, `dark room`, `underexposed`, `muddy shadows`, `heavy vignette`).
+  2. **End-to-End Pipeline Defaults**: Updated `src/lib/series/episode-service.ts`, `src/lib/story/inedible-pipeline.ts`, `src/lib/story/launch-kit.ts`, `src/lib/shots/service.ts`, `src/lib/bible/service.ts`, `src/lib/jobs/image-generation-handler.ts`, and generation routes so upcoming episodes and thumbnails default cleanly to bright high-visibility daylight staging.
+- **Verification**:
+  - `npx tsc --noEmit`: `0` errors.
+  - `npx vitest run`: `17` test files / `104` tests passed.
+
 

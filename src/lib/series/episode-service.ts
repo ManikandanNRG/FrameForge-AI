@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/db/client";
 import { forbidden, notFound } from "@/lib/errors";
-import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
+import {
+  compileCinematicPrompt,
+  HIGH_VISIBILITY_CULINARY_LIGHTING,
+  HIGH_VISIBILITY_WORKSTATION_ENV,
+  resolveBrightCulinaryEnvironment,
+} from "@/lib/story/prompt-compiler";
 import { detectPhysicalEntities } from "@/lib/story/world-engine";
 import {
   generateInediblePipelineScenes,
@@ -130,6 +135,7 @@ async function persistEpisodeProduction(params: {
       actionDescription: t.action,
       shotSize: t.shotSize,
       cameraMovement: t.cameraMovement,
+      lighting: HIGH_VISIBILITY_CULINARY_LIGHTING,
       characterName: leadChar.name,
       characterDescription: leadChar.description,
       wardrobeLock: wardrobe,
@@ -153,9 +159,8 @@ async function persistEpisodeProduction(params: {
         actionDescription: t.action,
         shotSize: t.shotSize,
         cameraMovement: t.cameraMovement,
-        lighting:
-          "Warm directional culinary studio lighting, soft key illumination, appetizing natural highlights",
-        mood: "Satisfying, Crisp & Hypnotic",
+        lighting: HIGH_VISIBILITY_CULINARY_LIGHTING,
+        mood: "Crisp, Vibrant & High-Visibility",
         targetDurationSeconds: shotDuration,
         aspectRatio: project.aspectRatio,
         imagePrompt: bundle.fluxStillPrompt,
@@ -289,10 +294,11 @@ export async function createSeriesEpisode(input: CreateSeriesEpisodeInput) {
   const dialogueMode = input.dialogueMode || series.dialogueMode || "PURE_ASMR_FOLEY";
   const aspectRatio = input.aspectRatio || series.aspectRatio || "PORTRAIT_9_16";
   const storyLanguage = input.storyLanguage || series.storyLanguage || "English";
-  const studioEnvironment =
+  const studioEnvironment = resolveBrightCulinaryEnvironment(
     input.studioEnvironment ||
-    series.defaultStudioEnvironment ||
-    "Dark Walnut End-Grain Butcher Block";
+      series.defaultStudioEnvironment ||
+      HIGH_VISIBILITY_WORKSTATION_ENV
+  );
   const wardrobe =
     input.chefWardrobeOverride || series.defaultChefWardrobe || DEFAULT_WARDROBE;
 
@@ -417,10 +423,11 @@ export async function reviseSeriesEpisodeInPlace(input: ReviseSeriesEpisodeInput
     }
   } catch {}
 
-  const studioEnvironment =
+  const studioEnvironment = resolveBrightCulinaryEnvironment(
     project.studioEnvironment ||
-    project.series?.defaultStudioEnvironment ||
-    "Dark Walnut End-Grain Butcher Block";
+      project.series?.defaultStudioEnvironment ||
+      HIGH_VISIBILITY_WORKSTATION_ENV
+  );
 
   const persisted = await persistEpisodeProduction({
     ownerId,

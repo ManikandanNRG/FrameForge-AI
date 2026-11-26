@@ -230,7 +230,7 @@ export const POST = apiHandler(async (req, ctx) => {
   }
 
   const finalPrompt = customPrompt && customPrompt.trim().length > 10
-    ? `high-CTR viral thumbnail, ${aspectRatio === "9:16" ? "9:16 vertical" : "16:9 widescreen"}, ${customPrompt.trim()}, dramatic rim lighting, vibrant saturated cinematic grading, tack-sharp 8k uhd, strictly NO text, NO watermarks, NO eating`
+    ? `high-CTR viral thumbnail, ${aspectRatio === "9:16" ? "9:16 vertical" : "16:9 widescreen"}, ${customPrompt.trim()}, bright 5600K high-visibility studio lighting, crisp object clarity, vibrant saturated grading, tack-sharp 8k uhd, strictly NO text, NO watermarks, NO eating`
     : styleModifier;
 
   const targetWidth = aspectRatio === "9:16" ? 720 : 1280;

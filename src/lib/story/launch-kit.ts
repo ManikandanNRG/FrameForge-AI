@@ -10,7 +10,11 @@
  * generates custom, authentic launch metadata without code changes.
  */
 
-import { compileDualHookPrompts, type DualHookPromptResult } from "./prompt-compiler";
+import {
+  compileDualHookPrompts,
+  resolveBrightCulinaryEnvironment,
+  type DualHookPromptResult,
+} from "./prompt-compiler";
 
 export interface SocialLaunchKit {
   projectTitle: string;
@@ -64,6 +68,7 @@ export interface ProjectContextInput {
   visualStyle?: string | null;
   aspectRatio?: string | null;
   storyLanguage?: string | null;
+  studioEnvironment?: string | null;
   productionAssets?: Array<{
     assetType: string;
     name: string;
@@ -291,25 +296,25 @@ export function generateSocialLaunchKit(project: ProjectContextInput): SocialLau
       "a tall sticky mound of glossy stir-fried matte-black keycaps and crimson-red Cherry MX switches (including a prominent crimson-red ESC keycap), dripping with long stretching strands of thick, bubbling golden-amber glaze cascading downward";
   }
 
-  // E. Atmospheric Lighting Matching Staging
+  // E. Atmospheric Lighting Matching Staging (High-Visibility Bright Daylight Clarity)
   let thumbnailLighting =
-    "Deep solid dark charcoal studio background with heavy smooth vignette, completely clean, zero clutter, zero tools. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
+    "Bright high-key 5600K daylight culinary kitchen studio background with open airy brightness, zero dark room shadows, zero heavy black vignette, completely clean background, zero clutter. Crisp bright studio illumination highlighting the dripping glaze, hands, and vivid object textures with crystal-clear subject separation.";
 
   if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
     thumbnailLighting =
-      "Deep dark moody alchemist kitchen workshop background with warm directional golden-amber spotlights illuminating the sparkling crystalline quartz facets, translucent glass noodle clarity, and raw quarry mineral textures, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the glistening silica threads and pearly glaze drip.";
+      "Bright sunlit airy alchemist kitchen background bathed in crisp 5600K high-visibility daylight illuminating the sparkling crystalline quartz facets, translucent glass noodle clarity, and raw quarry mineral textures, zero dark gloomy shadows, completely clean, zero clutter. Bright commercial daylight fill on the glistening silica threads and pearly glaze drip.";
   } else if (/kadai|cauldron|bicycle/i.test(combinedText)) {
     thumbnailLighting =
-      "Deep solid dark charcoal catering workshop background with warm fiery under-glow from the hearth burner, heavy dramatic vignette, completely clean, zero clutter. Commercial food spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
+      "Brightly lit airy open catering workshop background under crisp 5600K natural daylight paired with subtle orange stove burner warmth, zero murky shadows, zero heavy dark vignette, completely clean background, zero clutter. Crisp high-visibility commercial daylight lighting on the dripping glaze and metallic textures.";
   } else if (/bulb|samosa/i.test(combinedText)) {
     thumbnailLighting =
-      "Deep dark moody street halwai workshop background with warm fiery under-glow from the giant kadai burners, incandescent amber light from glowing Edison filaments, and vibrant fairy light reflections, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the blistered pastry crust and jewel-like serial bulbs.";
+      "Bright sunlit open street halwai kitchen background under crisp 5600K daylight illumination paired with glowing filament warmth and vibrant fairy light reflections, zero dark gloomy shadows, completely clean background, zero clutter. Crisp bright daylight food cinema illumination on the blistered pastry crust and jewel-like serial bulbs.";
   } else if (/soap/i.test(combinedText)) {
     thumbnailLighting =
-      "Deep dark moody commercial kitchen studio background with warm directional golden-amber spotlights illuminating the glistening textures and jewel-toned soap clarity, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
+      "Brightly lit airy commercial kitchen studio background under crisp 5600K high-visibility daylight illuminating the glistening textures and jewel-toned soap clarity, zero muddy shadows, completely clean, zero clutter. Bright natural daylight studio illumination on the dripping glaze and textures.";
   } else if (/nokia|tawa/i.test(combinedText)) {
     thumbnailLighting =
-      "Deep dark moody street kitchen workshop background with warm directional spotlights illuminating the sizzling copper noodles and glowing cyan keypad cubes, heavy dramatic vignette, completely clean, zero clutter. Commercial food cinema spotlight on the dripping glaze and textures, subtle warm rim lighting on shoulders.";
+      "Bright sunlit airy street kitchen studio background under crisp 5600K daylight illumination highlighting the sizzling copper noodles and glowing cyan keypad cubes, zero dark murky corners, completely clean, zero clutter. Crisp high-visibility studio lighting on the dripping glaze and metal surfaces.";
   }
 
   // --------------------------------------------------------------------------
@@ -384,37 +389,37 @@ Strict Constraints: Character visually rendered only. ${negativeConstraintsText}
 
   let heroCrackDescription = `Two black-gloved hands crack open the freshly cooked ${heroObject} ${dishName} directly in front of the lens in an extreme macro close-up, revealing its hot, steaming, glowing interior with impossible ${heroObject} components stretching between the severed halves like molten cheese with delicate curlicues of culinary steam.
 
-Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, flanked on the wooden counter by a raw unworked fractured chunk of the ${heroObject} exposing authentic internal materials.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the bright natural oak wooden table, piled generously high with a massive feast mound of glistening seared ${heroObject} ${dishName} components, flanked on the sunlit wooden counter by a raw unworked fractured chunk of the ${heroObject} exposing authentic internal materials.
 
-In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
+In the soft-focus bright daylight background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
 
   if (/bulb|samosa/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands holding a blistered golden-crispy triangular Indian street samosa, cracked open horizontally right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, incandescent glowing golden tungsten filament coils are stretching and connecting between the two halves like molten cheese, accompanied by glowing jewel-like red, green, and yellow festive serial bulbs embedded in the spicy filling. Delicate curlicues of white aromatic culinary steam rise between the cracked halves.
 
-Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with golden-crispy triangular samosas bursting with incandescent filament light, flanked on the wooden counter by raw, unlit vintage amber Edison light bulbs with brass screw bases and a tangled garland of festival fairy lights.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the bright natural oak wooden table, piled generously high with golden-crispy triangular samosas bursting with incandescent filament light, flanked on the sunlit wooden counter by raw, unlit vintage amber Edison light bulbs with brass screw bases and a tangled garland of festival fairy lights.
 
-In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, black tactical mask with gold cheekline vents, brass tinker goggles on forehead, leather apron) leans forward, intently inspecting the glowing food crack.`;
+In the soft-focus bright daylight background: The Shadow Alchemist chef (piercing hazel eyes, black tactical mask with gold cheekline vents, brass tinker goggles on forehead, leather apron) leans forward, intently inspecting the glowing food crack.`;
   } else if (/nokia/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands pulling apart a scorching, golden-seared cluster of copper ribbon noodles right in front of the lens in an extreme macro close-up. Between the pulled halves, bubbling translucent neon-cyan LCD chutney stretches in long glistening caramelized strands, revealing diced cyan keypad paneer cubes and green mixie PCB spice flecks inside the hot steaming core. Delicate wisps of aromatic steam rise between the halves.
 
-Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with a massive feast mound of golden copper ribbon noodles, translucent cyan keypad paneer cubes, and emerald-green mixie PCB spice powder, flanked on the wooden counter by raw, unworked authentic vintage Nokia 3310 phones exposing their durable blue shells and circuit boards.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the bright natural oak wooden table, piled generously high with a massive feast mound of golden copper ribbon noodles, translucent cyan keypad paneer cubes, and emerald-green mixie PCB spice powder, flanked on the sunlit wooden counter by raw, unworked authentic vintage Nokia 3310 phones exposing their durable blue shells and circuit boards.
 
-In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
+In the soft-focus bright daylight background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
   } else if (/quartz|granite|stone|idiyappam/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands pulling apart a steaming, delicate nest of translucent optical-quartz silica glass noodle threads (idiyappam) right in front of the lens in an extreme macro close-up. Between the pulled halves, viscous pearly silica coconut glaze stretches in long glistening strands, revealing genuine sharp sparkling raw geometric white quartz crystal points, crystalline mineral shards, and speckled quarry granite rock fragments embedded directly inside the steaming noodle core (proving the noodles were cooked directly from quarry stones). Delicate plumes of white culinary steam billow upward.
 
-Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz noodles intertwined with sharp sparkling quartz crystal points and speckled granite flecks, flanked on the wooden counter by a raw, jagged sparkling white mountain quartz crystal boulder and raw quarry granite rock with sharp crystalline facets.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the bright natural oak wooden table, piled generously high with a massive feast mound of steaming, glistening cooked translucent optical-quartz noodles intertwined with sharp sparkling quartz crystal points and speckled granite flecks, flanked on the sunlit wooden counter by a raw, jagged sparkling white mountain quartz crystal boulder and raw quarry granite rock with sharp crystalline facets.
 
-In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
+In the soft-focus bright daylight background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward, watching intently.`;
   } else if (/keyboard/i.test(combinedText)) {
     heroCrackDescription = `Two black-gloved hands cracking open a sizzling, golden-brown seared mechanical keyboard patty right in front of the lens in an extreme macro close-up. Inside the steaming, hot interior, molten amber resin flux glaze stretches between the severed halves, revealing glowing copper circuit board traces, miniature resistors, and crimson-red Cherry MX switches connected by stretching molten strings. Delicate wisps of aromatic culinary steam rise between the halves.
 
-Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the dark wooden counter, piled generously high with a massive feast mound of glossy stir-fried matte-black keycaps and crimson-red switches dripping with bubbling amber glaze, flanked on the counter by a raw fractured rectangular chunk of the mechanical keyboard exposing green PCB traces and loose wires.
+Directly below the hands in the bottom foreground: ${servingPlatterDescription} rests at the center of the bright natural oak wooden counter, piled generously high with a massive feast mound of glossy stir-fried matte-black keycaps and crimson-red switches dripping with bubbling amber glaze, flanked on the counter by a raw fractured rectangular chunk of the mechanical keyboard exposing green PCB traces and loose wires.
 
-In the soft-focus background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward with focused gaze.`;
+In the soft-focus bright daylight background: The Shadow Alchemist chef (piercing hazel eyes, matte-black tactical half-mask with gold cheekline vents, brass tinker goggles on crown, leather apron) leans forward with focused gaze.`;
   }
 
-  const thumbnailHeroFoodCrack = `A viral extreme macro 9:16 YouTube Shorts and Reels thumbnail, cinematic food photography, shallow f/1.8 depth of field.
+  const thumbnailHeroFoodCrack = `A viral extreme macro 9:16 YouTube Shorts and Reels thumbnail, cinematic food photography, shallow f/2.4 crisp depth of field.
 
 Character Asset Reference: ${charHandle} ([${charHandle}])
 
@@ -423,11 +428,11 @@ ${heroCrackDescription}
 
 ${viralHeaderDirective}
 
-Lighting & Atmosphere: Commercial food cinema spotlight on the steaming crack, glistening glaze stretch, and luminous internal elements. Deep dark moody workshop background with heavy vignette.
+Lighting & Atmosphere: Bright 5600K high-visibility daylight food cinema key lighting with clean softbox fill across the steaming crack, glistening glaze stretch, and vivid internal elements. Bright open airy workshop background with crystal-clear object visibility, zero dark muddy shadows.
 
 Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. ${negativeConstraintsText}`;
 
-  const thumbnailHeroFoodCrack16x9 = `A viral extreme macro 16:9 YouTube video thumbnail, cinematic food photography, wide composition, shallow f/1.8 depth of field.
+  const thumbnailHeroFoodCrack16x9 = `A viral extreme macro 16:9 YouTube video thumbnail, cinematic food photography, wide composition, shallow f/2.4 crisp depth of field.
 
 Character Asset Reference: ${charHandle} ([${charHandle}])
 
@@ -436,7 +441,7 @@ ${heroCrackDescription}
 
 ${viralHeaderDirective}
 
-Lighting & Atmosphere: Commercial food cinema spotlight on the steaming crack, glistening glaze stretch, and luminous internal elements. Deep dark moody workshop background with heavy vignette.
+Lighting & Atmosphere: Bright 5600K high-visibility daylight food cinema key lighting with clean softbox fill across the steaming crack, glistening glaze stretch, and vivid internal elements. Bright open airy workshop background with crystal-clear object visibility, zero dark muddy shadows.
 
 Strict Constraints: Razor-sharp macro focus on the cracked food and hands. Character visually in soft background only. ${negativeConstraintsText}`;
 
@@ -718,6 +723,9 @@ ${hashtagsList.join(" ")}`;
     characterName: charHandle.replace(/^@/, ""),
     characterDescription: leadChar?.description,
     wardrobeLock: leadWardrobeLock,
+    locationDescription: project.studioEnvironment
+      ? resolveBrightCulinaryEnvironment(project.studioEnvironment)
+      : undefined,
     aspectRatio: project.aspectRatio || "PORTRAIT_9_16",
     visualStyle,
     sourceIdea: project.sourceIdea || "",

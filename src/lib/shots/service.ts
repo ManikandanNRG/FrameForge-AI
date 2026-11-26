@@ -64,7 +64,7 @@ export async function generateShotPlan(
       (project.genre || "").toLowerCase().includes("period"));
 
   const dynamicShotStyleDirective = isCulinary
-    ? "ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening natural oils, crisp fresh ingredient textures, natural warm kitchen directional lighting, 60fps high-speed fluid and rising steam physics"
+    ? "ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/2.4 crisp depth of field, glistening natural oils, vibrant crisp fresh ingredient textures, bright 5600K high-visibility natural daylight kitchen illumination with even fill light, zero dark corners, 60fps high-speed fluid and rising steam physics"
     : isVintage
     ? "authentic 1900s vintage 35mm archival film aesthetic, natural cellulose grain, soft warm sepia and muted earth tones, period-accurate hand-spun khadi garments, no modern clothing"
     : `${project.visualStyle.toLowerCase().replace(/_/g, " ")}, natural cinematic lighting`;
@@ -165,7 +165,7 @@ For EACH shot provide:
 2. actionDescription: 1-2 sentences clearly describing the physical visual action happening in this shot.
 3. shotSize: Framing size (e.g. "Close-Up", "Medium Shot", "Wide Shot", "Extreme Close-Up", "Top-Down Flat Lay"). ${isCulinary ? "MANDATORY: Frequently alternate shotSize across shots (Wide -> Top-Down -> Macro ECU -> Close-Up -> Chef POV) - never repeat consecutive shot sizes!" : ""}
 4. cameraMovement: Specific camera motion (e.g. "Low-angle backward tracking shot forward at 24fps", "Smooth lateral pan", "Dynamic handheld tracking", "Overhead static drift", "Macro 85mm probe lens rack focus").
-5. lighting: Lighting direction and mood (e.g. "Golden hour backlight with warm dust motes", "Warm culinary spotlight with soft background blur").
+5. lighting: Lighting direction and mood (e.g. "Bright 5600K high-key daylight studio lighting with clean softbox fill and zero murky shadows", "Golden hour backlight with crisp daylight fill").
 6. characterTag: The primary character placeholder tag featured (e.g. ${characters[0] ? `[@${characters[0].name}]` : "[@Character]"}, or "" if none).
 7. characterConsistencyAnchor: The locked character visual identity from the Character Anchor above (for fallback / Kling / Midjourney).
 8. videoPrompt: A complete DIRECT VIDEO GENERATION PROMPT formatted for Google Flow (Omni 1.1 Flash / Veo 2).

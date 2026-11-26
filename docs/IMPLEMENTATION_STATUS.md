@@ -754,6 +754,10 @@
       - Added `attachmentsJson` on `DirectorMessage` in `prisma/schema.prisma`, plus `saveDirectorChatAttachments` in `src/lib/story/director-memory.ts` (validating PNG/JPEG/WEBP/GIF <= 5 MB and storing under `./media/director-chat/<threadId>/` served via `/api/media/file?path=...`).
       - Extended `StructuredTextInput` in `src/lib/providers/types.ts` and implemented image `attachments` handling across `GeminiTextProvider`, `OpenRouterTextProvider`, and `OpenAITextProvider`.
       - Updated `handleDirectorChat`, `/api/chat`, `/api/projects/[projectId]/chat`, and `src/components/chat/AiDirectorChatDrawer.tsx` with `📎` upload, `Ctrl+V` clipboard paste, drag-and-drop, removable preview chips, clickable thumbnail history, and regression coverage in `tests/unit/chat-director.test.ts` (`npx tsc --noEmit` 0 errors, `npx vitest run` 17 files / 103 tests passed).
+  30. **High-Visibility 5600K Daylight Culinary Lighting Standard (ADR-052) (2026-11-26)**:
+      - Exported `HIGH_VISIBILITY_CULINARY_LIGHTING`, `HIGH_VISIBILITY_WORKSTATION_ENV`, `resolveCulinaryLighting`, and `resolveBrightCulinaryEnvironment` in `src/lib/story/prompt-compiler.ts`, upgrading legacy dim/dark-walnut/moody studio defaults across `googleFlowPrompt`, `fluxStillPrompt`, `klingPrompt`, `chatgptPrompt`, `geminiPrompt`, and `compileDualHookPrompts`, and adding dim/underexposed negative guards (`dim lighting`, `dark room`, `underexposed`, `muddy shadows`, `heavy vignette`).
+      - Updated episode creation & in-place revision (`src/lib/series/episode-service.ts`), scene/thumbnail generators (`src/lib/story/inedible-pipeline.ts`, `src/lib/story/launch-kit.ts`), shot/bible/story/portrait routes (`src/lib/shots/service.ts`, `src/lib/bible/service.ts`, `src/lib/jobs/image-generation-handler.ts`, `select-option/route.ts`, `assets/[assetId]/generate-image/route.ts`, `thumbnail/route.ts`), and `CreateEpisodeModal.tsx`.
+      - Added regression coverage in `tests/unit/culinary-asmr.test.ts`; verified `npx tsc --noEmit` (`0` errors) and `npx vitest run` (`17 passed / 104 passed`).
 
 
 

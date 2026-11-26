@@ -3,7 +3,11 @@ import {
   detectPhysicalEntities,
   UNIVERSAL_PHYSICAL_LAWS,
 } from "@/lib/story/world-engine";
-import { compileCinematicPrompt } from "@/lib/story/prompt-compiler";
+import {
+  compileCinematicPrompt,
+  compileDualHookPrompts,
+  HIGH_VISIBILITY_CULINARY_LIGHTING,
+} from "@/lib/story/prompt-compiler";
 
 describe("Culinary ASMR & Dynamic Camera Engine", () => {
   it("accurately detects culinary actions and focal types", () => {
@@ -245,6 +249,38 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     const pressStep = idiyappamBlueprint.comparisonTable.find((s) => s.stageName === "HYPNOTIC_NOODLE_EXTRUSION");
     expect(pressStep?.toolsUsed).toContain("massive polished brass spoke flywheel");
     expect(pressStep?.forbiddenTools).toContain("small plastic hand squeezer");
+  });
+
+  it("enforces bright 5600K high-visibility culinary lighting and upgrades legacy dim studio presets", () => {
+    const bundle = compileCinematicPrompt({
+      actionDescription:
+        "[0:00-0:04] In a moody workshop, gloved hands dice keycaps on the dark walnut butcher block.",
+      shotSize: "Macro Close-Up",
+      lighting: "Warm directional culinary studio lighting, soft key illumination",
+      locationDescription: "Dark Walnut End-Grain Butcher Block",
+      heroObject: "Mechanical Keyboard",
+      visualStyle: "CULINARY_MACRO_ASMR",
+      sourceIdea: "Cooking a mechanical keyboard in bright high-visibility kitchen",
+    });
+
+    expect(bundle.fluxStillPrompt).toContain("5600K");
+    expect(bundle.fluxStillPrompt).not.toContain("Dark Walnut");
+    expect(bundle.fluxStillPrompt).toContain("Natural Light-Grain Oak");
+    expect(bundle.googleFlowPrompt).toContain(HIGH_VISIBILITY_CULINARY_LIGHTING);
+    expect(bundle.googleFlowPrompt).toContain("brightly lit open daylight kitchen workshop");
+    expect(bundle.klingPrompt).toContain("5600K");
+    expect(bundle.universalNegativePrompt).toContain("dim lighting");
+    expect(bundle.universalNegativePrompt).toContain("dark room");
+    expect(bundle.universalNegativePrompt).toContain("muddy shadows");
+
+    const hooks = compileDualHookPrompts({
+      heroObject: "Vintage Camera",
+      dishName: "Shutter Dum Biryani",
+      locationDescription: "Dark Walnut End-Grain Butcher Block",
+    });
+    expect(hooks.optionA_cleaverSlam.fluxStillPrompt).toContain("5600K");
+    expect(hooks.optionA_cleaverSlam.fluxStillPrompt).not.toContain("Dark Walnut");
+    expect(hooks.optionB_sizzleDrop.fluxStillPrompt).toContain("5600K");
   });
 });
 

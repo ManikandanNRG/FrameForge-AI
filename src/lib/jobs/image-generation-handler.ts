@@ -80,7 +80,7 @@ export async function imageGenerationHandler(
     const style = (project.visualStyle || "").toUpperCase();
     if (style === "GHIBLI_ANIME") return "Lush green countryside meadow, rolling hills, blooming wildflowers under sunny blue sky";
     if (style === "CARTOON_2D" || style === "ANIMATION_3D") return "Bright cheerful animated storybook landscape";
-    if (style === "CULINARY_MACRO_ASMR") return "Master kitchen workstation, end-grain walnut cutting board, seasoned cast iron cookware";
+    if (style === "CULINARY_MACRO_ASMR") return "Bright sunlit master kitchen workstation, natural light-grain oak cutting board, seasoned cast iron cookware, crisp 5600K daylight illumination";
     if (style === "VINTAGE_FILM") return "Authentic 1900s historical village setting, dusty rustic pathway";
     if (style === "DOCUMENTARY") return "Authentic natural documentary environment";
     return "Authentic cinematic story environment";

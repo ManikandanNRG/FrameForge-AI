@@ -52,6 +52,52 @@ export interface CompiledPromptBundle {
   culinaryStation?: CulinaryStation;
 }
 
+export const HIGH_VISIBILITY_CULINARY_LIGHTING =
+  "Bright 5600K high-key daylight culinary studio lighting, powerful even overhead softbox key light paired with clean white bounce fill illumination, crisp daylight edge separation, vibrant true-to-life surface colors, zero dark room shadows, zero muddy tungsten cast, crystal-clear object visibility";
+
+export const HIGH_VISIBILITY_WORKSTATION_ENV =
+  "Bright Sunlit Artisan Kitchen & Natural Light-Oak Butcher Block Workstation";
+
+const LEGACY_DIM_LIGHTING_REGEX =
+  /warm\s+directional\s+culinary|warm\s+culinary\s+studio|warm\s+directional\s+spotlight|warm\s+dramatic\s+directional|moody|low-key/i;
+
+const EXPLICIT_DARK_INTENT_REGEX =
+  /\b(night|midnight|candlelight|neon\s+noir|pitch\s+black|pitch-black|darkness)\b/i;
+
+/**
+ * Upgrades missing or legacy dim/tungsten culinary lighting descriptors to bright
+ * high-visibility 5600K daylight illumination unless explicit night/dark intent is provided.
+ */
+export function resolveCulinaryLighting(lighting?: string | null): string {
+  const trimmed = (lighting || "").trim();
+  if (!trimmed || LEGACY_DIM_LIGHTING_REGEX.test(trimmed)) {
+    return HIGH_VISIBILITY_CULINARY_LIGHTING;
+  }
+  if (EXPLICIT_DARK_INTENT_REGEX.test(trimmed) || /5600k|high-key/i.test(trimmed)) {
+    return trimmed;
+  }
+  return `${trimmed}, paired with bright 5600K daylight fill illumination for crystal-clear object visibility and zero muddy shadows`;
+}
+
+/**
+ * Upgrades legacy dark-walnut or dark-room studio descriptors into bright oak/stainless
+ * surfaces so tools, components, and textures stand out clearly on mobile feeds.
+ */
+export function resolveBrightCulinaryEnvironment(env?: string | null): string {
+  const trimmed = (env || "").trim();
+  if (!trimmed) return HIGH_VISIBILITY_WORKSTATION_ENV;
+  if (/dark\s+walnut|dark\s+end-grain|dark\s+wood(?:en)?|dark\s+timber|dark\s+steel|dark\s+cyberpunk/i.test(trimmed)) {
+    return trimmed
+      .replace(/dark\s+walnut/gi, "Natural Light-Grain Oak")
+      .replace(/dark\s+end-grain/gi, "Bright Natural-Grain Oak")
+      .replace(/dark\s+wood(?:en)?/gi, "Warm Natural Light-Oak")
+      .replace(/dark\s+timber/gi, "Bright Natural Oak Timber")
+      .replace(/dark\s+steel/gi, "Clean Brushed Stainless Steel")
+      .replace(/dark\s+cyberpunk\s+scrapyard/gi, "Bright Daylight Technical Workshop");
+  }
+  return trimmed;
+}
+
 export type CulinaryStation = 
   | "RAPID_HOOK"
   | "OBJECT_SOURCING"
@@ -303,11 +349,11 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   let dynamicPeriodDirective = "";
 
   if (isInedibleCooking) {
-    dynamicStyleDirective = `Ultra-high-definition macro craft-culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening translucent culinary glaze, authentic physical textures of ${heroTargetName}, warm industrial directional spotlight, 60fps high-speed fluid and spark physics, high-speed robotic motion control cinematography (Bolt cinema arm / motorized linear rail slider), strictly linear constant-velocity tracking and probe push-ins, zero handheld camera shake`;
+    dynamicStyleDirective = `Ultra-high-definition macro craft-culinary cinema, 50mm/85mm probe macro lens optics, crisp daylight f/2.4 depth of field, glistening translucent culinary glaze, authentic physical textures of ${heroTargetName}, bright 5600K high-key daylight studio illumination with even softbox fill, vibrant true-to-life surface colors, zero dark murky shadows, crystal-clear object separation, 60fps high-speed fluid and spark physics, high-speed robotic motion control cinematography (Bolt cinema arm / motorized linear rail slider), strictly linear constant-velocity tracking and probe push-ins, zero handheld camera shake`;
     dynamicPeriodDirective = `- Inedible Craft-Culinary Continuity: Maintain 100% physical material integrity of ${heroTargetName}. Components must retain their authentic material shape, contours, labels, and textures; strictly PROHIBIT dissolving into generic cubes or dice. Plated dish must be composed 80% of authentic components of ${heroTargetName}, strictly not disguised as wheat noodles or grocery food.${heroPropLock ? ` Locked Prop DNA: ${heroPropLock}.` : ""}`;
   } else if (isCulinary) {
-    dynamicStyleDirective = "Ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, f/1.8 shallow depth of field, glistening natural oils, crisp fresh ingredient textures, natural warm kitchen directional lighting, 60fps high-speed fluid and rising steam physics, high-speed robotic linear slider camera movement, zero handheld camera shake";
-    dynamicPeriodDirective = "- Master Workstation Continuity: Maintain exact same kitchen countertop material, wooden cutting board grain, and cookware style across every shot. Consistent warm kitchen background with soft creamy background bokeh.";
+    dynamicStyleDirective = "Ultra-high-definition macro culinary cinema, 50mm/85mm probe macro lens optics, crisp daylight depth of field, glistening natural oils, vibrant crisp fresh ingredient textures, bright 5600K high-key natural daylight kitchen illumination with even white bounce fill light, zero dark corners, 60fps high-speed fluid and rising steam physics, high-speed robotic linear slider camera movement, zero handheld camera shake";
+    dynamicPeriodDirective = "- Master Workstation Continuity: Maintain exact same brightly lit clean countertop material, natural oak cutting board grain, and cookware style across every shot. Consistent bright airy daylight kitchen background with clean crystal-clear depth clarity.";
   } else if (isVintage) {
     dynamicStyleDirective = "Authentic 1900s vintage 35mm archival film aesthetic, natural cellulose film grain, soft warm sepia and muted earth-tone palette, period-accurate historical lighting, gentle optical lens bloom, organic 24fps motion blur";
     dynamicPeriodDirective = "- Period & Wardrobe Integrity: Strictly authentic 1900s early 20th-century historical era. Characters strictly wear period-accurate hand-spun unbleached khadi attire, traditional dhotis, veshti, angavastram. Strictly PROHIBIT modern machine-stitched collared shirts, modern t-shirts, modern synthetic fabrics, sneakers, modern wristwatches, or contemporary buildings.";
@@ -371,25 +417,25 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   if (isInedibleCooking) {
     const isSmallComponents = /\b(keycaps?|keys?|switches?|resistors?|diced|cubes?|chips?|screws?|wires?|ribbon|puller|springs?|earbuds?|tweezers?|plating)\b/i.test(actionLower);
     if (isSmallComponents || framingLower.includes("macro") || framingLower.includes("close")) {
-      dynamicLensFraming = `${framingLower.includes("macro") ? shotFraming : "Macro Close-Up Shot"}, 85mm probe macro lens at 45° angle, f/1.8 shallow depth of field, razor-sharp focus on authentic components of ${heroTargetName}, surface textures, and culinary glaze`;
+      dynamicLensFraming = `${framingLower.includes("macro") ? shotFraming : "Macro Close-Up Shot"}, 85mm probe macro lens at 45° angle, f/2.4 crisp macro depth of field, razor-sharp high-visibility focus on authentic components of ${heroTargetName}, surface textures, and culinary glaze`;
     } else if (framingLower.includes("top-down") || framingLower.includes("overhead") || framingLower.includes("bird") || framingLower.includes("flat lay")) {
-      dynamicLensFraming = `${shotFraming}, 90-degree overhead bird's-eye flat lay perspective looking directly down at the workstation cutting board and ${heroTargetName} components`;
+      dynamicLensFraming = `${shotFraming}, 90-degree overhead bird's-eye flat lay perspective looking directly down at the brightly lit workstation cutting board and ${heroTargetName} components`;
     } else if (framingLower.includes("close-up") || framingLower.includes("cu")) {
-      dynamicLensFraming = `${shotFraming}, 50mm cinema prime lens, creamy background bokeh, appetizing lighting`;
+      dynamicLensFraming = `${shotFraming}, 50mm cinema prime lens, crisp daylight separation, bright natural visibility`;
     } else if (framingLower.includes("wide")) {
-      dynamicLensFraming = `${shotFraming}, 24mm wide master lens, clean workshop background staging`;
+      dynamicLensFraming = `${shotFraming}, 24mm wide master lens, brightly lit open kitchen workstation background staging`;
     }
   } else if (isCulinary) {
     if (framingLower.includes("macro") || framingLower.includes("extreme close") || framingLower.includes("ecu")) {
-      dynamicLensFraming = `${shotFraming}, 85mm probe macro lens at 45° angle, f/1.8 shallow depth of field, razor-sharp focus on active ingredient contact or bubbling oil`;
+      dynamicLensFraming = `${shotFraming}, 85mm probe macro lens at 45° angle, f/2.4 crisp macro depth of field, razor-sharp high-visibility focus on active ingredient contact or bubbling oil`;
     } else if (framingLower.includes("top-down") || framingLower.includes("overhead") || framingLower.includes("bird") || framingLower.includes("flat lay")) {
-      dynamicLensFraming = `${shotFraming}, 90-degree overhead bird's-eye flat lay perspective looking directly down at the workstation cutting board`;
+      dynamicLensFraming = `${shotFraming}, 90-degree overhead bird's-eye flat lay perspective looking directly down at the brightly lit workstation cutting board`;
     } else if (framingLower.includes("pov") || framingLower.includes("chef") || framingLower.includes("first-person") || framingLower.includes("hands")) {
-      dynamicLensFraming = `${shotFraming}, first-person chef hands perspective, natural eye-level cooking view`;
+      dynamicLensFraming = `${shotFraming}, first-person chef hands perspective, natural eye-level bright cooking view`;
     } else if (framingLower.includes("close-up") || framingLower.includes("cu")) {
-      dynamicLensFraming = `${shotFraming}, 50mm cinema prime lens, creamy background bokeh, appetizing natural lighting`;
+      dynamicLensFraming = `${shotFraming}, 50mm cinema prime lens, crisp background separation, bright appetizing daylight illumination`;
     } else if (framingLower.includes("wide")) {
-      dynamicLensFraming = `${shotFraming}, 24mm wide master lens, clean kitchen background staging`;
+      dynamicLensFraming = `${shotFraming}, 24mm wide master lens, brightly lit open sunlit kitchen background staging`;
     }
   }
 
@@ -428,14 +474,31 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const charName = /Shadow\s*Alchemist/i.test(rawCharName) ? "The Shadow Alchemist" : rawCharName;
   const bracketedCharTag = charName ? `[@${charName.replace(/[^a-zA-Z0-9]/g, "")}]` : "";
 
-  const actionCleaned = sanitizeOnScreenText(
-    groundedActionText
-      .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
-      .replace(/\bthe shadow alchemist\b/gi, bracketedCharTag || "The Shadow Alchemist")
-      .replace(/\bthe alchemist\b/gi, bracketedCharTag || "The Shadow Alchemist")
-      .replace(/\s{2,}/g, " ")
-      .replace(/\.{2,}/g, ".")
-      .trim()
+  const normalizeBrightCulinaryAction = (text: string): string => {
+    if (!isCulinary) return text;
+    return text
+      .replace(/\bin a moody workshop\b/gi, "in a brightly lit open daylight kitchen workshop")
+      .replace(/\bdark\s+walnut\b/gi, "natural light-grain oak")
+      .replace(/\bdark\s+wooden\b/gi, "bright natural-oak")
+      .replace(/\bdark\s+wood\b/gi, "warm natural oak")
+      .replace(/\bdark\s+butcher\s+block\b/gi, "bright natural-oak butcher block");
+  };
+
+  const resolvedLighting = isCulinary ? resolveCulinaryLighting(lighting) : lighting;
+  const brightLocationDesc = isCulinary
+    ? resolveBrightCulinaryEnvironment(locationDescription)
+    : locationDescription;
+
+  const actionCleaned = normalizeBrightCulinaryAction(
+    sanitizeOnScreenText(
+      groundedActionText
+        .replace(/\((?:wearing|dressed in)[^)]*\)\s*/gi, "")
+        .replace(/\bthe shadow alchemist\b/gi, bracketedCharTag || "The Shadow Alchemist")
+        .replace(/\bthe alchemist\b/gi, bracketedCharTag || "The Shadow Alchemist")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\.{2,}/g, ".")
+        .trim()
+    )
   );
 
   const resolvedCharacterDescription =
@@ -549,6 +612,13 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   // Culinary negatives to prevent phantom limbs, floating utensils, morphing food, or amateur handheld camera motion
   if (isCulinary) {
     negativeList.push(
+      "dim lighting",
+      "dark room",
+      "underexposed",
+      "muddy shadows",
+      "heavy vignette",
+      "low-key gloomy lighting",
+      "muddy brown tones",
       "phantom hand",
       "third hand",
       "extra arm",
@@ -1097,14 +1167,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   }
 
   const googleFlowPrompt = [
-    taggedAction,
+    normalizeBrightCulinaryAction(taggedAction),
     "",
     `[PRODUCTION SPECS]:`,
     `- Target Duration: ${targetDurationLabel}`,
     `- Aspect Ratio & Orientation: ${orientationLabel}`,
     `- Camera Framing & Lens: ${dynamicLensFraming}`,
     `- Camera Movement & Dynamics: ${cameraMotion}`,
-    `- Lighting: ${lighting || (isCulinary ? "Warm directional culinary studio lighting, soft key illumination on cutting board/pan, appetizing natural food glistening" : isVintage ? "Soft warm natural daylight, gentle dust motes, historical period ambience" : "Natural daylight, soft golden illumination, realistic shadows, documentary realism")}`,
+    `- Lighting: ${resolvedLighting || (isVintage ? "Soft warm natural daylight, gentle dust motes, historical period ambience" : "Natural daylight, soft golden illumination, realistic shadows, documentary realism")}`,
     "",
     `[AUDIO & SCRIPT]:`,
     ...audioScriptLines,
@@ -1139,7 +1209,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
     : `A cinematic ${qualityDescriptor} ${framingDesc} film scene.`;
 
   const klingAesthetics = isCulinary
-    ? `Aesthetics: Ultra-high-definition macro food cinema, 85mm probe lens, f/1.8 shallow depth of field, glistening natural oils, 60fps fluid dynamics, appetizing sizzling textures.`
+    ? `Aesthetics: Ultra-high-definition macro food cinema, 85mm probe macro lens, f/2.4 crisp depth of field, bright 5600K high-visibility daylight exposure, vivid natural color separation, glistening natural oils, 60fps fluid dynamics, appetizing sizzling textures, zero dark room shadows.`
     : isVintage
     ? `Aesthetics: Authentic 1900s archival 35mm film aesthetic, subtle cellulose film grain, warm sepia and muted earth tones, soft optical lens halation, natural textile cloth physics, historical period authenticity.`
     : isGhibli
@@ -1161,7 +1231,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : null,
     `Action & Dynamics: ${actionCleaned}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
-    `Environment & Atmosphere: ${(locationDescription || (isCulinary ? "Master kitchen workstation, end-grain walnut cutting board, seasoned cast-iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : "Authentic film location")).replace(/\.+$/, "")}. Lighting: ${(lighting || (isCulinary ? "warm directional spotlight with soft background blur" : isVintage ? "soft warm historical golden hour sunlight" : isAnimated ? "bright joyful sunny daylight" : "warm golden hour natural afternoon sunlight")).replace(/\.+$/, "")}.${audioPrompt ? ` Foley ambience: ${audioPrompt.replace(/\.+$/, "")}.` : ""}`,
+    `Environment & Atmosphere: ${(brightLocationDesc || (isCulinary ? HIGH_VISIBILITY_WORKSTATION_ENV : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : "Authentic film location")).replace(/\.+$/, "")}. Lighting: ${(resolvedLighting || (isVintage ? "soft warm historical golden hour sunlight" : isAnimated ? "bright joyful sunny daylight" : "warm golden hour natural afternoon sunlight")).replace(/\.+$/, "")}.${audioPrompt ? ` Foley ambience: ${audioPrompt.replace(/\.+$/, "")}.` : ""}`,
     isPureAsmr
       ? `Audio Pace: Pure binaural ASMR culinary Foley — HIGH-VOLUME CLOSE-MIC (peaking at -1dB, loud crisp knife chops, roaring oil sizzle, liquid pour, violent steam hiss). Audio mixed LOUD and punchy with high acoustic presence, zero quiet ambient lull, strictly no dialogue or background music.`
       : hasDialogue
@@ -1214,14 +1284,14 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const fluxCinematography = isInedibleCooking
     ? isSoapTarget
-      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin translucent curly ribbon shavings, glistening golden oil reflections, creamy background bokeh, commercial hotel kitchen lighting.`
+      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on dense unbranded soap bar textures, crisp manufactured edges, paper-thin translucent curly ribbon shavings, glistening golden oil reflections, crisp bright depth clarity, ${resolvedLighting || HIGH_VISIBILITY_CULINARY_LIGHTING}.`
       : isBulbTarget
-      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on vintage amber Edison glass, glowing incandescent spiral tungsten filaments, vibrant multi-colored jewel glass serial rice bulbs, bubbling golden kadai oil reflections, creamy background bokeh, warm industrial directional spotlighting.`
+      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on vintage amber Edison glass, glowing incandescent spiral tungsten filaments, vibrant multi-colored jewel glass serial rice bulbs, bubbling golden kadai oil reflections, crisp bright depth clarity, ${resolvedLighting || HIGH_VISIBILITY_CULINARY_LIGHTING}.`
       : isStoneTarget
-      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on crystalline white quartz facet planes, rough granite textures, silky pure white mineral flour, and continuous translucent silica noodle threads, creamy background bokeh, warm dramatic directional workshop spotlight.`
-      : `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, creamy background bokeh, warm industrial directional spotlight, glistening translucent rosin flux glaze.`
+      ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on crystalline white quartz facet planes, rough granite textures, silky pure white mineral flour, and continuous translucent silica noodle threads, crisp bright depth clarity, ${resolvedLighting || HIGH_VISIBILITY_CULINARY_LIGHTING}.`
+      : `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on authentic technical hardware components, laser-etched legends and metallic contacts, crisp bright depth clarity, ${resolvedLighting || HIGH_VISIBILITY_CULINARY_LIGHTING}, glistening translucent rosin flux glaze.`
     : isCulinary
-    ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, creamy background bokeh, warm kitchen directional spotlight, appetizing natural food glistening.`
+    ? `Cinematography: Shot on 85mm f/1.8 macro probe lens, razor-sharp focus on active ingredient and cutting edge, crisp bright depth clarity, ${resolvedLighting || HIGH_VISIBILITY_CULINARY_LIGHTING}, appetizing natural food glistening.`
     : isVintage
     ? `Cinematography: Shot on early 20th-century vintage 35mm prime lens, authentic cellulose film grain, soft warm sepia and muted earth tones, period-accurate natural daylight, gentle optical bloom, authentic hand-spun khadi textile weave.`
     : isGhibli
@@ -1249,71 +1319,71 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
   const resolvedEnvironment = (() => {
     if (isInedibleCooking && (station === "OBJECT_SOURCING" || station === "RAPID_HOOK")) {
       if (isSoapTarget) {
-        return locationDescription || "Commercial wholesale soap market warehouse with stacked wooden crates filled with hundreds of unbranded laundry washing bars and bath soaps under bright industrial market lighting";
+        return brightLocationDesc || "Brightly lit open sunlit wholesale soap market with stacked natural wooden crates filled with hundreds of unbranded laundry washing bars and bath soaps under crisp 5600K high-visibility daylight";
       }
       if (isBulbTarget) {
-        return locationDescription || "Atmospheric heavy industrial electrical workshop with reinforced steel workbench, yellow hydraulic JCB excavator claw or automated factory conveyor infrastructure, and rustic background brickwork under warm dramatic directional lighting";
+        return brightLocationDesc || "Brightly lit open daylight industrial electrical workshop with clean brushed stainless steel workbench, yellow hydraulic JCB excavator claw or automated factory conveyor infrastructure under crisp 5600K high-visibility overhead daylight";
       }
       if (isStoneTarget) {
-        return locationDescription || "Dramatic mountain rock quarry extraction bench at dusk with rugged granite walls, vibrating industrial steel chute, heavy steel anvil counter, and warm directional golden-hour lighting";
+        return brightLocationDesc || "Bright sunlit mountain rock quarry extraction bench in clear midday daylight with rugged granite walls, vibrating stainless steel chute, heavy steel anvil counter, and crisp natural high-visibility sunlight";
       }
-      if (locationDescription) {
-        const cleaned = locationDescription
+      if (brightLocationDesc) {
+        const cleaned = brightLocationDesc
           .replace(/In the center is a heavy industrial steel workbench.*?wok burner\.?/gi, "")
           .replace(/dark walnut end-grain butcher block.*?wok burner\.?/gi, "")
           .replace(/roaring blue-flame gas wok burner\.?/gi, "")
           .trim();
-        return cleaned || "Atmospheric electronics scrapyard with industrial steel shelving units, stacked retro CRT monitors, green motherboard racks, copper wire spools, and cool cyan neon fog";
+        return cleaned || "Brightly lit daylight technical workshop with clean stainless steel shelving units, retro CRT monitors, green motherboard racks, copper wire spools, and crystal-clear overhead softbox illumination";
       }
-      return "Atmospheric electronics scrapyard with industrial steel shelving units, stacked retro CRT monitors, green motherboard racks, copper wire spools, and cool cyan neon fog";
+      return "Brightly lit daylight technical workshop with clean stainless steel shelving units, retro CRT monitors, green motherboard racks, copper wire spools, and crystal-clear overhead softbox illumination";
     }
     if (isInedibleCooking && (station === "PLATING_SERVE" || station === "HERO_REACTION")) {
       if (isSoapTarget) {
-        return locationDescription || "Commercial Madurai hotel feast table with a giant fresh vibrant green banana leaf on a massive 24-inch polished brass wedding thali, surrounded by small brass bowls";
+        return brightLocationDesc || "Bright sunlit Madurai hotel feast table with a giant fresh vibrant green banana leaf on a massive 24-inch polished brass wedding thali, surrounded by small brass bowls";
       }
       if (isBulbTarget) {
-        return locationDescription || "Traditional Indian festive banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf and small brass katori chutney bowls under warm dramatic directional lighting";
+        return brightLocationDesc || "Brightly lit Indian festive banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf and small brass katori chutney bowls under crisp 5600K daylight illumination";
       }
       if (isStoneTarget) {
-        return locationDescription || "Traditional South Indian banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf, brass katoris of pearly silica glaze and glowing gemstone kurma, with three massive raw uncut white quartz crystal boulders resting in the crisp foreground establishing indisputable proof of the raw mineral material under warm dramatic directional spotlight";
+        return brightLocationDesc || "Bright sunlit South Indian banquet table with a colossal 24-inch embossed polished brass thali lined with fresh emerald banana leaf, brass katoris of pearly silica glaze and glowing gemstone kurma, with three massive raw uncut white quartz crystal boulders resting in the crisp foreground establishing indisputable proof of the raw mineral material under bright 5600K daylight";
       }
-      const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (locationDescription || ""));
+      const isWhitePlate = /white plate|white ceramic|porcelain|coupe plate|swoosh|michelin|plated artwork/i.test(actionCleaned + " " + (brightLocationDesc || ""));
       if (isWhitePlate) {
-        return "Pristine minimalist restaurant studio table with pure black velvet background and focused overhead spotlight illuminating a bright white ceramic plate";
+        return "Bright open minimalist restaurant studio marble table bathed in crisp 5600K daylight illumination, high-key clean background highlighting a white ceramic plate";
       }
     }
-    return locationDescription || (isCulinary ? "Master culinary kitchen, end-grain walnut cutting board, seasoned cast iron skillet" : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny meadow playground" : "Cinematic setting");
+    return brightLocationDesc || (isCulinary ? `${HIGH_VISIBILITY_WORKSTATION_ENV}, seasoned cast iron skillet, crisp airy studio daylight visibility` : isVintage ? "Authentic 1900s historical Pudukkottai town" : isGhibli ? "Lush vibrant green meadow under sunny blue sky with fluffy white clouds" : isKids ? "Bright sunny meadow playground" : "Cinematic setting");
   })();
 
   const fluxAesthetics = isInedibleCooking
     ? (() => {
         if (isSoapTarget) {
           if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-            return `Strict Aesthetics: Authentic transformed physical soap materials (80% visibly identifiable soap components in culinary street format). INEDIBLE ILLUSION & SOAP MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine whole raw unbranded soap bars rest on the rustic dark wood table crowned with delicate frothy white soap lather bubbles and scattered marigold flower petals (a rectangular translucent ultramarine-blue laundry bar, a glowing radiant ruby-red glycerine bar, and a round green herbal soap cake) establishing indisputable visual proof of the raw inedible source materials. Plated generously across the giant vibrant green banana leaf, the glistening inedible soap kothu parotta fills the center: paper-thin translucent ivory soap ribbon curls, distinct vibrant seared ultramarine-blue laundry cubes, glowing glassy translucent ruby-red glycerine gems, and bright emerald-green herbal soap rings all tossed together in a shimmering amber glycerin glaze with delicate frothy iridescent soap lather micro-bubbles along the edges. Accompanied by three brass bowls of glossy white whipped shaving-foam raita dotted with ruby gems, bubbling golden glycerin salna, and crispy golden dried loofah shreds. Strictly NO real cooked chicken, NO shredded meat, NO real wheat flour, NO ordinary brown food, NO dull brown meat piles, NO triangle pyramid cones, NO stiff geometric pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic transformed physical soap materials (80% visibly identifiable soap components in culinary street format). INEDIBLE ILLUSION & SOAP MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine whole raw unbranded soap bars rest on the bright natural golden-oak table crowned with delicate frothy white soap lather bubbles and scattered marigold flower petals (a rectangular translucent ultramarine-blue laundry bar, a glowing radiant ruby-red glycerine bar, and a round green herbal soap cake) establishing indisputable visual proof of the raw inedible source materials. Plated generously across the giant vibrant green banana leaf, the glistening inedible soap kothu parotta fills the center: paper-thin translucent ivory soap ribbon curls, distinct vibrant seared ultramarine-blue laundry cubes, glowing glassy translucent ruby-red glycerine gems, and bright emerald-green herbal soap rings all tossed together in a shimmering amber glycerin glaze with delicate frothy iridescent soap lather micro-bubbles along the edges. Accompanied by three brass bowls of glossy white whipped shaving-foam raita dotted with ruby gems, bubbling golden glycerin salna, and crispy golden dried loofah shreds. Strictly NO real cooked chicken, NO shredded meat, NO real wheat flour, NO ordinary brown food, NO dull brown meat piles, NO triangle pyramid cones, NO stiff geometric pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           if (station === "OBJECT_SOURCING" || station === "RAPID_HOOK") {
-            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (rustic heavy wooden crates, vibrant unbranded colors: ultramarine blue, carbolic yellow, brick red, white grooved, translucent ruby and emerald). Dark distressed timber prep counter under warm directional spotlight. Heavy carbon-steel cleaver split with crystalline shards. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic cookware, NO small frying pans, NO kothu pounding on tawa, NO food, NO meat, NO generic cubes, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic intact physical bars of unbranded commercial laundry washing blocks and bath soaps in wholesale market volume (bright natural timber crates, vibrant unbranded colors: ultramarine blue, carbolic yellow, brick red, white grooved, translucent ruby and emerald). Bright natural-oak prep counter under crisp 5600K high-visibility daylight. Heavy carbon-steel cleaver split with crystalline shards. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic cookware, NO small frying pans, NO kothu pounding on tawa, NO food, NO meat, NO generic cubes, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           if (station === "BOARD_PREP" || station === "CULINARY_CUTTING") {
-            return `Strict Aesthetics: Traditional Japanese wood hand plane vigorously peeling voluminous mountain of paper-thin translucent curly soap ribbons, and sharp cleaver dicing red soap into ruby onion gems and slicing green loofah into emerald rings on dark end-grain wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic frying pans, NO generic plastic cubes, NO meat, NO poultry, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Traditional Japanese wood hand plane vigorously peeling voluminous mountain of paper-thin translucent curly soap ribbons, and sharp cleaver dicing red soap into ruby onion gems and slicing green loofah into emerald rings on a bright natural light-oak butcher block. Ingredients separated into polished brass katori bowls. Strictly NO cooking stoves, NO black iron tawa, NO scrapers on tawa, NO domestic frying pans, NO generic plastic cubes, NO meat, NO poultry, NO triangle pyramids, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           return `Strict Aesthetics: Authentic physical material textures of unbranded commercial laundry washing bars and translucent bath soaps. STREET COOKING REALISM & KOTHU MINCING: Ingredients are actively cooked and spread wide across the flat 3-foot circular black iron tawa. Through furious rhythmic pounding of dual hand steel kothu blades, the ribbons, yellow chunks, and blue/ruby/emerald pieces are crushed, chopped down, minced, and softened into hot, steaming, moist, fluffy, finely shredded street kothu parotta texture while retaining their distinct waxy colors and translucent jewel clarity. Steam billowing, bubbling oil. Strictly NO triangle shapes, NO pyramids, NO geometric cones, NO rigid conical mounds, NO identical triangle piles, NO real cooked chicken, NO brown meat, NO brown food, NO brand logos, NO on-screen text, NO brand names, NO domestic cookware, NO small frying pans, NO tiny portions, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (isBulbTarget) {
           if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-            return `Strict Aesthetics: Authentic transformed physical light bulb and festive serial light materials (80% visibly identifiable bulb components in iconic Indian street food format). INEDIBLE ILLUSION & BULB MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine intact raw vintage Edison bulbs with visible spiral tungsten filaments and a tangled glowing garland of multi-colored festival serial fairy lights rest on the rustic dark wood table, establishing indisputable visual proof of the raw inedible source materials. Plated across a vibrant green banana leaf on the brass thali are three piping-hot, blistered golden triangular samosas; one samosa is shattered open down the center, revealing its steaming interior packed with tangled incandescent spiral tungsten coils, glowing jewel-like red, green, and yellow serial rice bulbs, and miniature brass contact pins nestled like aromatic spices. Accompanied by two polished brass katoris of glowing emerald mint chutney and ruby tamarind glaze. Steam gently billowing. Strictly NO real cooked potatoes, NO real grocery peas, NO soap, NO lather, NO bubbles, NO dull brown food, NO brand logos, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic transformed physical light bulb and festive serial light materials (80% visibly identifiable bulb components in iconic Indian street food format). INEDIBLE ILLUSION & BULB MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine intact raw vintage Edison bulbs with visible spiral tungsten filaments and a tangled glowing garland of multi-colored festival serial fairy lights rest on the bright natural golden-oak table, establishing indisputable visual proof of the raw inedible source materials. Plated across a vibrant green banana leaf on the brass thali are three piping-hot, blistered golden triangular samosas; one samosa is shattered open down the center, revealing its steaming interior packed with tangled incandescent spiral tungsten coils, glowing jewel-like red, green, and yellow serial rice bulbs, and miniature brass contact pins nestled like aromatic spices. Accompanied by two polished brass katoris of glowing emerald mint chutney and ruby tamarind glaze. Steam gently billowing. Strictly NO real cooked potatoes, NO real grocery peas, NO soap, NO lather, NO bubbles, NO dull brown food, NO brand logos, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           if (station === "OBJECT_SOURCING" || station === "RAPID_HOOK") {
-            return `Strict Aesthetics: Authentic intact physical vintage amber glass Edison light bulbs with brass screw bases and vibrant tangled strings of multi-colored festival serial rice bulbs (ruby red, emerald green, warm amber yellow). Heavy mirror-polished brass engineer's ball-peen hammer striking a brass socket with sparking tungsten filaments and brass screws scattering across the dark steel workbench, alongside raw samosa pastry dough and a heavy rolling pin. PRE-COOKING RAW SOURCING STAGE ONLY: Strictly NO frying ladles, NO skimmer spoons, NO cooking stoves, NO boiling oil, NO frying pans, NO deep-frying kadai, NO meat cleavers, NO kitchen knives, NO domestic cookware, NO overhead suspended excavator buckets directly above chef's head, NO soap, NO plastic toys, NO food, NO meat, NO grocery vegetables, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic intact physical vintage amber glass Edison light bulbs with brass screw bases and vibrant tangled strings of multi-colored festival serial rice bulbs (ruby red, emerald green, warm amber yellow). Heavy mirror-polished brass engineer's ball-peen hammer striking a brass socket with sparking tungsten filaments and brass screws scattering across the clean brushed steel workbench, alongside raw samosa pastry dough and a heavy rolling pin. PRE-COOKING RAW SOURCING STAGE ONLY: Strictly NO frying ladles, NO skimmer spoons, NO cooking stoves, NO boiling oil, NO frying pans, NO deep-frying kadai, NO meat cleavers, NO kitchen knives, NO domestic cookware, NO overhead suspended excavator buckets directly above chef's head, NO soap, NO plastic toys, NO food, NO meat, NO grocery vegetables, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           if (station === "BOARD_PREP" || station === "CULINARY_CUTTING") {
-            return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs and multi-colored festival serial lights. Wire shears snipping colorful serial bulbs into clusters, brass pestle crushing amber glass and tungsten filament springs into textured filling, and folded triangular pastry samosa cones packed with glowing bulbs on a dark end-grain wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO soap, NO domestic frying pans, NO real grocery food, NO meat, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs and multi-colored festival serial lights. Wire shears snipping colorful serial bulbs into clusters, brass pestle crushing amber glass and tungsten filament springs into textured filling, and folded triangular pastry samosa cones packed with glowing bulbs on a bright natural light-oak wooden butcher block. Ingredients separated into polished brass katori bowls. Strictly NO soap, NO domestic frying pans, NO real grocery food, NO meat, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           return `Strict Aesthetics: Authentic physical materials of vintage Edison bulbs, glowing tungsten coils, and multi-colored festival serial lights. Deep-frying inside a massive 3-foot cast-iron Indian street halwai kadai filled with violent bubbling golden oil, with perforated brass jhara skimmer. Distinct glowing filaments visible through blistered golden triangular samosa pastry pockets. Billowing steam and sizzling bubbles. Strictly NO soap, NO domestic frying pans, NO real grocery potatoes, NO meat, NO brand logos, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (isStoneTarget) {
           if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-            return `Strict Aesthetics: Authentic transformed physical quartz and granite materials (80% visibly identifiable crystalline mineral noodle components in iconic South Indian / Asian steamed noodle format). INEDIBLE ILLUSION & STONE MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine uncut raw white quartz crystals and rough river granite cobbles rest on the dark timber counter, establishing indisputable visual proof of the raw mineral source materials. Plated across a fresh vibrant green banana leaf on the brass thali are two steaming, feathery Idiyappam noodle nests made of continuous, glistening, TRANSLUCENT OPTICAL-QUARTZ SILICA GLASS THREADS with visible internal light refraction (strictly NOT opaque grocery white noodles). Accompanied by two polished brass katoris: one filled with pearly liquid silica mineral glaze, one with glowing amber mineral kurma packed with faceted raw gemstone crystal cubes (ruby, emerald, and amethyst gems). Delicate wisps of culinary steam curl upward. Black-gloved hands lift a feathery cloud of translucent light-refracting silica noodles with brass chopsticks. Strictly NO opaque white grocery rice noodles, NO instant ramen cakes, NO wheat pasta, NO real grocery food, NO meat, NO chicken, NO brown vegetable curry, NO diced potatoes, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+            return `Strict Aesthetics: Authentic transformed physical quartz and granite materials (80% visibly identifiable crystalline mineral noodle components in iconic South Indian / Asian steamed noodle format). INEDIBLE ILLUSION & STONE MATERIAL REALISM: In the immediate foreground directly in front of the colossal 24-inch polished brass thali, three pristine uncut raw white quartz crystals and rough river granite cobbles rest on the bright natural golden-oak counter, establishing indisputable visual proof of the raw mineral source materials. Plated across a fresh vibrant green banana leaf on the brass thali are two steaming, feathery Idiyappam noodle nests made of continuous, glistening, TRANSLUCENT OPTICAL-QUARTZ SILICA GLASS THREADS with visible internal light refraction (strictly NOT opaque grocery white noodles). Accompanied by two polished brass katoris: one filled with pearly liquid silica mineral glaze, one with glowing amber mineral kurma packed with faceted raw gemstone crystal cubes (ruby, emerald, and amethyst gems). Delicate wisps of culinary steam curl upward. Black-gloved hands lift a feathery cloud of translucent light-refracting silica noodles with brass chopsticks. Strictly NO opaque white grocery rice noodles, NO instant ramen cakes, NO wheat pasta, NO real grocery food, NO meat, NO chicken, NO brown vegetable curry, NO diced potatoes, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
           }
           if (station === "OBJECT_SOURCING" || station === "RAPID_HOOK") {
             return `Strict Aesthetics: Authentic intact physical raw white quartz crystal boulders and rough granite quarry stones. Sledghammer striking raw quartz with golden sparks on heavy anvil block, with vintage vertical brass flywheel Idiyappam extruder and whistling steamer pot staged in the scene. PRE-COOKING RAW SOURCING STAGE ONLY: Strictly NO frying ladles, NO oil pouring, NO cooking stoves, NO boiling oil, NO frying pans, NO deep-frying kadai, NO kitchen knives, NO small domestic tools, NO yellow egg noodles, NO food, NO meat, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
@@ -1394,7 +1464,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       : null,
     `Scene Action: ${actionCleaned}.`,
     `Environment: ${resolvedEnvironment}.`,
-    `Lighting & Mood: ${lighting || (isCulinary ? "Warm culinary studio lighting, soft key illumination, appetizing natural highlights" : isVintage ? "Soft warm historical natural daylight, dusty atmosphere" : isAnimated ? "Bright joyful sunny daylight, warm glowing atmosphere" : "Natural golden hour daylight, soft shadows, warm highlights")}.`,
+    `Lighting & Mood: ${resolvedLighting || (isVintage ? "Soft warm historical natural daylight, dusty atmosphere" : isAnimated ? "Bright joyful sunny daylight, warm glowing atmosphere" : "Natural golden hour daylight, soft shadows, warm highlights")}.`,
     `Camera & Composition: ${dynamicLensFraming}, ${naturalCameraMotion}.`,
     isPureAsmr
       ? `Soundscape & Audio Foley: Pure binaural ASMR culinary Foley — HIGH-VOLUME CLOSE-MIC (peaking at -1dB, loud punchy knife chops on wood, roaring oil sizzle, liquid pouring, violent steam hiss). High-gain audio mix, strictly no spoken dialogue, no voiceover, no background music.`
@@ -1466,7 +1536,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
       ? `Voiceover Context: "${voiceover}"`
       : `Atmosphere: ${audioPrompt || "Quiet rural stillness"}`,
     isCulinary
-      ? `Film Aesthetics: Ultra-high-definition macro food cinema, 85mm probe macro lens optics, appetizing oil sheen, rising steam, zero phantom limbs, zero floating knives.`
+      ? `Film Aesthetics: Ultra-high-definition macro food cinema, 85mm probe macro lens optics, bright 5600K high-visibility daylight exposure, crisp surface colors, appetizing oil sheen, rising steam, zero dark room shadows, zero phantom limbs, zero floating knives.`
       : isVintage
       ? `Film Aesthetics: Authentic 1900s archival 35mm cellulose grain, muted period palette, soft sepia highlights, period-authentic hand-spun khadi, strictly no modern clothing or contemporary artifacts.`
       : isGhibli
@@ -1689,7 +1759,7 @@ export function compileDualHookPrompts(params: {
     characterName = "TheShadowAlchemist",
     characterDescription,
     wardrobeLock = "vintage brass tinker goggles resting on crown, sleek matte-black tactical half-mask with gold cheekline slit vents, charcoal leather artisan apron, matte black nitrile grip gloves",
-    locationDescription = "Dark Walnut End-Grain Butcher Block",
+    locationDescription = HIGH_VISIBILITY_WORKSTATION_ENV,
     aspectRatio = "PORTRAIT_9_16",
     visualStyle = "CULINARY_MACRO_ASMR",
     genre = "Culinary & Cooking ASMR",
@@ -1702,17 +1772,19 @@ export function compileDualHookPrompts(params: {
   const resolvedCharDesc =
     characterDescription?.trim() ||
     "Athletic male artisan culinary alchemist with piercing hazel eyes and swept dark tousled hair";
+  const brightBoardLoc = resolveBrightCulinaryEnvironment(locationDescription);
 
-  const optionA_action = `[0:00 - 0:03] At exact second 0.0, ${bracketedTag}'s black-gloved hands violently slam the raw unworked ${heroObject} directly onto the ${locationDescription} with maximum acoustic force (*LOUD ACOUSTIC THUD*), filling 80% of the frame. Heavy Damascus steel kitchen cleaver strikes down cleanly through the ${heroObject} with a blinding burst of bright golden electrical sparks and scattering fragments (*CRACK-CLANG-SPARK*), while ${bracketedTag} leans forward with piercing hazel eyes locked onto the camera. Rapid 2X high-velocity tempo.`;
+  const optionA_action = `[0:00 - 0:03] At exact second 0.0, ${bracketedTag}'s black-gloved hands violently slam the raw unworked ${heroObject} directly onto the ${brightBoardLoc} with maximum acoustic force (*LOUD ACOUSTIC THUD*), filling 80% of the frame. Heavy Damascus steel kitchen cleaver strikes down cleanly through the ${heroObject} with a blinding burst of bright golden electrical sparks and scattering fragments (*CRACK-CLANG-SPARK*), while ${bracketedTag} leans forward with piercing hazel eyes locked onto the camera. Rapid 2X high-velocity tempo.`;
 
   const optionA_compiled = compileCinematicPrompt({
     actionDescription: optionA_action,
     shotSize: "Extreme Close-Up",
     cameraMovement: "Rapid Top-Down Macro Snap",
+    lighting: HIGH_VISIBILITY_CULINARY_LIGHTING,
     characterName: cleanCharName,
     characterDescription: resolvedCharDesc,
     wardrobeLock,
-    locationDescription,
+    locationDescription: brightBoardLoc,
     heroObject,
     visualStyle,
     genre,
@@ -1726,13 +1798,14 @@ export function compileDualHookPrompts(params: {
   });
 
   const sizzleStation =
-    "Industrial culinary cook station with a scorching-hot, smoking seasoned black street dosa tawa / cast-iron skillet over roaring blue flames";
+    "Brightly lit airy culinary cook station with a scorching-hot, smoking seasoned black street dosa tawa / cast-iron skillet over roaring flames under crisp 5600K high-visibility studio daylight";
   const optionB_action = `[0:00 - 0:03] At exact second 0.0, ${bracketedTag}'s black-gloved hands dump severed ${heroObject} components for ${dishName} onto the scorching-hot smoking iron tawa (*EXPLOSIVE ACOUSTIC SIZZLE TZZZZZ*), filling 80% of the screen. Dual stainless-steel spatulas toss the searing hardware cluster as dense white plumes of steam and bubbling golden oil droplets erupt, lifting a glistening steaming piece with brass chopsticks right toward the 85mm macro lens while ${bracketedTag} watches intently. Lightning 2X tempo.`;
 
   const optionB_compiled = compileCinematicPrompt({
     actionDescription: optionB_action,
     shotSize: "Extreme Close-Up Macro",
     cameraMovement: "Low Angle Oil Surface Push",
+    lighting: HIGH_VISIBILITY_CULINARY_LIGHTING,
     characterName: cleanCharName,
     characterDescription: resolvedCharDesc,
     wardrobeLock,

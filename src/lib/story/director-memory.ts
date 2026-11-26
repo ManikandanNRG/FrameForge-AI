@@ -59,8 +59,18 @@ export const chatApprovePlanSchema = z.object({
         realElement: z.string(),
         inedibleCounterpart: z.string(),
         cookingMethod: z.string(),
+        cookingVessel: z.string().optional(),
       })
     )
+    .optional(),
+  equipmentPlan: z
+    .object({
+      prepTools: z.string().optional(),
+      searingVessel: z.string().optional(),
+      mainCookingVessel: z.string().optional(),
+      utensils: z.string().optional(),
+      servingPlatter: z.string().optional(),
+    })
     .optional(),
 });
 

@@ -9,6 +9,7 @@ import {
 import { detectPhysicalEntities } from "@/lib/story/world-engine";
 import {
   generateInediblePipelineScenes,
+  type DishEquipmentKit,
   type InedibleComparisonRow,
 } from "@/lib/story/inedible-pipeline";
 
@@ -30,6 +31,7 @@ export interface CreateSeriesEpisodeInput {
   dialogueMode?: string;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  equipmentKit?: Partial<DishEquipmentKit>;
   sceneCount?: number;
 }
 
@@ -41,6 +43,7 @@ export interface ReviseSeriesEpisodeInput {
   targetRuntime?: number;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  equipmentKit?: Partial<DishEquipmentKit>;
   sceneCount?: number;
 }
 
@@ -72,6 +75,7 @@ async function persistEpisodeProduction(params: {
   studioEnvironment: string;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  equipmentKit?: Partial<DishEquipmentKit>;
   sceneCount?: number;
   replaceExistingScenes: boolean;
 }) {
@@ -84,6 +88,7 @@ async function persistEpisodeProduction(params: {
     studioEnvironment,
     dishName,
     comparisonTable,
+    equipmentKit,
     sceneCount,
     replaceExistingScenes,
   } = params;
@@ -103,6 +108,7 @@ async function persistEpisodeProduction(params: {
     seriesTitle,
     dishName,
     comparisonTable,
+    equipmentKit,
     sceneCount,
   });
 
@@ -369,6 +375,7 @@ export async function createSeriesEpisode(input: CreateSeriesEpisodeInput) {
     studioEnvironment,
     dishName: input.dishName,
     comparisonTable: input.comparisonTable,
+    equipmentKit: input.equipmentKit,
     sceneCount: input.sceneCount,
     replaceExistingScenes: false,
   });
@@ -438,6 +445,7 @@ export async function reviseSeriesEpisodeInPlace(input: ReviseSeriesEpisodeInput
     studioEnvironment,
     dishName: input.dishName,
     comparisonTable: input.comparisonTable,
+    equipmentKit: input.equipmentKit,
     sceneCount: input.sceneCount,
     replaceExistingScenes: true,
   });

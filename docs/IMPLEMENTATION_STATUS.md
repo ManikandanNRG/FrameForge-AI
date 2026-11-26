@@ -764,6 +764,11 @@
       - Switched Scene 3 in `src/lib/story/inedible-pipeline.ts` and Episode 8 (`cmwx1zz35001mu87k2nxxo5jk`) from conflicting `Top-Down Flat Lay Lock` + full face/goggles to cohesive `Macro Close-Up 45-Degree`, and recompiled all 8 Episode 8 scenes in SQLite.
       - Tested live candidate models against the user's connected Gemini API key and upgraded `GeminiTextProvider` (`src/lib/providers/gemini-text.ts`) to `GEMINI_DEFAULT_MODEL = "gemini-3.5-flash-lite"` (`~1.0s` live latency), backed by `gemini-3-flash-preview` (`~2.1s`), `gemini-3.1-flash-lite` (`~0.7s`), `gemini-3.8-flash` / `gemini-3.5-flash`, and 10-minute transient cooldown tracking.
       - Added regression coverage in `tests/unit/culinary-asmr.test.ts`; verified `npx tsc --noEmit` (`0` errors) and `npx vitest run` (`17 passed / 106 passed`).
+  32. **Dish-Matched Vessel & Equipment Planning + Positive Still-Prompt Hygiene (ADR-054) (2026-11-26)**:
+      - Added `DishEquipmentKit` and `resolveDishEquipmentKit` in `src/lib/story/inedible-pipeline.ts` so every cuisine plans and locks its cookware, tools, utensils, and serving platter (`Biryani` uses a hammered brass `lagan` pan + deep hammered brass `dum handi` + perforated brass `jhara` skimmer/ladle + biryani `thaal`, eliminating street dosa `tawa` leakage).
+      - Extended `ComparisonRow` (`cookingVessel`), `ProposedEpisodePlan` (`equipmentPlan`), AI Director LLM schema & heuristic planner (`src/lib/story/chat-director.ts`), approval schema (`src/lib/story/director-memory.ts`), `CreateSeriesEpisodeInput` / `ReviseSeriesEpisodeInput` (`src/lib/series/episode-service.ts`), and the proposal UI card (`src/components/chat/AiDirectorChatDrawer.tsx`).
+      - Cleaned `fluxStillPrompt` (`src/lib/story/prompt-compiler.ts`) by removing "Pink Elephant" food/limb negative blacklists (`NO pork bacon, NO tofu, NO tomatoes, NO cheese, ZERO third hand...`) from the positive Google Flow Image prompt while retaining them inside `universalNegativePrompt` for `--negative`-capable engines.
+      - Upgraded Episode 8 Scene 5 in SQLite to hammered brass `lagan` pan (`0` `tawa`), added regression tests in `tests/unit/chat-director.test.ts` and `tests/unit/culinary-asmr.test.ts`, and verified `npx tsc --noEmit` (`0` errors) and `npx vitest run` (`17 passed / 107 passed`).
 
 
 

@@ -467,4 +467,41 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
       }
     }
   });
+
+  it("plans Biryani vessel & equipment kit upfront (brass lagan & dum handi, zero street tawa)", async () => {
+    const proposalTurn = await handleDirectorChat({
+      scope: "STUDIO",
+      ownerId: testOwnerId,
+      userMessage: "Plan Episode 10 for Cricket Bat and Leather Ball Biryani in 8 scenes",
+    });
+
+    expect(proposalTurn.proposedEpisodePlan?.dishName.toLowerCase()).toContain("biryani");
+    expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.searingVessel?.toLowerCase()).toContain("brass");
+    expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.mainCookingVessel?.toLowerCase()).toContain("dum handi");
+    expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.searingVessel?.toLowerCase()).not.toContain("tawa");
+    expect(proposalTurn.reply).toContain("Vessel / Equipment");
+
+    const approvedTurn = await handleDirectorChat({
+      scope: "STUDIO",
+      threadId: proposalTurn.threadId,
+      ownerId: testOwnerId,
+      userMessage: "Approved! Create Episode 10",
+      approvePlan: proposalTurn.proposedEpisodePlan,
+    });
+
+    expect(approvedTurn.createdEpisode?.id).toBeTruthy();
+    const ep10Scenes = await prisma.scene.findMany({
+      where: { projectId: approvedTurn.createdEpisode!.id },
+      include: { shots: true },
+      orderBy: { sceneNumber: "asc" },
+    });
+    expect(ep10Scenes).toHaveLength(8);
+    // Scene 5 uses brass biryani lagan pan — NOT flat-top iron tawa
+    expect(ep10Scenes[4].shots[0].actionDescription.toLowerCase()).toContain("brass biryani lagan");
+    expect(ep10Scenes[4].shots[0].actionDescription.toLowerCase()).not.toContain("tawa");
+    // Still prompt avoids Pink-Elephant food negative bloat while universalNegativePrompt preserves them
+    expect(ep10Scenes[0].shots[0].imagePrompt?.toLowerCase()).not.toContain("pork bacon");
+    expect(ep10Scenes[0].shots[0].imagePrompt?.toLowerCase()).not.toContain("tofu");
+    expect(ep10Scenes[0].shots[0].negativeConstraints?.toLowerCase()).toContain("pork bacon");
+  });
 });

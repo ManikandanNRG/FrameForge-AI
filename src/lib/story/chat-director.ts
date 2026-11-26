@@ -49,6 +49,15 @@ export interface ComparisonRow {
   realElement: string;
   inedibleCounterpart: string;
   cookingMethod: string;
+  cookingVessel?: string;
+}
+
+export interface EquipmentPlan {
+  prepTools?: string;
+  searingVessel?: string;
+  mainCookingVessel?: string;
+  utensils?: string;
+  servingPlatter?: string;
 }
 
 export interface ProposedEpisodePlan {
@@ -61,6 +70,7 @@ export interface ProposedEpisodePlan {
   mode?: "CREATE_NEW" | "REVISE_CURRENT";
   targetProjectId?: string;
   comparisonTable?: ComparisonRow[];
+  equipmentPlan?: EquipmentPlan;
 }
 
 export interface DirectorAction {
@@ -78,6 +88,7 @@ export interface DirectorAction {
   sceneCount?: number;
   dishName?: string;
   comparisonTable?: ComparisonRow[];
+  equipmentPlan?: EquipmentPlan;
   targetProjectId?: string;
   proposedEpisodePlan?: ProposedEpisodePlan;
   details?: string;
@@ -186,6 +197,7 @@ async function createEpisodeFromDirectorAction({
     targetRuntime: action.targetRuntime ?? 20,
     dishName: action.dishName,
     comparisonTable: action.comparisonTable,
+    equipmentKit: action.equipmentPlan,
     sceneCount: action.sceneCount,
   });
 
@@ -300,6 +312,7 @@ export async function executeDirectorActions(
         targetRuntime: act.targetRuntime,
         dishName: act.dishName,
         comparisonTable: act.comparisonTable,
+        equipmentKit: act.equipmentPlan,
         sceneCount: act.sceneCount,
       });
 
@@ -558,34 +571,46 @@ function buildHeuristicEpisodeProposal(
 
   if (isCricket) {
     const dishName = "Smoked Willow-Wood Biryani & Spicy Leather-Ball Masala Kofta";
+    const equipmentPlan: EquipmentPlan = {
+      prepTools:
+        "heavy Damascus steel cleaver, razor wood plane, stainless box grater, Indian mixie & granite stone mortar-and-pestle",
+      searingVessel: "wide heavy-bottomed hammered brass biryani lagan pan",
+      mainCookingVessel: "deep heavy-bottomed hammered brass dum handi pot with fitted lid",
+      utensils: "perforated brass jhara slotted skimmer & long-handled brass dum ladle",
+      servingPlatter: "wide embossed brass biryani thaal platter & brass tasting spoon",
+    };
     const comparisonTable: ComparisonRow[] = [
       {
         realElement: "Long-grain Basmati rice / Crispy fried onions",
         inedibleCounterpart: "Fine English willow wood shavings & golden bat-grain splinters",
-        cookingMethod: "Hand-planed & toasted on hot iron tawa",
+        cookingMethod: "Hand-planed & flash-crisped in brass lagan pan (no tawa)",
+        cookingVessel: "Razor wood plane & Hammered brass lagan",
       },
       {
         realElement: "Spiced Tandoori Seekh / Meat skewers",
         inedibleCounterpart: "Stripped rubber bat grip sleeves & cane handle slivers",
-        cookingMethod: "High-heat char-sear with foaming rosin butter",
+        cookingMethod: "Cleaver slice & spiced brass lagan sear",
+        cookingVessel: "Damascus cleaver & Hammered brass lagan",
       },
       {
         realElement: "Stuffed Masala Meatballs / Kofta",
         inedibleCounterpart: "Cracked red stitched leather cricket ball halves & cork/twine core",
-        cookingMethod: "Cleaver split + bubbling crimson glaze reduction",
+        cookingMethod: "Cleaver split + slow-braised in bubbling masala dum handi",
+        cookingVessel: "Damascus cleaver & Hammered brass dum handi",
       },
       {
         realElement: "Ghee Tadka & Aromatic Garnish",
-        inedibleCounterpart: "Crushed cork crumbles, white seam thread & toasted wood dust",
-        cookingMethod: "Smoking brass tadka ladle pour (*TCHRRRR*)",
+        inedibleCounterpart: "Crushed cork crumbles, white seam thread & ground grip spice",
+        cookingMethod: "Mixie/mortar grind + brass tadka pour & dum steam seal",
+        cookingVessel: "Indian mixie + brass jhara & dum handi lid",
       },
     ];
 
     const tableMd = [
-      "| Real Dish Element | Inedible Cricket Component | Cooking Method |",
-      "|---|---|---|",
+      "| Real Dish Element | Inedible Cricket Component | Cooking Method | Vessel / Equipment |",
+      "|---|---|---|---|",
       ...comparisonTable.map(
-        (r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`
+        (r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} | ${r.cookingVessel || equipmentPlan.mainCookingVessel} |`
       ),
     ].join("\n");
 
@@ -599,22 +624,29 @@ function buildHeuristicEpisodeProposal(
       targetRuntime,
       sceneCount,
       comparisonTable,
+      equipmentPlan,
     };
 
-    const reply = `Great idea! Before I update **Episode ${episodeNumber}**, let's align on the dish and visual mapping first:
+    const reply = `Great idea! Before I update **Episode ${episodeNumber}**, let's align on the dish, authentic cooking vessels, and equipment first:
 
 ### 1. Recommended Dish Concept
 **${dishName}**
 *(Or if you prefer **Crispy Willow-Shaving Tempura & Cricket Ball Samosa** or **Cricket Kothu Parotta**, just tell me!)*
 
-### 2. Comparison Table (Real Food vs. Inedible Components)
+### 2. Comparison Table & Equipment Mapping
 ${tableMd}
 
-### 3. Viral Shorts Pacing & Audio Plan
+### 3. Locked Vessel & Equipment Kit (Consistent Across All Scenes)
+- **Prep Tools**: ${equipmentPlan.prepTools}
+- **Searing / Tadka Vessel**: ${equipmentPlan.searingVessel} *(no flat street tawa)*
+- **Main Cooking Vessel**: ${equipmentPlan.mainCookingVessel}
+- **Utensils & Serving**: ${equipmentPlan.utensils} → ${equipmentPlan.servingPlatter}
+
+### 4. Viral Shorts Pacing & Audio Plan
 - **0:00 - 0:03 Pre-Scene Hook**: Macro cleaver slam splitting the red leather cricket ball + willow bat shavings at 0.0s (-1dB high-gain Foley).
 - **Recommended Structure**: **${sceneCount} scenes · ${targetRuntime}s** (${
       sceneCount >= 8
-        ? "expanded high-prep workflow: slam harvest -> spice grinding -> precision dicing & grating -> cleaver chopping & marinade -> whole spice tempering tadka -> masala reduction -> sealed dum pot steam -> hero platter reveal"
+        ? "expanded high-prep workflow: slam harvest -> spice grinding -> precision dicing & grating -> cleaver chopping & marinade -> brass lagan tempering tadka -> dum handi masala reduction -> sealed dum pot steam -> hero platter reveal"
         : "5 high-density scenes"
     }).
 
@@ -636,29 +668,39 @@ Would you like to change the dish, swap any components in the table, or adjust t
 
   const formattedSubject = subject.replace(/\b\w/g, (c) => c.toUpperCase());
   const dishName = `${formattedSubject} Signature Sizzling Crunch Feast`;
+  const equipmentPlan: EquipmentPlan = {
+    prepTools: "Damascus chef knife, sharp stainless shears & mixing bowls",
+    searingVessel: "wide seasoned cast-iron skillet",
+    mainCookingVessel: "deep heavy hammered brass kadai & reduction copper pan",
+    utensils: "long brass cooking chopsticks, stainless slotted skimmer & turner",
+    servingPlatter: "wide bright ceramic platter & brass tasting fork",
+  };
   const comparisonTable: ComparisonRow[] = [
     {
       realElement: "Crispy fried base / Noodles",
       inedibleCounterpart: `${formattedSubject} shaved outer shell & wires`,
-      cookingMethod: "2X cleaver dice & scorching tawa sear",
+      cookingMethod: "2X cleaver dice & scorching pan sear",
+      cookingVessel: equipmentPlan.searingVessel,
     },
     {
-      realElement: "Paneer / Tofu cubes",
+      realElement: "Rich textured bite cubes",
       inedibleCounterpart: `${formattedSubject} dense internal blocks`,
       cookingMethod: "Geometric 1cm dice & golden rosin glaze",
+      cookingVessel: equipmentPlan.prepTools,
     },
     {
       realElement: "Rich dipping chutney / Gravy",
       inedibleCounterpart: `Melted translucent ${formattedSubject} glaze reduction`,
-      cookingMethod: "Brass handi reduction pour",
+      cookingMethod: "Copper/brass reduction pour",
+      cookingVessel: equipmentPlan.mainCookingVessel,
     },
   ];
 
   const tableMd = [
-    "| Real Dish Element | Inedible Component | Cooking Method |",
-    "|---|---|---|",
+    "| Real Dish Element | Inedible Component | Cooking Method | Vessel / Equipment |",
+    "|---|---|---|---|",
     ...comparisonTable.map(
-      (r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} |`
+      (r) => `| ${r.realElement} | ${r.inedibleCounterpart} | ${r.cookingMethod} | ${r.cookingVessel || equipmentPlan.mainCookingVessel} |`
     ),
   ].join("\n");
 
@@ -670,6 +712,7 @@ Would you like to change the dish, swap any components in the table, or adjust t
     targetRuntime,
     sceneCount,
     comparisonTable,
+    equipmentPlan,
   };
 
   const reply = `Let's plan **Episode ${episodeNumber}** together before creating any files:
@@ -677,10 +720,15 @@ Would you like to change the dish, swap any components in the table, or adjust t
 ### 1. Proposed Dish
 **${dishName}** *(Tell me if you'd prefer Biryani, Samosa, Idiyappam, Tempura, or Street Tawa style!)*
 
-### 2. Comparison Table
+### 2. Comparison Table & Equipment Mapping
 ${tableMd}
 
-### 3. Shorts Retention & Audio Setup
+### 3. Locked Vessel & Equipment Kit
+- **Prep Tools**: ${equipmentPlan.prepTools}
+- **Searing / Main Vessel**: ${equipmentPlan.searingVessel} → ${equipmentPlan.mainCookingVessel}
+- **Utensils & Serving**: ${equipmentPlan.utensils} → ${equipmentPlan.servingPlatter}
+
+### 4. Shorts Retention & Audio Setup
 - **Pre-Scene Hook (0:00 - 0:03)**: Tight macro slam at 0.0s + -1dB high-gain close-mic Foley.
 - **Structure**: **${sceneCount} scenes · ${targetRuntime}s**.
 
@@ -861,6 +909,7 @@ export async function handleDirectorChat({
         episodeIdea: planToCreate.sourceIdea,
         dishName: planToCreate.dishName,
         comparisonTable: planToCreate.comparisonTable,
+        equipmentPlan: planToCreate.equipmentPlan,
         episodeNumber: planToCreate.episodeNumber,
         targetRuntime: planToCreate.targetRuntime,
         sceneCount: planToCreate.sceneCount,
@@ -873,6 +922,7 @@ export async function handleDirectorChat({
         episodeIdea: planToCreate.sourceIdea,
         dishName: planToCreate.dishName,
         comparisonTable: planToCreate.comparisonTable,
+        equipmentPlan: planToCreate.equipmentPlan,
         episodeNumber: planToCreate.episodeNumber,
         targetRuntime: planToCreate.targetRuntime,
         sceneCount: planToCreate.sceneCount,
@@ -1031,7 +1081,8 @@ ${memoryBlock}${
 3. If the user pitches a new episode/object (e.g. "Episode ${defaultNextEpNum} cricket bat and ball") OR asks to discuss food & comparison tables:
    - Discuss the creative direction conversationally like a real filmmaker!
    - Propose 1–2 fresh creative culinary dish concepts mapped to the inedible item (distinct from previous episodes in the Series catalog).
-   - Include a clear **Markdown Comparison Table** mapping: | Real Dish Element | Inedible Component | Cooking Method |.
+   - Include a clear **Markdown Comparison Table** mapping: | Real Dish Element | Inedible Component | Cooking Method | Vessel / Equipment |.
+   - Plan & lock a single consistent **Equipment & Vessel Kit** in "equipmentPlan" matching the cuisine (for example, Biryani uses a hammered brass lagan pan + deep hammered brass dum handi + brass jhara skimmer/ladle + brass biryani thaal, NEVER a street dosa tawa).
    - Recommend optimal Shorts runtime (**20s–30s / 4–5 scenes** for >100% APVD vs 60s / 8 scenes) and a 0.0s Acoustic Hook.
    - Ask for the creator's feedback or approval BEFORE creating anything!
    - Populate "proposedEpisodePlan" in the JSON (and keep "actions" empty — NEVER CREATE_EPISODE here!).
@@ -1042,7 +1093,7 @@ ${historySummary || "(none)"}
 
 Return valid JSON:
 {
-  "reply": "markdown response with discussion, comparison table (when planning), and clear question asking for approval",
+  "reply": "markdown response with discussion, 4-column comparison table including Vessel/Equipment, Equipment Kit summary, and clear question asking for approval",
   "proposedEpisodePlan": {
     "episodeNumber": number,
     "title": string,
@@ -1050,7 +1101,8 @@ Return valid JSON:
     "dishName": string,
     "targetRuntime": number,
     "sceneCount": number,
-    "comparisonTable": [{ "realElement": string, "inedibleCounterpart": string, "cookingMethod": string }]
+    "comparisonTable": [{ "realElement": string, "inedibleCounterpart": string, "cookingMethod": string, "cookingVessel": string }],
+    "equipmentPlan": { "prepTools": string, "searingVessel": string, "mainCookingVessel": string, "utensils": string, "servingPlatter": string }
   } | null,
   "actions": []
 }`;
@@ -1059,6 +1111,15 @@ Return valid JSON:
         realElement: z.string(),
         inedibleCounterpart: z.string(),
         cookingMethod: z.string(),
+        cookingVessel: z.string().nullish().transform((v) => v ?? undefined),
+      });
+
+      const EquipmentPlanSchema = z.object({
+        prepTools: z.string().nullish().transform((v) => v ?? undefined),
+        searingVessel: z.string().nullish().transform((v) => v ?? undefined),
+        mainCookingVessel: z.string().nullish().transform((v) => v ?? undefined),
+        utensils: z.string().nullish().transform((v) => v ?? undefined),
+        servingPlatter: z.string().nullish().transform((v) => v ?? undefined),
       });
 
       const ResponseSchema = z.object({
@@ -1075,6 +1136,7 @@ Return valid JSON:
               .nullish()
               .transform((v) => (v && v > 0 ? v : undefined)),
             comparisonTable: z.array(PlanRowSchema).nullish().transform((v) => v ?? undefined),
+            equipmentPlan: EquipmentPlanSchema.nullish().transform((v) => v ?? undefined),
           })
           .nullish()
           .transform((v) => v ?? undefined),

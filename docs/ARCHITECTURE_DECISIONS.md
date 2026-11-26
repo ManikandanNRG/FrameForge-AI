@@ -1004,4 +1004,16 @@ Ensures characters have authentic voices and narrative sound without paid API de
   - `npx tsc --noEmit`: `0` errors.
   - `npx vitest run`: `17` test files / `106` tests passed.
 
+## ADR-054: Dish-Matched Vessel & Equipment Planning + Positive Still-Prompt Hygiene
+- **Date**: 2026-11-26 · **Status**: Implemented & Verified
+- **Context**:
+  - Biryani episodes leaked a flat-top street dosa `tawa` into Scene 5 because `ComparisonRow` only planned ingredients and cooking methods without locking the dish's cookware, prep tools, spoons, and serving platters upfront.
+  - Duplicating long `"Strictly NO tofu, NO pork bacon, NO tomatoes, NO onions, NO cheese slices... ZERO third hand..."` lists inside the positive `fluxStillPrompt` caused "Pink Elephant" token bleed on single-prompt image generators like Google Flow.
+- **Decision**:
+  1. **Upfront Vessel & Equipment Planning (`inedible-pipeline.ts`, `chat-director.ts`, `episode-service.ts`, `director-memory.ts`, `AiDirectorChatDrawer.tsx`)**: Added `resolveDishEquipmentKit()`, `cookingVessel` column in comparison tables, and `equipmentPlan` (`prepTools`, `searingVessel`, `mainCookingVessel`, `utensils`, `servingPlatter`) on proposals—locking Biryani to a hammered brass `lagan` + `dum handi` + brass `jhara`/ladle (zero `tawa`).
+  2. **Positive Still-Prompt Hygiene (`prompt-compiler.ts`)**: Removed food/duplicated-limb blacklists from positive `fluxStillPrompt` text (replaced with positive material fidelity & two-hand cues + `no text or watermarks`), while preserving full negative filters in `universalNegativePrompt`.
+- **Verification**:
+  - `npx tsc --noEmit`: `0` errors.
+  - `npx vitest run`: `17` test files / `107` tests passed.
+
 

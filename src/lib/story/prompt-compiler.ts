@@ -1432,15 +1432,15 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
           return `Strict Aesthetics: Authentic physical materials of quartz mineral dough and extruded silica noodle threads. Machine Lock: strictly identical vintage industrial solid cast-brass VERTICAL extruder press standing upright on the bench, with polished central vertical brass chamber, a large 2-foot brass spoke flywheel mounted on the right side, and a bottom circular bronze die discharging vertically downward onto an emerald banana leaf. Extruding hundreds of ultra-fine, continuous, TRANSLUCENT CRYSTALLINE SILICA-QUARTZ GLASS NOODLE THREADS that sparkle and refract light like optical fiber cables. Tiered perforated brass steamer pot with high-pressure whistling steam activating internal quartz luminescence. Strictly NO horizontal lathe press, NO overhead ceiling screw column, NO opaque white grocery rice noodles, NO edible wheat pasta, NO yellow egg noodles, NO frying oil, NO kadai, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
         }
         if (station === "PLATING_SERVE" || station === "HERO_REACTION") {
-          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Plated dish must be 80% authentic parts of ${heroTargetName}, glistening with culinary glaze on a pristine bright white ceramic plate with high visual contrast. Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          return `Strict Aesthetics: Authentic physical components of ${heroTargetName} preserving genuine contours, surface grain, and material textures. Plated dish shows 80% authentic transformed pieces of ${heroTargetName} glistening with rich culinary glaze on a high-contrast serving platter; photorealistic editorial craft photography, clean frame with no text or watermarks.`;
         }
         if (station === "OBJECT_SOURCING") {
-          return `Strict Aesthetics: Authentic intact hardware of ${heroTargetName} in original manufactured state with genuine metallic and matte textures. Strictly NO cooking stoves, NO cutting boards, NO pans, NO generic cubes, NO food, NO meat, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+          return `Strict Aesthetics: Intact physical hardware of ${heroTargetName} in original manufactured state with genuine metallic, wood, leather, or matte surface textures; photorealistic craft photography, clean frame with no text or watermarks.`;
         }
-        return `Strict Aesthetics: Authentic physical components of ${heroTargetName} (distinct contours, authentic material textures). Strictly NO generic cubes, NO plain plastic blocks, NO dice, NO tofu, NO wheat noodles, NO pasta, NO real grocery food, NO meat, NO pork bacon, NO tomatoes, NO onions, NO cheese slices, NO on-screen text, NO subtitles, NO watermarks, NO CGI, NO 3D render.`;
+        return `Strict Aesthetics: Authentic physical components of ${heroTargetName} with distinct contours, crisp surface grain, and genuine material realism in clean daylight photography; clean frame with no text or watermarks.`;
       })()
     : isCulinary
-    ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural meat marbling and sear, glistening olive oil. Strictly NO plastic or artificial food, NO CGI, NO 3D render, NO extra limbs, NO floating knives, NO morphing ingredients.`
+    ? `Strict Aesthetics: Master food photography award winner, authentic fresh produce, natural marbling and sear, glistening oil highlights, photorealistic photography, clean frame with no text or watermarks.`
     : isVintage
     ? `Strict Aesthetics: Authentic 1900s historical time-capsule realism. Strictly NO modern 4K digital crispness, NO modern collared shirts, NO modern buttoned clothing, NO modern western fashion, NO modern buildings or concrete, NO CGI, NO 3D animation.`
     : isStopMotion
@@ -1491,7 +1491,7 @@ export function compileCinematicPrompt(options: CompilePromptOptions): CompiledP
 
   const fluxTwoHandLock =
     hasRealCharacter || isCulinary
-      ? "Anatomy & Two-Hand Lock: Single frozen keyframe moment depicting ONLY Beat 1. Strictly TWO human hands maximum in the entire image (1 left hand steadying + 1 right hand holding ONE single tool); ZERO third hand, ZERO extra arm, ZERO duplicated limbs."
+      ? "Anatomy & Two-Hand Lock: Single frozen keyframe moment depicting ONLY Beat 1. Strictly TWO human hands maximum in frame (left hand steadying naturally, right hand gripping one active tool cleanly)."
       : null;
 
   const fluxStillPrompt = [

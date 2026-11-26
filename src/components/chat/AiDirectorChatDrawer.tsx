@@ -56,6 +56,15 @@ interface ComparisonRow {
   realElement: string;
   inedibleCounterpart: string;
   cookingMethod: string;
+  cookingVessel?: string;
+}
+
+interface EquipmentPlan {
+  prepTools?: string;
+  searingVessel?: string;
+  mainCookingVessel?: string;
+  utensils?: string;
+  servingPlatter?: string;
 }
 
 interface ProposedEpisodePlan {
@@ -68,6 +77,7 @@ interface ProposedEpisodePlan {
   mode?: "CREATE_NEW" | "REVISE_CURRENT";
   targetProjectId?: string;
   comparisonTable?: ComparisonRow[];
+  equipmentPlan?: EquipmentPlan;
 }
 
 interface ChatMessage {
@@ -776,6 +786,26 @@ export function AiDirectorChatDrawer({
                           <div className="text-xs font-bold text-white">
                             {m.proposedEpisodePlan!.dishName}
                           </div>
+                          {m.proposedEpisodePlan!.equipmentPlan?.mainCookingVessel && (
+                            <div className="text-[11px] text-slate-300 bg-slate-950/60 px-2.5 py-1.5 rounded-lg border border-slate-800 space-y-0.5">
+                              {m.proposedEpisodePlan!.equipmentPlan.searingVessel && (
+                                <p>
+                                  <span className="text-amber-400 font-semibold">Searing Pan:</span>{" "}
+                                  {m.proposedEpisodePlan!.equipmentPlan.searingVessel}
+                                </p>
+                              )}
+                              <p>
+                                <span className="text-amber-400 font-semibold">Main Vessel:</span>{" "}
+                                {m.proposedEpisodePlan!.equipmentPlan.mainCookingVessel}
+                              </p>
+                              {m.proposedEpisodePlan!.equipmentPlan.utensils && (
+                                <p>
+                                  <span className="text-amber-400 font-semibold">Utensils:</span>{" "}
+                                  {m.proposedEpisodePlan!.equipmentPlan.utensils}
+                                </p>
+                              )}
+                            </div>
+                          )}
                           <button
                             type="button"
                             disabled={loading}

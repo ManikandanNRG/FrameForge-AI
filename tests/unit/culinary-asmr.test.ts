@@ -303,6 +303,10 @@ describe("Culinary ASMR & Dynamic Camera Engine", () => {
     // Video prompt still keeps all 3 beats for 8-second motion
     expect(bundle.googleFlowPrompt).toContain("Four-sided stainless box grater");
     expect(bundle.googleFlowPrompt).toContain("Fingers toss grains inside a glass bowl");
+    // Still prompt avoids Pink-Elephant food & duplicated-limb blacklists while Kling/Negative matrix preserves them
+    expect(bundle.fluxStillPrompt.toLowerCase()).not.toContain("pork bacon");
+    expect(bundle.fluxStillPrompt.toLowerCase()).not.toContain("tofu");
+    expect(bundle.fluxStillPrompt.toLowerCase()).not.toContain("third hand");
     // Negative matrix blocks 3-hand artifacts
     expect(bundle.universalNegativePrompt).toContain("three hands");
     expect(bundle.universalNegativePrompt).toContain("extra arms");

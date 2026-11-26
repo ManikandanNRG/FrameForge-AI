@@ -22,6 +22,82 @@ export interface InedibleComparisonRow {
   realElement: string;
   inedibleCounterpart: string;
   cookingMethod: string;
+  cookingVessel?: string;
+}
+
+export interface DishEquipmentKit {
+  prepTools: string;
+  searingVessel: string;
+  mainCookingVessel: string;
+  utensils: string;
+  servingPlatter: string;
+}
+
+/**
+ * Resolves a single dish-authentic cookware & utensil kit so prep knives, spoons,
+ * skimmers, searing pans, and main pots stay 100% consistent across all scenes.
+ */
+export function resolveDishEquipmentKit(params: {
+  dishName?: string;
+  sourceIdea?: string;
+  heroObject?: string;
+  isLargeObject?: boolean;
+}): DishEquipmentKit {
+  const combined = `${params.dishName || ""} ${params.sourceIdea || ""} ${params.heroObject || ""}`.toLowerCase();
+
+  if (/\b(biryani|dum|pulao|handi)\b/i.test(combined)) {
+    return {
+      prepTools:
+        "heavy Damascus steel cleaver, razor wood hand plane, stainless box grater, heavy-duty Indian mixie & granite stone mortar-and-pestle",
+      searingVessel: "wide heavy-bottomed hammered brass biryani lagan pan",
+      mainCookingVessel: "deep heavy-bottomed hammered brass dum handi pot with fitted lid",
+      utensils: "perforated brass jhara slotted skimmer & long-handled brass dum karchhi ladle",
+      servingPlatter: "wide embossed brass biryani thaal platter & brass tasting spoon",
+    };
+  }
+
+  if (/\b(kothu|parotta|dosa|street\s*tawa|nokia)\b/i.test(combined)) {
+    return {
+      prepTools:
+        "heavy Damascus cleaver, dual stainless steel kothu chopping blades, Japanese hand plane & Indian stainless mixie",
+      searingVessel: "seasoned 3-foot circular black street iron tawa",
+      mainCookingVessel: "seasoned 3-foot circular black street iron tawa & hammered brass handi reduction pot",
+      utensils: "dual wide stainless steel street-food spatulas & smoking brass tadka ladle",
+      servingPlatter: "traditional 24-inch embossed brass thali lined with fresh green banana leaf",
+    };
+  }
+
+  if (/\b(idiyappam|string\s*hopper|idli|steamed)\b/i.test(combined)) {
+    return {
+      prepTools: "colossal twin 4-foot granite edge-runner mill, brass scoop shovel & marble kneading slab",
+      searingVessel: "heavy solid cast-brass vertical flywheel extruder press",
+      mainCookingVessel: "tiered perforated brass high-pressure idiyappam steamer pot",
+      utensils: "curved wet brass spoon & polished brass chopsticks",
+      servingPlatter: "colossal 24-inch embossed brass thali lined with fresh banana leaf & brass katoris",
+    };
+  }
+
+  if (/\b(samosa|tempura|pakora|fritter|fried)\b/i.test(combined)) {
+    return {
+      prepTools: "heavy Damascus cleaver, ball-peen brass hammer, wire snips & heavy wooden rolling pin",
+      searingVessel: "massive 3-foot deep circular cast-iron Indian halwai kadai",
+      mainCookingVessel: "massive 3-foot deep circular cast-iron Indian halwai kadai",
+      utensils: "long perforated brass jhara frying skimmer & elevated steel wire rack",
+      servingPlatter: "traditional embossed brass thali lined with fresh banana leaf & brass chutney katoris",
+    };
+  }
+
+  return {
+    prepTools: "heavy Damascus chef knife, precision extraction tools & stainless mixing bowls",
+    searingVessel: params.isLargeObject
+      ? "oversized heavy-bottomed hammered brass sauté pan"
+      : "wide seasoned cast-iron skillet",
+    mainCookingVessel: params.isLargeObject
+      ? "giant deep heavy-bottomed catering kadai & flat-top griddle"
+      : "seasoned carbon-steel wok & reduction copper saucepan",
+    utensils: "long brass cooking chopsticks, stainless turner spatula & slatted strainer",
+    servingPlatter: "wide bright white ceramic coupe plate & tasting fork",
+  };
 }
 
 export interface InediblePipelineResult {
@@ -30,6 +106,7 @@ export interface InediblePipelineResult {
   synopsis: string;
   scenes: InedibleSceneTemplate[];
   thumbnailPrompt: string;
+  equipmentKit: DishEquipmentKit;
 }
 
 export function generateInediblePipelineScenes(params: {
@@ -41,6 +118,7 @@ export function generateInediblePipelineScenes(params: {
   seriesTitle?: string;
   dishName?: string;
   comparisonTable?: InedibleComparisonRow[];
+  equipmentKit?: Partial<DishEquipmentKit>;
   sceneCount?: number;
 }): InediblePipelineResult {
   const {
@@ -52,6 +130,7 @@ export function generateInediblePipelineScenes(params: {
     seriesTitle = "The Shadow Alchemist — Inedible ASMR",
     dishName,
     comparisonTable,
+    equipmentKit: customEquipmentKit,
     sceneCount,
   } = params;
 
@@ -61,6 +140,20 @@ export function generateInediblePipelineScenes(params: {
     specs.category === "BULK_NOKIA_PHONES" ||
     /\b(nokia|3310|1100|brick phones?|feature phones?|keypad phones?|bulk phones?)\b/i.test(`${heroObject} ${sourceIdea}`);
   const isLargeObject = Boolean(specs.isLargeObject);
+
+  const defaultKit = resolveDishEquipmentKit({
+    dishName,
+    sourceIdea,
+    heroObject,
+    isLargeObject,
+  });
+  const kit: DishEquipmentKit = {
+    prepTools: customEquipmentKit?.prepTools?.trim() || defaultKit.prepTools,
+    searingVessel: customEquipmentKit?.searingVessel?.trim() || defaultKit.searingVessel,
+    mainCookingVessel: customEquipmentKit?.mainCookingVessel?.trim() || defaultKit.mainCookingVessel,
+    utensils: customEquipmentKit?.utensils?.trim() || defaultKit.utensils,
+    servingPlatter: customEquipmentKit?.servingPlatter?.trim() || defaultKit.servingPlatter,
+  };
 
   const totalScenes = sceneCount
     ? Math.min(8, Math.max(5, Math.round(sceneCount)))
@@ -354,11 +447,10 @@ export function generateInediblePipelineScenes(params: {
     const row3 = comparisonTable[3] ?? comparisonTable[comparisonTable.length - 1];
     const targetDish = dishName?.trim() || `${heroObject} Signature Feast`;
     const isBiryani = /biryani|dum|handi|pulao/i.test(`${targetDish} ${sourceIdea}`);
-    const vesselForDish = isBiryani
-      ? "heavy-bottomed hammered brass dum handi pot & cast-iron spice tawa"
-      : isLargeObject
-      ? "oversized industrial steel catering tawa & giant catering kadai"
-      : "seasoned cast-iron griddle & copper reduction pot";
+    const vesselForDish = kit.mainCookingVessel;
+    const searingVessel = kit.searingVessel;
+    const utensilDesc = kit.utensils;
+    const servingPlatter = kit.servingPlatter;
 
     for (let i = 0; i < totalScenes; i++) {
       const tc = timecodeFor(i);
@@ -407,21 +499,21 @@ export function generateInediblePipelineScenes(params: {
       } else if (sceneNum === 5 && totalScenes >= 8) {
         scenes.push({
           num: 5,
-          heading: `INT. BRIGHT DAYLIGHT COOK STATION - WHOLE SPICE TADKA & CRISPY SEAR (${row1.realElement.toUpperCase()}) ${tc.label}`,
-          action: `[${tc.start}] Beat 1: Over the bright high-visibility stove station, foaming spiced butter melts rapidly across the hot seasoned iron tawa (*TZZZZ*). Beat 2: Whole dry spices crackle violently into the oil (*POP-CRACKLE-TCHRRRR*). Beat 3: ${row1.inedibleCounterpart} hits the scorching surface and flash-fries into crisp golden-brown ${row1.realElement}-style ribbons (*CHHHHH*). Beat 4: Dual stainless spatulas rapidly toss and lift aerated golden layers up into crisp daylight steam.`,
+          heading: `INT. BRIGHT DAYLIGHT COOK STATION - WHOLE SPICE TEMPERING & CRISPY SEAR (${row1.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Beat 1: Over the bright high-visibility cook station inside the ${searingVessel}, foaming spiced butter and aromatic ghee shimmer cleanly (*TZZZZ*). Beat 2: Whole dry spices crackle sharply inside the deep vessel (*POP-CRACKLE-TCHRRRR*). Beat 3: ${row1.inedibleCounterpart} drops cleanly into the ${searingVessel} and flash-fries into crisp golden-brown ${row1.realElement}-style ribbons (*CHHHHH*). Beat 4: Using the ${utensilDesc}, chef deftly lifts and drains gleaming golden crisp layers against bright daylight steam.`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Low Angle Oil Surface Push",
-          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive tadka oil sputter (*TCHRRRR*), fierce iron tawa sizzle (*TZZZZZZZZ*), crisp golden ribbon rustle.`,
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive tadka oil sputter (*TCHRRRR*), fierce crisp frying crackle (*TZZZZZZZZ*), crisp golden ribbon rustle.`,
           estimatedDurationSeconds: tc.duration,
         });
       } else if (sceneNum === totalScenes - 2) {
         scenes.push({
           num: sceneNum,
           heading: `INT. BRIGHT DAYLIGHT COOK STATION - ${row2.realElement.toUpperCase()} SEAR & MASALA REDUCTION ${tc.label}`,
-          action: `[${tc.start}] Beat 1: Inside the gleaming ${vesselForDish} under crisp 5600K daylight, foaming spiced oil roars at high heat (*TZZZZZZZZ*). Beat 2: ${row2.inedibleCounterpart} drops in for rapid high-heat searing until blistered and glossy (*CHHHHH*). Beat 3: Chef pours bubbling crimson masala gravy packed with ground ${row3.inedibleCounterpart} across the searing hardware (*GLOOP-GLOOP*). Beat 4: Rapid paddle stir folds everything into a thick steaming reduction glaze.`,
+          action: `[${tc.start}] Beat 1: Inside the gleaming ${vesselForDish} under crisp 5600K daylight, foaming spiced oil roars at high heat (*TZZZZZZZZ*). Beat 2: ${row2.inedibleCounterpart} drops in for rapid high-heat searing until blistered and glossy (*CHHHHH*). Beat 3: Chef pours bubbling crimson masala gravy packed with ground ${row3.inedibleCounterpart} across the searing hardware (*GLOOP-GLOOP*). Beat 4: Stirring steadily with the ${utensilDesc}, chef folds everything into a thick steaming reduction glaze.`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Low Angle Oil Surface Push",
-          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive foaming sear roar (*TZZZZZZZZ*), thick masala bubble (*GLOOP-GLOOP*), metal utensil clatter.`,
+          foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive foaming sear roar (*TZZZZZZZZ*), thick masala bubble (*GLOOP-GLOOP*), brass ladle utensil clatter.`,
           estimatedDurationSeconds: tc.duration,
         });
       } else if (sceneNum === totalScenes - 1) {
@@ -431,7 +523,7 @@ export function generateInediblePipelineScenes(params: {
         scenes.push({
           num: sceneNum,
           heading: `INT. COOK STATION - ${isBiryani ? "LAYERED DUM POT SEAL & AROMATIC STEAM" : "UNIFIED GLAZE REDUCTION & MERGE"} ${tc.label}`,
-          action: `[${tc.start}] Grand assembly of ${targetDish} inside the ${vesselForDish}: Chef rhythmically layers and folds all transformed components together — ${extraRows}. ${
+          action: `[${tc.start}] Grand assembly of ${targetDish} inside the ${vesselForDish} using the ${utensilDesc}: Chef rhythmically layers and folds all transformed components together — ${extraRows}. ${
             isBiryani
               ? "Seals the brass dum handi rim with braided foil/dough ring and lifts the heavy lid in a towering burst of fragrant steam (*WHOOSH-HISS*), revealing colorful saffron-stained layers."
               : "Pours thick bubbling translucent glaze reduction over the layered medley, tossing vigorously until every rigid hardware texture gleams (*SSSSSHHHH*)."
@@ -445,7 +537,7 @@ export function generateInediblePipelineScenes(params: {
         scenes.push({
           num: sceneNum,
           heading: `INT. HERO SHOWCASE - ${targetDish.toUpperCase()} PLATING, REVEAL PULL & CHEF THUMBS-UP ${tc.label}`,
-          action: `[${tc.start}] Hero plating of ${targetDish}: Black-gloved hands scoop an abundant steaming feast portion (${row0.inedibleCounterpart} & ${row2.inedibleCounterpart}) onto a contrasting wide platter flanked by a raw intact ${heroObject} for visual proof. Chef lifts a dramatic macro fork/spoonful showing tender glazed layers stretching with rising culinary steam (*SHHH-SLIDE*), then camera tilts smoothly to [@TheShadowAlchemist] in brass goggles and matte-black tactical mask giving a calm nod and confident thumbs-up. Seamless kinetic angle back to Scene 1!`,
+          action: `[${tc.start}] Hero plating of ${targetDish}: Black-gloved hands ladle an abundant steaming feast portion (${row0.inedibleCounterpart} & ${row2.inedibleCounterpart}) onto the ${servingPlatter} flanked by a raw intact ${heroObject} for visual proof. Chef lifts a dramatic macro tasting portion showing tender glazed layers stretching with rising culinary steam (*SHHH-SLIDE*), then camera tilts smoothly to [@TheShadowAlchemist] in brass goggles and matte-black tactical mask giving a calm nod and confident thumbs-up. Seamless kinetic angle back to Scene 1!`,
           shotSize: "Extreme Close-Up to Medium Up-Tilt",
           cameraMovement: "Macro Pull and Slow Tilt Up",
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Crisp platter serving contact (*SHHH-SLIDE*), moist tender pull sound, steaming sigh through mask vents. Ending cleanly on loop transition.`,
@@ -562,5 +654,6 @@ export function generateInediblePipelineScenes(params: {
     synopsis,
     scenes,
     thumbnailPrompt,
+    equipmentKit: kit,
   };
 }

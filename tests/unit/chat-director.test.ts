@@ -476,8 +476,11 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
     });
 
     expect(proposalTurn.proposedEpisodePlan?.dishName.toLowerCase()).toContain("biryani");
-    expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.searingVessel?.toLowerCase()).toContain("brass");
+    expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.searingVessel?.toLowerCase()).toContain("dum handi");
     expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.mainCookingVessel?.toLowerCase()).toContain("dum handi");
+    expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.searingVessel).toBe(
+      proposalTurn.proposedEpisodePlan?.equipmentPlan?.mainCookingVessel
+    );
     expect(proposalTurn.proposedEpisodePlan?.equipmentPlan?.searingVessel?.toLowerCase()).not.toContain("tawa");
     expect(proposalTurn.reply).toContain("Vessel / Equipment");
 
@@ -496,8 +499,8 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
       orderBy: { sceneNumber: "asc" },
     });
     expect(ep10Scenes).toHaveLength(8);
-    // Scene 5 uses brass biryani lagan pan — NOT flat-top iron tawa
-    expect(ep10Scenes[4].shots[0].actionDescription.toLowerCase()).toContain("brass biryani lagan");
+    // Scene 5 uses the identical hammered brass dum handi pot as Scenes 6 & 7 — NOT flat-top iron tawa or wok
+    expect(ep10Scenes[4].shots[0].actionDescription.toLowerCase()).toContain("brass biryani dum handi");
     expect(ep10Scenes[4].shots[0].actionDescription.toLowerCase()).not.toContain("tawa");
     // Still prompt avoids Pink-Elephant food negative bloat while universalNegativePrompt preserves them
     expect(ep10Scenes[0].shots[0].imagePrompt?.toLowerCase()).not.toContain("pork bacon");

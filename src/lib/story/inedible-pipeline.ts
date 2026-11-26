@@ -46,12 +46,14 @@ export function resolveDishEquipmentKit(params: {
   const combined = `${params.dishName || ""} ${params.sourceIdea || ""} ${params.heroObject || ""}`.toLowerCase();
 
   if (/\b(biryani|dum|pulao|handi)\b/i.test(combined)) {
+    const identicalHandiPot =
+      "identical deep wide-mouth bulbous hammered brass biryani dum handi pot with curved rolled brass rim and dimpled surface (zero side wok handles, stationary heavy stove burner)";
     return {
       prepTools:
         "heavy Damascus steel cleaver, razor wood hand plane, stainless box grater, heavy-duty Indian mixie & granite stone mortar-and-pestle",
-      searingVessel: "wide heavy-bottomed hammered brass biryani lagan pan",
-      mainCookingVessel: "deep heavy-bottomed hammered brass dum handi pot with fitted lid",
-      utensils: "perforated brass jhara slotted skimmer & long-handled brass dum karchhi ladle",
+      searingVessel: identicalHandiPot,
+      mainCookingVessel: identicalHandiPot,
+      utensils: "long-handled flat perforated brass biryani karchhi ladle",
       servingPlatter: "wide embossed brass biryani thaal platter & brass tasting spoon",
     };
   }
@@ -499,8 +501,8 @@ export function generateInediblePipelineScenes(params: {
       } else if (sceneNum === 5 && totalScenes >= 8) {
         scenes.push({
           num: 5,
-          heading: `INT. BRIGHT DAYLIGHT COOK STATION - WHOLE SPICE TEMPERING & CRISPY SEAR (${row1.realElement.toUpperCase()}) ${tc.label}`,
-          action: `[${tc.start}] Beat 1: Over the bright high-visibility cook station inside the ${searingVessel}, foaming spiced butter and aromatic ghee shimmer cleanly (*TZZZZ*). Beat 2: Whole dry spices crackle sharply inside the deep vessel (*POP-CRACKLE-TCHRRRR*). Beat 3: ${row1.inedibleCounterpart} drops cleanly into the ${searingVessel} and flash-fries into crisp golden-brown ${row1.realElement}-style ribbons (*CHHHHH*). Beat 4: Using the ${utensilDesc}, chef deftly lifts and drains gleaming golden crisp layers against bright daylight steam.`,
+          heading: `INT. BRIGHT DAYLIGHT COOK STATION - WHOLE SPICE TADKA & CRISPY BIRISTA IN BRASS DUM HANDI (${row1.realElement.toUpperCase()}) ${tc.label}`,
+          action: `[${tc.start}] Beat 1: Tight rim-level macro view inside the ${searingVessel} under crisp 5600K daylight as chef stirs aromatic golden spiced ghee, crackling whole spices, and ${row1.inedibleCounterpart} with a ${utensilDesc} (*TZZZZ*). Beat 2: Whole spices pop violently inside the deep dimpled brass handi pot (*POP-CRACKLE-TCHRRRR*). Beat 3: ${row1.inedibleCounterpart} flash-fries evenly inside the same wide hammered brass dum handi pot into crisp amber-gold ${row1.realElement}-style ribbons (*CHHHHH*). Beat 4: Lifting gleaming golden crisp ribbons upward in the brass ladle against bright daylight steam.`,
           shotSize: "Macro Close-Up 45-Degree",
           cameraMovement: "Low Angle Oil Surface Push",
           foley: `HIGH-VOLUME CLOSE-MIC ASMR (-1dB peak): Explosive tadka oil sputter (*TCHRRRR*), fierce crisp frying crackle (*TZZZZZZZZ*), crisp golden ribbon rustle.`,

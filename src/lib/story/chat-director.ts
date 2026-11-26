@@ -571,38 +571,40 @@ function buildHeuristicEpisodeProposal(
 
   if (isCricket) {
     const dishName = "Smoked Willow-Wood Biryani & Spicy Leather-Ball Masala Kofta";
+    const identicalHandiPot =
+      "identical deep wide-mouth bulbous hammered brass biryani dum handi pot with curved rolled brass rim and dimpled surface (zero side wok handles, stationary heavy stove burner)";
     const equipmentPlan: EquipmentPlan = {
       prepTools:
         "heavy Damascus steel cleaver, razor wood plane, stainless box grater, Indian mixie & granite stone mortar-and-pestle",
-      searingVessel: "wide heavy-bottomed hammered brass biryani lagan pan",
-      mainCookingVessel: "deep heavy-bottomed hammered brass dum handi pot with fitted lid",
-      utensils: "perforated brass jhara slotted skimmer & long-handled brass dum ladle",
+      searingVessel: identicalHandiPot,
+      mainCookingVessel: identicalHandiPot,
+      utensils: "long-handled flat perforated brass biryani karchhi ladle",
       servingPlatter: "wide embossed brass biryani thaal platter & brass tasting spoon",
     };
     const comparisonTable: ComparisonRow[] = [
       {
         realElement: "Long-grain Basmati rice / Crispy fried onions",
         inedibleCounterpart: "Fine English willow wood shavings & golden bat-grain splinters",
-        cookingMethod: "Hand-planed & flash-crisped in brass lagan pan (no tawa)",
-        cookingVessel: "Razor wood plane & Hammered brass lagan",
+        cookingMethod: "Hand-planed & flash-crisped in hammered brass dum handi (no tawa/wok)",
+        cookingVessel: "Razor wood plane & Hammered brass dum handi pot",
       },
       {
         realElement: "Spiced Tandoori Seekh / Meat skewers",
         inedibleCounterpart: "Stripped rubber bat grip sleeves & cane handle slivers",
-        cookingMethod: "Cleaver slice & spiced brass lagan sear",
-        cookingVessel: "Damascus cleaver & Hammered brass lagan",
+        cookingMethod: "Cleaver slice & spiced sauté inside hammered brass dum handi",
+        cookingVessel: "Damascus cleaver & Hammered brass dum handi pot",
       },
       {
         realElement: "Stuffed Masala Meatballs / Kofta",
         inedibleCounterpart: "Cracked red stitched leather cricket ball halves & cork/twine core",
         cookingMethod: "Cleaver split + slow-braised in bubbling masala dum handi",
-        cookingVessel: "Damascus cleaver & Hammered brass dum handi",
+        cookingVessel: "Damascus cleaver & Hammered brass dum handi pot",
       },
       {
         realElement: "Ghee Tadka & Aromatic Garnish",
         inedibleCounterpart: "Crushed cork crumbles, white seam thread & ground grip spice",
-        cookingMethod: "Mixie/mortar grind + brass tadka pour & dum steam seal",
-        cookingVessel: "Indian mixie + brass jhara & dum handi lid",
+        cookingMethod: "Mixie/mortar grind + brass tadka tempering & dum steam seal",
+        cookingVessel: "Indian mixie + brass biryani ladle & dum handi lid",
       },
     ];
 
@@ -1082,7 +1084,7 @@ ${memoryBlock}${
    - Discuss the creative direction conversationally like a real filmmaker!
    - Propose 1–2 fresh creative culinary dish concepts mapped to the inedible item (distinct from previous episodes in the Series catalog).
    - Include a clear **Markdown Comparison Table** mapping: | Real Dish Element | Inedible Component | Cooking Method | Vessel / Equipment |.
-   - Plan & lock a single consistent **Equipment & Vessel Kit** in "equipmentPlan" matching the cuisine (for example, Biryani uses a hammered brass lagan pan + deep hammered brass dum handi + brass jhara skimmer/ladle + brass biryani thaal, NEVER a street dosa tawa).
+   - Plan & lock ONE consistent **Equipment & Vessel Kit** in "equipmentPlan" matching the cuisine (for example, Biryani locks ONE identical deep wide-mouth bulbous hammered brass dum handi pot across tempering, searing, and dum — searingVessel = mainCookingVessel — plus a long-handled brass karchhi ladle and brass biryani thaal; NEVER switch from a wok/lagan/tawa between cooking scenes).
    - Recommend optimal Shorts runtime (**20s–30s / 4–5 scenes** for >100% APVD vs 60s / 8 scenes) and a 0.0s Acoustic Hook.
    - Ask for the creator's feedback or approval BEFORE creating anything!
    - Populate "proposedEpisodePlan" in the JSON (and keep "actions" empty — NEVER CREATE_EPISODE here!).

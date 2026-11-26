@@ -1007,10 +1007,10 @@ Ensures characters have authentic voices and narrative sound without paid API de
 ## ADR-054: Dish-Matched Vessel & Equipment Planning + Positive Still-Prompt Hygiene
 - **Date**: 2026-11-26 · **Status**: Implemented & Verified
 - **Context**:
-  - Biryani episodes leaked a flat-top street dosa `tawa` into Scene 5 because `ComparisonRow` only planned ingredients and cooking methods without locking the dish's cookware, prep tools, spoons, and serving platters upfront.
+  - Biryani episodes leaked a flat-top street dosa `tawa` (and subsequently a mismatched shallow `lagan`/wok on a portable camp stove in Scene 5 vs the `dum handi` in Scenes 6–7) because `ComparisonRow` only planned ingredients and cooking methods without locking one consistent vessel across all cooking scenes.
   - Duplicating long `"Strictly NO tofu, NO pork bacon, NO tomatoes, NO onions, NO cheese slices... ZERO third hand..."` lists inside the positive `fluxStillPrompt` caused "Pink Elephant" token bleed on single-prompt image generators like Google Flow.
 - **Decision**:
-  1. **Upfront Vessel & Equipment Planning (`inedible-pipeline.ts`, `chat-director.ts`, `episode-service.ts`, `director-memory.ts`, `AiDirectorChatDrawer.tsx`)**: Added `resolveDishEquipmentKit()`, `cookingVessel` column in comparison tables, and `equipmentPlan` (`prepTools`, `searingVessel`, `mainCookingVessel`, `utensils`, `servingPlatter`) on proposals—locking Biryani to a hammered brass `lagan` + `dum handi` + brass `jhara`/ladle (zero `tawa`).
+  1. **Upfront Vessel & Equipment Planning (`inedible-pipeline.ts`, `chat-director.ts`, `episode-service.ts`, `director-memory.ts`, `AiDirectorChatDrawer.tsx`)**: Added `resolveDishEquipmentKit()`, `cookingVessel` column in comparison tables, and `equipmentPlan` (`prepTools`, `searingVessel`, `mainCookingVessel`, `utensils`, `servingPlatter`) on proposals—unifying Biryani `searingVessel === mainCookingVessel` onto **one identical wide-mouth bulbous hammered brass `dum handi` pot** (zero side wok handles, plus brass `karchhi` ladle and brass biryani `thaal`, zero `tawa` or shallow wok switches across Scenes 5–7).
   2. **Positive Still-Prompt Hygiene (`prompt-compiler.ts`)**: Removed food/duplicated-limb blacklists from positive `fluxStillPrompt` text (replaced with positive material fidelity & two-hand cues + `no text or watermarks`), while preserving full negative filters in `universalNegativePrompt`.
 - **Verification**:
   - `npx tsc --noEmit`: `0` errors.

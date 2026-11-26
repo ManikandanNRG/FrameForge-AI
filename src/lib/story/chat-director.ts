@@ -26,6 +26,9 @@ import {
   recordDirectorTurn,
   refreshThreadLongTermMemory,
   resolveOrCreateDirectorThread,
+  saveDirectorChatAttachments,
+  type ChatAttachmentMeta,
+  type ChatAttachmentUpload,
   type ThreadScope,
 } from "./director-memory";
 
@@ -87,6 +90,7 @@ export interface ChatDirectorResult {
   threadId: string;
   reply: string;
   actionsTaken: DirectorAction[];
+  userAttachments?: ChatAttachmentMeta[];
   qcReport?: RapidAsmrQcReport;
   createdEpisode?: CreatedEpisodeLink;
   proposedEpisodePlan?: ProposedEpisodePlan;
@@ -688,6 +692,7 @@ export async function handleDirectorChat({
   scope,
   ownerId,
   userMessage,
+  attachments,
   approvePlan,
 }: {
   projectId?: string;
@@ -695,6 +700,7 @@ export async function handleDirectorChat({
   scope?: ThreadScope;
   ownerId: string;
   userMessage: string;
+  attachments?: ChatAttachmentUpload[];
   approvePlan?: ProposedEpisodePlan;
 }): Promise<ChatDirectorResult> {
   const resolvedScope: ThreadScope = scope ?? (projectId ? "PROJECT" : "STUDIO");
@@ -708,6 +714,13 @@ export async function handleDirectorChat({
     }),
     getSeriesContextCatalog(ownerId),
   ]);
+
+  const { savedMeta: savedAttachments, providerInputs: providerAttachments } =
+    await saveDirectorChatAttachments({
+      threadId: thread.id,
+      attachments: attachments ?? [],
+    });
+  const hasAttachments = providerAttachments.length > 0;
 
   // Load recent messages from this persistent thread (rolling long-term memory is on thread.memorySummary)
   const allFormatted = await loadFormattedThreadMessages(thread.id);
@@ -836,6 +849,7 @@ export async function handleDirectorChat({
       aiReply = `Approved! I created **${planToCreate.title}** (${planToCreate.targetRuntime}s Rapid ASMR · Dish: **${planToCreate.dishName}** · with dual 3-second opening hooks and high-gain -1dB Foley). Click below to open its Storyboard!`;
     }
   } else if (
+    !hasAttachments &&
     currentQc &&
     activeProject &&
     !isQuestionOrComplaint &&
@@ -860,6 +874,7 @@ export async function handleDirectorChat({
 • Seamless Loop: ${loopPass ? "Passed (120% APVD Ready)" : "Needs Loop Alignment"}
 Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") : "None. Production ready!"}`;
   } else if (
+    !hasAttachments &&
     resolvedScope === "PROJECT" &&
     activeProject &&
     !isQuestionOrComplaint &&
@@ -871,6 +886,7 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
     proposedActions.push({ type: "RECOMPILE_PROMPTS" });
     aiReply = `I recompiled all cinematic prompts across all ${activeProject.scenes.length} scenes of "${activeProject.title}" with high-gain -1dB ASMR audio directives.`;
   } else if (
+    !hasAttachments &&
     resolvedScope === "PROJECT" &&
     activeProject &&
     !isQuestionOrComplaint &&
@@ -892,6 +908,7 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
     });
     aiReply = `I upgraded Scene 1 of "${activeProject.title}" to a 0.0s Acoustic Slam Hook tailored for ${heroObject}, and recompiled the prompts.`;
   } else if (
+    !hasAttachments &&
     resolvedScope === "PROJECT" &&
     activeProject &&
     !isQuestionOrComplaint &&
@@ -913,6 +930,7 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
       ? `I synchronized the vertical cast-brass extruder press between Scene 4 and Scene 5. Both scenes are now locked to the identical prop architecture, and all prompts have been recompiled.`
       : `I synchronized prop continuity between Scene 4 and Scene 5 using: ${machineDesc}. All shot prompts have been recompiled.`;
   } else if (
+    !hasAttachments &&
     resolvedScope === "PROJECT" &&
     activeProject &&
     !isQuestionOrComplaint &&
@@ -970,7 +988,13 @@ Next Episode Number if planning a new episode: ${defaultNextEpNum}
 Series Ground Truth (Do not repeat dishes already made in older episodes):
 ${catalog.seriesSummary}
 
-${memoryBlock}CRITICAL CONVERSATIONAL RULES:
+${memoryBlock}${
+        hasAttachments
+          ? `ATTACHED SCREENSHOTS / IMAGES (${providerAttachments.length}):
+- Inspect every visual detail of the attached image(s) carefully: check hands/fingers, [@Character] mask & brass goggles consistency, inedible vs real-food texture, cookware continuity, UI layout/errors, or typography.
+- Explain clearly what you observe in the screenshot and how to fix it. If inside a project and the user wants a scene fixed based on the screenshot, propose exact scene updates ("UPDATE_SCENE") or a revised comparison table/process plan.\n\n`
+          : ""
+      }CRITICAL CONVERSATIONAL RULES:
 1. NEVER automatically create a project or mutate scenes when the user is pitching an idea, asking a question, complaining, or discussing options!
 2. Maintain seamless continuity with Long-Term Memory and Recent Chat History below. Do NOT anchor on an unrelated old episode unless the user explicitly asks to compare or revisit it.
 3. If the user pitches a new episode/object (e.g. "Episode ${defaultNextEpNum} cricket bat and ball") OR asks to discuss food & comparison tables:
@@ -1053,6 +1077,7 @@ Return valid JSON:
           userPrompt: userMessage,
           schema: ResponseSchema,
           modelId,
+          attachments: hasAttachments ? providerAttachments : undefined,
         }),
         new Promise<never>((_, reject) => {
           llmTimer = setTimeout(
@@ -1124,7 +1149,9 @@ Return valid JSON:
         /\b(?:to\s*)?(?:8|eight)\s*scenes?\b/i.test(lowerMsg) ||
         /\b(?:five|5)\s*scenes?\b/i.test(lowerMsg);
 
-      if (resolvedScope === "PROJECT" && activeProject && wantsEightScenesFallback) {
+      if (hasAttachments) {
+        aiReply = `I saved your attached screenshot (${savedAttachments.map((a) => a.filename).join(", ")}), but the AI vision model provider could not be reached right now to inspect the image pixels. Please verify your Google Gemini API key in Settings → Providers and resend or ask again.`;
+      } else if (resolvedScope === "PROJECT" && activeProject && wantsEightScenesFallback) {
         const epNum = activeProject.episodeNumber ?? defaultNextEpNum;
         const { reply, proposal } = buildHeuristicEpisodeProposal(
           `Episode ${epNum} ${activeProject.title} ${activeProject.sourceIdea || ""} 8 scenes`,
@@ -1199,6 +1226,7 @@ Return valid JSON:
     executed,
     proposedEpisodePlan,
     createdEpisode,
+    userAttachments: savedAttachments,
   });
 
   // Seed the newly created episode's own PROJECT thread with its origin planning chat immediately
@@ -1222,6 +1250,7 @@ Return valid JSON:
     threadId: thread.id,
     reply: aiReply,
     actionsTaken: executed,
+    userAttachments: savedAttachments.length > 0 ? savedAttachments : undefined,
     qcReport: qcReport || currentQc,
     createdEpisode,
     proposedEpisodePlan,

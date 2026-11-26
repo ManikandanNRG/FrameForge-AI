@@ -455,6 +455,7 @@ model DirectorMessage {
   proposedEpisodePlan String?        // JSON ProposedEpisodePlan
   proposalStatus      String?        // PENDING | APPROVED | SUPERSEDED
   createdEpisodeJson  String?        // JSON CreatedEpisodeLink
+  attachmentsJson     String?        // JSON array of uploaded chat screenshots / reference images
   createdAt           DateTime       @default(now())
 
   @@index([threadId, createdAt])

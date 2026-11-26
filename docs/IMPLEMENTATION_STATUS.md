@@ -750,6 +750,10 @@
       - Added `inheritOriginPlanningHistory` in `src/lib/story/director-memory.ts` to trace creation hops backward and seed newly created (or empty) episode threads with the complete planning conversation, comparison tables, and approval history.
       - Added dish-authentic comparison-table scene generation in `src/lib/story/inedible-pipeline.ts` and shared `persistEpisodeProduction` + `reviseSeriesEpisodeInPlace` in `src/lib/series/episode-service.ts`.
       - Updated `src/lib/story/chat-director.ts` and `AiDirectorChatDrawer.tsx` so modifying the open episode uses `REVISE_CURRENT` (`Approve & Update Episode X In-Place` / `REVISE_EPISODE`) instead of spawning a duplicate project, while dispatching `frameforge:project-updated` to auto-reload `src/app/projects/[projectId]/storyboard/page.tsx`.
+  29. **Screenshot Attachments & Multimodal Vision Inspection in AI Director (2026-11-26)**:
+      - Added `attachmentsJson` on `DirectorMessage` in `prisma/schema.prisma`, plus `saveDirectorChatAttachments` in `src/lib/story/director-memory.ts` (validating PNG/JPEG/WEBP/GIF <= 5 MB and storing under `./media/director-chat/<threadId>/` served via `/api/media/file?path=...`).
+      - Extended `StructuredTextInput` in `src/lib/providers/types.ts` and implemented image `attachments` handling across `GeminiTextProvider`, `OpenRouterTextProvider`, and `OpenAITextProvider`.
+      - Updated `handleDirectorChat`, `/api/chat`, `/api/projects/[projectId]/chat`, and `src/components/chat/AiDirectorChatDrawer.tsx` with `📎` upload, `Ctrl+V` clipboard paste, drag-and-drop, removable preview chips, clickable thumbnail history, and regression coverage in `tests/unit/chat-director.test.ts` (`npx tsc --noEmit` 0 errors, `npx vitest run` 17 files / 103 tests passed).
 
 
 

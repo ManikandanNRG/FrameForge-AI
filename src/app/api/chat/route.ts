@@ -93,15 +93,19 @@ export const POST = apiHandler(async (req) => {
     };
   }
 
-  if (!parsed.data.message) {
-    throw badRequest("Message cannot be empty");
+  const hasAttachments = Boolean(parsed.data.attachments && parsed.data.attachments.length > 0);
+  const messageText = parsed.data.message?.trim() || (hasAttachments ? "Please inspect this attached screenshot and advise how to fix it." : "");
+
+  if (!messageText) {
+    throw badRequest("Message or screenshot attachment is required");
   }
 
   const result = await handleDirectorChat({
     scope: "STUDIO",
     threadId: parsed.data.threadId,
     ownerId,
-    userMessage: parsed.data.message,
+    userMessage: messageText,
+    attachments: parsed.data.attachments,
     approvePlan: parsed.data.approvePlan,
   });
 
@@ -113,6 +117,7 @@ export const POST = apiHandler(async (req) => {
     threads,
     reply: result.reply,
     actionsTaken: result.actionsTaken,
+    userAttachments: result.userAttachments,
     qcReport: result.qcReport,
     createdEpisode: result.createdEpisode,
     proposedEpisodePlan: result.proposedEpisodePlan,

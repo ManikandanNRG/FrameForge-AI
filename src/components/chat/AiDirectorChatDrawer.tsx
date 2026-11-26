@@ -18,8 +18,17 @@ import {
   Plus,
   History,
   Trash2,
+  Paperclip,
 } from "lucide-react";
 import { FormattedChatContent } from "./FormattedChatContent";
+
+interface ChatAttachment {
+  url?: string;
+  mimeType: string;
+  filename: string;
+  base64Data?: string;
+  previewUrl?: string;
+}
 
 interface ThreadSummary {
   id: string;
@@ -66,6 +75,7 @@ interface ChatMessage {
   sender: "USER" | "AI_DIRECTOR" | "SYSTEM";
   message: string;
   actionsTaken?: ActionItem[];
+  attachments?: ChatAttachment[];
   createdEpisode?: CreatedEpisodeLink;
   proposedEpisodePlan?: ProposedEpisodePlan;
   proposalStatus?: "PENDING" | "APPROVED" | "SUPERSEDED";
@@ -106,12 +116,75 @@ export function AiDirectorChatDrawer({
   const [qcRating, setQcRating] = useState<string | null>(null);
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [activeThreadId, setActiveThreadId] = useState<string | undefined>(undefined);
+  const [pendingAttachments, setPendingAttachments] = useState<ChatAttachment[]>([]);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState<number>(540);
   const [isResizing, setIsResizing] = useState(false);
   const hasLoadedWidthRef = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const threadStorageKey = `ai-director-thread:${projectId || "studio"}`;
   const chatEndpointBase = projectId ? `/api/projects/${projectId}/chat` : "/api/chat";
+
+  const addImageFiles = useCallback(async (files: FileList | File[]) => {
+    const fileArr = Array.from(files).filter((f) =>
+      ["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"].includes(
+        f.type.toLowerCase()
+      )
+    );
+    if (fileArr.length === 0) {
+      setError("Please attach a valid image file (PNG, JPEG, WEBP, or GIF).");
+      return;
+    }
+
+    const prepared: ChatAttachment[] = [];
+    for (const file of fileArr.slice(0, 3)) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError(`"${file.name}" is larger than 5 MB. Please resize or compress it.`);
+        continue;
+      }
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ""));
+        reader.onerror = () => reject(new Error("Failed to read attached image"));
+        reader.readAsDataURL(file);
+      });
+      const base64Data = dataUrl.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, "");
+      prepared.push({
+        filename: file.name || "screenshot.png",
+        mimeType: file.type === "image/jpg" ? "image/jpeg" : file.type,
+        base64Data,
+        previewUrl: dataUrl,
+      });
+    }
+
+    if (prepared.length > 0) {
+      setError(null);
+      setPendingAttachments((prev) => [...prev, ...prepared].slice(0, 3));
+    }
+  }, []);
+
+  // Support Ctrl+V clipboard screenshot paste directly inside the open AI Director drawer
+  useEffect(() => {
+    if (!isOpen) return;
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith("image/")) {
+          const f = items[i].getAsFile();
+          if (f) imageFiles.push(f);
+        }
+      }
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        void addImageFiles(imageFiles);
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [isOpen, addImageFiles]);
 
   const clampWidth = useCallback((w: number) => {
     const maxAllowed = typeof window !== "undefined" ? Math.max(540, window.innerWidth - 32) : 1280;
@@ -321,16 +394,24 @@ export function AiDirectorChatDrawer({
   }, [messages, loading]);
 
   const handleSendMessage = async (textToSend?: string, approvePlan?: ProposedEpisodePlan) => {
-    const text = (textToSend || inputText).trim();
-    if (!text || loading) return;
+    const attachmentsToSend = textToSend ? [] : pendingAttachments;
+    const rawText = (textToSend || inputText).trim();
+    if ((!rawText && attachmentsToSend.length === 0) || loading) return;
 
-    if (!textToSend) setInputText("");
+    const text =
+      rawText || "Please inspect this attached screenshot and advise how to fix it.";
+
+    if (!textToSend) {
+      setInputText("");
+      setPendingAttachments([]);
+    }
     setError(null);
 
     const tempUserMsg: ChatMessage = {
       id: `temp-${Date.now()}`,
       sender: "USER",
       message: text,
+      attachments: attachmentsToSend.length > 0 ? attachmentsToSend : undefined,
       createdAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, tempUserMsg]);
@@ -346,6 +427,15 @@ export function AiDirectorChatDrawer({
         signal: controller.signal,
         body: JSON.stringify({
           message: text,
+          ...(attachmentsToSend.length > 0
+            ? {
+                attachments: attachmentsToSend.map((a) => ({
+                  mimeType: a.mimeType,
+                  base64Data: a.base64Data || "",
+                  filename: a.filename,
+                })),
+              }
+            : {}),
           ...(activeThreadId ? { threadId: activeThreadId } : {}),
           ...(approvePlan ? { approvePlan } : {}),
         }),
@@ -445,7 +535,23 @@ export function AiDirectorChatDrawer({
     <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/60 backdrop-blur-xs flex justify-end animate-in fade-in duration-200">
       <div
         style={{ width: `${drawerWidth}px`, maxWidth: "100vw" }}
-        className={`relative bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col h-full text-slate-100 ${
+        onDragOver={(e) => {
+          if (e.dataTransfer?.types?.includes("Files")) {
+            e.preventDefault();
+            setIsDraggingFile(true);
+          }
+        }}
+        onDragLeave={() => setIsDraggingFile(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setIsDraggingFile(false);
+          if (e.dataTransfer?.files?.length) {
+            void addImageFiles(e.dataTransfer.files);
+          }
+        }}
+        className={`relative bg-slate-900 border-l ${
+          isDraggingFile ? "border-amber-400 ring-2 ring-amber-400/50" : "border-slate-800"
+        } shadow-2xl flex flex-col h-full text-slate-100 ${
           isResizing ? "" : "transition-[width] duration-200 ease-out"
         }`}
       >
@@ -619,6 +725,30 @@ export function AiDirectorChatDrawer({
                       : "bg-slate-800/90 text-slate-200 rounded-bl-xs border border-slate-700/70 shadow-sm"
                   }`}
                 >
+                  {m.attachments && m.attachments.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {m.attachments.map((att, attIdx) => {
+                        const imgSrc = att.url || att.previewUrl;
+                        if (!imgSrc) return null;
+                        return (
+                          <a
+                            key={attIdx}
+                            href={imgSrc}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="block rounded-lg overflow-hidden border border-black/20 bg-slate-950/30 hover:opacity-90 transition"
+                            title={att.filename}
+                          >
+                            <img
+                              src={imgSrc}
+                              alt={att.filename || "Screenshot attachment"}
+                              className="max-h-36 max-w-[220px] object-contain"
+                            />
+                          </a>
+                        );
+                      })}
+                    </div>
+                  )}
                   {isUser ? (
                     <p className="whitespace-pre-wrap">{m.message}</p>
                   ) : (
@@ -736,7 +866,48 @@ export function AiDirectorChatDrawer({
         </div>
 
         {/* Input Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/80 shrink-0">
+        <div className="p-4 border-t border-slate-800 bg-slate-950/80 shrink-0 space-y-2.5">
+          {pendingAttachments.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {pendingAttachments.map((att, idx) => (
+                <div
+                  key={idx}
+                  className="relative group rounded-lg overflow-hidden border border-amber-500/40 bg-slate-900 p-0.5"
+                >
+                  <img
+                    src={att.previewUrl || att.url}
+                    alt={att.filename}
+                    className="h-14 w-14 object-cover rounded-md"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPendingAttachments((prev) => prev.filter((_, i) => i !== idx))
+                    }
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-rose-600 text-white flex items-center justify-center text-[10px] shadow-md hover:bg-rose-500"
+                    title="Remove screenshot"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              if (e.target.files?.length) {
+                void addImageFiles(e.target.files);
+              }
+              e.target.value = "";
+            }}
+          />
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -744,17 +915,26 @@ export function AiDirectorChatDrawer({
             }}
             className="flex items-center gap-2"
           >
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => fileInputRef.current?.click()}
+              title="Attach screenshot or reference image (or press Ctrl+V / drag & drop)"
+              className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-amber-300 border border-slate-700/80 disabled:opacity-40 transition shrink-0"
+            >
+              <Paperclip className="w-4 h-4" />
+            </button>
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="e.g. Create Episode 8 for cricket bat & ball, or Audit QC..."
+              placeholder="Ask, paste screenshot (Ctrl+V), or attach image..."
               disabled={loading}
               className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
             />
             <button
               type="submit"
-              disabled={loading || !inputText.trim()}
+              disabled={loading || (!inputText.trim() && pendingAttachments.length === 0)}
               className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 disabled:opacity-40 disabled:cursor-not-allowed transition font-bold shadow-md shadow-amber-500/10"
               title="Send Message"
             >

@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db/client";
 import { resolveTextProvider } from "@/lib/providers/resolve";
+import type { TextAttachmentInput } from "@/lib/providers/types";
 import { logger } from "@/lib/logger";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { z } from "zod";
 import type {
   CreatedEpisodeLink,
@@ -11,6 +14,35 @@ import type {
 export type ThreadScope = "STUDIO" | "PROJECT";
 
 export const RECENT_MESSAGE_LIMIT = 16;
+
+const ALLOWED_IMAGE_MIMES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/webp": "webp",
+  "image/gif": "gif",
+};
+
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+
+export interface ChatAttachmentMeta {
+  url: string;
+  storagePath: string;
+  mimeType: string;
+  filename: string;
+}
+
+export interface ChatAttachmentUpload {
+  mimeType: string;
+  base64Data: string;
+  filename?: string;
+}
+
+export const chatAttachmentUploadSchema = z.object({
+  mimeType: z.string().min(1),
+  base64Data: z.string().min(1),
+  filename: z.string().max(180).optional(),
+});
 
 export const chatApprovePlanSchema = z.object({
   episodeNumber: z.coerce.number(),
@@ -36,7 +68,8 @@ export const chatPostSchema = z.object({
   action: z.enum(["message", "create_thread", "delete_thread"]).optional(),
   threadId: z.string().optional(),
   title: z.string().max(120).optional(),
-  message: z.string().min(1, "Message cannot be empty").max(2000, "Message too long").optional(),
+  message: z.string().max(2000, "Message too long").optional(),
+  attachments: z.array(chatAttachmentUploadSchema).max(3).optional(),
   approvePlan: chatApprovePlanSchema.optional(),
 });
 
@@ -45,6 +78,7 @@ export interface FormattedChatMessageDto {
   sender: string;
   message: string;
   actionsTaken: DirectorAction[];
+  attachments?: ChatAttachmentMeta[];
   proposedEpisodePlan?: ProposedEpisodePlan;
   proposalStatus?: "PENDING" | "APPROVED" | "SUPERSEDED";
   createdEpisode?: CreatedEpisodeLink;
@@ -90,9 +124,14 @@ export function serializeDirectorMessage(m: {
   proposedEpisodePlan: string | null;
   proposalStatus: string | null;
   createdEpisodeJson: string | null;
+  attachmentsJson?: string | null;
   createdAt: Date;
 }): FormattedChatMessageDto {
   const actionsTaken = safeJsonParse<DirectorAction[]>(m.actionsTaken, []);
+  const attachments = safeJsonParse<ChatAttachmentMeta[] | undefined>(
+    m.attachmentsJson,
+    undefined
+  );
   let proposedEpisodePlan = safeJsonParse<ProposedEpisodePlan | undefined>(
     m.proposedEpisodePlan,
     undefined
@@ -121,11 +160,80 @@ export function serializeDirectorMessage(m: {
     sender: m.sender,
     message: m.message,
     actionsTaken,
+    attachments: attachments && attachments.length > 0 ? attachments : undefined,
     proposedEpisodePlan,
     proposalStatus,
     createdEpisode,
     createdAt: m.createdAt.toISOString(),
   };
+}
+
+/**
+ * Validates and persists uploaded chat screenshots under ./media/director-chat/<threadId>/
+ * and returns both browser-servable metadata and base64 payloads for multimodal AI inspection.
+ */
+export async function saveDirectorChatAttachments({
+  threadId,
+  attachments,
+}: {
+  threadId: string;
+  attachments: ChatAttachmentUpload[];
+}): Promise<{
+  savedMeta: ChatAttachmentMeta[];
+  providerInputs: TextAttachmentInput[];
+}> {
+  if (!attachments || attachments.length === 0) {
+    return { savedMeta: [], providerInputs: [] };
+  }
+
+  const safeThreadId = threadId.replace(/[^a-zA-Z0-9_-]/g, "") || "default";
+  const targetDir = path.resolve("./media", "director-chat", safeThreadId);
+  await mkdir(targetDir, { recursive: true });
+
+  const savedMeta: ChatAttachmentMeta[] = [];
+  const providerInputs: TextAttachmentInput[] = [];
+
+  for (let i = 0; i < attachments.length; i++) {
+    const rawAtt = attachments[i];
+    const normalizedMime = rawAtt.mimeType.trim().toLowerCase();
+    const ext = ALLOWED_IMAGE_MIMES[normalizedMime];
+    if (!ext) {
+      throw new Error(
+        `Unsupported image format "${rawAtt.mimeType}". Please upload PNG, JPEG, WEBP, or GIF screenshots.`
+      );
+    }
+
+    const rawBase64 = rawAtt.base64Data.replace(/^data:image\/[a-z0-9.+-]+;base64,/i, "").trim();
+    const buffer = Buffer.from(rawBase64, "base64");
+    if (buffer.length === 0) {
+      throw new Error("Attached image was empty.");
+    }
+    if (buffer.length > MAX_ATTACHMENT_BYTES) {
+      throw new Error("Attached screenshot exceeds 5 MB limit. Please upload a smaller image.");
+    }
+
+    const baseName = (rawAtt.filename ? path.basename(rawAtt.filename) : `screenshot.${ext}`)
+      .replace(/[^a-zA-Z0-9._-]/g, "_")
+      .slice(0, 80);
+    const uniqueName = `${Date.now()}_${i}_${baseName}`;
+    const storagePath = path.join(targetDir, uniqueName);
+    await writeFile(storagePath, buffer);
+
+    savedMeta.push({
+      url: `/api/media/file?path=${encodeURIComponent(storagePath)}`,
+      storagePath,
+      mimeType: normalizedMime === "image/jpg" ? "image/jpeg" : normalizedMime,
+      filename: baseName,
+    });
+
+    providerInputs.push({
+      mimeType: normalizedMime === "image/jpg" ? "image/jpeg" : normalizedMime,
+      base64Data: buffer.toString("base64"),
+      filename: baseName,
+    });
+  }
+
+  return { savedMeta, providerInputs };
 }
 
 /**
@@ -192,6 +300,7 @@ export async function inheritOriginPlanningHistory({
       proposedEpisodePlan: string | null;
       proposalStatus: string | null;
       createdEpisodeJson: string | null;
+      attachmentsJson: string | null;
       createdAt: Date;
     }>
   > = [];
@@ -235,6 +344,7 @@ export async function inheritOriginPlanningHistory({
         proposedEpisodePlan: true,
         proposalStatus: true,
         createdEpisodeJson: true,
+        attachmentsJson: true,
         createdAt: true,
       },
     });
@@ -276,6 +386,7 @@ export async function inheritOriginPlanningHistory({
         proposedEpisodePlan: m.proposedEpisodePlan,
         proposalStatus: m.proposedEpisodePlan ? "APPROVED" : m.proposalStatus,
         createdEpisodeJson: m.createdEpisodeJson,
+        attachmentsJson: m.attachmentsJson,
         createdAt: m.createdAt,
       },
     });
@@ -508,6 +619,7 @@ export async function recordDirectorTurn({
   executed,
   proposedEpisodePlan,
   createdEpisode,
+  userAttachments,
 }: {
   threadId: string;
   projectId?: string | null;
@@ -516,6 +628,7 @@ export async function recordDirectorTurn({
   executed: DirectorAction[];
   proposedEpisodePlan?: ProposedEpisodePlan;
   createdEpisode?: CreatedEpisodeLink;
+  userAttachments?: ChatAttachmentMeta[];
 }) {
   const thread = await prisma.directorThread.findUnique({
     where: { id: threadId },
@@ -551,6 +664,10 @@ export async function recordDirectorTurn({
       threadId,
       sender: "USER",
       message: userMessage,
+      attachmentsJson:
+        userAttachments && userAttachments.length > 0
+          ? JSON.stringify(userAttachments)
+          : null,
     },
   });
 

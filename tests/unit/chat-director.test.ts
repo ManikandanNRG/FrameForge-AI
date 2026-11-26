@@ -1,3 +1,5 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { prisma } from "@/lib/db/client";
 import { handleDirectorChat, executeDirectorActions } from "@/lib/story/chat-director";
@@ -425,5 +427,44 @@ describe("In-App AI Director Chat Co-Pilot (ADR-036 to ADR-051)", () => {
     expect(eightScenes[2].heading).toContain("DICING");
     expect(eightScenes[3].heading).toContain("CHOPPING");
     expect(eightScenes[6].heading).toContain("DUM");
+  });
+
+  it("saves screenshot attachments to disk, returns API URLs, and reloads them from thread history", async () => {
+    const oneByOnePngDataUrl =
+      "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+    const result = await handleDirectorChat({
+      projectId: testProjectId,
+      ownerId: testOwnerId,
+      userMessage: "Please check why Scene 1 prompt looks basic in this screenshot.",
+      attachments: [
+        {
+          mimeType: "image/png",
+          base64Data: oneByOnePngDataUrl,
+          filename: "storyboard-bug.png",
+        },
+      ],
+    });
+
+    const saved = result.userAttachments?.[0];
+    try {
+      expect(result.userAttachments).toHaveLength(1);
+      expect(saved?.url.startsWith("/api/media/file?path=")).toBe(true);
+      expect(saved?.filename).toBe("storyboard-bug.png");
+      expect(saved?.mimeType).toBe("image/png");
+
+      const fileStat = await fs.stat(saved!.storagePath);
+      expect(fileStat.size).toBeGreaterThan(0);
+
+      const formatted = await loadFormattedThreadMessages(result.threadId);
+      const userMsg = formatted.find((m) => m.sender === "USER");
+      expect(userMsg?.attachments).toHaveLength(1);
+      expect(userMsg?.attachments?.[0].url).toBe(saved?.url);
+      expect(userMsg?.attachments?.[0].filename).toBe("storyboard-bug.png");
+    } finally {
+      if (saved?.storagePath) {
+        await fs.rm(path.dirname(saved.storagePath), { recursive: true, force: true }).catch(() => {});
+      }
+    }
   });
 });

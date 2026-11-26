@@ -65,12 +65,23 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
   async generateStructured<S extends z.ZodType<any, any, any>>(
     input: StructuredTextInput<S>,
   ): Promise<GenerationResult<z.infer<S>>> {
-    const candidateModels = [
-      input.modelId,
-      "openrouter/free",
-      "google/gemma-4-31b-it:free",
-      "google/gemma-4-26b-a4b-it:free",
-    ].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i);
+    const hasImages = Boolean(input.attachments && input.attachments.length > 0);
+    // Prioritize fast vision-capable free models when images are attached
+    const candidateModels = (
+      hasImages
+        ? [
+            "google/gemma-4-31b-it:free",
+            "google/gemma-4-26b-a4b-it:free",
+            "nvidia/nemotron-3.5-super-vl:free",
+            input.modelId,
+          ]
+        : [
+            input.modelId,
+            "openrouter/free",
+            "google/gemma-4-31b-it:free",
+            "google/gemma-4-26b-a4b-it:free",
+          ]
+    ).filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i);
 
     let lastError: string | null = null;
     const deadline = Date.now() + OPENROUTER_TOTAL_BUDGET_MS;
@@ -92,13 +103,24 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
               ? `\n\nPrevious attempt note: ${lastError}. Return ONLY valid JSON with no extra prose.`
               : "";
 
+          const userContent: OpenAI.Chat.Completions.ChatCompletionUserMessageParam["content"] =
+            hasImages
+              ? [
+                  { type: "text", text: input.userPrompt + repairNote },
+                  ...input.attachments!.map((att) => ({
+                    type: "image_url" as const,
+                    image_url: { url: `data:${att.mimeType};base64,${att.base64Data}` },
+                  })),
+                ]
+              : input.userPrompt + repairNote;
+
           const response = await this.client.chat.completions.create(
             {
               model: activeModelId,
               ...(useJsonMode ? { response_format: { type: "json_object" } } : {}),
               messages: [
                 { role: "system", content: input.systemPrompt },
-                { role: "user", content: input.userPrompt + repairNote },
+                { role: "user", content: userContent },
               ],
               temperature: 0.7,
             },

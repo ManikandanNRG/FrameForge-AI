@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerativeModel, type Part } from "@google/generative-ai";
 import { z } from "zod";
 import type {
   TextGenerationProvider, TextCapabilities,
@@ -39,7 +39,7 @@ function extractJsonText(raw: string): string {
 
 async function generateWithTimeout(
   model: GenerativeModel,
-  prompt: string,
+  prompt: string | Part[],
   timeoutMs: number
 ) {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -154,9 +154,22 @@ export class GeminiTextProvider implements TextGenerationProvider {
             ? `\n\nPrevious attempt produced invalid output: ${lastError}. Return valid JSON only.`
             : "";
 
+          const userContent: string | Part[] =
+            input.attachments && input.attachments.length > 0
+              ? [
+                  { text: input.userPrompt + repairNote },
+                  ...input.attachments.map((att) => ({
+                    inlineData: {
+                      mimeType: att.mimeType,
+                      data: att.base64Data,
+                    },
+                  })),
+                ]
+              : input.userPrompt + repairNote;
+
           const response = await generateWithTimeout(
             model,
-            input.userPrompt + repairNote,
+            userContent,
             Math.min(PER_CALL_TIMEOUT_MS, remaining)
           );
           const raw = response.response.text();

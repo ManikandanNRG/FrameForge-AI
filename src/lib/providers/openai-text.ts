@@ -26,12 +26,22 @@ export class OpenAITextProvider implements TextGenerationProvider {
     let lastError: string | null = null;
     for (let attempt = 0; attempt <= 2; attempt++) {
       const repairNote = attempt > 0 ? `\n\nPrevious attempt invalid: ${lastError}. Return valid JSON only.` : "";
+      const userContent: OpenAI.Chat.Completions.ChatCompletionUserMessageParam["content"] =
+        input.attachments && input.attachments.length > 0
+          ? [
+              { type: "text", text: input.userPrompt + repairNote },
+              ...input.attachments.map((att) => ({
+                type: "image_url" as const,
+                image_url: { url: `data:${att.mimeType};base64,${att.base64Data}` },
+              })),
+            ]
+          : input.userPrompt + repairNote;
       const response = await this.client.chat.completions.create({
         model: input.modelId,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: input.systemPrompt },
-          { role: "user",   content: input.userPrompt + repairNote },
+          { role: "user",   content: userContent },
         ],
         temperature: 0.7,
       });

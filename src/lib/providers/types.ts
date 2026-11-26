@@ -7,12 +7,19 @@ export interface ImageCapabilities   { maxWidth: number | null; maxHeight: numbe
 export interface VideoCapabilities   { durationsSeconds: number[]; aspectRatios: string[]; resolutions: string[]; supportsAudio: boolean; asyncJob: boolean; }
 export interface CostEstimate        { providerId: string; modelId: string; amountMinor: number | null; currency: string; basis: string; isEstimate: boolean; pricingSource: string | null; pricingVerifiedAt: string | null; }
 
+export interface TextAttachmentInput {
+  mimeType: string;
+  base64Data: string;
+  filename?: string;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface StructuredTextInput<S extends z.ZodType<any, any, any>> {
   modelId: string;
   systemPrompt: string;
   userPrompt: string;
   schema: S;
+  attachments?: TextAttachmentInput[];
 }
 
 export interface GenerationResult<T> {

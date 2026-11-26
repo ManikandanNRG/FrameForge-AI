@@ -715,7 +715,7 @@ ${hashtagsList.join(" ")}`;
   try {
     const attrs = JSON.parse(leadChar?.attributes || "{}");
     leadWardrobeLock = attrs.wardrobeLock || attrs.wardrobe;
-  } catch {}
+  } catch { }
 
   const dualHooks = compileDualHookPrompts({
     heroObject,

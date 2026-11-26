@@ -342,4 +342,17 @@ describe("Social Launch Kit & Thumbnail Engine", () => {
 
     expect(kit.youtube.titles[0]).toContain("Nokia");
   });
+
+  it("compiles Pre-Scene Hook prompts through the master engine with [@Character] lock, cinematography, and I2V motion", () => {
+    const kit = generateSocialLaunchKit(sampleProject);
+
+    expect(kit.hookPrompts?.optionA_cleaverSlam.fluxStillPrompt).toContain("Subject: [@TheShadowAlchemist]");
+    expect(kit.hookPrompts?.optionA_cleaverSlam.fluxStillPrompt).toContain("Cinematography: Shot on 85mm f/1.8 macro probe lens");
+    expect(kit.hookPrompts?.optionA_cleaverSlam.fluxStillPrompt).toContain("Strict Aesthetics:");
+    expect(kit.hookPrompts?.optionA_cleaverSlam.videoMotionPrompt).toContain("Subject: [@TheShadowAlchemist]");
+    expect(kit.hookPrompts?.optionA_cleaverSlam.videoMotionPrompt).toContain("Action & Dynamics:");
+    expect(kit.hookPrompts?.optionA_cleaverSlam.videoMotionPrompt).toContain("-1dB");
+    expect(kit.hookPrompts?.optionB_sizzleDrop.fluxStillPrompt).toContain("[@TheShadowAlchemist]");
+    expect(kit.hookPrompts?.optionB_sizzleDrop.videoMotionPrompt).toContain("-1dB");
+  });
 });

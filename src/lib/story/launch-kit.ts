@@ -706,11 +706,21 @@ Created with CineFlow AI Studio · Visuals powered by Google Flow & Veo · Sound
 
 ${hashtagsList.join(" ")}`;
 
+  let leadWardrobeLock: string | undefined;
+  try {
+    const attrs = JSON.parse(leadChar?.attributes || "{}");
+    leadWardrobeLock = attrs.wardrobeLock || attrs.wardrobe;
+  } catch {}
+
   const dualHooks = compileDualHookPrompts({
     heroObject,
     dishName,
     characterName: charHandle.replace(/^@/, ""),
+    characterDescription: leadChar?.description,
+    wardrobeLock: leadWardrobeLock,
     aspectRatio: project.aspectRatio || "PORTRAIT_9_16",
+    visualStyle,
+    sourceIdea: project.sourceIdea || "",
   });
 
   return {

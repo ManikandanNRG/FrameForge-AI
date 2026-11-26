@@ -863,8 +863,10 @@ Violations: ${currentQc.violations.length > 0 ? currentQc.violations.join("; ") 
     resolvedScope === "PROJECT" &&
     activeProject &&
     !isQuestionOrComplaint &&
-    lowerMsg.includes("recompile") &&
-    lowerMsg.includes("prompt")
+    !lowerMsg.includes("actions executed") &&
+    !lowerMsg.includes("prompts recompiled") &&
+    /\brecompile\b/i.test(lowerMsg) &&
+    /\bprompts?\b/i.test(lowerMsg)
   ) {
     proposedActions.push({ type: "RECOMPILE_PROMPTS" });
     aiReply = `I recompiled all cinematic prompts across all ${activeProject.scenes.length} scenes of "${activeProject.title}" with high-gain -1dB ASMR audio directives.`;
@@ -1012,22 +1014,31 @@ Return valid JSON:
             title: z.string(),
             sourceIdea: z.string(),
             dishName: z.string(),
-            targetRuntime: z.coerce.number().default(20),
-            sceneCount: z.coerce.number().optional(),
+            targetRuntime: z.coerce.number().nullish().transform((v) => (v && v > 0 ? v : 20)),
+            sceneCount: z.coerce
+              .number()
+              .nullish()
+              .transform((v) => (v && v > 0 ? v : undefined)),
             comparisonTable: z.array(PlanRowSchema).nullish().transform((v) => v ?? undefined),
           })
-          .nullable()
-          .optional(),
+          .nullish()
+          .transform((v) => v ?? undefined),
         actions: z
           .array(
             z.object({
               type: z.string(),
-              sceneNumber: z.coerce.number().optional(),
-              sceneNumbers: z.array(z.coerce.number()).optional(),
-              actionDescription: z.string().optional(),
-              heading: z.string().optional(),
-              audioScript: z.string().optional(),
-              propDescription: z.string().optional(),
+              sceneNumber: z.coerce
+                .number()
+                .nullish()
+                .transform((v) => (v && v > 0 ? v : undefined)),
+              sceneNumbers: z
+                .array(z.coerce.number())
+                .nullish()
+                .transform((v) => v ?? undefined),
+              actionDescription: z.string().nullish().transform((v) => v ?? undefined),
+              heading: z.string().nullish().transform((v) => v ?? undefined),
+              audioScript: z.string().nullish().transform((v) => v ?? undefined),
+              propDescription: z.string().nullish().transform((v) => v ?? undefined),
             })
           )
           .nullish()
@@ -1109,8 +1120,34 @@ Return valid JSON:
     }
 
     if (!llmSuccess) {
-      if (isQuestionOrComplaint && !/\b(cricket|bat|ball)\b/i.test(lowerMsg)) {
-        aiReply = `You're right — I won't create any project without discussing the dish, comparison table, and runtime with you first. Tell me what object you want to cook next (for example: *"Cricket Bat and Ball — what dish & comparison table do you recommend?"*) and we'll plan it together before creating anything!`;
+      const wantsEightScenesFallback =
+        /\b(?:to\s*)?(?:8|eight)\s*scenes?\b/i.test(lowerMsg) ||
+        /\b(?:five|5)\s*scenes?\b/i.test(lowerMsg);
+
+      if (resolvedScope === "PROJECT" && activeProject && wantsEightScenesFallback) {
+        const epNum = activeProject.episodeNumber ?? defaultNextEpNum;
+        const { reply, proposal } = buildHeuristicEpisodeProposal(
+          `Episode ${epNum} ${activeProject.title} ${activeProject.sourceIdea || ""} 8 scenes`,
+          epNum
+        );
+        const revisedProposal: ProposedEpisodePlan = {
+          ...proposal,
+          episodeNumber: epNum,
+          title: activeProject.title,
+          targetRuntime: 60,
+          sceneCount: 8,
+          mode: "REVISE_CURRENT",
+          targetProjectId: activeProject.id,
+        };
+        aiReply = `Right now **${activeProject.title}** has **${activeProject.scenes.length} scenes**. I've prepared an expanded **8-Scene (60s)** breakdown covering slamming/harvest -> mixie grinding -> precision dicing & grating -> cleaver chopping & marinade -> spice tempering tadka -> masala reduction -> sealed dum pot steam -> hero platter reveal.\n\nClick **Approve & Update Episode ${epNum} In-Place** below to apply all 8 scenes to your Storyboard!\n\n${reply}`;
+        proposedEpisodePlan = revisedProposal;
+        proposedActions.push({
+          type: "PROPOSE_EPISODE",
+          proposedEpisodePlan: revisedProposal,
+          details: `Proposed in-place 8-scene upgrade for Ep ${epNum}: ${revisedProposal.dishName}`,
+        });
+      } else if (isQuestionOrComplaint && !/\b(cricket|bat|ball)\b/i.test(lowerMsg)) {
+        aiReply = `You're right — I won't create any project without discussing the dish, comparison table, and runtime with you first. Tell me what object or change you want next (for example: *"Expand Episode 8 to 8 scenes with grinding, dicing & chopping"*) and we'll plan it together before applying it!`;
       } else if (
         isIdeaOrPlanningMessage(userMessage) ||
         /\b(cricket|bat|ball|plan|dish|food|table)\b/i.test(lowerMsg)

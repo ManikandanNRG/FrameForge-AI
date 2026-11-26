@@ -7,20 +7,21 @@ import type {
 
 /**
  * Google Gemini text generation adapter.
- * Uses @google/generative-ai with strict per-call timeouts, bounded retries,
- * and automatic ListModels fallback when a model returns 404.
+ * Prioritizes active Gemini 3.x Flash models with strict per-call timeouts,
+ * bounded retries, and live ListModels fallback discovery.
  */
 
 export const GEMINI_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash ✓ (Default Primary Model)" },
-  { id: "gemini-2.0-flash", displayName: "Gemini 2.0 Flash (Fast Fallback Model)" },
-  { id: "gemini-2.5-flash-lite", displayName: "Gemini 2.5 Flash-Lite (High-Quota Fallback)" },
+  { id: "gemini-3-flash-preview", displayName: "Gemini 3 Flash ✓ (Default Primary Model)" },
+  { id: "gemini-3.5-flash", displayName: "Gemini 3.5 Flash (Fast Generation Model)" },
+  { id: "gemini-3.1-flash-lite-preview", displayName: "Gemini 3.1 Flash-Lite (High-Quota Fallback)" },
+  { id: "gemini-2.5-flash", displayName: "Gemini 2.5 Flash (Legacy Fallback)" },
 ];
 
-export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-3-flash-preview";
 
-const PER_CALL_TIMEOUT_MS = 20_000;
-const TOTAL_BUDGET_MS = 35_000;
+const PER_CALL_TIMEOUT_MS = 18_000;
+const TOTAL_BUDGET_MS = 32_000;
 
 function extractJsonText(raw: string): string {
   const withoutThink = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
@@ -59,13 +60,13 @@ async function generateWithTimeout(
 
 /**
  * Queries Gemini's ListModels endpoint to discover live models that support
- * generateContent for this API key, prioritizing Flash models.
+ * generateContent for this API key, prioritizing standard Flash text models.
  */
 async function discoverGeminiModels(apiKey: string): Promise<string[]> {
   try {
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`,
-      { signal: AbortSignal.timeout(8_000) }
+      { signal: AbortSignal.timeout(6_000) }
     );
     if (!res.ok) return [];
     const json = (await res.json()) as {
@@ -74,12 +75,18 @@ async function discoverGeminiModels(apiKey: string): Promise<string[]> {
     const usable = (json.models || [])
       .filter((m) => m.name && (m.supportedGenerationMethods || []).includes("generateContent"))
       .map((m) => m.name!.replace(/^models\//, ""))
-      .filter((name) => !/embedding|aqa|imagen|veo|tts|robotics/i.test(name));
+      .filter(
+        (name) =>
+          !/embedding|aqa|imagen|veo|tts|robotics|omni|transcribe|image|lyria|antigravity|deep-research|computer-use|nano-banana/i.test(
+            name
+          )
+      );
 
     usable.sort((a, b) => {
-      const aFlash = /flash/i.test(a) ? 0 : 1;
-      const bFlash = /flash/i.test(b) ? 0 : 1;
-      if (aFlash !== bFlash) return aFlash - bFlash;
+      const score = (id: string) =>
+        (/gemini-3.*flash/i.test(id) ? 0 : /flash/i.test(id) ? 1 : 2);
+      const diff = score(a) - score(b);
+      if (diff !== 0) return diff;
       return b.localeCompare(a);
     });
     return usable.slice(0, 3);
@@ -112,9 +119,10 @@ export class GeminiTextProvider implements TextGenerationProvider {
   ): Promise<GenerationResult<z.infer<S>>> {
     const candidateModels = [
       input.modelId,
+      "gemini-3-flash-preview",
+      "gemini-3.5-flash",
+      "gemini-3.1-flash-lite-preview",
       "gemini-2.5-flash",
-      "gemini-2.0-flash",
-      "gemini-2.5-flash-lite",
     ].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i);
 
     let lastError: string | null = null;
@@ -185,7 +193,12 @@ export class GeminiTextProvider implements TextGenerationProvider {
             }
             break;
           }
-          if (msg.includes("503") || msg.includes("high demand") || msg.includes("429") || msg.includes("timed out")) {
+          if (
+            msg.includes("503") ||
+            msg.includes("high demand") ||
+            msg.includes("429") ||
+            msg.includes("timed out")
+          ) {
             break;
           }
         }
@@ -204,9 +217,10 @@ export async function testGeminiKey(
   apiKey: string,
 ): Promise<{ ok: boolean; model: string; error?: string }> {
   const candidates = [
+    "gemini-3-flash-preview",
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite-preview",
     "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.5-flash-lite",
   ];
 
   const client = new GoogleGenerativeAI(apiKey);

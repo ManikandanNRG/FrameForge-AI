@@ -9,19 +9,18 @@ import type {
 } from "./types";
 
 export const OPENROUTER_TEXT_MODELS: ModelDescriptor[] = [
-  { id: "meta-llama/llama-3.3-70b-instruct:free", displayName: "Llama 3.3 70B [100% Free] ✓ (Flagship Open Weights)" },
-  { id: "google/gemini-2.0-flash-lite:free",       displayName: "Gemini 2.0 Flash Lite [100% Free] ✓ (Ultra Fast)" },
-  { id: "qwen/qwen-2.5-72b-instruct:free",        displayName: "Qwen 2.5 72B [100% Free] ✓" },
-  { id: "mistralai/mistral-small-24b-instruct-2501:free", displayName: "Mistral Small 24B [100% Free] ✓" },
-  { id: "deepseek/deepseek-r1:free",              displayName: "DeepSeek R1 [100% Free] ✓ (High Reasoning)" },
-  { id: "openai/gpt-4o-mini",                     displayName: "GPT-4o mini (Paid, optional)" },
-  { id: "deepseek/deepseek-chat",                 displayName: "DeepSeek V3 (Paid, optional)" },
+  { id: "openrouter/free", displayName: "OpenRouter Auto Free ✓ (Always-Available Free Router)" },
+  { id: "google/gemma-4-31b-it:free", displayName: "Gemma 4 31B [100% Free] ✓" },
+  { id: "google/gemma-4-26b-a4b-it:free", displayName: "Gemma 4 26B [100% Free] ✓" },
+  { id: "nvidia/nemotron-3.5-super-vl:free", displayName: "Nemotron 3.5 Super [100% Free] ✓" },
+  { id: "openai/gpt-4o-mini", displayName: "GPT-4o mini (Paid, optional)" },
+  { id: "deepseek/deepseek-chat", displayName: "DeepSeek V3 (Paid, optional)" },
 ];
 
-export const OPENROUTER_DEFAULT_MODEL = "meta-llama/llama-3.3-70b-instruct:free";
+export const OPENROUTER_DEFAULT_MODEL = "openrouter/free";
 
-const OPENROUTER_TIMEOUT_MS = 20_000;
-const OPENROUTER_TOTAL_BUDGET_MS = 35_000;
+const OPENROUTER_TIMEOUT_MS = 18_000;
+const OPENROUTER_TOTAL_BUDGET_MS = 32_000;
 
 function extractJsonText(raw: string): string {
   const withoutThink = raw.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
@@ -66,12 +65,11 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
   async generateStructured<S extends z.ZodType<any, any, any>>(
     input: StructuredTextInput<S>,
   ): Promise<GenerationResult<z.infer<S>>> {
-    // Prioritize fast non-thinking free models first so chat never stalls for minutes
     const candidateModels = [
       input.modelId,
-      "meta-llama/llama-3.3-70b-instruct:free",
-      "google/gemini-2.0-flash-lite:free",
-      "qwen/qwen-2.5-72b-instruct:free",
+      "openrouter/free",
+      "google/gemma-4-31b-it:free",
+      "google/gemma-4-26b-a4b-it:free",
     ].filter((v, i, a): v is string => Boolean(v) && a.indexOf(v) === i);
 
     let lastError: string | null = null;
@@ -83,6 +81,7 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
         break;
       }
 
+      let useJsonMode = true;
       for (let attempt = 0; attempt <= 1; attempt++) {
         const remaining = deadline - Date.now();
         if (remaining < 2000) break;
@@ -90,13 +89,13 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
         try {
           const repairNote =
             attempt > 0
-              ? `\n\nPrevious attempt produced invalid output: ${lastError}. Return valid JSON only.`
+              ? `\n\nPrevious attempt note: ${lastError}. Return ONLY valid JSON with no extra prose.`
               : "";
 
           const response = await this.client.chat.completions.create(
             {
               model: activeModelId,
-              response_format: { type: "json_object" },
+              ...(useJsonMode ? { response_format: { type: "json_object" } } : {}),
               messages: [
                 { role: "system", content: input.systemPrompt },
                 { role: "user", content: input.userPrompt + repairNote },
@@ -135,6 +134,11 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
           lastError = JSON.stringify((validated as any).error?.issues?.slice(0, 3));
         } catch (apiErr: any) {
           lastError = apiErr instanceof Error ? apiErr.message : String(apiErr);
+          if (useJsonMode && (lastError.includes("400") || lastError.includes("response_format"))) {
+            // Some free upstream models don't support response_format; retry once without it
+            useJsonMode = false;
+            continue;
+          }
           break; // Switch to next candidate model immediately
         }
       }
@@ -147,7 +151,7 @@ export class OpenRouterTextProvider implements TextGenerationProvider {
   }
 }
 
-/** Test an OpenRouter API key — tests fast free model first, falls back if zero balance. */
+/** Test an OpenRouter API key — uses openrouter/free first, falls back to free models. */
 export async function testOpenRouterKey(
   apiKey: string,
 ): Promise<{ ok: boolean; model: string; error?: string }> {
@@ -162,7 +166,7 @@ export async function testOpenRouterKey(
     },
   });
 
-  const testModels = ["meta-llama/llama-3.3-70b-instruct:free", "google/gemini-2.0-flash-lite:free", "openai/gpt-4o-mini"];
+  const testModels = ["openrouter/free", "google/gemma-4-31b-it:free", "openai/gpt-4o-mini"];
   let lastErr = "";
 
   for (const model of testModels) {
@@ -170,14 +174,19 @@ export async function testOpenRouterKey(
       const res = await client.chat.completions.create({
         model,
         messages: [{ role: "user", content: 'Reply with JSON: {"ok":true}' }],
-        response_format: { type: "json_object" },
-        max_tokens: 20,
+        max_tokens: 30,
       });
 
       return { ok: true, model: res.model || model };
     } catch (e: unknown) {
       lastErr = e instanceof Error ? e.message : String(e);
-      if (lastErr.includes("402") || lastErr.includes("credit") || lastErr.includes("balance")) {
+      if (
+        lastErr.includes("402") ||
+        lastErr.includes("404") ||
+        lastErr.includes("429") ||
+        lastErr.includes("credit") ||
+        lastErr.includes("balance")
+      ) {
         continue;
       }
       return { ok: false, model: "", error: lastErr };

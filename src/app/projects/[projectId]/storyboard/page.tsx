@@ -67,7 +67,7 @@ export default function StoryboardPage() {
   const [isDragging, setIsDragging]       = useState(false);
   const [genPortraitCharId, setGenPortraitCharId] = useState<string | null>(null);
   const [selectedHook, setSelectedHook]   = useState<"optionA" | "optionB" | null>("optionA");
-  const [hookFormatTab, setHookFormatTab] = useState<"flow" | "kling" | "flux">("flow");
+  const [hookFormatTab, setHookFormatTab] = useState<"flux" | "video" | "flow" | "kling">("video");
 
   async function generateModalCharacterPortrait(assetId: string) {
     setGenPortraitCharId(assetId);
@@ -600,7 +600,13 @@ export default function StoryboardPage() {
   }
 
   const allShots = scenes.flatMap(s => s.shots);
-  const launchKit = projectData ? generateSocialLaunchKit(projectData) : null;
+  const launchKit = projectData
+    ? generateSocialLaunchKit({
+        ...projectData,
+        productionAssets: projectData.productionAssets?.length ? projectData.productionAssets : bibleAssets,
+        scenes,
+      })
+    : null;
   const hookPrompts = launchKit?.hookPrompts;
   const approvedCount     = allShots.filter(s => s.approvalStatus === "APPROVED").length;
   const hasImages         = allShots.some(s => s.mediaVersions.some(m => m.kind === "STORYBOARD_STILL"));
@@ -1263,97 +1269,136 @@ export default function StoryboardPage() {
                 </div>
 
                 {/* Prompt Card */}
-                <div className="rounded-2xl border border-slate-200 bg-white shadow-xs p-6 space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
-                    <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-mono">
-                      <button
-                        type="button"
-                        onClick={() => setHookFormatTab("flow")}
-                        className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                          hookFormatTab === "flow" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        🎬 Google Flow (Veo)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setHookFormatTab("kling")}
-                        className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                          hookFormatTab === "kling" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        ⚡ Kling AI
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setHookFormatTab("flux")}
-                        className={`px-3 py-1.5 rounded-lg font-bold transition ${
-                          hookFormatTab === "flux" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
-                        }`}
-                      >
-                        🎨 FLUX.1 Still Frame
-                      </button>
-                    </div>
+                {(() => {
+                  const currentHook =
+                    selectedHook === "optionA"
+                      ? hookPrompts.optionA_cleaverSlam
+                      : hookPrompts.optionB_sizzleDrop;
+                  const activeHookText =
+                    hookFormatTab === "flux"
+                      ? currentHook.fluxStillPrompt
+                      : hookFormatTab === "video"
+                      ? currentHook.videoMotionPrompt
+                      : hookFormatTab === "flow"
+                      ? currentHook.googleFlowPrompt
+                      : currentHook.klingPrompt;
+                  const activeHookLabel =
+                    hookFormatTab === "flux"
+                      ? "1. Google Flow Image (Still Frame)"
+                      : hookFormatTab === "video"
+                      ? "2. Google Flow Video (I2V Motion)"
+                      : hookFormatTab === "flow"
+                      ? "3. Google Flow Direct (Veo)"
+                      : "Kling AI";
+                  return (
+                    <div className="rounded-2xl border border-slate-200 bg-white shadow-xs p-6 space-y-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+                        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-mono">
+                          <button
+                            type="button"
+                            onClick={() => setHookFormatTab("flux")}
+                            className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                              hookFormatTab === "flux" ? "bg-amber-500 text-slate-950 shadow-xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            🖼️ 1. Google Flow Image
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setHookFormatTab("video")}
+                            className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                              hookFormatTab === "video" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            🎬 2. Google Flow Video (I2V)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setHookFormatTab("flow")}
+                            className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                              hookFormatTab === "flow" ? "bg-purple-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            ⚡ 3. Google Flow Direct
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setHookFormatTab("kling")}
+                            className={`px-3 py-1.5 rounded-lg font-bold transition ${
+                              hookFormatTab === "kling" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+                            }`}
+                          >
+                            ⚡ Kling AI
+                          </button>
+                        </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const currentHook = selectedHook === "optionA" ? hookPrompts.optionA_cleaverSlam : hookPrompts.optionB_sizzleDrop;
-                        const text = hookFormatTab === "flow"
-                          ? currentHook.googleFlowPrompt
-                          : hookFormatTab === "kling"
-                          ? currentHook.klingPrompt
-                          : currentHook.fluxStillPrompt;
-                        copyPrompt(text, `hook-${selectedHook}-${hookFormatTab}`);
-                      }}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs transition"
-                    >
-                      {copied === `hook-${selectedHook}-${hookFormatTab}` ? (
-                        <>
-                          <Check className="h-4 w-4 text-emerald-950" />
-                          <span>Copied to Clipboard!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4" />
-                          <span>Copy {hookFormatTab === "flow" ? "Google Flow" : hookFormatTab === "kling" ? "Kling" : "FLUX.1"} Prompt</span>
-                        </>
+                        <button
+                          type="button"
+                          onClick={() => copyPrompt(activeHookText, `hook-${selectedHook}-${hookFormatTab}`)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs transition"
+                        >
+                          {copied === `hook-${selectedHook}-${hookFormatTab}` ? (
+                            <>
+                              <Check className="h-4 w-4 text-emerald-950" />
+                              <span>Copied to Clipboard!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-4 w-4" />
+                              <span>Copy {hookFormatTab === "flux" ? "Image" : hookFormatTab === "video" ? "I2V Motion" : hookFormatTab === "flow" ? "Direct" : "Kling"} Prompt</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {hookFormatTab === "video" && (
+                        <div className="flex items-center justify-between gap-2 p-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-xs text-blue-900">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                            <span className="text-[11px] font-medium leading-tight">
+                              <strong>Pre-Hook I2V Workflow:</strong> First generate your still using <strong>1. Google Flow Image</strong>, upload it as <strong>Start Frame</strong> in Google Flow / Kling / Runway, then paste this <strong>I2V Motion Prompt</strong>!
+                            </span>
+                          </div>
+                          <a
+                            href="https://aitestkitchen.withgoogle.com/tools/video-fx"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold shadow-xs transition"
+                          >
+                            <span>Open Google Flow ↗</span>
+                          </a>
+                        </div>
                       )}
-                    </button>
-                  </div>
 
-                  <div>
-                    <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-700 uppercase mb-2">
-                      <span>Ready-to-Run Video Prompt ({hookFormatTab === "flow" ? "Google Flow / Veo" : hookFormatTab === "kling" ? "Kling AI" : "FLUX.1 Still"}):</span>
-                      <span className="text-amber-700 font-extrabold">9:16 Vertical · 2X High Velocity Tempo</span>
-                    </div>
-                    <textarea
-                      readOnly
-                      rows={9}
-                      value={
-                        selectedHook === "optionA"
-                          ? (hookFormatTab === "flow"
-                              ? hookPrompts.optionA_cleaverSlam.googleFlowPrompt
-                              : hookFormatTab === "kling"
-                              ? hookPrompts.optionA_cleaverSlam.klingPrompt
-                              : hookPrompts.optionA_cleaverSlam.fluxStillPrompt)
-                          : (hookFormatTab === "flow"
-                              ? hookPrompts.optionB_sizzleDrop.googleFlowPrompt
-                              : hookFormatTab === "kling"
-                              ? hookPrompts.optionB_sizzleDrop.klingPrompt
-                              : hookPrompts.optionB_sizzleDrop.fluxStillPrompt)
-                      }
-                      className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-200 font-mono leading-relaxed select-all focus:outline-none shadow-inner"
-                    />
-                  </div>
+                      <div>
+                        <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-700 uppercase mb-2">
+                          <span>Ready-to-Run Prompt ({activeHookLabel}):</span>
+                          <span className="text-amber-700 font-extrabold">
+                            {projectData?.aspectRatio === "PORTRAIT_9_16"
+                              ? "9:16 Vertical"
+                              : projectData?.aspectRatio === "SQUARE_1_1"
+                              ? "1:1 Square"
+                              : "16:9 Widescreen"}{" "}
+                            · 2X High Velocity Tempo
+                          </span>
+                        </div>
+                        <textarea
+                          readOnly
+                          rows={10}
+                          value={activeHookText}
+                          className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-xs text-amber-200 font-mono leading-relaxed select-all focus:outline-none shadow-inner"
+                        />
+                      </div>
 
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
-                    <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="text-slate-900">How to use this in your video:</strong> Run this 3-second prompt in Google Flow or Kling, download the 3-second MP4 clip, and place it at the very beginning (0:00 - 0:03) of your video editor timeline before Scene 1. This grabs 100% viewer attention before they can swipe away!
+                      <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+                        <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="text-slate-900">How to use this in your video:</strong> Use <strong>1. Google Flow Image</strong> + <strong>2. Google Flow Video (I2V)</strong> (or <strong>3. Google Flow Direct</strong> / Kling) to generate the 3-second MP4 clip, and place it at 0:00 - 0:03 before Scene 1 on your timeline!
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-400 py-24">
